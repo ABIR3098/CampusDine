@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
+const { verifyToken } = require("../middleware/auth");
 
 const router = express.Router();
 const SIGNUP_BONUS = 250;
@@ -70,6 +71,62 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// GET /api/auth/me — the logged-in user's own profile
+router.get("/me", verifyToken, async (req, res) => {
+  const [rows] = await pool.query(
+    "SELECT id, name, external_id, role, wallet_balance FROM users WHERE id = ?",
+    [req.user.id]
+  );
+  if (rows.length === 0) return res.status(404).json({ error: "User not found" });
+  const u = rows[0];
+  res.json({ id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance });
+});
+
+// PUT /api/auth/me — update name and/or password
+// body: { name?, currentPassword?, newPassword? }
+router.put("/me", verifyToken, async (req, res) => {
+  try {
+    const { name, currentPassword, newPassword } = req.body;
+    const fields = [];
+    const values = [];
+
+    if (name && name.trim()) {
+      fields.push("name = ?");
+      values.push(name.trim());
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: "Enter your current password to set a new one" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "New password must be at least 6 characters" });
+      }
+      const [rows] = await pool.query("SELECT password_hash FROM users WHERE id = ?", [req.user.id]);
+      const ok = await bcrypt.compare(currentPassword, rows[0].password_hash);
+      if (!ok) return res.status(401).json({ error: "Current password is incorrect" });
+      const hash = await bcrypt.hash(newPassword, 10);
+      fields.push("password_hash = ?");
+      values.push(hash);
+    }
+
+    if (fields.length === 0) return res.status(400).json({ error: "Nothing to update" });
+
+    values.push(req.user.id);
+    await pool.query(`UPDATE users SET ${fields.join(", ")} WHERE id = ?`, values);
+
+    const [rows] = await pool.query(
+      "SELECT id, name, external_id, role, wallet_balance FROM users WHERE id = ?",
+      [req.user.id]
+    );
+    const u = rows[0];
+    res.json({ id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Profile update failed" });
   }
 });
 

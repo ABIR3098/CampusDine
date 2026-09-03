@@ -225,10 +225,10 @@ async function api(apiBase, path, { method = "GET", body, token } = {}) {
   return data;
 }
 
-/* ---------------- Small icon set ---------------- */
-const Icon = ({ path, className = "w-5 h-5" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-       strokeLinecap="round" strokeLinejoin="round" className={className}>
+/* ---------------- Small icon set (inline SVG, no deps) ---------------- */
+const Icon = ({ path, className = "w-5 h-5", fill = "none", style }) => (
+  <svg viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
     <path d={path} />
   </svg>
 );
@@ -250,22 +250,20 @@ const I = {
   user: "M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
   ticket: "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z",
   plug: "M9 7V2m6 5V2M6 7h12l-1 6a5 5 0 0 1-10 0L6 7Zm4 11v3h4v-3",
-  creditCard: "M1 4h22v16H1z M1 10h22",
-  mobilePay: "M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z",
-  history: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+  star: "M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5 6.1 20.6l1.3-6.6-4.9-4.6 6.6-.8L12 2.5Z",
 };
 
 /* ---------------- Helpers ---------------- */
 const taka = (n) => `৳${Number(n || 0).toLocaleString("en-BD")}`;
-function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
+function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); } // month is 1-12 here
 function monthLabel(ym) {
   const [y, m] = ym.split("-");
   return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
 }
 
-/* ---------------- Login Screen ---------------- */
+/* ---------------- Login / Register screen ---------------- */
 function Login({ apiBase, setApiBase, onAuth }) {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
   const [role, setRole] = useState(null);
   const [name, setName] = useState("");
   const [externalId, setExternalId] = useState("");
@@ -347,11 +345,13 @@ function Login({ apiBase, setApiBase, onAuth }) {
 
   return (
     <div className="min-h-screen">
+      {/* Announcement bar */}
       <div className="text-center py-2 px-4 text-xs tracking-widest uppercase font-display"
         style={{ background: "linear-gradient(90deg, var(--teal-deep), var(--teal), var(--teal-deep))", color: "var(--gold-bright)", borderBottom: "1px solid var(--line)" }}>
         ✨ A Premium Campus Dining Experience — Welcome To CampusDine ✨
       </div>
 
+      {/* Sticky nav */}
       <header className="sticky top-0 z-30 backdrop-blur" style={{ background: "rgba(6,8,14,0.85)", borderBottom: "1px solid var(--line)" }}>
         <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -364,25 +364,27 @@ function Login({ apiBase, setApiBase, onAuth }) {
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-widest font-display" style={{ color: "var(--ink-soft)" }}>
-            <a href="#menu" style={{ color: "inherit" }}>Menu</a>
-            <a href="#about" style={{ color: "inherit" }}>Our Story</a>
-            <a href="#contact" style={{ color: "inherit" }}>Contact</a>
+            <a href="#menu" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Menu</a>
+            <a href="#about" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Our Story</a>
+            <a href="#contact" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Contact</a>
           </nav>
           <button onClick={scrollToAuth} className="btn-primary px-5 py-2 rounded-lg text-xs">Sign In</button>
         </div>
       </header>
 
+      {/* Hero */}
       <section className="relative py-24 px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(58,11,18,0.4), transparent)" }}></div>
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full text-xs font-display uppercase tracking-[0.25em]" style={{ border: "1px solid var(--line)", color: "var(--gold)" }}>
             Est. 2026 — Fine Campus Culinary
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl font-800 leading-tight">
+          <h1 className="font-display text-4xl sm:text-5xl font-800 leading-tight" style={{ color: "var(--ink)" }}>
             Order Ahead. Skip The Line.<br /><span className="gold-text italic">Dine Like Royalty.</span>
           </h1>
           <p className="max-w-xl mx-auto text-[15px] leading-relaxed" style={{ color: "var(--ink-soft)" }}>
             Enjoy hassle-free food ordering, automatic subscription billing, and a cashless wallet —
-            all on one platform.
+            all on one platform, even during the busiest hours of campus life.
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <button onClick={scrollToAuth} className="btn-primary px-8 py-3 rounded-lg">Get Started</button>
@@ -391,6 +393,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
         </div>
       </section>
 
+      {/* Features banner */}
       <section className="border-y py-10" style={{ borderColor: "var(--line)", background: "rgba(212,175,55,0.03)" }}>
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {features.map(f => (
@@ -402,10 +405,11 @@ function Login({ apiBase, setApiBase, onAuth }) {
         </div>
       </section>
 
+      {/* Menu preview */}
       <section id="menu" className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-12 space-y-3">
           <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Crafted With Care</p>
-          <h2 className="font-display text-3xl font-800">A Taste of Our Menu</h2>
+          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>A Taste of Our Menu</h2>
           <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -415,7 +419,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
                 <img src={item.img} alt={item.name} className="w-full h-full object-cover" style={{ opacity: 0.88 }} />
               </div>
               <div className="p-4">
-                <div className="font-display font-700 text-sm">{item.name}</div>
+                <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{item.name}</div>
                 <div className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>{item.tag}</div>
                 <div className="font-mono text-sm" style={{ color: "var(--gold)" }}>{item.price}</div>
               </div>
@@ -423,28 +427,33 @@ function Login({ apiBase, setApiBase, onAuth }) {
           ))}
           <div className="card flex flex-col items-center justify-center text-center p-6 gap-3">
             <Icon path={I.menu} className="w-7 h-7" style={{ color: "var(--gold)" }} />
-            <div className="font-display font-700 text-sm">More on the full menu</div>
+            <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>More on the full menu</div>
             <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Log in to see live prices, stock &amp; order instantly.</p>
           </div>
         </div>
       </section>
 
+      {/* About */}
       <section id="about" className="border-t py-20 px-6" style={{ borderColor: "var(--line)", background: "rgba(58,11,18,0.15)" }}>
         <div className="max-w-2xl mx-auto text-center space-y-5">
           <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Our Story</p>
-          <h2 className="font-display text-3xl font-800">Why CampusDine</h2>
+          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>Why CampusDine</h2>
           <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
           <p className="leading-relaxed text-[15px]" style={{ color: "var(--ink-soft)" }}>
-            Long canteen queues and paper tokens are a thing of the past. CampusDine brings a digital-first solution to campus dining.
+            Long canteen queues, paper tokens, and hand-calculated subscription bills — CampusDine exists to
+            remove exactly these frustrations. With digital tokens, real-time order tracking, automatic
+            billing, and a cashless wallet, we've built a refined, hassle-free dining experience built
+            around campus life.
           </p>
         </div>
       </section>
 
+      {/* Auth */}
       <section ref={authRef} className="py-20 px-6">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8 space-y-2">
             <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Members Only</p>
-            <h2 className="font-display text-2xl font-800">Sign In To CampusDine</h2>
+            <h2 className="font-display text-2xl font-800" style={{ color: "var(--ink)" }}>Sign In To CampusDine</h2>
           </div>
 
           <div className="card p-8 fade-in">
@@ -458,7 +467,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
                       <Icon path={r.icon} className="w-5 h-5" style={{ color: "var(--teal-deep)" }} />
                     </div>
                     <div>
-                      <div className="font-display font-700 text-sm">{r.label}</div>
+                      <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{r.label}</div>
                       <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{r.desc}</div>
                     </div>
                   </button>
@@ -546,8 +555,28 @@ function Login({ apiBase, setApiBase, onAuth }) {
         </div>
       </section>
 
+      {/* Footer */}
       <footer id="contact" className="border-t pt-14 pb-8 px-6" style={{ borderColor: "var(--line)" }}>
-        <p className="text-center text-[11px] uppercase tracking-widest" style={{ color: "var(--ink-soft)" }}>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b" style={{ borderColor: "var(--line)" }}>
+          <div>
+            <h3 className="font-display gold-text text-xl font-800 mb-3">CampusDine</h3>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+              The campus's own smart dining platform — a perfect blend of great food, fast service,
+              and a refined atmosphere.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest mb-3" style={{ color: "var(--gold)" }}>Opening Hours</h4>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>Sun – Thu: 9:00 AM – 8:00 PM</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Fri – Sat: 12:00 PM – 9:00 PM</p>
+          </div>
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest mb-3" style={{ color: "var(--gold)" }}>Location</h4>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>Campus Central Canteen, Main Building</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Helpline: +880 1XXX-XXXXXX</p>
+          </div>
+        </div>
+        <p className="text-center text-[11px] uppercase tracking-widest pt-8" style={{ color: "var(--ink-soft)" }}>
           &copy; 2026 CampusDine — CSE 3208 Software Development Project I
         </p>
       </footer>
@@ -555,7 +584,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
   );
 }
 
-/* ---------------- Top Bar ---------------- */
+/* ---------------- Top bar ---------------- */
 function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
   return (
     <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "rgba(6,8,14,0.85)", borderBottom: "1px solid var(--line)" }}>
@@ -590,7 +619,7 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
   );
 }
 
-/* ---------------- Menu & Order Tab ---------------- */
+/* ---------------- Menu & Order tab ---------------- */
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
   const [cat, setCat] = useState("heavy");
   const filtered = menu.filter(i => i.category === cat);
@@ -708,8 +737,51 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
   );
 }
 
-/* ---------------- Track Order Tab ---------------- */
-function TrackOrder({ orders }) {
+/* ---------------- Track order tab ---------------- */
+function StarPicker({ value, onChange, size = "w-6 h-6" }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(n => (
+        <button key={n} type="button" onClick={() => onChange(n)} className="transition-transform hover:scale-110">
+          <Icon path={I.star} className={size} style={{ color: n <= value ? "var(--gold)" : "var(--line)" }}
+            fill={n <= value ? "var(--gold)" : "none"} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function OrderFeedback({ order, onSubmit, busy }) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+
+  if (order.feedback) {
+    return (
+      <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+        <div className="flex items-center gap-2 mb-1">
+          <StarPicker value={order.feedback.rating} onChange={() => {}} size="w-4 h-4" />
+          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>You rated this order</span>
+        </div>
+        {order.feedback.comment && <p className="text-xs italic" style={{ color: "var(--ink-soft)" }}>"{order.feedback.comment}"</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>Rate this order</div>
+      <StarPicker value={rating} onChange={setRating} />
+      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Leave a comment (optional)"
+        rows="2" className="w-full mt-2 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <button disabled={busy || rating === 0} onClick={() => onSubmit(order.id, rating, comment)}
+        className="btn-primary mt-2 px-4 py-1.5 rounded-lg text-xs">
+        {busy ? "Submitting…" : "Submit Feedback"}
+      </button>
+    </div>
+  );
+}
+
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy }) {
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>No orders yet — place one from the Menu &amp; Order tab.</div>;
   }
@@ -744,6 +816,9 @@ function TrackOrder({ orders }) {
               <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
                 {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
               </div>
+              {o.status === "Ready" && (
+                <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
+              )}
             </div>
           </div>
         );
@@ -752,7 +827,7 @@ function TrackOrder({ orders }) {
   );
 }
 
-/* ---------------- Meal Calendar Tab ---------------- */
+/* ---------------- Meal calendar tab ---------------- */
 function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
   const total = daysInMonth(year, month);
   const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
@@ -805,227 +880,61 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
   );
 }
 
-/* ---------------- CLASSIC WALLET TAB (UPDATED) ---------------- */
+/* ---------------- Wallet tab ---------------- */
 function WalletTab({ balance, topUp, transactions, busy }) {
   const [amount, setAmount] = useState(100);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
-  const [selectedGateway, setSelectedGateway] = useState(null); // 'mfs' | 'card'
-  const [mfsProvider, setMfsProvider] = useState("bkash");
-  const [showHistory, setShowHistory] = useState(false);
-  const [processing, setProcessing] = useState(false);
-
-  const handleInitiateTopUp = () => {
-    if (amount <= 0) return;
-    setShowConfirm(true);
-  };
-
-  const confirmTopUp = () => {
-    setShowConfirm(false);
-    setShowPaymentGateway(true);
-  };
-
-  const executePayment = async () => {
-    setProcessing(true);
-    setTimeout(async () => {
-      await topUp(amount);
-      setProcessing(false);
-      setShowPaymentGateway(false);
-      setSelectedGateway(null);
-    }, 1200);
-  };
-
   return (
-    <div className="max-w-4xl mx-auto space-y-6 fade-in">
-      {/* Balance Card & Action Panel */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="ticket p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-xs uppercase tracking-widest font-display" style={{ color: "var(--gold-bright)" }}>Campus Pass Wallet</span>
-              <Icon path={I.wallet} className="w-6 h-6" style={{ color: "var(--gold)" }} />
-            </div>
-            <div className="perf pl-4 my-4">
-              <div className="text-xs text-amber-200/70 uppercase">Available Balance</div>
-              <div className="font-mono text-4xl font-700 mt-1 gold-text">{taka(balance)}</div>
-            </div>
-          </div>
-          <div className="flex justify-between items-center pt-4 border-t border-amber-500/20 text-xs text-amber-100/60">
-            <span>Status: Active</span>
-            <button onClick={() => setShowHistory(s => !s)} 
-              className="flex items-center gap-1.5 hover:text-amber-300 transition-colors font-display font-600">
-              <Icon path={I.history} className="w-4 h-4" />
-              {showHistory ? "Hide History" : "View History"}
-            </button>
+    <div className="grid lg:grid-cols-3 gap-6 max-w-3xl">
+      <div className="lg:col-span-1">
+        <div className="ticket p-6 mb-5">
+          <div className="perf pl-4">
+            <div className="text-xs opacity-70">Wallet balance</div>
+            <div className="font-mono text-3xl font-700 mt-1">{taka(balance)}</div>
           </div>
         </div>
-
-        <div className="card p-6 flex flex-col justify-between">
-          <div>
-            <div className="font-display font-700 text-base mb-4 flex items-center gap-2" style={{ color: "var(--gold)" }}>
-              <Icon path={I.plus} className="w-5 h-5" /> Recharge Account
-            </div>
-            <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>Select Amount</label>
-            <div className="flex gap-2 mb-4">
-              {[100, 300, 500, 1000].map(v => (
-                <button key={v} onClick={() => setAmount(v)}
-                  className={`flex-1 py-2 rounded-lg border text-sm font-mono transition-all ${amount === v ? "shadow-lg" : ""}`}
-                  style={amount === v ? { background: "linear-gradient(135deg, var(--gold), var(--gold-deep))", borderColor: "var(--gold)", color: "var(--teal-deep)", fontWeight: 700 } : { borderColor: "var(--line)", color: "var(--ink-soft)" }}>
-                  ৳{v}
-                </button>
-              ))}
-            </div>
-            <div className="relative mb-4">
-              <span className="absolute left-3 top-2.5 font-mono text-sm" style={{ color: "var(--ink-soft)" }}>৳</span>
-              <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))}
-                className="w-full pl-8 pr-3 py-2 rounded-lg border font-mono text-base" style={{ borderColor: "var(--line)" }} placeholder="Custom amount" />
-            </div>
+        <div className="card p-5">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Top up</div>
+          <div className="flex gap-2 mb-3">
+            {[100, 300, 500].map(v => (
+              <button key={v} onClick={() => setAmount(v)}
+                className={`flex-1 py-2 rounded-lg border text-sm font-mono ${amount === v ? "text-white" : ""}`}
+                style={amount === v ? { background: "var(--gold)", borderColor: "var(--gold)", color: "var(--teal-deep)" } : { borderColor: "var(--line)" }}>
+                {taka(v)}
+              </button>
+            ))}
           </div>
-          <button disabled={busy || amount <= 0} onClick={handleInitiateTopUp} className="btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2">
-            Proceed to Top Up
+          <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))}
+            className="w-full px-3 py-2 rounded-lg border mb-3 font-mono" style={{ borderColor: "var(--line)" }} />
+          <button disabled={busy} onClick={() => amount > 0 && topUp(amount)} className="btn-gold w-full py-2.5 rounded-xl">
+            {busy ? "Adding…" : "Add money"}
           </button>
         </div>
       </div>
-
-      {/* Collapsible Transaction History Side Panel / Section */}
-      {showHistory && (
-        <div className="card p-6 fade-in">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-display font-700 text-lg flex items-center gap-2" style={{ color: "var(--gold)" }}>
-              <Icon path={I.history} className="w-5 h-5" /> Transaction History
-            </h3>
-            <button onClick={() => setShowHistory(false)} className="text-xs text-gray-400 hover:text-white">✕ Close</button>
-          </div>
-          {transactions.length === 0 ? (
-            <p className="text-sm text-center py-6" style={{ color: "var(--ink-soft)" }}>No transactions recorded yet.</p>
-          ) : (
-            <div className="divide-y divide-amber-500/10">
-              {transactions.map((t, i) => (
-                <div key={i} className="flex justify-between items-center py-3 text-sm">
-                  <div>
-                    <div className="font-500">{t.label}</div>
-                    <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{t.time}</div>
-                  </div>
-                  <span className="font-mono font-700" style={{ color: t.amount > 0 ? "var(--leaf)" : "var(--brick)" }}>
-                    {t.amount > 0 ? "+" : ""}{taka(t.amount)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* STEP 1: Confirmation Modal Prompt */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 fade-in">
-          <div className="card max-w-sm w-full p-6 text-center space-y-4 border-amber-500/40 shadow-2xl">
-            <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 grid place-items-center mx-auto border border-amber-500/30">
-              <Icon path={I.wallet} className="w-6 h-6" />
-            </div>
-            <h3 className="font-display text-xl font-700">Confirm Top-Up</h3>
-            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-              Are you sure you want to add <span className="font-mono font-700 text-amber-300">{taka(amount)}</span> to your CampusDine Wallet?
-            </p>
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowConfirm(false)} className="btn-gold flex-1 py-2.5 rounded-xl text-xs">
-                Cancel
-              </button>
-              <button onClick={confirmTopUp} className="btn-primary flex-1 py-2.5 rounded-xl text-xs">
-                Yes, Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 2: Payment Gateway Selection Modal */}
-      {showPaymentGateway && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 fade-in">
-          <div className="card max-w-md w-full p-6 relative border-amber-500/40 shadow-2xl">
-            <button onClick={() => { setShowPaymentGateway(false); setSelectedGateway(null); }} className="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
-            
-            <div className="text-center mb-6">
-              <span className="text-[10px] font-display uppercase tracking-widest text-amber-400">CampusDine Secure Gateway</span>
-              <h3 className="font-display text-xl font-800 gold-text">Select Payment Method</h3>
-              <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Total Amount to Pay: <span className="font-mono text-white font-700">{taka(amount)}</span></p>
-            </div>
-
-            {!selectedGateway ? (
-              <div className="space-y-3">
-                <button onClick={() => setSelectedGateway("mfs")} className="w-full card p-4 flex items-center gap-4 hover:border-amber-400 text-left transition-all">
-                  <div className="w-10 h-10 rounded-lg bg-pink-950/40 border border-pink-500/30 grid place-items-center text-pink-400 shrink-0">
-                    <Icon path={I.mobilePay} className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-display font-700 text-sm">Mobile Banking (MFS)</div>
-                    <div className="text-xs text-gray-400">bKash, Nagad, Rocket</div>
-                  </div>
-                </button>
-
-                <button onClick={() => setSelectedGateway("card")} className="w-full card p-4 flex items-center gap-4 hover:border-amber-400 text-left transition-all">
-                  <div className="w-10 h-10 rounded-lg bg-blue-950/40 border border-blue-500/30 grid place-items-center text-blue-400 shrink-0">
-                    <Icon path={I.creditCard} className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-display font-700 text-sm">Debit / Credit Card</div>
-                    <div className="text-xs text-gray-400">Visa, Mastercard, AMEX</div>
-                  </div>
-                </button>
-              </div>
-            ) : selectedGateway === "mfs" ? (
-              <div className="space-y-4 fade-in">
-                <button onClick={() => setSelectedGateway(null)} className="text-xs text-gray-400 flex items-center gap-1">← Change Payment Method</button>
-                <div className="flex gap-2">
-                  {["bkash", "nagad", "rocket"].map(p => (
-                    <button key={p} onClick={() => setMfsProvider(p)} 
-                      className={`flex-1 py-2 rounded-lg border capitalize text-xs font-700 transition-all ${mfsProvider === p ? "border-amber-400 bg-amber-400/10 text-amber-300" : "border-gray-800 text-gray-400"}`}>
-                      {p}
-                    </button>
-                  ))}
-                </div>
+      <div className="lg:col-span-2 card p-5">
+        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Transaction history</div>
+        {transactions.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No transactions yet.</p>
+        ) : (
+          <div className="space-y-1">
+            {transactions.map((t, i) => (
+              <div key={i} className="flex justify-between items-center py-2.5 text-sm" style={{ borderBottom: "1px solid var(--line)" }}>
                 <div>
-                  <label className="text-[11px] uppercase tracking-wide text-gray-400 block mb-1">Account Number</label>
-                  <input placeholder="017XXXXXXXX" className="w-full px-3 py-2 rounded-lg border border-gray-700 font-mono text-sm" />
+                  <div className="font-500">{t.label}</div>
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{t.time}</div>
                 </div>
-                <div>
-                  <label className="text-[11px] uppercase tracking-wide text-gray-400 block mb-1">PIN</label>
-                  <input type="password" placeholder="••••" className="w-full px-3 py-2 rounded-lg border border-gray-700 font-mono text-sm" />
-                </div>
-                <button disabled={processing} onClick={executePayment} className="btn-primary w-full py-3 rounded-xl mt-2">
-                  {processing ? "Processing Payment…" : `Pay ${taka(amount)} via ${mfsProvider.toUpperCase()}`}
-                </button>
+                <span className="font-mono font-600" style={{ color: t.amount > 0 ? "var(--leaf)" : "var(--brick)" }}>
+                  {t.amount > 0 ? "+" : ""}{taka(t.amount)}
+                </span>
               </div>
-            ) : (
-              <div className="space-y-3 fade-in">
-                <button onClick={() => setSelectedGateway(null)} className="text-xs text-gray-400 flex items-center gap-1">← Change Payment Method</button>
-                <div>
-                  <label className="text-[11px] uppercase tracking-wide text-gray-400 block mb-1">Card Number</label>
-                  <input placeholder="4000 1234 5678 9010" className="w-full px-3 py-2 rounded-lg border border-gray-700 font-mono text-sm" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] uppercase tracking-wide text-gray-400 block mb-1">Expiry Date</label>
-                    <input placeholder="MM/YY" className="w-full px-3 py-2 rounded-lg border border-gray-700 font-mono text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] uppercase tracking-wide text-gray-400 block mb-1">CVV</label>
-                    <input type="password" placeholder="123" className="w-full px-3 py-2 rounded-lg border border-gray-700 font-mono text-sm" />
-                  </div>
-                </div>
-                <button disabled={processing} onClick={executePayment} className="btn-primary w-full py-3 rounded-xl mt-2">
-                  {processing ? "Authorizing Card…" : `Pay ${taka(amount)} Now`}
-                </button>
-              </div>
-            )}
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
-/* ---------------- Admin Overview ---------------- */
+/* ---------------- Admin: Overview ---------------- */
 function AdminOverview({ overview, orders }) {
   const lowStock = overview.lowStock || [];
   const Stat = ({ label, value, icon }) => (
@@ -1073,7 +982,7 @@ function AdminOverview({ overview, orders }) {
   );
 }
 
-/* ---------------- Admin Menu Management ---------------- */
+/* ---------------- Admin: Menu management ---------------- */
 function AdminMenu({ menu, updateItem, addItem, busy }) {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", bn: "", category: "heavy", price: "", stock: "" });
@@ -1140,11 +1049,12 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
           </tbody>
         </table>
       </div>
+      <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>Edit a price or stock number and click outside the box to save.</p>
     </div>
   );
 }
 
-/* ---------------- Admin Orders Queue ---------------- */
+/* ---------------- Admin: Orders queue ---------------- */
 function AdminOrders({ orders, advance }) {
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div>;
@@ -1179,7 +1089,7 @@ function AdminOrders({ orders, advance }) {
   );
 }
 
-/* ---------------- Admin Reports ---------------- */
+/* ---------------- Admin: Reports ---------------- */
 function AdminReports({ trend, forecast }) {
   const max = Math.max(1, ...trend.map(r => r.revenue));
   return (
@@ -1209,12 +1119,55 @@ function AdminReports({ trend, forecast }) {
             <div className="font-mono text-3xl font-700">{forecast.predictedMealCount ?? 0}</div>
           </div>
         </div>
+        <p className="text-xs mt-4" style={{ color: "var(--ink-soft)" }}>Use this to plan how much khichuri and tehari to prepare.</p>
       </div>
     </div>
   );
 }
 
-/* ---------------- Profile Tab ---------------- */
+/* ---------------- Admin: Feedback ---------------- */
+function AdminFeedback({ summary }) {
+  const { average = 0, count = 0, entries = [] } = summary;
+  return (
+    <div>
+      <div className="card p-6 mb-6 flex items-center gap-6 flex-wrap">
+        <div>
+          <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Average Rating</div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-3xl font-700" style={{ color: "var(--gold)" }}>{average.toFixed(1)}</span>
+            <StarPicker value={Math.round(average)} onChange={() => {}} size="w-5 h-5" />
+          </div>
+        </div>
+        <div className="border-l pl-6" style={{ borderColor: "var(--line)" }}>
+          <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Total Reviews</div>
+          <div className="font-mono text-3xl font-700" style={{ color: "var(--ink)" }}>{count}</div>
+        </div>
+      </div>
+
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Recent Feedback</div>
+      {entries.length === 0 ? (
+        <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>No feedback submitted yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {entries.map((e, i) => (
+            <div key={i} className="card p-4">
+              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                <div className="flex items-center gap-3">
+                  <StarPicker value={e.rating} onChange={() => {}} size="w-4 h-4" />
+                  <span className="font-mono text-xs" style={{ color: "var(--ink-soft)" }}>{e.token}</span>
+                </div>
+                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.userName} · {e.userRole}</span>
+              </div>
+              {e.comment && <p className="text-sm mt-1" style={{ color: "var(--ink)" }}>"{e.comment}"</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Profile tab (all roles) ---------------- */
 function ProfileTab({ user, call, onUpdated }) {
   const [name, setName] = useState(user.name);
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
@@ -1303,10 +1256,10 @@ function ProfileTab({ user, call, onUpdated }) {
   );
 }
 
-/* ---------------- App Root ---------------- */
+/* ---------------- App root ---------------- */
 function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
   const [tab, setTab] = useState("menu");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -1321,6 +1274,8 @@ function App() {
   const [overview, setOverview] = useState({});
   const [trend, setTrend] = useState([]);
   const [forecast, setForecast] = useState({});
+  const [feedbackSummary, setFeedbackSummary] = useState({ average: 0, count: 0, entries: [] });
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
 
   const now = new Date();
   const year = now.getFullYear();
@@ -1355,6 +1310,7 @@ function App() {
     setTrend(await call("/api/admin/reports/revenue-trend"));
     setForecast(await call("/api/admin/reports/forecast"));
   };
+  const refreshFeedback = async () => setFeedbackSummary(await call("/api/admin/feedback"));
 
   const onAuth = (token, user) => {
     setSession({ token, user });
@@ -1365,12 +1321,13 @@ function App() {
     setSession(null); setCart([]); setError(null);
   };
 
+  // Initial data load after login
   useEffect(() => {
     if (!session) return;
     (async () => {
       try {
         if (session.user.role === "admin") {
-          await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports()]);
+          await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshFeedback()]);
         } else {
           await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet(), refreshCalendar()]);
         }
@@ -1378,6 +1335,7 @@ function App() {
     })();
   }, [session]);
 
+  // Live updates via Socket.io
   useEffect(() => {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
@@ -1408,6 +1366,14 @@ function App() {
       await call(`/api/orders/${id}/advance`, { method: "PATCH" });
       await refreshAdminOrders();
     } catch (e) { showError(e); }
+  };
+
+  const submitFeedback = async (orderId, rating, comment) => {
+    setFeedbackBusy(true); setError(null);
+    try {
+      await call(`/api/orders/${orderId}/feedback`, { method: "POST", body: { rating, comment } });
+      await refreshMyOrders();
+    } catch (e) { showError(e); } finally { setFeedbackBusy(false); }
   };
 
   const topUp = async (amount) => {
@@ -1453,6 +1419,7 @@ function App() {
     { key: "adminMenu", label: "Menu", icon: I.box },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "reports", label: "Reports", icon: I.chart },
+    { key: "feedback", label: "Feedback", icon: I.star },
     { key: "profile", label: "My Profile", icon: I.user },
   ];
 
@@ -1472,7 +1439,9 @@ function App() {
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy} />
         )}
-        {session.user.role !== "admin" && tab === "track" && <TrackOrder orders={orders} />}
+        {session.user.role !== "admin" && tab === "track" && (
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} />
+        )}
         {session.user.role !== "admin" && tab === "calendar" && (
           <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay} />
         )}
@@ -1486,6 +1455,7 @@ function App() {
         )}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={orders} advance={advanceOrder} />}
         {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} />}
+        {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
 
         {tab === "profile" && (
           <ProfileTab user={session.user} call={call}

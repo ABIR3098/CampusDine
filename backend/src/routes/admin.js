@@ -59,4 +59,20 @@ router.get("/reports/forecast", async (req, res) => {
   res.json({ predictedMealCount: predicted });
 });
 
+// GET /api/admin/feedback — average rating + recent customer feedback
+router.get("/feedback", async (req, res) => {
+  const [[stats]] = await pool.query(
+    "SELECT COALESCE(AVG(rating), 0) AS average, COUNT(*) AS count FROM order_feedback"
+  );
+  const [entries] = await pool.query(`
+    SELECT f.rating, f.comment, f.created_at, o.token, u.name AS userName, u.role AS userRole
+    FROM order_feedback f
+    JOIN orders o ON o.id = f.order_id
+    JOIN users u ON u.id = f.user_id
+    ORDER BY f.id DESC
+    LIMIT 50
+  `);
+  res.json({ average: Number(stats.average), count: stats.count, entries });
+});
+
 module.exports = router;

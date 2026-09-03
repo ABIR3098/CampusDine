@@ -18,6 +18,19 @@ async function attachItems(orders) {
   }));
 }
 
+async function attachFeedback(orders) {
+  if (orders.length === 0) return orders;
+  const ids = orders.map((o) => o.id);
+  const [rows] = await pool.query(
+    `SELECT order_id, rating, comment FROM order_feedback WHERE order_id IN (${ids.map(() => "?").join(",")})`,
+    ids
+  );
+  return orders.map((o) => {
+    const f = rows.find((r) => r.order_id === o.id);
+    return { ...o, feedback: f ? { rating: f.rating, comment: f.comment } : null };
+  });
+}
+
 // POST /api/orders  (student/teacher) — place an order
 // body: { items: [{ id, qty }], paymentMethod: 'wallet' | 'cash' }
 router.post("/", verifyToken, requireRole("student", "teacher"), async (req, res) => {
@@ -98,13 +111,13 @@ router.post("/", verifyToken, requireRole("student", "teacher"), async (req, res
 // GET /api/orders/mine  (student/teacher) — my order history
 router.get("/mine", verifyToken, requireRole("student", "teacher"), async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
-  res.json(await attachItems(orders));
+  res.json(await attachFeedback(await attachItems(orders)));
 });
 
 // GET /api/orders  (admin) — live queue
 router.get("/", verifyToken, requireRole("admin"), async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders ORDER BY id DESC LIMIT 100");
-  res.json(await attachItems(orders));
+  res.json(await attachFeedback(await attachItems(orders)));
 });
 
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
@@ -122,6 +135,29 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), async (req, res)
   io.to(`user:${order.user_id}`).emit("order:update", updated);
 
   res.json(updated);
+});
+
+// POST /api/orders/:id/feedback  (student/teacher) — rate a completed order
+// body: { rating: 1-5, comment? }
+router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), async (req, res) => {
+  const { rating, comment } = req.body;
+  const r = Number(rating);
+  if (!Number.isInteger(r) || r < 1 || r > 5) {
+    return res.status(400).json({ error: "rating must be an integer from 1 to 5" });
+  }
+
+  const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  if (order.user_id !== req.user.id) return res.status(403).json({ error: "This isn't your order" });
+  if (order.status !== "Ready") return res.status(400).json({ error: "You can only rate an order once it's Ready" });
+
+  await pool.query(
+    `INSERT INTO order_feedback (order_id, user_id, rating, comment) VALUES (?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment)`,
+    [order.id, req.user.id, r, comment || null]
+  );
+
+  res.json({ orderId: order.id, rating: r, comment: comment || null });
 });
 
 module.exports = router;
