@@ -251,6 +251,11 @@ const I = {
   ticket: "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z",
   plug: "M9 7V2m6 5V2M6 7h12l-1 6a5 5 0 0 1-10 0L6 7Zm4 11v3h4v-3",
   star: "M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5 6.1 20.6l1.3-6.6-4.9-4.6 6.6-.8L12 2.5Z",
+  chevronLeft: "M15 18l-6-6 6-6",
+  chevronRight: "M9 18l6-6-6-6",
+  lock: "M12 15.5v2M7 10.5V7.5a5 5 0 0 1 10 0v3M5.5 10.5h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z",
+  shield: "M12 2 4 5v6c0 5 3.4 8.5 8 9 4.6-.5 8-4 8-9V5l-8-3Zm-2 9.2 1.6 1.6L15.5 9",
+  x: "M18 6 6 18M6 6l12 12",
 };
 
 /* ---------------- Helpers ---------------- */
@@ -828,7 +833,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy }) {
 }
 
 /* ---------------- Meal calendar tab ---------------- */
-function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
+function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth, onNextMonth, onJumpToday, isCurrentMonth }) {
   const total = daysInMonth(year, month);
   const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
   const firstWeekday = new Date(year, month - 1, 1).getDay();
@@ -836,8 +841,26 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{monthName} {year}</div>
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button onClick={onPrevMonth} aria-label="Previous month"
+                    className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
+                    style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+              <Icon path={I.chevronLeft} className="w-4 h-4" />
+            </button>
+            <div className="font-display font-700 text-lg min-w-[150px] text-center" style={{ color: "var(--gold)" }}>{monthName} {year}</div>
+            <button onClick={onNextMonth} aria-label="Next month"
+                    className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
+                    style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+              <Icon path={I.chevronRight} className="w-4 h-4" />
+            </button>
+            {!isCurrentMonth && (
+              <button onClick={onJumpToday} className="text-[11px] font-600 rounded-lg px-2 py-1 ml-1 border transition-colors"
+                      style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+                Today
+              </button>
+            )}
+          </div>
           <div className="text-xs" style={{ color: "var(--ink-soft)" }}>Tap a day to cycle: Off → Full → Half</div>
         </div>
         <div className="grid grid-cols-7 gap-2 mb-2 text-xs text-center font-600" style={{ color: "var(--ink-soft)" }}>
@@ -880,11 +903,202 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
   );
 }
 
+/* ---------------- Payment Gateway Modal (simulated, no real processor) ---------------- */
+function PaymentGatewayModal({ amount, onClose, onConfirm }) {
+  const [method, setMethod] = useState("card");
+  const [stage, setStage] = useState("form"); // form | processing | success | error
+  const [errors, setErrors] = useState({});
+  const [card, setCard] = useState({ number: "", name: "", expiry: "", cvv: "" });
+  const [mobile, setMobile] = useState({ number: "", pin: "" });
+
+  const formatCardNumber = (v) => v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+  const formatExpiry = (v) => {
+    const d = v.replace(/\D/g, "").slice(0, 4);
+    return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+  };
+  const brand = card.number.startsWith("4") ? "VISA" : card.number.replace(/\s/g, "").match(/^5[1-5]/) ? "Mastercard" : null;
+
+  const validate = () => {
+    const e = {};
+    if (method === "card") {
+      if (card.number.replace(/\s/g, "").length !== 16) e.number = "Enter a 16-digit card number";
+      if (!card.name.trim()) e.name = "Cardholder name is required";
+      if (!/^\d{2}\/\d{2}$/.test(card.expiry)) e.expiry = "Use MM/YY format";
+      if (card.cvv.length < 3) e.cvv = "3-digit CVV required";
+    } else {
+      if (!/^01\d{9}$/.test(mobile.number)) e.number = "Enter a valid number (01XXXXXXXXX)";
+      if (mobile.pin.length < 4) e.pin = "Enter a valid PIN";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handlePay = () => {
+    if (!validate()) return;
+    setStage("processing");
+    setTimeout(async () => {
+      try {
+        await onConfirm();
+        setStage("success");
+        setTimeout(onClose, 1300);
+      } catch (err) {
+        setStage("error");
+      }
+    }, 1400);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(6,8,14,0.82)", backdropFilter: "blur(3px)" }}>
+      <div className="w-full max-w-md rounded-2xl overflow-hidden fade-in" style={{ background: "var(--panel)", border: "1px solid var(--line)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--line)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg grid place-items-center shrink-0" style={{ background: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)" }}>
+              <Icon path={I.shield} className="w-4 h-4" style={{ color: "var(--gold)" }} />
+            </div>
+            <div>
+              <div className="font-display font-700 text-sm leading-none" style={{ color: "var(--gold)" }}>CampusDine Pay</div>
+              <div className="text-[10px] mt-1" style={{ color: "var(--ink-soft)" }}>Secure Payment Gateway</div>
+            </div>
+          </div>
+          {stage === "form" && (
+            <button onClick={onClose} aria-label="Close" style={{ color: "var(--ink-soft)" }}>
+              <Icon path={I.x} className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        <div className="px-5 py-5">
+          {stage === "processing" && (
+            <div className="py-10 flex flex-col items-center gap-4">
+              <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "var(--gold)", borderTopColor: "transparent" }}></div>
+              <div className="text-sm" style={{ color: "var(--ink)" }}>Processing your payment…</div>
+              <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>Please don't close this window</div>
+            </div>
+          )}
+
+          {stage === "success" && (
+            <div className="py-10 flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(76,154,106,0.15)", border: "2px solid var(--leaf)" }}>
+                <Icon path={I.check} className="w-7 h-7" style={{ color: "var(--leaf)" }} />
+              </div>
+              <div className="font-display font-700" style={{ color: "var(--gold)" }}>Payment Successful</div>
+              <div className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{taka(amount)} added to wallet</div>
+            </div>
+          )}
+
+          {stage === "error" && (
+            <div className="py-8 flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(192,57,43,0.15)", border: "2px solid var(--brick)" }}>
+                <Icon path={I.x} className="w-6 h-6" style={{ color: "var(--brick)" }} />
+              </div>
+              <div className="font-display font-700 text-sm" style={{ color: "var(--brick)" }}>Payment Failed</div>
+              <div className="text-xs" style={{ color: "var(--ink-soft)" }}>Something went wrong, please try again.</div>
+              <button onClick={() => setStage("form")} className="btn-gold px-4 py-2 rounded-lg text-xs mt-2">Try Again</button>
+            </div>
+          )}
+
+          {stage === "form" && (
+            <React.Fragment>
+              <div className="flex justify-between items-center mb-4 px-0.5">
+                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>Amount Payable</span>
+                <span className="font-mono text-lg font-700" style={{ color: "var(--gold)" }}>{taka(amount)}</span>
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                {[{ id: "card", label: "Card" }, { id: "bkash", label: "bKash" }, { id: "nagad", label: "Nagad" }].map(m => (
+                  <button key={m.id} onClick={() => setMethod(m.id)}
+                          className="flex-1 py-2 rounded-lg border text-xs font-600 transition-colors"
+                          style={method === m.id ? { background: "var(--gold)", borderColor: "var(--gold)", color: "var(--teal-deep)" } : { borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+
+              {method === "card" && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[11px] block mb-1" style={{ color: "var(--ink-soft)" }}>Card Number</label>
+                    <div className="relative">
+                      <input value={card.number} onChange={e => setCard({ ...card, number: formatCardNumber(e.target.value) })}
+                             placeholder="1234 5678 9012 3456" inputMode="numeric"
+                             className="w-full px-3 py-2 pr-16 rounded-lg border font-mono text-xs"
+                             style={{ borderColor: errors.number ? "var(--brick)" : "var(--line)" }} />
+                      {brand && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-700 rounded px-1.5 py-0.5 border" style={{ color: "var(--gold)", borderColor: "var(--line)" }}>{brand}</span>}
+                    </div>
+                    {errors.number && <p className="text-[10px] mt-1" style={{ color: "var(--brick)" }}>{errors.number}</p>}
+                  </div>
+                  <div>
+                    <label className="text-[11px] block mb-1" style={{ color: "var(--ink-soft)" }}>Cardholder Name</label>
+                    <input value={card.name} onChange={e => setCard({ ...card, name: e.target.value })} placeholder="MD RAHIM UDDIN"
+                           className="w-full px-3 py-2 rounded-lg border font-mono text-xs uppercase"
+                           style={{ borderColor: errors.name ? "var(--brick)" : "var(--line)" }} />
+                    {errors.name && <p className="text-[10px] mt-1" style={{ color: "var(--brick)" }}>{errors.name}</p>}
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="text-[11px] block mb-1" style={{ color: "var(--ink-soft)" }}>Expiry</label>
+                      <input value={card.expiry} onChange={e => setCard({ ...card, expiry: formatExpiry(e.target.value) })} placeholder="MM/YY" inputMode="numeric"
+                             className="w-full px-3 py-2 rounded-lg border font-mono text-xs"
+                             style={{ borderColor: errors.expiry ? "var(--brick)" : "var(--line)" }} />
+                      {errors.expiry && <p className="text-[10px] mt-1" style={{ color: "var(--brick)" }}>{errors.expiry}</p>}
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[11px] block mb-1" style={{ color: "var(--ink-soft)" }}>CVV</label>
+                      <input value={card.cvv} onChange={e => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "").slice(0, 3) })}
+                             placeholder="•••" type="password" inputMode="numeric"
+                             className="w-full px-3 py-2 rounded-lg border font-mono text-xs"
+                             style={{ borderColor: errors.cvv ? "var(--brick)" : "var(--line)" }} />
+                      {errors.cvv && <p className="text-[10px] mt-1" style={{ color: "var(--brick)" }}>{errors.cvv}</p>}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(method === "bkash" || method === "nagad") && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[11px] block mb-1" style={{ color: "var(--ink-soft)" }}>{method === "bkash" ? "bKash" : "Nagad"} Account Number</label>
+                    <input value={mobile.number} onChange={e => setMobile({ ...mobile, number: e.target.value.replace(/\D/g, "").slice(0, 11) })}
+                           placeholder="01XXXXXXXXX" inputMode="numeric"
+                           className="w-full px-3 py-2 rounded-lg border font-mono text-xs"
+                           style={{ borderColor: errors.number ? "var(--brick)" : "var(--line)" }} />
+                    {errors.number && <p className="text-[10px] mt-1" style={{ color: "var(--brick)" }}>{errors.number}</p>}
+                  </div>
+                  <div>
+                    <label className="text-[11px] block mb-1" style={{ color: "var(--ink-soft)" }}>PIN</label>
+                    <input value={mobile.pin} onChange={e => setMobile({ ...mobile, pin: e.target.value.replace(/\D/g, "").slice(0, 5) })}
+                           placeholder="••••" type="password" inputMode="numeric"
+                           className="w-full px-3 py-2 rounded-lg border font-mono text-xs"
+                           style={{ borderColor: errors.pin ? "var(--brick)" : "var(--line)" }} />
+                    {errors.pin && <p className="text-[10px] mt-1" style={{ color: "var(--brick)" }}>{errors.pin}</p>}
+                  </div>
+                </div>
+              )}
+
+              <button onClick={handlePay} className="btn-gold w-full py-2.5 rounded-xl text-xs mt-5">
+                Pay {taka(amount)}
+              </button>
+              <div className="flex items-center justify-center gap-1.5 mt-3 text-[10px]" style={{ color: "var(--ink-soft)" }}>
+                <Icon path={I.lock} className="w-3 h-3" />
+                <span>256-bit SSL Encrypted Transaction</span>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Wallet tab ---------------- */
 function WalletTab({ balance, topUp, transactions, busy }) {
   const [amount, setAmount] = useState(100);
+  const [showPay, setShowPay] = useState(false);
   return (
     <div className="grid lg:grid-cols-3 gap-6 max-w-3xl">
+      {showPay && (
+        <PaymentGatewayModal amount={amount} onClose={() => setShowPay(false)} onConfirm={() => topUp(amount)} />
+      )}
       <div className="lg:col-span-1">
         <div className="ticket p-6 mb-5">
           <div className="perf pl-4">
@@ -905,7 +1119,7 @@ function WalletTab({ balance, topUp, transactions, busy }) {
           </div>
           <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))}
             className="w-full px-3 py-2 rounded-lg border mb-3 font-mono" style={{ borderColor: "var(--line)" }} />
-          <button disabled={busy} onClick={() => amount > 0 && topUp(amount)} className="btn-gold w-full py-2.5 rounded-xl">
+          <button disabled={busy} onClick={() => amount > 0 && setShowPay(true)} className="btn-gold w-full py-2.5 rounded-xl">
             {busy ? "Adding…" : "Add money"}
           </button>
         </div>
@@ -1278,8 +1492,17 @@ function App() {
   const [feedbackBusy, setFeedbackBusy] = useState(false);
 
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
+
+  const goPrevMonth = () => {
+    if (month === 1) { setYear(y => y - 1); setMonth(12); } else { setMonth(m => m - 1); }
+  };
+  const goNextMonth = () => {
+    if (month === 12) { setYear(y => y + 1); setMonth(1); } else { setMonth(m => m + 1); }
+  };
+  const goToday = () => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1); };
 
   const socketRef = useRef(null);
   const showError = (e) => setError(typeof e === "string" ? e : e.message);
@@ -1329,11 +1552,17 @@ function App() {
         if (session.user.role === "admin") {
           await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshFeedback()]);
         } else {
-          await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet(), refreshCalendar()]);
+          await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet()]);
         }
       } catch (e) { showError(e); }
     })();
   }, [session]);
+
+  // Refetch the meal calendar & bill whenever the visible month changes
+  useEffect(() => {
+    if (!session || session.user.role === "admin") return;
+    refreshCalendar().catch(showError);
+  }, [session, year, month]);
 
   // Live updates via Socket.io
   useEffect(() => {
@@ -1443,7 +1672,8 @@ function App() {
           <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} />
         )}
         {session.user.role !== "admin" && tab === "calendar" && (
-          <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay} />
+          <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay}
+                        onPrevMonth={goPrevMonth} onNextMonth={goNextMonth} onJumpToday={goToday} isCurrentMonth={isCurrentMonth} />
         )}
         {session.user.role !== "admin" && tab === "wallet" && (
           <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} />
