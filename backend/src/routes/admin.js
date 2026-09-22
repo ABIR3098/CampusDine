@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 const LOW_STOCK_THRESHOLD = 10;
@@ -8,7 +9,7 @@ const LOW_STOCK_THRESHOLD = 10;
 router.use(verifyToken, requireRole("admin"));
 
 // GET /api/admin/overview
-router.get("/overview", async (req, res) => {
+router.get("/overview", catchAsync(async (req, res) => {
   const [[pending]] = await pool.query(
     "SELECT COUNT(*) AS cnt FROM orders WHERE status != 'Ready' AND DATE(created_at) = CURDATE()"
   );
@@ -29,10 +30,10 @@ router.get("/overview", async (req, res) => {
     fullMealsToday: mealCounts.find((r) => r.status === "full")?.cnt || 0,
     halfMealsToday: mealCounts.find((r) => r.status === "half")?.cnt || 0,
   });
-});
+}));
 
 // GET /api/admin/reports/revenue-trend — last 6 completed months
-router.get("/reports/revenue-trend", async (req, res) => {
+router.get("/reports/revenue-trend", catchAsync(async (req, res) => {
   const [rows] = await pool.query(`
     SELECT DATE_FORMAT(created_at, '%Y-%m') AS ym, SUM(total) AS revenue
     FROM orders
@@ -41,13 +42,13 @@ router.get("/reports/revenue-trend", async (req, res) => {
     ORDER BY ym
   `);
   res.json(rows);
-});
+}));
 
 // GET /api/admin/reports/forecast — predicted meal count for tomorrow
 // Heuristic: how many students/teachers marked Full or Half on this same
 // weekday over the last 4 occurrences, averaged. Simple and explainable —
 // swap in a real model later if the course wants something fancier.
-router.get("/reports/forecast", async (req, res) => {
+router.get("/reports/forecast", catchAsync(async (req, res) => {
   const [[{ cnt, weeks }]] = await pool.query(`
     SELECT COUNT(*) AS cnt, COUNT(DISTINCT YEARWEEK(the_date)) AS weeks
     FROM meal_calendar
@@ -57,10 +58,10 @@ router.get("/reports/forecast", async (req, res) => {
   `);
   const predicted = weeks > 0 ? Math.round(cnt / weeks) : 0;
   res.json({ predictedMealCount: predicted });
-});
+}));
 
 // GET /api/admin/feedback — average rating + recent customer feedback
-router.get("/feedback", async (req, res) => {
+router.get("/feedback", catchAsync(async (req, res) => {
   const [[stats]] = await pool.query(
     "SELECT COALESCE(AVG(rating), 0) AS average, COUNT(*) AS count FROM order_feedback"
   );
@@ -73,6 +74,6 @@ router.get("/feedback", async (req, res) => {
     LIMIT 50
   `);
   res.json({ average: Number(stats.average), count: stats.count, entries });
-});
+}));
 
 module.exports = router;

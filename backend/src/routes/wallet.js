@@ -1,21 +1,22 @@
 const express = require("express");
 const pool = require("../db");
 const { verifyToken } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 
 // GET /api/wallet — balance + transaction history for the logged-in user
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", verifyToken, catchAsync(async (req, res) => {
   const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
   const [transactions] = await pool.query(
     "SELECT label, amount, created_at FROM wallet_transactions WHERE user_id = ? ORDER BY id DESC",
     [req.user.id]
   );
   res.json({ balance: user.wallet_balance, transactions });
-});
+}));
 
 // POST /api/wallet/topup  body: { amount }
-router.post("/topup", verifyToken, async (req, res) => {
+router.post("/topup", verifyToken, catchAsync(async (req, res) => {
   const { amount } = req.body;
   if (!amount || amount <= 0) return res.status(400).json({ error: "amount must be a positive number" });
 
@@ -27,6 +28,6 @@ router.post("/topup", verifyToken, async (req, res) => {
 
   const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
   res.json({ balance: user.wallet_balance });
-});
+}));
 
 module.exports = router;

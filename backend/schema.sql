@@ -69,6 +69,22 @@ CREATE TABLE IF NOT EXISTS meal_calendar (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- Added: the feedback/rating feature (admin.js, orders.js) queries this
+-- table, but it was missing from the schema — every feedback-related API
+-- call (and any order list, since GET /api/orders[/mine] always attaches
+-- feedback) failed with "Table 'campusdine.order_feedback' doesn't exist"
+-- and crashed the whole server. See src/routes/orders.js and admin.js.
+CREATE TABLE IF NOT EXISTS order_feedback (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL UNIQUE,   -- one feedback per order (drives ON DUPLICATE KEY UPDATE)
+  user_id INT NOT NULL,
+  rating TINYINT NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- ---------- Seed data ----------
 
 INSERT INTO meal_rates (role, full_rate, half_rate) VALUES
