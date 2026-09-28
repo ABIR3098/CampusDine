@@ -3,13 +3,14 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
 const { verifyToken } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 const SIGNUP_BONUS = 250;
 
 // POST /api/auth/register
 // body: { name, externalId, role: 'student'|'teacher'|'admin', password }
-router.post("/register", async (req, res) => {
+router.post("/register", catchAsync(async (req, res) => {
   try {
     const { name, externalId, role, password } = req.body;
     if (!name || !externalId || !role || !password) {
@@ -45,11 +46,11 @@ router.post("/register", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Registration failed" });
   }
-});
+}));
 
 // POST /api/auth/login
 // body: { externalId, password }
-router.post("/login", async (req, res) => {
+router.post("/login", catchAsync(async (req, res) => {
   try {
     const { externalId, password } = req.body;
     if (!externalId || !password) {
@@ -72,10 +73,10 @@ router.post("/login", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Login failed" });
   }
-});
+}));
 
 // GET /api/auth/me — the logged-in user's own profile
-router.get("/me", verifyToken, async (req, res) => {
+router.get("/me", verifyToken, catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     "SELECT id, name, external_id, role, wallet_balance FROM users WHERE id = ?",
     [req.user.id]
@@ -83,11 +84,11 @@ router.get("/me", verifyToken, async (req, res) => {
   if (rows.length === 0) return res.status(404).json({ error: "User not found" });
   const u = rows[0];
   res.json({ id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance });
-});
+}));
 
 // PUT /api/auth/me — update name and/or password
 // body: { name?, currentPassword?, newPassword? }
-router.put("/me", verifyToken, async (req, res) => {
+router.put("/me", verifyToken, catchAsync(async (req, res) => {
   try {
     const { name, currentPassword, newPassword } = req.body;
     const fields = [];
@@ -128,7 +129,7 @@ router.put("/me", verifyToken, async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Profile update failed" });
   }
-});
+}));
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -140,7 +141,7 @@ function signToken(payload) {
 // body: { externalId, newPassword }
 // NOTE: simplified for a coursework demo — no email/OTP verification step.
 // A production system would email a one-time reset link/code before allowing this.
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", catchAsync(async (req, res) => {
   try {
     const { externalId, newPassword } = req.body;
     if (!externalId || !newPassword) {
@@ -163,6 +164,6 @@ router.post("/reset-password", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Password reset failed" });
   }
-});
+}));
 
 module.exports = router;
