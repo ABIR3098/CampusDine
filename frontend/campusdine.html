@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CampusDine — Smart Campus Canteen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
@@ -13,19 +13,19 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root{
-    --bg: #06080E;
-    --panel: #0E1420;
-    --ink: #ECE7DA;
-    --ink-soft: #93A0B4;
-    --teal: #3A0B12;
-    --teal-deep: #230509;
-    --gold: #D4AF37;
-    --gold-bright: #F0D78C;
-    --gold-deep: #9A6F0D;
-    --gold-soft: #F3E0B6;
-    --brick: #C0392B;
-    --leaf: #4C9A6A;
-    --line: rgba(212,175,55,0.2);
+    --bg: #F5F7FA;
+    --panel: #FFFFFF;
+    --ink: #1F2937;
+    --ink-soft: #6B7280;
+    --teal: #16A34A;
+    --teal-deep: #14532D;
+    --gold: #16A34A;
+    --gold-bright: #15803D;
+    --gold-deep: #15803D;
+    --gold-soft: #DCFCE7;
+    --brick: #DC2626;
+    --leaf: #16A34A;
+    --line: #E5E7EB;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -33,29 +33,20 @@
     background:var(--bg);
     color:var(--ink);
     font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;
-    background-image:
-      radial-gradient(ellipse at top, rgba(58,11,18,0.35), transparent 60%),
-      radial-gradient(circle at 1px 1px, rgba(212,175,55,0.09) 1px, transparent 0);
-    background-size: auto, 22px 22px;
   }
-  .font-display{font-family:'Cinzel', 'Hind Siliguri', serif; letter-spacing:.02em;}
+  .font-display{font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;}
   .font-mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
-  .gold-text{
-    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-deep) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+  .gold-text{ color: var(--gold-deep); }
   ::-webkit-scrollbar{width:8px;height:8px;}
-  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
+  ::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:8px;}
 
   .ticket{
     position:relative;
-    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
-    color:#EFE6D8;
-    border-radius: 6px;
-    border: 1px solid var(--line);
+    background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+    color:#FFFFFF;
+    border-radius: 12px;
     overflow:visible;
+    box-shadow: 0 6px 16px -8px rgba(21,128,61,0.6);
   }
   .ticket::before, .ticket::after{
     content:"";
@@ -68,19 +59,15 @@
   }
   .ticket::before{ left:-9px; }
   .ticket::after{ right:-9px; }
-  .ticket .perf{
-    border-left: 2px dashed rgba(212,175,55,0.3);
-  }
+  .ticket .perf{ border-left: 2px dashed rgba(255,255,255,0.45); }
 
   .tab-btn{
-    font-family:'Cinzel', serif;
     font-weight:600;
-    letter-spacing:.03em;
     transition: all .15s ease;
   }
   .tab-btn.active{
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
-    color: var(--teal-deep);
+    background: var(--gold);
+    color: #FFFFFF;
   }
   .tab-btn:not(.active){
     background: var(--panel);
@@ -89,45 +76,42 @@
   }
   .tab-btn:not(.active):hover{
     border-color: var(--gold);
-    color: var(--gold-bright);
+    color: var(--gold-deep);
   }
 
   .card{
     background:var(--panel);
     border:1px solid var(--line);
-    border-radius:10px;
+    border-radius:12px;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.05);
     transition: border-color .2s ease, box-shadow .2s ease;
   }
   .card:hover{
-    border-color: rgba(212,175,55,0.4);
+    border-color: #BBF7D0;
+    box-shadow: 0 4px 12px rgba(16,24,40,0.06);
   }
 
   .btn-primary{
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
-    color: var(--teal-deep);
-    font-family:'Cinzel',serif;
-    font-weight:700;
-    letter-spacing:.04em;
-    text-transform:uppercase;
-    font-size:.85em;
-    border-radius:6px;
-    transition: transform .1s ease, filter .15s ease;
+    background: var(--gold);
+    color: #FFFFFF;
+    font-weight:600;
+    font-size:.9em;
+    border-radius:8px;
+    transition: background .15s ease, transform .1s ease;
   }
-  .btn-primary:hover{ filter:brightness(1.1); transform: translateY(-1px); }
-  .btn-primary:active{ transform: translateY(0px) scale(.98); }
-  .btn-primary:disabled{ background:#3A3F4C; color:#8A93A6; cursor:not-allowed; transform:none; filter:none; }
+  .btn-primary:hover{ background: var(--gold-deep); }
+  .btn-primary:active{ transform: scale(.98); }
+  .btn-primary:disabled{ background:#D1D5DB; color:#9CA3AF; cursor:not-allowed; transform:none; }
 
   .btn-gold{
-    background: transparent;
+    background: #FFFFFF;
     border: 1px solid var(--gold);
-    color: var(--gold-bright);
-    font-family:'Cinzel',serif;
-    font-weight:700;
-    letter-spacing:.04em;
-    text-transform:uppercase;
-    font-size:.85em;
+    color: var(--gold-deep);
+    font-weight:600;
+    font-size:.9em;
   }
-  .btn-gold:hover{ background: var(--gold); color: var(--teal-deep); }
+  .btn-gold:hover{ background: var(--gold); color: #FFFFFF; }
+  .btn-gold:disabled{ border-color:#D1D5DB; color:#9CA3AF; background:#F3F4F6; cursor:not-allowed; }
 
   .stepper-dot{
     width:14px;height:14px;border-radius:50%;
@@ -135,11 +119,11 @@
     border:2px solid var(--line);
   }
   .stepper-dot.done{ background:var(--gold); border-color:var(--gold); }
-  .stepper-dot.current{ background:var(--gold-bright); border-color:var(--gold-bright); box-shadow:0 0 0 5px rgba(212,175,55,0.18); }
+  .stepper-dot.current{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 5px rgba(22,163,74,0.18); }
 
   .cal-cell{
     aspect-ratio:1/1;
-    border-radius:6px;
+    border-radius:8px;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     cursor:pointer;
     user-select:none;
@@ -149,35 +133,34 @@
     color: var(--ink);
   }
   .cal-cell:hover{ transform: translateY(-2px); border-color: var(--gold); }
-  .cal-full{ background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%); color:#EFE6D8; border-color:var(--teal); }
-  .cal-half{ background: rgba(212,175,55,0.14); color:var(--gold-bright); border-color:var(--gold); }
+  .cal-full{ background: var(--gold); color:#FFFFFF; border-color:var(--gold); }
+  .cal-half{ background: var(--gold-soft); color:var(--teal-deep); border-color:var(--gold); }
 
   .fade-in{ animation: fadeIn .25s ease; }
   @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
   .low-stock-banner{
-    background: repeating-linear-gradient(135deg, rgba(192,57,43,0.16), rgba(192,57,43,0.16) 10px, rgba(192,57,43,0.08) 10px, rgba(192,57,43,0.08) 20px);
-    border: 1px solid rgba(192,57,43,0.35);
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
   }
 
-  .error-banner{ background:rgba(192,57,43,0.14); color:#F0A99C; border:1px solid rgba(192,57,43,0.4); }
+  .error-banner{ background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
 
   .chip{
     background: var(--panel);
     border: 1px solid var(--line);
     color: var(--ink-soft);
   }
-  .chip:hover{ border-color: var(--gold); color: var(--gold-bright); }
+  .chip:hover{ border-color: var(--gold); color: var(--gold-deep); }
   .chip.active-chip{
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
-    color: var(--teal-deep);
+    background: var(--gold);
+    color: #FFFFFF;
     border-color: var(--gold);
   }
 
   .logo-badge{
-    border: 1px solid var(--gold);
-    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
-    box-shadow: 0 4px 20px -6px rgba(212,175,55,0.35);
+    background: var(--gold);
+    border-radius: 10px;
   }
 
   .divider-flourish{ display:flex; align-items:center; justify-content:center; gap:14px; color: var(--gold); }
@@ -185,7 +168,7 @@
     content:""; flex:1; max-width:80px; border-bottom:1px solid var(--line);
   }
 
-  input, select, textarea{ background: var(--panel); color: var(--ink); }
+  input, select, textarea{ background: #FFFFFF; color: var(--ink); }
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -335,9 +318,9 @@ function Login({ apiBase, setApiBase, onAuth }) {
 
   const pillTab = (key, label) => (
     <button onClick={() => { setMode(key); setError(null); }}
-      className="flex-1 py-2.5 rounded-full text-xs font-display font-700 uppercase tracking-wide transition-all"
+      className="flex-1 py-2.5 rounded-full text-xs font-700 transition-all"
       style={mode === key
-        ? { background: "linear-gradient(135deg, var(--gold), var(--gold-deep))", color: "var(--teal-deep)" }
+        ? { background: "var(--gold)", color: "#FFFFFF" }
         : { color: "var(--ink-soft)" }}>
       {label}
     </button>
@@ -346,13 +329,13 @@ function Login({ apiBase, setApiBase, onAuth }) {
   return (
     <div className="min-h-screen">
       {/* Announcement bar */}
-      <div className="text-center py-2 px-4 text-xs tracking-widest uppercase font-display"
-        style={{ background: "linear-gradient(90deg, var(--teal-deep), var(--teal), var(--teal-deep))", color: "var(--gold-bright)", borderBottom: "1px solid var(--line)" }}>
-        ✨ A Premium Campus Dining Experience — Welcome To CampusDine ✨
+      <div className="text-center py-2 px-4 text-xs font-500"
+        style={{ background: "var(--gold-soft)", color: "var(--teal-deep)", borderBottom: "1px solid var(--line)" }}>
+        Welcome to CampusDine — order food from your campus canteen
       </div>
 
       {/* Sticky nav */}
-      <header className="sticky top-0 z-30 backdrop-blur" style={{ background: "rgba(6,8,14,0.85)", borderBottom: "1px solid var(--line)" }}>
+      <header className="sticky top-0 z-30 backdrop-blur" style={{ background: "rgba(255,255,255,0.92)", borderBottom: "1px solid var(--line)" }}>
         <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="logo-badge w-10 h-10 rounded-full grid place-items-center">
@@ -360,12 +343,12 @@ function Login({ apiBase, setApiBase, onAuth }) {
             </div>
             <div>
               <span className="font-display gold-text text-lg font-800 block leading-none">CampusDine</span>
-              <span className="text-[9px] uppercase tracking-[0.25em] block mt-0.5" style={{ color: "var(--ink-soft)" }}>The Campus Kitchen</span>
+              <span className="text-[10px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>Campus Canteen</span>
             </div>
           </div>
-          <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-widest font-display" style={{ color: "var(--ink-soft)" }}>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-500" style={{ color: "var(--ink-soft)" }}>
             <a href="#menu" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Menu</a>
-            <a href="#about" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Our Story</a>
+            <a href="#about" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>About Us</a>
             <a href="#contact" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Contact</a>
           </nav>
           <button onClick={scrollToAuth} className="btn-primary px-5 py-2 rounded-lg text-xs">Sign In</button>
@@ -374,13 +357,13 @@ function Login({ apiBase, setApiBase, onAuth }) {
 
       {/* Hero */}
       <section className="relative py-24 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(58,11,18,0.4), transparent)" }}></div>
+        <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(22,163,74,0.10), transparent)" }}></div>
         <div className="max-w-3xl mx-auto space-y-6">
-          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-display uppercase tracking-[0.25em]" style={{ border: "1px solid var(--line)", color: "var(--gold)" }}>
-            Est. 2026 — Fine Campus Culinary
+          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-600" style={{ border: "1px solid var(--line)", color: "var(--gold)" }}>
+            Smart Campus Canteen
           </div>
           <h1 className="font-display text-4xl sm:text-5xl font-800 leading-tight" style={{ color: "var(--ink)" }}>
-            Order Ahead. Skip The Line.<br /><span className="gold-text italic">Dine Like Royalty.</span>
+            Order Ahead. Skip The Line.<br /><span className="gold-text">Eat Fresh, Every Day.</span>
           </h1>
           <p className="max-w-xl mx-auto text-[15px] leading-relaxed" style={{ color: "var(--ink-soft)" }}>
             Enjoy hassle-free food ordering, automatic subscription billing, and a cashless wallet —
@@ -394,7 +377,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
       </section>
 
       {/* Features banner */}
-      <section className="border-y py-10" style={{ borderColor: "var(--line)", background: "rgba(212,175,55,0.03)" }}>
+      <section className="border-y py-10" style={{ borderColor: "var(--line)", background: "#FFFFFF" }}>
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {features.map(f => (
             <div key={f.title} className="space-y-1.5">
@@ -408,15 +391,15 @@ function Login({ apiBase, setApiBase, onAuth }) {
       {/* Menu preview */}
       <section id="menu" className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-12 space-y-3">
-          <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Crafted With Care</p>
+          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>Popular Items</p>
           <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>A Taste of Our Menu</h2>
           <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {sampleMenu.map(item => (
             <div key={item.name} className="card overflow-hidden">
-              <div className="h-36 overflow-hidden" style={{ background: "var(--teal-deep)" }}>
-                <img src={item.img} alt={item.name} className="w-full h-full object-cover" style={{ opacity: 0.88 }} />
+              <div className="h-36 overflow-hidden" style={{ background: "var(--gold-soft)" }}>
+                <img src={item.img} alt={item.name} className="w-full h-full object-cover" style={{ opacity: 1 }} />
               </div>
               <div className="p-4">
                 <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{item.name}</div>
@@ -434,9 +417,9 @@ function Login({ apiBase, setApiBase, onAuth }) {
       </section>
 
       {/* About */}
-      <section id="about" className="border-t py-20 px-6" style={{ borderColor: "var(--line)", background: "rgba(58,11,18,0.15)" }}>
+      <section id="about" className="border-t py-20 px-6" style={{ borderColor: "var(--line)", background: "rgba(22,163,74,0.05)" }}>
         <div className="max-w-2xl mx-auto text-center space-y-5">
-          <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Our Story</p>
+          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>About Us</p>
           <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>Why CampusDine</h2>
           <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
           <p className="leading-relaxed text-[15px]" style={{ color: "var(--ink-soft)" }}>
@@ -452,7 +435,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
       <section ref={authRef} className="py-20 px-6">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8 space-y-2">
-            <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Members Only</p>
+            <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>Login / Register</p>
             <h2 className="font-display text-2xl font-800" style={{ color: "var(--ink)" }}>Sign In To CampusDine</h2>
           </div>
 
@@ -491,7 +474,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
                     <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder="At least 6 characters"
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
-                  {error && <p className="text-sm" style={{ color: "#F0A99C" }}>{error}</p>}
+                  {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   <button disabled={busy} onClick={submitReset} className="btn-primary w-full py-2.5 rounded-xl">
                     {busy ? "Please wait…" : "Reset Password"}
                   </button>
@@ -535,7 +518,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
                       </button>
                     )}
                   </div>
-                  {error && <p className="text-sm" style={{ color: "#F0A99C" }}>{error}</p>}
+                  {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   {resetMsg && mode === "login" && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
                   <button disabled={busy} onClick={submit} className="btn-primary w-full py-2.5 rounded-xl">
                     {busy ? "Please wait…" : mode === "login" ? "Log In" : "Create Account & Log In"}
@@ -566,17 +549,17 @@ function Login({ apiBase, setApiBase, onAuth }) {
             </p>
           </div>
           <div>
-            <h4 className="font-display text-sm uppercase tracking-widest mb-3" style={{ color: "var(--gold)" }}>Opening Hours</h4>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>Opening Hours</h4>
             <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>Sun – Thu: 9:00 AM – 8:00 PM</p>
             <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Fri – Sat: 12:00 PM – 9:00 PM</p>
           </div>
           <div>
-            <h4 className="font-display text-sm uppercase tracking-widest mb-3" style={{ color: "var(--gold)" }}>Location</h4>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>Location</h4>
             <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>Campus Central Canteen, Main Building</p>
             <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Helpline: +880 1XXX-XXXXXX</p>
           </div>
         </div>
-        <p className="text-center text-[11px] uppercase tracking-widest pt-8" style={{ color: "var(--ink-soft)" }}>
+        <p className="text-center text-[11px] uppercase pt-8" style={{ color: "var(--ink-soft)" }}>
           &copy; 2026 CampusDine — CSE 3208 Software Development Project I
         </p>
       </footer>
@@ -587,7 +570,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
 /* ---------------- Top bar ---------------- */
 function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
   return (
-    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "rgba(6,8,14,0.85)", borderBottom: "1px solid var(--line)" }}>
+    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "rgba(255,255,255,0.92)", borderBottom: "1px solid var(--line)" }}>
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <div className="logo-badge w-8 h-8 rounded-full grid place-items-center">
@@ -880,9 +863,158 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
   );
 }
 
+/* ---------------- Payment method picker (Mobile Banking / Banking / Card) ---------------- */
+const PAY_CATEGORIES = [
+  {
+    key: "mobile", label: "Mobile Banking", color: "#E2136E",
+    options: [
+      { key: "bkash", label: "bKash", color: "#E2136E" },
+      { key: "nagad", label: "Nagad", color: "#F6921E" },
+    ],
+  },
+  {
+    key: "banking", label: "Banking", color: "#4C9A6A",
+    options: [
+      { key: "dbbl", label: "Dutch-Bangla Bank", color: "#0033A0" },
+      { key: "brac", label: "BRAC Bank", color: "#4C9A6A" },
+      { key: "city", label: "City Bank", color: "#9A6F0D" },
+      { key: "islami", label: "Islami Bank Bangladesh", color: "#2E6FDB" },
+      { key: "sonali", label: "Sonali Bank", color: "#C0392B" },
+    ],
+  },
+  { key: "card", label: "Card", color: "#2E6FDB", options: null },
+];
+
+function PaymentModal({ amount, onClose, onConfirm, busy }) {
+  const [step, setStep] = useState("category"); // category -> method -> confirm -> processing
+  const [category, setCategory] = useState(null);
+  const [choice, setChoice] = useState(null); // { key, label }
+  const [err, setErr] = useState(null);
+
+  const pickCategory = (cat) => {
+    setCategory(cat);
+    if (cat.options) {
+      setStep("method");
+    } else {
+      setChoice({ key: cat.key, label: cat.label });
+      setStep("confirm");
+    }
+  };
+
+  const pickMethod = (opt) => {
+    setChoice(opt);
+    setStep("confirm");
+  };
+
+  const confirmPay = async () => {
+    setErr(null);
+    setStep("processing");
+    try {
+      await onConfirm(choice.key);
+      setStep("success");
+    } catch (e) {
+      setErr(e.message || "Payment failed");
+      setStep("confirm");
+    }
+  };
+
+  const goBack = () => {
+    if (step === "method") { setStep("category"); setCategory(null); }
+    else if (step === "confirm") { setStep(category?.options ? "method" : "category"); setChoice(null); }
+  };
+
+  const title = step === "category" ? "Choose payment method"
+    : step === "method" ? category.label
+    : step === "confirm" ? "Confirm top-up"
+    : step === "success" ? "Payment successful"
+    : "Processing payment";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(17,24,39,0.5)" }}>
+      <div className="card w-full max-w-sm p-5 relative">
+        {step !== "processing" && (
+          <button onClick={onClose} className="absolute top-3 right-3 text-sm opacity-60 hover:opacity-100">✕</button>
+        )}
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>{title}</div>
+        <div className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Amount: <span className="font-mono">{taka(amount)}</span></div>
+
+        {step === "category" && (
+          <div className="space-y-2">
+            {PAY_CATEGORIES.map(c => (
+              <button key={c.key} onClick={() => pickCategory(c)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-500"
+                style={{ borderColor: "var(--line)" }}>
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full" style={{ background: c.color }} />
+                  {c.label}
+                </span>
+                <span style={{ color: "var(--ink-soft)" }}>›</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {step === "method" && (
+          <div className="space-y-2">
+            {category.options.map(o => (
+              <button key={o.key} onClick={() => pickMethod(o)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-500"
+                style={{ borderColor: "var(--line)" }}>
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full" style={{ background: o.color }} />
+                  {o.label}
+                </span>
+                <span style={{ color: "var(--ink-soft)" }}>›</span>
+              </button>
+            ))}
+            <button onClick={goBack} className="w-full py-2 rounded-lg border text-sm mt-1" style={{ borderColor: "var(--line)" }}>Back</button>
+          </div>
+        )}
+
+        {step === "confirm" && (
+          <div>
+            <p className="text-sm mb-4">
+              Top up <span className="font-mono font-600">{taka(amount)}</span> via <span className="font-600">{choice.label}</span>?
+            </p>
+            {err && <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{err}</p>}
+            <div className="flex gap-2">
+              <button onClick={goBack} className="flex-1 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>No</button>
+              <button disabled={busy} onClick={confirmPay} className="flex-1 btn-primary py-2 rounded-lg text-sm">Yes, top up</button>
+            </div>
+          </div>
+        )}
+
+        {step === "processing" && (
+          <div className="py-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
+            Confirming payment with {choice?.label}…
+          </div>
+        )}
+
+        {step === "success" && (
+          <div className="py-4 text-center">
+            <div className="mx-auto mb-3 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+              style={{ background: "var(--leaf)", color: "#fff" }}>✓</div>
+            <p className="text-sm mb-1">
+              <span className="font-mono font-600">{taka(amount)}</span> has been added to your wallet
+            </p>
+            <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Paid via {choice?.label}</p>
+            <button onClick={onClose} className="btn-primary w-full py-2 rounded-lg text-sm">Done</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Wallet tab ---------------- */
 function WalletTab({ balance, topUp, transactions, busy }) {
   const [amount, setAmount] = useState(100);
+  const [showPay, setShowPay] = useState(false);
+
+  const handleConfirm = async (method) => {
+    await topUp(amount, method); // modal shows the success message itself
+  };
+
   return (
     <div className="grid lg:grid-cols-3 gap-6 max-w-3xl">
       <div className="lg:col-span-1">
@@ -898,20 +1030,23 @@ function WalletTab({ balance, topUp, transactions, busy }) {
             {[100, 300, 500].map(v => (
               <button key={v} onClick={() => setAmount(v)}
                 className={`flex-1 py-2 rounded-lg border text-sm font-mono ${amount === v ? "text-white" : ""}`}
-                style={amount === v ? { background: "var(--gold)", borderColor: "var(--gold)", color: "var(--teal-deep)" } : { borderColor: "var(--line)" }}>
+                style={amount === v ? { background: "var(--gold)", borderColor: "var(--gold)", color: "#FFFFFF" } : { borderColor: "var(--line)" }}>
                 {taka(v)}
               </button>
             ))}
           </div>
           <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))}
             className="w-full px-3 py-2 rounded-lg border mb-3 font-mono" style={{ borderColor: "var(--line)" }} />
-          <button disabled={busy} onClick={() => amount > 0 && topUp(amount)} className="btn-gold w-full py-2.5 rounded-xl">
+          <button disabled={busy || amount <= 0} onClick={() => setShowPay(true)} className="btn-primary w-full py-2.5 rounded-xl">
             {busy ? "Adding…" : "Add money"}
           </button>
         </div>
       </div>
       <div className="lg:col-span-2 card p-5">
         <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Transaction history</div>
+        {showPay && (
+          <PaymentModal amount={amount} busy={busy} onClose={() => setShowPay(false)} onConfirm={handleConfirm} />
+        )}
         {transactions.length === 0 ? (
           <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No transactions yet.</p>
         ) : (
@@ -1103,7 +1238,7 @@ function AdminReports({ trend, forecast }) {
             {trend.map(r => (
               <div key={r.ym} className="flex-1 flex flex-col items-center gap-2">
                 <div className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{Math.round(r.revenue / 1000)}k</div>
-                <div className="w-full rounded-t-lg" style={{ height: `${(r.revenue / max) * 140}px`, background: "linear-gradient(180deg, var(--gold), var(--teal))" }}></div>
+                <div className="w-full rounded-t-lg" style={{ height: `${(r.revenue / max) * 140}px`, background: "var(--gold)" }}></div>
                 <div className="text-xs font-600">{monthLabel(r.ym)}</div>
               </div>
             ))}
@@ -1245,7 +1380,7 @@ function ProfileTab({ user, call, onUpdated }) {
             </div>
           </div>
 
-          {error && <p className="text-sm" style={{ color: "#F0A99C" }}>{error}</p>}
+          {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
           {success && <p className="text-sm" style={{ color: "var(--leaf)" }}>{success}</p>}
           <button disabled={busy} onClick={save} className="btn-primary w-full py-2.5 rounded-xl">
             {busy ? "Saving…" : "Save Changes"}
@@ -1376,12 +1511,12 @@ function App() {
     } catch (e) { showError(e); } finally { setFeedbackBusy(false); }
   };
 
-  const topUp = async (amount) => {
+  const topUp = async (amount, method) => {
     setBusy(true); setError(null);
     try {
-      await call("/api/wallet/topup", { method: "POST", body: { amount } });
+      await call("/api/wallet/topup", { method: "POST", body: { amount, method } });
       await refreshWallet();
-    } catch (e) { showError(e); } finally { setBusy(false); }
+    } catch (e) { showError(e); throw e; } finally { setBusy(false); }
   };
 
   const toggleDay = async (day, currentStatus) => {

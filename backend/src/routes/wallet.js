@@ -14,14 +14,31 @@ router.get("/", verifyToken, async (req, res) => {
   res.json({ balance: user.wallet_balance, transactions });
 });
 
-// POST /api/wallet/topup  body: { amount }
+const PAY_METHOD_LABELS = {
+  bkash: "bKash",
+  nagad: "Nagad",
+  dbbl: "Dutch-Bangla Bank",
+  brac: "BRAC Bank",
+  city: "City Bank",
+  islami: "Islami Bank Bangladesh",
+  sonali: "Sonali Bank",
+  card: "Card",
+};
+
+// POST /api/wallet/topup  body: { amount, method } — method is one of the keys in PAY_METHOD_LABELS
+// NOTE: this is a simulated payment confirmation (no real bKash/Nagad/bank gateway call).
+// It just requires a valid method key so the wallet can't be credited without picking one.
 router.post("/topup", verifyToken, async (req, res) => {
-  const { amount } = req.body;
+  const { amount, method } = req.body;
   if (!amount || amount <= 0) return res.status(400).json({ error: "amount must be a positive number" });
 
+  const label = PAY_METHOD_LABELS[method];
+  if (!label) return res.status(400).json({ error: "a valid payment method is required" });
+
   await pool.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [amount, req.user.id]);
-  await pool.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, 'Wallet top-up', ?)", [
+  await pool.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
     req.user.id,
+    `Wallet top-up via ${label}`,
     amount,
   ]);
 
