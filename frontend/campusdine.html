@@ -610,7 +610,21 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
 /* ---------------- Menu & Order tab ---------------- */
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
   const [cat, setCat] = useState("heavy");
-  const filtered = menu.filter(i => i.category === cat);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("default");
+  const filtered = menu
+    .filter(i => i.category === cat)
+    .filter(i => {
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      return i.name.toLowerCase().includes(q) || (i.bn && i.bn.includes(search.trim()));
+    })
+    .sort((a, b) => {
+      if (sortBy === "priceAsc") return a.price - b.price;
+      if (sortBy === "priceDesc") return b.price - a.price;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return 0; // "default" — keep the server's category/name ordering
+    });
   const [payMethod, setPayMethod] = useState("wallet");
   const [scheduleLater, setScheduleLater] = useState(false);
   const [pickupTime, setPickupTime] = useState("");
@@ -648,6 +662,21 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
             </button>
           ))}
         </div>
+        <div className="flex flex-col sm:flex-row gap-2 mb-5">
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search menu (e.g. khichuri, চা)…"
+            className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+            className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+            <option value="default">Sort: Default</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+            <option value="name">Name: A-Z</option>
+          </select>
+        </div>
+        {filtered.length === 0 && (
+          <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>No items match "{search}" in this category.</p>
+        )}
         <div className="grid sm:grid-cols-2 gap-4">
           {filtered.map(item => {
             const out = item.stock <= 0;
