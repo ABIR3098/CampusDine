@@ -147,6 +147,23 @@
   .error-banner{ background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
   .success-banner{ background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
 
+  #print-area{ display:none; }
+  @media print{
+    body *{ visibility:hidden; }
+    #print-area, #print-area *{ visibility:visible; }
+    #print-area{
+      display:block; position:absolute; left:0; top:0; width:100%;
+      display:flex; justify-content:center; padding:32px 16px;
+    }
+    .receipt{
+      width:320px; border:1.5px dashed #9CA3AF; border-radius:14px;
+      padding:22px 20px; font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, sans-serif;
+      color:#111827;
+    }
+    .receipt-row{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
+    .receipt-divider{ border-top:1px dashed #9CA3AF; margin:12px 0; }
+  }
+
   .chip{
     background: var(--panel);
     border: 1px solid var(--line);
@@ -240,6 +257,7 @@ const I = {
   lock: "M12 15.5v2M7 10.5V7.5a5 5 0 0 1 10 0v3M5.5 10.5h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z",
   shield: "M12 2 4 5v6c0 5 3.4 8.5 8 9 4.6-.5 8-4 8-9V5l-8-3Zm-2 9.2 1.6 1.6L15.5 9",
   x: "M18 6 6 18M6 6l12 12",
+  printer: "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6Z",
 };
 
 /* ---------------- Helpers ---------------- */
@@ -829,11 +847,53 @@ function OrderFeedback({ order, onSubmit, busy }) {
 }
 
 function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy }) {
+  const [printOrder, setPrintOrder] = useState(null);
+
+  // Feature: print receipt — render the chosen order into a hidden #print-area,
+  // then trigger the browser print dialog; the CSS above hides everything else.
+  useEffect(() => {
+    if (!printOrder) return;
+    const clear = () => setPrintOrder(null);
+    window.addEventListener("afterprint", clear);
+    const t = setTimeout(() => window.print(), 50);
+    return () => { clearTimeout(t); window.removeEventListener("afterprint", clear); };
+  }, [printOrder]);
+
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>No orders yet — place one from the Menu &amp; Order tab.</div>;
   }
   return (
     <div className="space-y-6 max-w-2xl">
+      {printOrder && (
+        <div id="print-area">
+          <div className="receipt">
+            <div className="text-center mb-1">
+              <div className="font-display font-800" style={{ fontSize: 18 }}>🍽 CampusDine</div>
+              <div style={{ fontSize: 11, color: "#6B7280", letterSpacing: 1 }}>ORDER RECEIPT</div>
+            </div>
+            <div className="receipt-divider" />
+            <div className="text-center" style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, color: "#6B7280" }}>PICKUP TOKEN</div>
+              <div className="font-mono font-800" style={{ fontSize: 30, letterSpacing: 2 }}>{printOrder.token}</div>
+            </div>
+            <div className="receipt-row"><span>Status</span><span style={{ fontWeight: 600 }}>{printOrder.status}</span></div>
+            <div className="receipt-row"><span>Payment</span><span>{printOrder.payment_method === "wallet" ? "Wallet" : "Cash on pickup"}</span></div>
+            {printOrder.pickup_time && (
+              <div className="receipt-row"><span>Scheduled pickup</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
+            )}
+            <div className="receipt-row"><span>Printed</span><span>{new Date().toLocaleString()}</span></div>
+            <div className="receipt-divider" />
+            {printOrder.items.map((i, idx) => (
+              <div key={idx} className="receipt-row"><span>{i.name} ×{i.qty}</span><span>{taka(i.price * i.qty)}</span></div>
+            ))}
+            <div className="receipt-divider" />
+            <div className="receipt-row" style={{ fontSize: 15, fontWeight: 800 }}><span>Total</span><span>{taka(printOrder.total)}</span></div>
+            <div className="text-center" style={{ marginTop: 16, fontSize: 11, color: "#6B7280" }}>
+              Show this token at the counter · Thank you!
+            </div>
+          </div>
+        </div>
+      )}
       {orders.map(o => {
         const stepIndex = STATUSES.indexOf(o.status);
         const isCancelled = o.status === "Cancelled";
@@ -879,13 +939,21 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
                 {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
               </div>
-              {o.status === "Received" && (
-                <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
-                  className="text-xs mt-3 px-3 py-1.5 rounded-lg border font-600"
-                  style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
-                  Cancel order
+              <div className="flex items-center gap-2 mt-3">
+                <button onClick={() => setPrintOrder(o)}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                  <Icon path={I.printer} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
+                  Print receipt
                 </button>
-              )}
+                {o.status === "Received" && (
+                  <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600"
+                    style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+                    Cancel order
+                  </button>
+                )}
+              </div>
               {o.status === "Ready" && (
                 <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
               )}
