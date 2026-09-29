@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id INT NOT NULL,
   total DECIMAL(10,2) NOT NULL,
   payment_method ENUM('wallet','cash') NOT NULL,
+  pickup_time DATETIME NULL,  -- NULL = ASAP; otherwise a scheduled pickup time (feature: pre-order)
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
@@ -44,6 +45,10 @@ CREATE TABLE IF NOT EXISTS orders (
 -- change, run this once against an existing 'campusdine' DB — CREATE TABLE
 -- IF NOT EXISTS above won't retrofit an existing orders table:
 --   ALTER TABLE orders MODIFY status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received';
+
+-- Feature: pre-order / scheduled pickup. For an existing 'campusdine' DB
+-- created before this change, run once:
+--   ALTER TABLE orders ADD COLUMN pickup_time DATETIME NULL AFTER payment_method;
 
 CREATE TABLE IF NOT EXISTS order_items (
   id INT AUTO_INCREMENT PRIMARY KEY,

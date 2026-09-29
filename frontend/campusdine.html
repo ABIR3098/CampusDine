@@ -612,6 +612,17 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
   const [cat, setCat] = useState("heavy");
   const filtered = menu.filter(i => i.category === cat);
   const [payMethod, setPayMethod] = useState("wallet");
+  const [scheduleLater, setScheduleLater] = useState(false);
+  const [pickupTime, setPickupTime] = useState("");
+
+  // Feature: pre-order — a student can pick a slot up to 4h ahead (min 10min from now).
+  // These bounds are hints for the native time input; the server enforces the real rule.
+  const fmtHHMM = (d) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const pickupNow = new Date();
+  pickupNow.setSeconds(0, 0); // whole-minute precision — must match the server's rounding exactly
+  const pickupMin = new Date(pickupNow.getTime() + 10 * 60000);
+  const pickupMax = new Date(pickupNow.getTime() + 4 * 3600000);
+  const pickupCrossesMidnight = pickupMin.getDate() !== pickupMax.getDate();
 
   const add = (item) => setCart(prev => {
     const existing = prev.find(p => p.id === item.id);
@@ -624,6 +635,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const canPay = payMethod === "cash" || walletBalance >= total;
+  const canCheckout = canPay && (!scheduleLater || pickupTime);
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
@@ -698,6 +710,23 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
           </div>
           {cart.length > 0 && (
             <>
+              <div className="mb-4">
+                <label className="flex items-center gap-2 text-sm mb-2">
+                  <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
+                  Schedule pickup for later
+                </label>
+                {scheduleLater && (
+                  <>
+                    <input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)}
+                      min={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMin)}
+                      max={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMax)}
+                      className="w-full px-3 py-2 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
+                    <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                      Pick a time between {fmtHHMM(pickupMin)} and {fmtHHMM(pickupMax)}.
+                    </p>
+                  </>
+                )}
+              </div>
               <div className="flex gap-2 mb-4 text-sm">
                 <button onClick={() => setPayMethod("wallet")}
                   className={`flex-1 py-2 rounded-lg border ${payMethod === "wallet" ? "text-white" : ""}`}
@@ -713,7 +742,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy }) {
               {payMethod === "wallet" && !canPay && (
                 <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>Insufficient wallet balance — top up or pay cash.</p>
               )}
-              <button disabled={!canPay || busy} onClick={() => placeOrder(cart, payMethod)}
+              <button disabled={!canCheckout || busy} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? "Placing order…" : "Checkout — get token"}
               </button>
@@ -791,6 +820,11 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               </div>
             </div>
             <div className="p-5">
+              {o.pickup_time && (
+                <div className="text-xs mb-3 font-600" style={{ color: "var(--teal)" }}>
+                  Scheduled pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </div>
+              )}
               {isCancelled ? (
                 <div className="flex items-center gap-2 text-sm font-600" style={{ color: "var(--brick)" }}>
                   <Icon path={I.x} className="w-4 h-4" />
@@ -1240,9 +1274,17 @@ function AdminOrders({ orders, advance }) {
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div>;
   }
+  // Feature: pre-order — ASAP orders (no pickup_time) need attention first,
+  // then scheduled ones soonest-first, so the kitchen sees what's coming up next.
+  const sorted = [...orders].sort((a, b) => {
+    if (!a.pickup_time && !b.pickup_time) return b.id - a.id;
+    if (!a.pickup_time) return -1;
+    if (!b.pickup_time) return 1;
+    return new Date(a.pickup_time) - new Date(b.pickup_time);
+  });
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {orders.map(o => (
+      {sorted.map(o => (
         <div key={o.token} className="card p-4">
           <div className="flex justify-between items-start mb-2">
             <span className="font-mono font-700 text-lg" style={{ color: "var(--gold)" }}>{o.token}</span>
@@ -1251,6 +1293,11 @@ function AdminOrders({ orders, advance }) {
               color: o.status === "Received" ? "var(--ink)" : "#fff"
             }}>{o.status}</span>
           </div>
+          {o.pickup_time && (
+            <div className="text-xs mb-2 font-600" style={{ color: "var(--teal)" }}>
+              Pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </div>
+          )}
           <div className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
             {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
           </div>
@@ -1549,10 +1596,13 @@ function App() {
     return () => socket.disconnect();
   }, [session, apiBase]);
 
-  const placeOrder = async (cartItems, paymentMethod) => {
+  const placeOrder = async (cartItems, paymentMethod, pickupTime) => {
     setBusy(true); setError(null);
     try {
-      await call("/api/orders", { method: "POST", body: { items: cartItems.map(c => ({ id: c.id, qty: c.qty })), paymentMethod } });
+      await call("/api/orders", {
+        method: "POST",
+        body: { items: cartItems.map(c => ({ id: c.id, qty: c.qty })), paymentMethod, pickupTime: pickupTime || undefined },
+      });
       setCart([]);
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");

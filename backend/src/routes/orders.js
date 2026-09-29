@@ -5,6 +5,9 @@ const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
+// Feature: pre-order / scheduled pickup — how far ahead a student may schedule
+const PICKUP_MIN_LEAD_MINUTES = 10;
+const PICKUP_MAX_LEAD_HOURS = 4;
 
 async function attachItems(orders) {
   if (orders.length === 0) return orders;
@@ -41,6 +44,40 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
   }
   if (!["wallet", "cash"].includes(paymentMethod)) {
     return res.status(400).json({ error: "paymentMethod must be wallet or cash" });
+  }
+
+  // Optional pre-order: body.pickupTime is a "HH:MM" (24h) string for a slot today
+  // (or tomorrow, if the window crosses midnight). Omitted/falsy means ASAP.
+  let pickupTime = null;
+  if (req.body.pickupTime) {
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(req.body.pickupTime);
+    if (!match) return res.status(400).json({ error: "pickupTime must be in HH:MM 24-hour format" });
+
+    // Truncate seconds so the allowed window matches exactly what a minute-precision
+    // <input type="time"> can express — otherwise picking the exact displayed min/max
+    // minute could still fail by a few leftover seconds.
+    const now = new Date();
+    now.setSeconds(0, 0);
+    const minAllowed = new Date(now.getTime() + PICKUP_MIN_LEAD_MINUTES * 60000);
+    const maxAllowed = new Date(now.getTime() + PICKUP_MAX_LEAD_HOURS * 3600000);
+
+    // "14:05" could mean today or, once the window crosses midnight, tomorrow —
+    // try both and accept whichever actually falls inside the allowed window,
+    // instead of always assuming "today" (which broke post-midnight slots).
+    const buildCandidate = (dayOffset) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() + dayOffset);
+      d.setHours(Number(match[1]), Number(match[2]), 0, 0);
+      return d;
+    };
+    const candidate = [0, 1].map(buildCandidate).find((d) => d >= minAllowed && d <= maxAllowed);
+
+    if (!candidate) {
+      return res.status(400).json({
+        error: `Pickup time must be at least ${PICKUP_MIN_LEAD_MINUTES} minutes and at most ${PICKUP_MAX_LEAD_HOURS} hours from now`,
+      });
+    }
+    pickupTime = candidate;
   }
 
   const conn = await pool.getConnection();
@@ -84,8 +121,8 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     const token = `C-${String(100 + maxId + 1).padStart(3, "0")}`;
 
     const [orderResult] = await conn.query(
-      "INSERT INTO orders (token, user_id, total, payment_method, status) VALUES (?, ?, ?, ?, 'Received')",
-      [token, req.user.id, total, paymentMethod]
+      "INSERT INTO orders (token, user_id, total, payment_method, pickup_time, status) VALUES (?, ?, ?, ?, ?, 'Received')",
+      [token, req.user.id, total, paymentMethod, pickupTime]
     );
     for (const item of snapshot) {
       await conn.query(
@@ -96,7 +133,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 
     await conn.commit();
 
-    const order = { id: orderResult.insertId, token, total, status: "Received", items: snapshot };
+    const order = { id: orderResult.insertId, token, total, status: "Received", pickup_time: pickupTime, items: snapshot };
     req.app.get("io").to("admins").emit("order:new", order);
     res.status(201).json(order);
   } catch (err) {
