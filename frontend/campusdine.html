@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CampusDine — Royal Campus Canteen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root {
+    --bg: #f4f8f6;
+    --panel: #ffffff;
+    --panel-border: #dce8e1;
+    --ink: #17352b;
+    --ink-soft: #668076;
+    --teal: #dff3eb;
+    --teal-deep: #123d31;
+    --gold: #ef9b3f;
+    --gold-bright: #ffd39a;
+    --gold-deep: #ca6c20;
+    --brick: #d85b52;
+    --leaf: #32966a;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+    background-image: 
+      radial-gradient(ellipse at 50% 0%, rgba(174, 224, 202, 0.5), transparent 70%),
+      radial-gradient(circle at 2px 2px, rgba(50, 150, 106, 0.08) 1px, transparent 0);
+    background-size: 100% 100%, 28px 28px;
+    min-height: 100vh;
+  }
+
+  .font-display { font-family: 'Cinzel', 'Hind Siliguri', serif; letter-spacing: 0.03em; }
+  .font-classic { font-family: 'Playfair Display', serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  .gold-text {
+    background: linear-gradient(135deg, #ca6c20 0%, #ef9b3f 50%, #9c4d16 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.25); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+
+  /* Classic Ticket Styling */
+  .ticket {
+    position: relative;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
+    color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 8px 24px rgba(23, 53, 43, 0.14);
+  }
+  .ticket::before, .ticket::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+  .ticket::before { left: -10px; border-right: 1px solid var(--panel-border); }
+  .ticket::after { right: -10px; border-left: 1px solid var(--panel-border); }
+  .ticket .perf { border-left: 2px dashed rgba(212, 175, 55, 0.35); }
+
+  /* UI Cards & Buttons */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card:hover {
+    border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.06);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 60%, var(--gold-deep) 100%);
+    color: #ffffff;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { background: #d8e1dc; color: #8da199; cursor: not-allowed; box-shadow: none; filter: none; }
+
+  .btn-gold {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    transition: all 0.2s ease;
+  }
+  .btn-gold:hover {
+    background: var(--gold);
+    color: var(--teal-deep);
+  }
+
+  .tab-btn {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+    color: var(--teal-deep);
+    box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
+  }
+  .tab-btn:not(.active) {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--ink-soft);
+  }
+  .tab-btn:not(.active):hover {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+  }
+
+  .stepper-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--panel-border);
+  }
+  .stepper-dot.done { background: var(--gold); border-color: var(--gold); }
+  .stepper-dot.current {
+    background: var(--gold-bright);
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25);
+  }
+
+  .cal-cell {
+    aspect-ratio: 1/1;
+    border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none;
+    border: 1px solid var(--panel-border);
+    background: var(--panel);
+    transition: all 0.15s ease;
+  }
+  .cal-cell:hover { transform: translateY(-2px); border-color: var(--gold); }
+  .cal-full { background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%); color: var(--gold-bright); border-color: var(--gold); }
+  .cal-half { background: rgba(212, 175, 55, 0.15); color: var(--gold-bright); border-color: var(--gold); }
+
+  .logo-badge {
+    border: 1px solid var(--gold);
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+  }
+
+  .divider-flourish { display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--gold); }
+  .divider-flourish::before, .divider-flourish::after {
+    content: ""; flex: 1; max-width: 80px; border-bottom: 1px solid var(--panel-border);
+  }
+
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  input, select { background: var(--panel); color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+  /* Fresh campus-market visual layer */
+  body { letter-spacing: 0; }
+  button, input, select { font-family: inherit; }
+  button { cursor: pointer; }
+  ::selection { background: #bce8d3; color: var(--teal-deep); }
+  .card {
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(31, 81, 62, 0.07);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: #a9d8c2;
+    box-shadow: 0 18px 38px rgba(31, 81, 62, 0.12);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #f6a65b, #df762c);
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 8px 18px rgba(223, 118, 44, 0.22);
+  }
+  .btn-primary:hover { filter: saturate(1.08) brightness(1.03); box-shadow: 0 12px 24px rgba(223, 118, 44, 0.28); }
+  .btn-gold {
+    border-color: #efad68;
+    border-radius: 12px;
+    color: #b65c1c;
+    background: #fffaf4;
+  }
+  .btn-gold:hover { background: #fff0df; color: #8d4312; }
+  .tab-btn { border-radius: 12px; }
+  .tab-btn.active { background: #174d3c; color: #ffffff; box-shadow: 0 7px 16px rgba(23, 77, 60, 0.18); }
+  .tab-btn:not(.active) { background: rgba(255, 255, 255, 0.74); color: #5f786f; }
+  .tab-btn:not(.active):hover { border-color: #8bcaae; color: #174d3c; background: #effaf4; }
+  input, select {
+    border-radius: 12px !important;
+    border-color: #cfe1d8 !important;
+    box-shadow: inset 0 1px 2px rgba(23, 77, 60, 0.03);
+  }
+  input::placeholder { color: #94aaa1; }
+  .ticket { background: linear-gradient(135deg, #174d3c, #2d8060); }
+  .logo-badge { border-color: #f0ad68; background: linear-gradient(135deg, #fff4e5, #e4f5ec); box-shadow: 0 8px 18px rgba(23, 77, 60, 0.1); }
+  .cal-cell { border-radius: 12px; }
+  .cal-full { background: #dff3e8; color: #1b684b; border-color: #8bcaae; }
+  .cal-half { background: #fff0dc; color: #a65417; border-color: #efb36e; }
+  @media (max-width: 640px) {
+    .card { border-radius: 14px; }
+    .ticket { border-radius: 14px; }
+    .tab-btn { padding-left: 0.7rem; padding-right: 0.7rem; }
+  }
+
+  /* Shared page system: every authenticated view uses the same visual language. */
+  body {
+    background-image:
+      linear-gradient(135deg, rgba(255,255,255,.72), rgba(231,246,238,.7)),
+      repeating-linear-gradient(0deg, rgba(23,77,60,.035) 0, rgba(23,77,60,.035) 1px, transparent 1px, transparent 32px);
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    border: 10px solid rgba(255,255,255,.35);
+    z-index: -1;
+  }
+  main.max-w-6xl {
+    min-height: calc(100vh - 76px);
+    padding-top: 2.25rem;
+    padding-bottom: 4rem;
+  }
+  main.max-w-6xl::before {
+    content: "CAMPUS KITCHEN / DAILY SERVICE";
+    display: block;
+    width: fit-content;
+    margin-bottom: 1.4rem;
+    color: #8ca69b;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .14em;
+  }
+  .card {
+    border-color: #d3e4db;
+    background: rgba(255,255,255,.86);
+    box-shadow: 0 14px 34px rgba(23,77,60,.075);
+    backdrop-filter: blur(8px);
+  }
+  .card:hover { box-shadow: 0 18px 42px rgba(23,77,60,.13); }
+  .card .font-display { color: #174d3c; }
+  .text-gray-400, .text-gray-500, .text-gray-600 { color: #6e887c !important; }
+  .text-gray-300 { color: #45665a !important; }
+  .text-amber-300, .text-amber-400 { color: #b8611d !important; }
+  .text-emerald-300, .text-emerald-400 { color: #258059 !important; }
+  .text-red-300, .text-red-400 { color: #bd514a !important; }
+  .bg-amber-400 { background-color: #f3a052 !important; }
+  .border-amber-400\/10, .border-amber-400\/20, .border-amber-400\/30 { border-color: #e5c8a6 !important; }
+  .border-red-900\/40 { border-color: #e9bebb !important; }
+  .border-t, .border-b { border-color: #dce9e1 !important; }
+  .top-20 { top: 5.5rem; }
+  .sticky.top-20 { box-shadow: 0 12px 28px rgba(23,77,60,.06); }
+  table thead { background: #174d3c !important; color: #fff !important; }
+  table tbody tr { transition: background .2s ease; }
+  table tbody tr:hover { background: #eff8f3; }
+  .stepper-dot { border-color: #bcd3c7; background: #fff; }
+  .stepper-dot.done { background: #55a77d; border-color: #55a77d; }
+  .stepper-dot.current { background: #f3a052; border-color: #f3a052; box-shadow: 0 0 0 4px rgba(243,160,82,.2); }
+  .fade-in { animation: pageLift .38s ease-out both; }
+  @keyframes pageLift { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .simulation-card { position: relative; overflow: hidden; background: linear-gradient(135deg, #174d3c 0%, #2f8060 100%); color: #fff; }
+  .simulation-card::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 22px, rgba(255,255,255,.06) 23px 24px); pointer-events: none; }
+  .simulation-line { position: relative; height: 4px; border-radius: 999px; background: rgba(255,255,255,.2); overflow: hidden; }
+  .simulation-line::after { content: ""; position: absolute; inset: 0; width: 38%; border-radius: inherit; background: #f3a052; animation: kitchenRun 2.8s ease-in-out infinite; }
+  @keyframes kitchenRun { 0% { transform: translateX(-110%); } 50%, 100% { transform: translateX(280%); } }
+  .simulation-dot { animation: dotGlow 1.8s ease-in-out infinite; }
+  @keyframes dotGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(243,160,82,.45); } 50% { box-shadow: 0 0 0 7px rgba(243,160,82,0); } }
+  @media (max-width: 768px) {
+    main.max-w-6xl { padding: 1.25rem 1rem 3rem; }
+    main.max-w-6xl::before { margin-bottom: 1rem; font-size: 9px; }
+    .sticky.top-20 { position: static; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ---------------- Constants ---------------- */
+const DEFAULT_API_BASE = (window.location.origin && window.location.origin !== "null")
+  ? window.location.origin
+  : "http://localhost:5000";
+const LOW_STOCK_THRESHOLD = 10;
+const CATEGORIES = [
+  { id: "heavy", label: "Heavy Meals" },
+  { id: "snacks", label: "Snacks" },
+  { id: "drinks", label: "Drinks" },
+];
+const STATUSES = ["Received", "Cooking", "Ready"];
+
+/* ---------------- API helper ---------------- */
+async function api(apiBase, path, { method = "GET", body, token } = {}) {
+  const res = await fetch(`${apiBase}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) { /* empty body */ }
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+/* ---------------- Icon Component ---------------- */
+const Icon = ({ path, className = "w-5 h-5", style }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+       strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+    <path d={path} />
+  </svg>
+);
+const I = {
+  menu: "M3 6h18M3 12h18M3 18h18",
+  cart: "M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L22 8H6",
+  clock: "M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 5v5l4 2",
+  wallet: "M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Zm14 3h.01M3 9h18",
+  calendar: "M8 2v4M16 2v4M3 9h18M4 4h16a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z",
+  dashboard: "M4 4h7v7H4V4Zm9 0h7v4h-7V4Zm0 7h7v9h-7v-9ZM4 14h7v6H4v-6Z",
+  box: "M21 8L12 3 3 8l9 5 9-5Zm0 0v8l-9 5-9-5V8m18 0-9 5-9-5",
+  chart: "M4 19V5M4 19h16M8 15v4M12 11v8M16 7v12",
+  bell: "M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9ZM13.7 21a2 2 0 0 1-3.4 0",
+  plus: "M12 5v14M5 12h14",
+  minus: "M5 12h14",
+  check: "M20 6 9 17l-5-5",
+  arrow: "M5 12h14M13 5l7 7-7 7",
+  logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
+  user: "M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+  ticket: "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z",
+  plug: "M9 7V2m6 5V2M6 7h12l-1 6a5 5 0 0 1-10 0L6 7Zm4 11v3h4v-3",
+};
+
+/* ---------------- Helpers ---------------- */
+const taka = (n) => `৳${Number(n || 0).toLocaleString("en-BD")}`;
+function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
+function monthLabel(ym) {
+  const [y, m] = ym.split("-");
+  return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
+}
+
+/* ---------------- Login / Landing Screen ---------------- */
+function Login({ apiBase, setApiBase, onAuth }) {
+  const [role, setRole] = useState(null);
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
+  const [externalId, setExternalId] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [resetMsg, setResetMsg] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const authRef = useRef(null);
+
+  const roles = [
+    { key: "student", label: "Student", desc: "Order meals, track pickup, manage subscription.", icon: I.user },
+    { key: "teacher", label: "Faculty Member", desc: "Faculty meal ordering with dedicated rates.", icon: I.user },
+    { key: "admin", label: "Canteen Admin", desc: "Run orders, menu stock, and revenue reports.", icon: I.dashboard },
+  ];
+
+  const features = [
+    { title: "Token Pickup", desc: "লাইনে না দাঁড়িয়ে অর্ডার করুন, টোকেন দিয়ে সরাসরি নিন।" },
+    { title: "Digital Wallet", desc: "ক্যাশলেস পেমেন্ট, দ্রুত টপ-আপ এবং স্বচ্ছ ইতিহাস।" },
+    { title: "Auto Subscription", desc: "মাসিক ডাইনিং বিলের হিসাব এখন অটোমেটিক।" },
+    { title: "Live Tracking", desc: "রিয়েল-টাইমে জানুন খাবার তৈরির আপডেট।" },
+  ];
+
+  const sampleMenu = [
+    { name: "Kacchi Biryani", bn: "কাচ্চি বিরিয়ানি", price: "৳ ১৬০", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=500&q=80" },
+    { name: "Special Beef Tehari", bn: "বিফ তেহারি", price: "৳ ৯০", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" },
+    { name: "Vintage Cold Brew", bn: "কোল্ড ব্রু কফি", price: "৳ ৪০", img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=500&q=80" },
+  ];
+
+  const scrollToAuth = () => authRef.current && authRef.current.scrollIntoView({ behavior: "smooth" });
+
+  const submit = async () => {
+    setError(null);
+    if (!externalId || !password || (mode === "register" && !name)) {
+      setError("সবগুলো ফিল্ড সঠিকভাবে পূরণ করুন।");
+      return;
+    }
+    setBusy(true);
+    try {
+      const data = mode === "login"
+        ? await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId, password } })
+        : await api(apiBase, "/api/auth/register", { method: "POST", body: { name, externalId, role, password } });
+      onAuth(data.token, data.user);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitReset = async () => {
+    setError(null); setResetMsg(null);
+    if (!externalId || !newPassword) { setError("সব তথ্য দিন।"); return; }
+    if (newPassword.length < 6) { setError("পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।"); return; }
+    setBusy(true);
+    try {
+      await api(apiBase, "/api/auth/verify-otp-and-reset", { method: "POST", body: { externalId, otp, newPassword } });
+      setMode("login");
+      setResetMsg("পাসওয়ার্ড আপডেট হয়েছে — নতুন পাসওয়ার্ড দিয়ে লগইন করুন।");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requestReset = async () => {
+    setError(null); setResetMsg(null);
+    if (!externalId) { setError("Enter your email or external ID first."); return; }
+    setBusy(true);
+    try {
+      const data = await api(apiBase, "/api/auth/request-password-reset", { method: "POST", body: { externalId } });
+      setResetMsg(data.message || "OTP sent. Check the configured reset channel.");
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col justify-between">
+      <div className="text-center py-2.5 px-4 text-xs tracking-widest uppercase font-display border-b"
+           style={{ background: "linear-gradient(90deg, var(--teal-deep), var(--teal), var(--teal-deep))", borderColor: "var(--panel-border)", color: "var(--gold-bright)" }}>
+        ✨ আভিজাত্য ও সুস্বাদু খাবারের ডাইনিং প্ল্যাটফর্ম — CampusDine ✨
+      </div>
+
+      <header className="sticky top-0 z-30 backdrop-blur-md border-b" style={{ background: "rgba(255, 255, 255, 0.92)", borderColor: "var(--panel-border)" }}>
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="logo-badge w-10 h-10 rounded-full grid place-items-center">
+              <Icon path={I.ticket} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+            </div>
+            <div>
+              <span className="font-display gold-text text-xl font-800 tracking-wider block leading-none">CampusDine</span>
+              <span className="text-[9px] uppercase tracking-[0.3em] block mt-1" style={{ color: "var(--ink-soft)" }}>Royal Campus Kitchen</span>
+            </div>
+          </div>
+          <nav className="hidden md:flex items-center gap-8 text-xs font-display tracking-widest uppercase" style={{ color: "var(--ink-soft)" }}>
+            <a href="#menu" className="hover:text-amber-400 transition-colors">Menu</a>
+            <a href="#features" className="hover:text-amber-400 transition-colors">Features</a>
+            <a href="#about" className="hover:text-amber-400 transition-colors">Story</a>
+          </nav>
+          <button onClick={scrollToAuth} className="btn-primary px-6 py-2.5 rounded-md text-xs">Sign In</button>
+        </div>
+      </header>
+
+      <section className="relative py-28 px-6 text-center">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-display uppercase tracking-[0.25em]"
+               style={{ border: "1px solid var(--panel-border)", color: "var(--gold)" }}>
+            Est. 2026 — Fine Campus Culinary
+          </div>
+          <h1 className="font-display text-4xl sm:text-6xl font-800 leading-tight">
+            Order Ahead. Skip The Line.<br />
+            <span className="gold-text italic font-classic font-normal">Dine Like Royalty.</span>
+          </h1>
+          <p className="max-w-xl mx-auto text-sm sm:text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+            ক্যাম্পাস ডাইনিংয়ে আনুন স্বাচ্ছন্দ্য। ডিজিটাল টোকেন ও স্মার্ট ওয়ালেটের মাধ্যমে লাইন ছাড়া নিন আপনার পছন্দের খাবার।
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 pt-4">
+            <button onClick={scrollToAuth} className="btn-primary px-8 py-3.5 rounded-md text-xs">Get Started</button>
+            <a href="#menu" className="btn-gold px-8 py-3.5 rounded-md text-xs inline-block">Explore Menu</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="border-y py-12 px-6" style={{ borderColor: "var(--panel-border)", background: "rgba(212, 175, 55, 0.02)" }}>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((f, i) => (
+            <div key={i} className="card p-6 text-center space-y-2">
+              <div className="w-10 h-10 mx-auto rounded-full grid place-items-center mb-3" style={{ background: "rgba(212,175,55,0.1)", color: "var(--gold)" }}>❖</div>
+              <h4 className="font-display font-700 text-sm" style={{ color: "var(--gold-bright)" }}>{f.title}</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="menu" className="max-w-6xl mx-auto px-6 py-24 w-full">
+        <div className="text-center mb-14 space-y-3">
+          <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Crafted With Excellence</p>
+          <h2 className="font-display text-3xl font-800">A Taste of Our Menu</h2>
+          <div className="divider-flourish text-xs max-w-xs mx-auto">❖</div>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {sampleMenu.map((item, idx) => (
+            <div key={idx} className="card overflow-hidden group">
+              <div className="h-44 overflow-hidden relative" style={{ background: "var(--teal-deep)" }}>
+                <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-85" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--panel), transparent 60%)" }}></div>
+              </div>
+              <div className="p-5 relative">
+                <div className="font-display font-700 text-base">{item.name}</div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{item.bn}</div>
+                <div className="font-mono text-sm font-600 mt-3" style={{ color: "var(--gold)" }}>{item.price}</div>
+              </div>
+            </div>
+          ))}
+          <div className="card p-6 flex flex-col items-center justify-center text-center space-y-3 border-dashed">
+            <Icon path={I.menu} className="w-8 h-8" style={{ color: "var(--gold)" }} />
+            <div className="font-display font-700 text-sm">Full Menu Inside</div>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>লগইন করে রিয়েল-টাইম স্টক এবং খাবার অর্ডার করুন।</p>
+          </div>
+        </div>
+      </section>
+
+      <section ref={authRef} className="py-20 px-6 border-t" style={{ borderColor: "var(--panel-border)" }}>
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-8 space-y-2">
+            <p className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--gold)" }}>Portal Access</p>
+            <h2 className="font-display text-2xl font-800">Sign In To CampusDine</h2>
+          </div>
+
+          <div className="card p-8 fade-in">
+            {!role ? (
+              <div className="space-y-3.5">
+                {roles.map((r) => (
+                  <button key={r.key} onClick={() => setRole(r.key)}
+                    className="w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:border-amber-400 group"
+                    style={{ borderColor: "var(--panel-border)", background: "rgba(255, 255, 255, 0.72)" }}>
+                    <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0 logo-badge">
+                      <Icon path={r.icon} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+                    </div>
+                    <div>
+                      <div className="font-display font-700 text-sm group-hover:text-amber-300">{r.label}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{r.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : mode === "forgot" ? (
+              <div className="space-y-4">
+                <button onClick={() => { setMode("login"); setError(null); }} className="text-xs mb-2 flex items-center gap-1.5" style={{ color: "var(--ink-soft)" }}>
+                  <Icon path={I.arrow} className="w-3.5 h-3.5 rotate-180" /> Back to login
+                </button>
+                <div className="font-display font-700 text-lg text-center" style={{ color: "var(--gold-bright)" }}>Reset Password</div>
+                <input value={externalId} onChange={e => setExternalId(e.target.value)} placeholder="User ID"
+                       className="w-full px-4 py-3 rounded-lg border text-sm" style={{ borderColor: "var(--panel-border)" }} />
+                  <input value={otp} onChange={e => setOtp(e.target.value)} placeholder="OTP"
+                    className="w-full px-4 py-3 rounded-lg border text-sm" style={{ borderColor: "var(--panel-border)" }} />
+                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder="New Password"
+                       className="w-full px-4 py-3 rounded-lg border text-sm" style={{ borderColor: "var(--panel-border)" }} />
+                {error && <p className="text-xs text-red-400">{error}</p>}
+                  <div className="flex gap-2">
+                    <button disabled={busy} onClick={requestReset} className="flex-1 py-3 rounded-lg border border-amber-400/30 text-xs">Request OTP</button>
+                    <button disabled={busy} onClick={submitReset} className="btn-primary flex-1 py-3 rounded-lg text-xs">Verify & Reset</button>
+                  </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <button onClick={() => { setRole(null); setError(null); }} className="text-xs flex items-center gap-1.5" style={{ color: "var(--ink-soft)" }}>
+                  <Icon path={I.arrow} className="w-3.5 h-3.5 rotate-180" /> Change Role
+                </button>
+                <div className="font-display font-700 text-lg text-center" style={{ color: "var(--gold-bright)" }}>
+                  {roles.find(r => r.key === role)?.label} Access
+                </div>
+
+                <div className="flex p-1 rounded-full border mb-4" style={{ background: "var(--bg)", borderColor: "var(--panel-border)" }}>
+                  <button onClick={() => setMode("login")} className={`flex-1 py-2 rounded-full text-xs font-display font-700 ${mode === "login" ? "bg-amber-400 text-slate-950" : "text-gray-400"}`}>Log In</button>
+                  <button onClick={() => setMode("register")} className={`flex-1 py-2 rounded-full text-xs font-display font-700 ${mode === "register" ? "bg-amber-400 text-slate-950" : "text-gray-400"}`}>Register</button>
+                </div>
+
+                {mode === "register" && (
+                  <input value={name} onChange={e => setName(e.target.value)} placeholder="Full Name"
+                         className="w-full px-4 py-3 rounded-lg border text-sm" style={{ borderColor: "var(--panel-border)" }} />
+                )}
+                <input value={externalId} onChange={e => setExternalId(e.target.value)} placeholder="ID Number"
+                       className="w-full px-4 py-3 rounded-lg border text-sm" style={{ borderColor: "var(--panel-border)" }} />
+                <div>
+                  <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Password"
+                         className="w-full px-4 py-3 rounded-lg border text-sm" style={{ borderColor: "var(--panel-border)" }} />
+                  {mode === "login" && (
+                    <button onClick={() => { setMode("forgot"); setError(null); }} className="text-xs mt-2 text-amber-400">
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
+
+                {error && <p className="text-xs text-red-400">{error}</p>}
+                {resetMsg && <p className="text-xs text-emerald-400">{resetMsg}</p>}
+
+                <button disabled={busy} onClick={submit} className="btn-primary w-full py-3 rounded-lg text-xs">
+                  {busy ? "Authenticating..." : mode === "login" ? "Enter Portal" : "Create Account & Enter"}
+                </button>
+
+                <div className="pt-2 text-center">
+                  <button onClick={() => setShowAdvanced(!showAdvanced)} className="text-[11px] flex items-center justify-center gap-1 mx-auto text-gray-400">
+                    <Icon path={I.plug} className="w-3.5 h-3.5" /> Backend Server Host
+                  </button>
+                  {showAdvanced && (
+                    <input value={apiBase} onChange={e => setApiBase(e.target.value)}
+                           className="w-full mt-2 px-3 py-2 rounded-md border text-xs font-mono" style={{ borderColor: "var(--panel-border)" }} />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t py-12 px-6" style={{ borderColor: "var(--panel-border)", background: "rgba(255, 255, 255, 0.82)" }}>
+        <p className="text-center text-[11px] uppercase tracking-widest text-gray-400">
+          &copy; 2026 CampusDine — CSE Software Project
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+/* ---------------- Top Navbar ---------------- */
+function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
+  return (
+    <div className="sticky top-0 z-20 backdrop-blur-md border-b" style={{ background: "rgba(255, 255, 255, 0.92)", borderColor: "var(--panel-border)" }}>
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="logo-badge w-9 h-9 rounded-full grid place-items-center">
+            <Icon path={I.ticket} className="w-4 h-4" style={{ color: "var(--gold)" }} />
+          </div>
+          <div>
+            <span className="font-display gold-text font-800 text-base leading-none block">CampusDine</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: connected ? "var(--leaf)" : "var(--brick)" }}></span>
+              <span className="text-[10px]" style={{ color: "var(--ink-soft)" }}>{connected ? "Live System" : "Offline"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-1.5 flex-wrap">
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setActive(t.key)}
+                    className={`tab-btn px-4 py-2 rounded-lg text-xs flex items-center gap-2 ${active === t.key ? "active" : ""}`}>
+              <Icon path={t.icon} className="w-3.5 h-3.5" /> {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <div className="text-xs font-700 leading-tight">{name}</div>
+            <div className="text-[10px] capitalize font-mono mt-0.5 text-amber-400">{role}</div>
+          </div>
+          <button onClick={onLogout} title="Log Out" className="p-2 rounded-lg border border-red-900/40 hover:border-red-500 transition-colors">
+            <Icon path={I.logout} className="w-4 h-4 text-red-400" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Menu & Order Tab ---------------- */
+function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favorites, toggleFavorite, call, receivingNumber, availableCoupons }) {
+  const [cat, setCat] = useState("");
+  const [search, setSearch] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [availableOnly, setAvailableOnly] = useState(true);
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState(null);
+  const [couponMessage, setCouponMessage] = useState("");
+  const filtered = menu.filter(i => (!cat || i.category === cat) && (!search || `${i.name} ${i.description || ""}`.toLowerCase().includes(search.toLowerCase())) && (!minPrice || Number(i.price) >= Number(minPrice)) && (!maxPrice || Number(i.price) <= Number(maxPrice)) && (!availableOnly || i.stock > 0));
+  const [payMethod, setPayMethod] = useState("wallet");
+
+  const add = (item) => setCart(prev => {
+    const existing = prev.find(p => p.id === item.id);
+    if (existing) return prev.map(p => p.id === item.id ? { ...p, qty: p.qty + 1 } : p);
+    return [...prev, { ...item, qty: 1 }];
+  });
+  const dec = (item) => setCart(prev => prev.map(p => p.id === item.id ? { ...p, qty: p.qty - 1 } : p).filter(p => p.qty > 0));
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = Math.max(0, subtotal - Number(coupon?.discountAmount || 0));
+  const canPay = payMethod !== "wallet" || walletBalance >= total;
+  const validateCoupon = async () => {
+    if (!couponCode) return;
+    try { const data = await call("/api/coupons/validate", { method: "POST", body: { couponCode, orderAmount: subtotal } }); setCoupon(data); setCouponMessage(`Discount applied: ${taka(data.discountAmount)}`); }
+    catch (e) { setCoupon(null); setCouponMessage(e.message); }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search meals" className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <input type="number" min="0" value={minPrice} onChange={e => setMinPrice(e.target.value)} placeholder="Min price" className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <input type="number" min="0" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} placeholder="Max price" className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <label className="flex items-center gap-2 px-3 text-xs"><input type="checkbox" checked={availableOnly} onChange={e => setAvailableOnly(e.target.checked)} /> Available only</label>
+        </div>
+        <div className="flex gap-2 mb-5 flex-wrap">
+          <button onClick={() => setCat("")} className={`tab-btn px-4 py-2 rounded-full text-xs ${!cat ? "active" : ""}`}>All</button>
+          {CATEGORIES.map(c => (
+            <button key={c.id} onClick={() => setCat(c.id)} className={`tab-btn px-4 py-2 rounded-full text-xs ${cat === c.id ? "active" : ""}`}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+        {favorites.length > 0 && <div className="card p-3 mb-5 text-xs"><span className="text-amber-300 font-700">Favorites:</span> {favorites.map(item => <button key={item.id} onClick={() => add(item)} className="ml-2 text-gray-300 hover:text-amber-300">{item.name}</button>)}</div>}
+        <div className="grid sm:grid-cols-2 gap-4">
+          {filtered.map(item => {
+            const out = item.stock <= 0;
+            const inCart = cart.find(c => c.id === item.id);
+            const isFavorite = favorites.some(f => f.id === item.id);
+            return (
+              <div key={item.id} className={`card p-4 flex flex-col justify-between ${out ? "opacity-40" : ""}`}>
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-display font-700 text-amber-300">{item.name}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{item.bn}</div>
+                    </div>
+                    <button onClick={() => toggleFavorite(item)} title={isFavorite ? "Remove favorite" : "Add favorite"} className={`text-lg ${isFavorite ? "text-amber-300" : "text-gray-500"}`}>★</button>
+                    {item.tag && !out && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-700">{item.tag}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="font-mono font-700 text-lg">{taka(item.price)}</span>
+                  {out ? (
+                    <span className="text-xs text-red-400 font-600">Stock Out</span>
+                  ) : inCart ? (
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border border-amber-400/30"><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
+                      <span className="font-mono w-5 text-center text-sm">{inCart.qty}</span>
+                      <button onClick={() => add(item)} className="w-7 h-7 rounded-full grid place-items-center bg-amber-400 text-slate-950"><Icon path={I.plus} className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ) : (
+                    <button onClick={() => add(item)} className="btn-primary px-4 py-1.5 rounded-md text-xs">Add</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <div className="card p-5 sticky top-20">
+          <div className="font-display font-700 flex items-center gap-2 mb-4 text-amber-300">
+            <Icon path={I.cart} className="w-5 h-5" /> Cart Summary
+          </div>
+          {cart.length === 0 ? (
+            <p className="text-xs text-gray-400">কার্ট খালি — মেনু থেকে খাবার পছন্দ করুন।</p>
+          ) : (
+            <div className="space-y-2 mb-4">
+              {cart.map(i => (
+                <div key={i.id} className="flex justify-between text-xs">
+                  <span>{i.name} × {i.qty}</span>
+                  <span className="font-mono">{taka(i.price * i.qty)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="border-t border-amber-400/20 pt-3 mb-4">
+            <div className="flex justify-between font-700 text-sm">
+              <span>Total Amount</span>
+              <span className="font-mono text-amber-300">{taka(total)}</span>
+            </div>
+            {coupon && <div className="text-[11px] text-green-300 mt-1">Coupon discount: -{taka(coupon.discountAmount)}</div>}
+          </div>
+          {cart.length > 0 && (
+            <>
+              <div className="flex gap-2 mb-3">
+                <input value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} placeholder="Coupon code" className="flex-1 px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+                <button onClick={validateCoupon} className="px-3 rounded-lg border border-amber-400/30 text-xs">Apply</button>
+              </div>
+              {availableCoupons.length > 0 && <div className="mb-3 p-3 rounded-xl" style={{ background: "#fff8ed", border: "1px solid #f3d5ad" }}><div className="text-[10px] uppercase tracking-wider font-700 mb-2" style={{ color: "#a65417" }}>Available offers</div><div className="flex flex-wrap gap-2">{availableCoupons.map(offer => <button key={offer.id} onClick={() => setCouponCode(offer.code)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-700" style={{ background: "#ffffff", color: "#a65417", border: "1px dashed #eab36f" }}>{offer.code} <span className="font-sans">{offer.discount_type === "PERCENTAGE" ? `${offer.discount_value}% off` : `${taka(offer.discount_value)} off`}</span></button>)}</div></div>}
+              {couponMessage && <p className="text-[11px] text-gray-400 mb-3">{couponMessage}</p>}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-xs">
+                <button onClick={() => setPayMethod("wallet")} className={`flex-1 py-2 rounded-lg border ${payMethod === "wallet" ? "bg-amber-400 text-slate-950 font-700" : "border-amber-400/20"}`}>
+                  Wallet
+                </button>
+                <button onClick={() => setPayMethod("cash")} className={`flex-1 py-2 rounded-lg border ${payMethod === "cash" ? "bg-amber-400 text-slate-950 font-700" : "border-amber-400/20"}`}>
+                  Cash
+                </button>
+                {[['bkash', 'bKash'], ['nagad', 'Nagad']].map(([key, label]) => <button key={key} onClick={() => setPayMethod(key)} className={`py-2 rounded-lg border ${payMethod === key ? "bg-amber-400 text-slate-950 font-700" : "border-amber-400/20"}`}>{label}</button>)}
+              </div>
+              {payMethod !== "wallet" && payMethod !== "cash" && <p className="text-[11px] text-amber-300 mb-3">Send payment to {receivingNumber || "the configured receiving number"}. Payment initiation starts after order creation.</p>}
+              {payMethod === "wallet" && !canPay && (
+                <p className="text-[11px] text-red-400 mb-3">পর্যাপ্ত ব্যালেন্স নেই, ওয়ালেট রিচার্জ করুন।</p>
+              )}
+              <button disabled={!canPay || busy} onClick={() => placeOrder(cart, payMethod, coupon, total)} className="btn-primary w-full py-2.5 rounded-lg text-xs">
+                {busy ? "Placing Order..." : "Confirm & Get Token"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Track Order Tab ---------------- */
+function TrackOrder({ orders, call, refreshOrders, refreshWallet }) {
+  const cancelOrder = async (id) => { if (!window.confirm("Cancel this Received order? Refund: 100% if 8+ hours remain, 60% if 7-8 hours remain, 50% if 5-7 hours remain, otherwise 0%.")) return; try { const result = await call(`/api/orders/${id}/cancel`, { method: "PATCH" }); alert(result.refundAmount > 0 ? `৳${result.refundAmount} refunded (${Math.round(result.refundRate * 100)}%)` : "Order cancelled. No refund is available within 5 hours of meal time."); await refreshOrders(); await refreshWallet(); } catch (e) { alert(e.message); } };
+  const exportCsv = async () => {
+    try { const res = await fetch(`${window.__campusApiBase}/api/orders/export/csv`, { headers: { Authorization: `Bearer ${window.__campusToken}` } }); if (res.ok) { const blob = await res.blob(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "campusdine-orders.csv"; link.click(); URL.revokeObjectURL(url); return; } } catch (e) { /* use the loaded history below */ }
+    const csv = ["Order ID,Order Token,Status,Total Amount,Items", ...orders.map(o => [o.id, o.token, o.status, o.total, (o.items || []).map(i => `${i.name}(${i.qty})`).join("; ")].map(value => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); const link = document.createElement("a"); link.href = url; link.download = "campusdine-orders.csv"; link.click(); URL.revokeObjectURL(url);
+  };
+  if (orders.length === 0) {
+    return <div><KitchenSimulation /><button onClick={exportCsv} className="mb-4 px-3 py-2 rounded-lg border border-amber-400/30 text-xs">Export CSV</button><div className="card p-12 text-center text-xs text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</div></div>;
+  }
+  return (
+    <div className="space-y-6 max-w-2xl mx-auto"><KitchenSimulation /><button onClick={exportCsv} className="px-3 py-2 rounded-lg border border-amber-400/30 text-xs">Export CSV</button>
+      {orders.map(o => {
+        const stepIndex = STATUSES.indexOf(o.status);
+        return (
+          <div key={o.token || o.id} className="card overflow-hidden">
+            <div className="ticket p-5 flex items-center justify-between">
+              <div className="perf pl-4">
+                <div className="text-[10px] opacity-70 font-display uppercase tracking-widest">Token Number</div>
+                <div className="font-mono text-2xl font-800 text-amber-300">{o.token}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] opacity-70 font-display uppercase tracking-widest">Total Bill</div>
+                <div className="font-mono text-lg font-700">{taka(o.total)}</div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                {STATUSES.map((s, i) => (
+                  <React.Fragment key={s}>
+                    <div className="flex flex-col items-center gap-1.5 flex-1">
+                      <div className={`stepper-dot ${i < stepIndex ? "done" : i === stepIndex ? "current" : ""}`}></div>
+                      <span className="text-[11px] text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{s}</span>
+                    </div>
+                    {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-4" style={{ background: i < stepIndex ? "var(--gold)" : "var(--panel-border)" }} />}
+                  </React.Fragment>
+                ))}
+              </div>
+              <div className="text-xs text-gray-400 border-t border-amber-400/10 pt-3 mt-4">
+                Items: {o.items?.map(i => `${i.name} ×${i.qty}`).join(", ")}
+              </div>
+              {o.status === "Received" && <button onClick={() => cancelOrder(o.id)} className="mt-4 px-3 py-2 rounded-lg border border-red-500/40 text-red-300 text-xs">Cancel order</button>}
+              {o.items?.map(i => <RatingForm key={i.menu_item_id || i.id} item={i} call={call} />)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function KitchenSimulation() {
+  const [stage, setStage] = useState(1);
+  useEffect(() => { const timer = setInterval(() => setStage(current => (current + 1) % 3), 2600); return () => clearInterval(timer); }, []);
+  const stages = ["Received", "Cooking", "Ready"];
+  return <div className="simulation-card rounded-2xl p-5 mb-2"><div className="relative z-10 flex items-start justify-between gap-4"><div><div className="text-[10px] uppercase tracking-[.2em] opacity-70">Kitchen simulation</div><div className="font-display text-lg mt-1">Your meal is moving</div><div className="text-xs opacity-75 mt-1">A live preview of the campus pickup flow</div></div><div className="simulation-dot w-3 h-3 rounded-full bg-orange-300 mt-1"></div></div><div className="relative z-10 mt-5 simulation-line"></div><div className="relative z-10 grid grid-cols-3 mt-3 text-[10px] uppercase tracking-wider">{stages.map((name, index) => <div key={name} className={index <= stage ? "text-orange-200" : "opacity-50"}>{name}</div>)}</div></div>;
+}
+
+function RatingForm({ item, call }) {
+  const [rating, setRating] = useState(0); const [review, setReview] = useState(""); const [message, setMessage] = useState("");
+  const submit = async () => { try { await call(`/api/ratings/${item.menu_item_id || item.id}`, { method: "POST", body: { rating, review } }); setMessage("Review saved"); } catch (e) { setMessage(e.message); } };
+  return <div className="mt-3 flex flex-wrap items-center gap-2 text-xs"><span className="text-gray-400">Rate {item.name}:</span>{[1, 2, 3, 4, 5].map(value => <button key={value} onClick={() => setRating(value)} className={value <= rating ? "text-amber-300 text-lg" : "text-gray-600 text-lg"}>★</button>)}<input value={review} onChange={e => setReview(e.target.value)} placeholder="Review (optional)" className="flex-1 min-w-32 px-2 py-1 rounded border text-xs" style={{ borderColor: "var(--panel-border)" }} /><button disabled={!rating} onClick={submit} className="px-2 py-1 rounded border border-amber-400/30">Save</button>{message && <span className="text-emerald-300">{message}</span>}</div>;
+}
+
+function ProfileTab({ call, user, onUserUpdate }) {
+  const [profile, setProfile] = useState(user); const [passwords, setPasswords] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" }); const [message, setMessage] = useState("");
+  useEffect(() => { call("/api/profile").then(data => setProfile(data.user)).catch(e => setMessage(e.message)); }, []);
+  const save = async () => { try { await call("/api/profile", { method: "PUT", body: { name: profile.name, email: profile.email, phone: profile.phone } }); onUserUpdate({ ...user, name: profile.name }); setMessage("Profile updated"); } catch (e) { setMessage(e.message); } };
+  const changePassword = async () => { try { await call("/api/profile/change-password", { method: "POST", body: passwords }); setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" }); setMessage("Password changed"); } catch (e) { setMessage(e.message); } };
+  const subscribe = async () => { try { await call("/api/profile", { method: "PUT", body: { phone: profile.phone } }); await call("/api/notifications/subscribe", { method: "POST", body: { phoneNumber: profile.phone } }); setMessage("SMS notifications enabled"); } catch (e) { setMessage(e.message.includes("404") ? "Phone saved; notification service is not enabled on this server" : e.message); } };
+  const unsubscribe = async () => { try { await call("/api/notifications/unsubscribe", { method: "POST" }); setMessage("SMS notifications disabled"); } catch (e) { setMessage(e.message); } };
+  return <div className="grid lg:grid-cols-2 gap-6 max-w-4xl mx-auto"><div className="card p-5 space-y-3"><div className="font-display font-700 text-amber-300">Profile</div><input value={profile.name || ""} onChange={e => setProfile({ ...profile, name: e.target.value })} placeholder="Name" className="w-full px-3 py-2 rounded border text-xs" style={{ borderColor: "var(--panel-border)" }} /><input value={profile.email || ""} onChange={e => setProfile({ ...profile, email: e.target.value })} placeholder="Email" className="w-full px-3 py-2 rounded border text-xs" style={{ borderColor: "var(--panel-border)" }} /><input value={profile.phone || ""} onChange={e => setProfile({ ...profile, phone: e.target.value })} placeholder="Notification phone" className="w-full px-3 py-2 rounded border text-xs" style={{ borderColor: "var(--panel-border)" }} /><button onClick={save} className="btn-primary px-4 py-2 rounded text-xs">Save profile</button><div className="flex gap-2"><button onClick={subscribe} className="px-3 py-2 rounded border border-amber-400/30 text-xs">Subscribe SMS</button><button onClick={unsubscribe} className="px-3 py-2 rounded border border-red-500/30 text-xs">Unsubscribe</button></div></div><div className="card p-5 space-y-3"><div className="font-display font-700 text-amber-300">Change password</div>{["currentPassword", "newPassword", "confirmPassword"].map(key => <input key={key} type="password" value={passwords[key]} onChange={e => setPasswords({ ...passwords, [key]: e.target.value })} placeholder={key.replace(/([A-Z])/g, " $1")} className="w-full px-3 py-2 rounded border text-xs" style={{ borderColor: "var(--panel-border)" }} />)}<button onClick={changePassword} className="btn-primary px-4 py-2 rounded text-xs">Change password</button>{message && <p className="text-xs text-emerald-300">{message}</p>}</div></div>;
+}
+
+/* ---------------- Meal Calendar Tab ---------------- */
+function MealCalendar({ role, year, month, calendar, bill, onToggle }) {
+  const total = daysInMonth(year, month);
+  const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="font-display font-700 text-lg text-amber-300">{monthName} {year}</div>
+          <div className="text-xs text-gray-400">ট্যাপ করে মিল পর্যায় পরিবর্তন করুন: Off → Full → Half</div>
+        </div>
+        <div className="grid grid-cols-7 gap-2 mb-2 text-xs text-center font-600 text-gray-400">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => <div key={i}>{d}</div>)}
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: firstWeekday }).map((_, i) => <div key={"e" + i}></div>)}
+          {Array.from({ length: total }).map((_, i) => {
+            const day = i + 1;
+            const status = calendar[day] || "off";
+            return (
+              <div key={day} onClick={() => onToggle(day, status)}
+                   className={`cal-cell text-xs font-700 ${status === "full" ? "cal-full" : status === "half" ? "cal-half" : ""}`}>
+                {day}
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex gap-4 mt-6 text-xs text-gray-400 justify-center">
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-900 border border-amber-500"></span> Full Meal</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400/20 border border-amber-400"></span> Half Meal</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border border-gray-700"></span> Off</span>
+        </div>
+      </div>
+
+      <div className="card p-6 h-fit">
+        <div className="font-display font-700 mb-4 text-amber-300">Monthly Bill Summary</div>
+        <div className="space-y-2 text-xs mb-4">
+          <div className="flex justify-between"><span>Full Meal ({taka(bill.fullRate)})</span><span className="font-mono">{bill.fullDays} days</span></div>
+          <div className="flex justify-between"><span>Half Meal ({taka(bill.halfRate)})</span><span className="font-mono">{bill.halfDays} days</span></div>
+        </div>
+        <div className="border-t border-amber-400/20 pt-3">
+          <div className="flex justify-between font-700 text-sm">
+            <span>Total Payable</span><span className="font-mono text-amber-300">{taka(bill.total)}</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-gray-400 mt-4 leading-relaxed">অটো-বিলিং হিসাব অনুযায়ী {role === "teacher" ? "Faculty" : "Student"} রেট প্রয়োগ করা হয়েছে।</p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Wallet Tab ---------------- */
+function WalletTab({ balance, topUp, gatewayTopUp, removeTransaction, transactions, busy, receivingNumber }) {
+  const [amount, setAmount] = useState(100);
+  const [method, setMethod] = useState("bkash");
+  const [message, setMessage] = useState("");
+  const startGatewayTopUp = async () => { setMessage(""); try { await gatewayTopUp(method, amount); setMessage(`${method} payment started`); } catch (e) { setMessage(e.message); } };
+  const clearHistory = async () => { try { await removeTransaction("all"); } catch (e) { setMessage(e.message); } };
+  return (
+    <div className="grid lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div className="lg:col-span-1 space-y-4">
+        <div className="ticket p-6">
+          <div className="perf pl-4">
+            <div className="text-[10px] uppercase font-display tracking-widest opacity-80">Available Balance</div>
+            <div className="font-mono text-3xl font-800 text-amber-300 mt-1">{taka(balance)}</div>
+          </div>
+        </div>
+        <div className="card p-5">
+          <div className="font-display font-700 mb-3 text-xs text-amber-300">Quick Top Up</div>
+          <div className="flex gap-2 mb-3">
+            {[100, 300, 500].map(v => (
+              <button key={v} onClick={() => setAmount(v)} className={`flex-1 py-1.5 rounded-md border text-xs font-mono ${amount === v ? "bg-amber-400 text-slate-950 font-700" : "border-amber-400/20"}`}>
+                {taka(v)}
+              </button>
+            ))}
+          </div>
+          <input type="number" min="1" max="9999" value={amount} onChange={e => setAmount(Number(e.target.value))} className="w-full px-3 py-2 rounded-md border mb-3 font-mono text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <button disabled={busy} onClick={() => amount > 0 && topUp(amount)} className="btn-gold w-full py-2.5 rounded-md text-xs">
+            {busy ? "Processing..." : "Demo Wallet Top Up"}
+          </button>
+          <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--panel-border)" }}>
+            <div className="text-[11px] mb-2" style={{ color: "var(--ink-soft)" }}>Gateway top-up to {receivingNumber}</div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              {[['bkash', 'bKash'], ['nagad', 'Nagad']].map(([key, label]) => <button key={key} onClick={() => setMethod(key)} className={`py-2 rounded-md border text-xs ${method === key ? "bg-orange-500 text-white font-700" : "border-orange-200"}`}>{label}</button>)}
+            </div>
+            <button disabled={busy} onClick={startGatewayTopUp} className="w-full py-2 rounded-md border border-orange-300 text-orange-700 text-xs font-700">Pay via {method}</button>
+            {message && <p className="text-[11px] mt-2 text-orange-700">{message}</p>}
+          </div>
+        </div>
+      </div>
+
+      <div className="lg:col-span-2 card p-6">
+        <div className="flex items-center justify-between gap-3 mb-4"><div className="font-display font-700 text-amber-300">Transaction History</div>{transactions.length > 0 && <button onClick={clearHistory} className="text-[11px] text-red-500 hover:text-red-700">Remove all</button>}</div>
+        {transactions.length === 0 ? (
+          <p className="text-xs text-gray-400">কোনো লেনদেনের তথ্য পাওয়া যায়নি।</p>
+        ) : (
+          <div className="space-y-2">
+            {transactions.map((t, i) => (
+              <div key={t.id || i} className="flex justify-between items-center gap-3 py-2.5 text-xs border-b border-amber-400/10">
+                <div>
+                  <div className="font-600">{t.label}</div>
+                  <div className="text-[10px] text-gray-400">{t.time}</div>
+                </div>
+                <div className="flex items-center gap-3"><span className={`font-mono font-700 ${t.amount > 0 ? "text-emerald-400" : "text-red-400"}`}>{t.amount > 0 ? "+" : ""}{taka(t.amount)}</span><button onClick={() => removeTransaction(t.id)} title="Remove from history" className="text-gray-400 hover:text-red-500">×</button></div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Overview ---------------- */
+function AdminOverview({ overview, orders }) {
+  const lowStock = overview.lowStock || [];
+  return (
+    <div className="space-y-6">
+      {lowStock.length > 0 && (
+        <div className="p-4 rounded-xl border flex items-center gap-3 bg-red-950/30 border-red-500/40 text-red-300">
+          <Icon path={I.bell} className="w-5 h-5 shrink-0 text-red-400" />
+          <div className="text-xs">
+            <span className="font-700">Stock Warning: </span>
+            {lowStock.map(i => i.name).join(", ")} খাবারগুলোর স্টক কম।
+          </div>
+        </div>
+      )}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-5"><div className="text-xs text-gray-400">Full Meals Today</div><div className="font-mono text-2xl font-700 text-amber-300 mt-1">{overview.fullMealsToday ?? 0}</div></div>
+        <div className="card p-5"><div className="text-xs text-gray-400">Half Meals Today</div><div className="font-mono text-2xl font-700 text-amber-300 mt-1">{overview.halfMealsToday ?? 0}</div></div>
+        <div className="card p-5"><div className="text-xs text-gray-400">Pending Orders</div><div className="font-mono text-2xl font-700 text-amber-300 mt-1">{overview.pendingOrders ?? 0}</div></div>
+        <div className="card p-5"><div className="text-xs text-gray-400">Today's Revenue</div><div className="font-mono text-2xl font-700 text-amber-300 mt-1">{taka(overview.revenueToday ?? 0)}</div></div>
+      </div>
+      <div className="card p-6">
+        <div className="font-display font-700 mb-4 text-amber-300">Live Active Orders</div>
+        <div className="flex flex-wrap gap-2">
+          {orders.filter(o => o.status !== "Ready").map(o => (
+            <span key={o.token} className="font-mono text-xs px-3 py-1.5 rounded-full bg-amber-400 text-slate-950 font-700">
+              {o.token} • {o.status}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Menu Management ---------------- */
+function AdminMenu({ menu, updateItem, addItem, busy }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ name: "", bn: "", category: "heavy", price: "", stock: "" });
+
+  const submit = () => {
+    if (!form.name || !form.price) return;
+    addItem({ name: form.name, nameBn: form.bn, category: form.category, price: Number(form.price), stock: Number(form.stock) || 0, tag: "New" });
+    setForm({ name: "", bn: "", category: "heavy", price: "", stock: "" });
+    setShowAdd(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="font-display font-700 text-lg text-amber-300">Menu & Stock Controller</div>
+        <button onClick={() => setShowAdd(!showAdd)} className="btn-primary px-4 py-2 rounded-lg text-xs flex items-center gap-1.5">
+          <Icon path={I.plus} className="w-4 h-4" /> Add Item
+        </button>
+      </div>
+
+      {showAdd && (
+        <div className="card p-4 grid sm:grid-cols-5 gap-3 fade-in">
+          <input placeholder="Item Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <input placeholder="Bangla Name" value={form.bn} onChange={e => setForm({ ...form, bn: e.target.value })} className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }}>
+            {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+          <input placeholder="Price ৳" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+          <div className="flex gap-2">
+            <input placeholder="Stock" type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className="w-full px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
+            <button disabled={busy} onClick={submit} className="btn-gold px-3 rounded-lg"><Icon path={I.check} className="w-4 h-4" /></button>
+          </div>
+        </div>
+      )}
+
+      <div className="card overflow-hidden">
+        <table className="w-full text-xs text-left">
+          <thead className="bg-amber-400 text-slate-950 font-display">
+            <tr>
+              <th className="p-3">Item</th>
+              <th className="p-3">Category</th>
+              <th className="p-3">Price (৳)</th>
+              <th className="p-3">Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {menu.map(item => (
+              <tr key={item.id} className="border-t border-amber-400/10">
+                <td className="p-3 font-600">{item.name} <div className="text-[10px] text-gray-400 font-normal">{item.bn}</div></td>
+                <td className="p-3 capitalize">{item.category}</td>
+                <td className="p-3">
+                  <input type="number" defaultValue={item.price} onBlur={e => updateItem(item.id, { price: Number(e.target.value) })} className="w-20 px-2 py-1 rounded border font-mono" style={{ borderColor: "var(--panel-border)" }} />
+                </td>
+                <td className="p-3">
+                  <input type="number" defaultValue={item.stock} onBlur={e => updateItem(item.id, { stock: Number(e.target.value) })} className="w-20 px-2 py-1 rounded border font-mono" style={{ borderColor: item.stock <= LOW_STOCK_THRESHOLD ? "var(--brick)" : "var(--panel-border)" }} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Orders Queue ---------------- */
+function AdminOrders({ orders, advance }) {
+  if (orders.length === 0) return <div className="card p-10 text-center text-xs text-gray-400">Queue is empty.</div>;
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {orders.map(o => (
+        <div key={o.token || o.id} className="card p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-mono font-700 text-lg text-amber-300">{o.token}</span>
+              <span className="text-[10px] px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-700">{o.status}</span>
+            </div>
+            <div className="text-xs text-gray-300 mb-3">{o.items?.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
+          </div>
+          <div className="flex justify-between items-center border-t border-amber-400/10 pt-3">
+            <span className="font-mono text-xs">{taka(o.total)}</span>
+            {o.status !== "Ready" ? (
+              <button onClick={() => advance(o.id)} className="btn-primary px-3 py-1.5 rounded-md text-[11px] flex items-center gap-1">
+                Advance <Icon path={I.arrow} className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <span className="text-xs text-emerald-400 flex items-center gap-1"><Icon path={I.check} className="w-4 h-4" /> Ready</span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ---------------- Admin: Reports ---------------- */
+function AdminReports({ trend, forecast }) {
+  const max = Math.max(1, ...trend.map(r => r.revenue));
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 card p-6">
+        <div className="font-display font-700 mb-6 text-amber-300">Revenue Trend</div>
+        <div className="flex items-end gap-4 h-48 pt-6">
+          {trend.map(r => (
+            <div key={r.ym} className="flex-1 flex flex-col items-center gap-2">
+              <div className="text-[10px] font-mono text-gray-400">{Math.round(r.revenue / 1000)}k</div>
+              <div className="w-full rounded-t-md bg-gradient-to-t from-amber-600 to-amber-300" style={{ height: `${(r.revenue / max) * 130}px` }}></div>
+              <div className="text-[11px] font-600">{monthLabel(r.ym)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="card p-6">
+        <div className="font-display font-700 mb-2 text-amber-300">Demand Forecast</div>
+        <p className="text-xs text-gray-400 mb-4">Subscription analytics derived</p>
+        <div className="ticket p-5">
+          <div className="perf pl-4">
+            <div className="text-[10px] uppercase font-display opacity-70">Predicted Meals (Tomorrow)</div>
+            <div className="font-mono text-3xl font-800 text-amber-300 mt-1">{forecast.predictedMealCount ?? 0}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminReviews({ reviews }) {
+  return <div className="space-y-4"><div className="flex items-center justify-between"><div className="font-display font-700 text-lg text-amber-300">Customer Reviews</div><span className="text-xs text-gray-400">{reviews.length} review{reviews.length === 1 ? "" : "s"}</span></div>{reviews.length === 0 ? <div className="card p-10 text-center text-xs text-gray-400">No customer reviews yet.</div> : <div className="grid md:grid-cols-2 gap-4">{reviews.map(review => <div key={review.id} className="card p-5"><div className="flex justify-between gap-3"><div><div className="font-700 text-sm">{review.menu_name}</div><div className="text-[11px] text-gray-400">{review.user_name} · {review.external_id}</div></div><div className="text-amber-500 tracking-widest">{"★".repeat(review.rating)}<span className="text-gray-300">{"★".repeat(5 - review.rating)}</span></div></div><p className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>{review.review || "No written review"}</p><div className="text-[10px] text-gray-400 mt-3">{new Date(review.created_at).toLocaleString()}</div></div>)}</div>}</div>;
+}
+
+/* ---------------- App Core Entry ---------------- */
+function App() {
+  const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
+  const [session, setSession] = useState(null);
+  const [tab, setTab] = useState("menu");
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [connected, setConnected] = useState(false);
+
+  const [menu, setMenu] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [wallet, setWallet] = useState({ balance: 0, transactions: [] });
+  const [calendar, setCalendar] = useState({});
+  const [bill, setBill] = useState({ fullDays: 0, halfDays: 0, fullRate: 0, halfRate: 0, total: 0 });
+  const [overview, setOverview] = useState({});
+  const [trend, setTrend] = useState([]);
+  const [forecast, setForecast] = useState({});
+  const [favorites, setFavorites] = useState([]);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [adminReviews, setAdminReviews] = useState([]);
+  const [receivingNumber, setReceivingNumber] = useState("01318400442");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  const socketRef = useRef(null);
+  const showError = (e) => setError(typeof e === "string" ? e : e.message);
+
+  const call = (path, opts) => api(apiBase, path, { ...opts, token: session?.token });
+
+  const mapMenu = (rows) => rows.map(m => ({ ...m, bn: m.name_bn }));
+  const mapWallet = (data) => ({
+    balance: data.balance,
+    transactions: data.transactions.map(t => ({ id: t.id, label: t.label, amount: t.amount, time: new Date(t.created_at).toLocaleString() })),
+  });
+  const mapCalendar = (rows) => {
+    const map = {};
+    rows.forEach(r => { map[new Date(r.the_date).getDate()] = r.status; });
+    return map;
+  };
+
+  const refreshMenu = async () => setMenu(mapMenu(await call("/api/menu")));
+  const refreshWallet = async () => setWallet(mapWallet(await call("/api/wallet")));
+  const removeTransaction = async (id) => { if (!id || !window.confirm(id === "all" ? "Remove all wallet entries from your history?" : "Remove this entry from your wallet history?")) return; try { await call(id === "all" ? "/api/wallet/transactions" : `/api/wallet/transactions/${id}`, { method: "DELETE" }); await refreshWallet(); } catch (e) { showError(e); } };
+  const refreshCalendar = async () => {
+    setCalendar(mapCalendar(await call(`/api/calendar?year=${year}&month=${month}`)));
+    setBill(await call(`/api/calendar/bill?year=${year}&month=${month}`));
+  };
+  const refreshMyOrders = async () => setOrders(await call("/api/orders/mine"));
+  const refreshFavorites = async () => { const data = await call("/api/favorites"); setFavorites(data.favorites || []); };
+  const refreshCoupons = async () => { const data = await call("/api/coupons/available"); setAvailableCoupons(data.coupons || []); };
+  const refreshAdminOrders = async () => setOrders(await call("/api/orders"));
+  const refreshOverview = async () => setOverview(await call("/api/admin/overview"));
+  const refreshReports = async () => {
+    setTrend(await call("/api/admin/reports/revenue-trend"));
+    setForecast(await call("/api/admin/reports/forecast"));
+  };
+  const refreshAdminReviews = async () => { const data = await call("/api/ratings/admin/reviews"); setAdminReviews(data.reviews || []); };
+
+  const onAuth = (token, user) => {
+    setSession({ token, user });
+    setTab(user.role === "admin" ? "overview" : "menu");
+  };
+
+  const logout = () => {
+    if (socketRef.current) socketRef.current.disconnect();
+    setSession(null); setCart([]); setError(null);
+  };
+
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      try {
+        if (session.user.role === "admin") {
+          await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshAdminReviews()]);
+        } else {
+          await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet(), refreshCalendar(), refreshFavorites(), refreshCoupons()]);
+        }
+      } catch (e) { showError(e); }
+    })();
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+    const socket = io(apiBase, { auth: { token: session.token } });
+    socketRef.current = socket;
+    socket.on("connect", () => setConnected(true));
+    socket.on("disconnect", () => setConnected(false));
+    socket.on("order:new", (order) => {
+      if (session.user.role === "admin") setOrders(prev => [order, ...prev]);
+    });
+    socket.on("order:update", (order) => {
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: order.status } : o));
+    });
+    return () => socket.disconnect();
+  }, [session, apiBase]);
+
+  const toggleFavorite = async (item) => {
+    try { const exists = favorites.some(f => f.id === item.id); await call(`/api/favorites/${item.id}`, { method: exists ? "DELETE" : "POST" }); await refreshFavorites(); } catch (e) { showError(e); }
+  };
+
+  const placeOrder = async (cartItems, paymentMethod, coupon, total) => {
+    setBusy(true); setError(null);
+    try {
+      const order = await call("/api/orders", { method: "POST", body: { items: cartItems.map(c => ({ id: Number(c.id), qty: Number(c.qty) })), couponCode: coupon?.code, paymentMethod } });
+      if (coupon?.couponId) await call("/api/coupons/apply", { method: "POST", body: { couponId: coupon.couponId, orderId: order.id } });
+      if (paymentMethod === "bkash" || paymentMethod === "nagad") {
+        const payment = await call(`/api/payment/${paymentMethod}/initiate`, { method: "POST", body: { amount: Number(total), orderId: order.id } });
+        const paymentUrl = payment.paymentUrl || payment.redirectUrl;
+        if (paymentUrl) window.open(paymentUrl, "_blank", "noopener");
+      }
+      setCart([]);
+      await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
+      setTab("track");
+    } catch (e) { showError(e); } finally { setBusy(false); }
+  };
+
+  const gatewayTopUp = async (method, amount) => {
+    const data = await call(`/api/payment/${method}/wallet-topup`, { method: "POST", body: { amount: Number(amount) } });
+    if (data.redirectUrl || data.paymentUrl) window.open(data.redirectUrl || data.paymentUrl, "_blank", "noopener");
+    await refreshWallet();
+    return data;
+  };
+
+  useEffect(() => { window.__campusApiBase = apiBase; window.__campusToken = session?.token || ""; }, [apiBase, session]);
+
+  const advanceOrder = async (id) => {
+    try {
+      await call(`/api/orders/${id}/advance`, { method: "PATCH" });
+      await refreshAdminOrders();
+    } catch (e) { showError(e); }
+  };
+
+  const topUp = async (amount) => {
+    setBusy(true); setError(null);
+    try {
+      await call("/api/wallet/topup", { method: "POST", body: { amount } });
+      await refreshWallet();
+    } catch (e) { showError(e); } finally { setBusy(false); }
+  };
+
+  const toggleDay = async (day, currentStatus) => {
+    const next = currentStatus === "off" ? "full" : currentStatus === "full" ? "half" : "off";
+    try {
+      await call(`/api/calendar/${day}`, { method: "PUT", body: { year, month, status: next } });
+      await refreshCalendar();
+    } catch (e) { showError(e); }
+  };
+
+  const updateMenuItem = async (id, patch) => {
+    try {
+      await call(`/api/menu/${id}`, { method: "PUT", body: patch });
+      await refreshMenu();
+    } catch (e) { showError(e); }
+  };
+  const addMenuItem = async (item) => {
+    try {
+      await call("/api/menu", { method: "POST", body: item });
+      await refreshMenu();
+    } catch (e) { showError(e); }
+  };
+
+  if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} />;
+
+  const userTabs = [
+    { key: "menu", label: "Menu & Order", icon: I.menu },
+    { key: "track", label: "Track Order", icon: I.clock },
+    { key: "calendar", label: "Meal Calendar", icon: I.calendar },
+    { key: "wallet", label: "Wallet", icon: I.wallet },
+    { key: "profile", label: "Profile & Alerts", icon: I.user },
+  ];
+  const adminTabs = [
+    { key: "overview", label: "Overview", icon: I.dashboard },
+    { key: "adminMenu", label: "Menu", icon: I.box },
+    { key: "adminOrders", label: "Orders Queue", icon: I.ticket },
+    { key: "reports", label: "Reports", icon: I.chart },
+    { key: "reviews", label: "Reviews", icon: I.ticket },
+  ];
+
+  return (
+    <div className="min-h-screen">
+      <TopBar role={session.user.role} name={session.user.name}
+              tabs={session.user.role === "admin" ? adminTabs : userTabs}
+              active={tab} setActive={setTab} onLogout={logout} connected={connected} />
+      
+      <main className="max-w-6xl mx-auto p-6 fade-in" key={tab}>
+        {error && (
+          <div className="p-4 rounded-lg mb-6 text-xs flex justify-between items-center border bg-red-950/40 border-red-500/40 text-red-300">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="font-700 text-sm">✕</button>
+          </div>
+        )}
+
+        {session.user.role !== "admin" && tab === "menu" && (
+          <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy} favorites={favorites} toggleFavorite={toggleFavorite} call={call} receivingNumber={receivingNumber} availableCoupons={availableCoupons} />
+        )}
+        {session.user.role !== "admin" && tab === "track" && <TrackOrder orders={orders} call={call} refreshOrders={refreshMyOrders} refreshWallet={refreshWallet} />}
+        {session.user.role !== "admin" && tab === "calendar" && (
+          <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay} />
+        )}
+        {session.user.role !== "admin" && tab === "wallet" && (
+          <WalletTab balance={wallet.balance} topUp={topUp} gatewayTopUp={gatewayTopUp} removeTransaction={removeTransaction} receivingNumber={receivingNumber} transactions={wallet.transactions} busy={busy} />
+        )}
+        {session.user.role !== "admin" && tab === "profile" && <ProfileTab call={call} user={session.user} onUserUpdate={user => setSession(prev => ({ ...prev, user }))} />}
+
+        {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={orders} />}
+        {session.user.role === "admin" && tab === "adminMenu" && (
+          <AdminMenu menu={menu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
+        )}
+        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={orders} advance={advanceOrder} />}
+        {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} />}
+        {session.user.role === "admin" && tab === "reviews" && <AdminReviews reviews={adminReviews} />}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
