@@ -145,6 +145,7 @@
   }
 
   .error-banner{ background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
+  .success-banner{ background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
 
   .chip{
     background: var(--panel);
@@ -1521,6 +1522,7 @@ function App() {
   const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
   const [tab, setTab] = useState("menu");
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
 
@@ -1550,7 +1552,8 @@ function App() {
   const goToday = () => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1); };
 
   const socketRef = useRef(null);
-  const showError = (e) => setError(typeof e === "string" ? e : e.message);
+  const showError = (e) => { setSuccess(null); setError(typeof e === "string" ? e : e.message); };
+  const showSuccess = (msg) => { setError(null); setSuccess(msg); };
 
   const call = (path, opts) => api(apiBase, path, { ...opts, token: session && session.token });
 
@@ -1646,10 +1649,15 @@ function App() {
   };
 
   const cancelOrder = async (id) => {
-    setBusy(true); setError(null);
+    setBusy(true); setError(null); setSuccess(null);
     try {
-      await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
+      const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
       await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
+      showSuccess(
+        cancelled.payment_method === "wallet"
+          ? `Order ${cancelled.token} cancelled — ${taka(cancelled.total)} refunded to your wallet.`
+          : `Order ${cancelled.token} cancelled.`
+      );
     } catch (e) { showError(e); } finally { setBusy(false); }
   };
 
@@ -1719,6 +1727,12 @@ function App() {
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="font-700">✕</button>
+          </div>
+        )}
+        {success && (
+          <div className="success-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
+            <span>{success}</span>
+            <button onClick={() => setSuccess(null)} className="font-700">✕</button>
           </div>
         )}
 
