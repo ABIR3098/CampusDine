@@ -121,6 +121,55 @@ router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) =
   res.json(await attachFeedback(await attachItems(orders)));
 }));
 
+// PATCH /api/orders/:id/cancel  (student/teacher) — cancel while still "Received"
+// Restores stock and, for a wallet-paid order, refunds the wallet.
+router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [[order]] = await conn.query("SELECT * FROM orders WHERE id = ? FOR UPDATE", [req.params.id]);
+    if (!order) throw { status: 404, message: "Order not found" };
+    if (order.user_id !== req.user.id) throw { status: 403, message: "This isn't your order" };
+    if (order.status !== "Received") {
+      throw { status: 400, message: "Only an order that's still 'Received' can be cancelled" };
+    }
+
+    const [items] = await conn.query("SELECT menu_item_id, qty FROM order_items WHERE order_id = ?", [order.id]);
+    for (const item of items) {
+      if (item.menu_item_id) {
+        await conn.query("UPDATE menu_items SET stock = stock + ? WHERE id = ?", [item.qty, item.menu_item_id]);
+      }
+    }
+
+    if (order.payment_method === "wallet") {
+      await conn.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [order.total, req.user.id]);
+      await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
+        req.user.id,
+        `Refund — Order ${order.token} cancelled`,
+        order.total,
+      ]);
+    }
+
+    await conn.query("UPDATE orders SET status = 'Cancelled' WHERE id = ?", [order.id]);
+    await conn.commit();
+
+    const updated = { ...order, status: "Cancelled" };
+    const io = req.app.get("io");
+    io.to("admins").emit("order:update", updated);
+    io.to(`user:${order.user_id}`).emit("order:update", updated);
+
+    res.json(updated);
+  } catch (err) {
+    await conn.rollback();
+    const status = err.status || 500;
+    console.error(err);
+    res.status(status).json({ error: err.message || "Failed to cancel order" });
+  } finally {
+    conn.release();
+  }
+}));
+
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
 router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);

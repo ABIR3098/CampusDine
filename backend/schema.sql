@@ -35,10 +35,15 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id INT NOT NULL,
   total DECIMAL(10,2) NOT NULL,
   payment_method ENUM('wallet','cash') NOT NULL,
-  status ENUM('Received','Cooking','Ready') NOT NULL DEFAULT 'Received',
+  status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Feature: order cancel + refund. If you created the database before this
+-- change, run this once against an existing 'campusdine' DB — CREATE TABLE
+-- IF NOT EXISTS above won't retrofit an existing orders table:
+--   ALTER TABLE orders MODIFY status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received';
 
 CREATE TABLE IF NOT EXISTS order_items (
   id INT AUTO_INCREMENT PRIMARY KEY,

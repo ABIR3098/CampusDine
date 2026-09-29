@@ -769,7 +769,7 @@ function OrderFeedback({ order, onSubmit, busy }) {
   );
 }
 
-function TrackOrder({ orders, onSubmitFeedback, feedbackBusy }) {
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy }) {
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>No orders yet — place one from the Menu &amp; Order tab.</div>;
   }
@@ -777,6 +777,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy }) {
     <div className="space-y-6 max-w-2xl">
       {orders.map(o => {
         const stepIndex = STATUSES.indexOf(o.status);
+        const isCancelled = o.status === "Cancelled";
         return (
           <div key={o.token} className="card overflow-hidden">
             <div className="ticket p-5 flex items-center justify-between">
@@ -790,20 +791,37 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy }) {
               </div>
             </div>
             <div className="p-5">
-              <div className="flex items-center justify-between mb-2">
-                {STATUSES.map((s, i) => (
-                  <React.Fragment key={s}>
-                    <div className="flex flex-col items-center gap-1.5 flex-1">
-                      <div className={`stepper-dot ${i < stepIndex ? "done" : i === stepIndex ? "current" : ""}`}></div>
-                      <span className="text-xs text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{s}</span>
-                    </div>
-                    {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-5" style={{ background: i < stepIndex ? "var(--gold)" : "var(--line)" }} />}
-                  </React.Fragment>
-                ))}
-              </div>
+              {isCancelled ? (
+                <div className="flex items-center gap-2 text-sm font-600" style={{ color: "var(--brick)" }}>
+                  <Icon path={I.x} className="w-4 h-4" />
+                  Cancelled
+                  {o.payment_method === "wallet" && (
+                    <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>— refunded to wallet</span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between mb-2">
+                  {STATUSES.map((s, i) => (
+                    <React.Fragment key={s}>
+                      <div className="flex flex-col items-center gap-1.5 flex-1">
+                        <div className={`stepper-dot ${i < stepIndex ? "done" : i === stepIndex ? "current" : ""}`}></div>
+                        <span className="text-xs text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{s}</span>
+                      </div>
+                      {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-5" style={{ background: i < stepIndex ? "var(--gold)" : "var(--line)" }} />}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
               <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
                 {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
               </div>
+              {o.status === "Received" && (
+                <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
+                  className="text-xs mt-3 px-3 py-1.5 rounded-lg border font-600"
+                  style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+                  Cancel order
+                </button>
+              )}
               {o.status === "Ready" && (
                 <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
               )}
@@ -1046,7 +1064,7 @@ function WalletTab({ balance, topUp, transactions, busy }) {
   return (
     <div className="grid lg:grid-cols-3 gap-6 max-w-3xl">
       {showPay && (
-        <PaymentGatewayModal amount={amount} onClose={() => setShowPay(false)} onConfirm={() => topUp(amount)} />
+        <PaymentModal amount={amount} busy={busy} onClose={() => setShowPay(false)} onConfirm={handleConfirm} />
       )}
       <div className="lg:col-span-1">
         <div className="ticket p-6 mb-5">
@@ -1075,9 +1093,6 @@ function WalletTab({ balance, topUp, transactions, busy }) {
       </div>
       <div className="lg:col-span-2 card p-5">
         <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Transaction history</div>
-        {showPay && (
-          <PaymentModal amount={amount} busy={busy} onClose={() => setShowPay(false)} onConfirm={handleConfirm} />
-        )}
         {transactions.length === 0 ? (
           <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No transactions yet.</p>
         ) : (
@@ -1232,7 +1247,7 @@ function AdminOrders({ orders, advance }) {
           <div className="flex justify-between items-start mb-2">
             <span className="font-mono font-700 text-lg" style={{ color: "var(--gold)" }}>{o.token}</span>
             <span className="text-xs px-2 py-1 rounded-full font-600" style={{
-              background: o.status === "Ready" ? "var(--leaf)" : o.status === "Cooking" ? "var(--gold)" : "var(--line)",
+              background: o.status === "Ready" ? "var(--leaf)" : o.status === "Cooking" ? "var(--gold)" : o.status === "Cancelled" ? "var(--brick)" : "var(--line)",
               color: o.status === "Received" ? "var(--ink)" : "#fff"
             }}>{o.status}</span>
           </div>
@@ -1241,7 +1256,9 @@ function AdminOrders({ orders, advance }) {
           </div>
           <div className="flex justify-between items-center">
             <span className="font-mono text-sm">{taka(o.total)}</span>
-            {o.status !== "Ready" ? (
+            {o.status === "Cancelled" ? (
+              <span className="text-xs flex items-center gap-1" style={{ color: "var(--brick)" }}><Icon path={I.x} className="w-4 h-4" /> Cancelled</span>
+            ) : o.status !== "Ready" ? (
               <button onClick={() => advance(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
                 Advance <Icon path={I.arrow} className="w-3.5 h-3.5" />
               </button>
@@ -1549,6 +1566,14 @@ function App() {
     } catch (e) { showError(e); }
   };
 
+  const cancelOrder = async (id) => {
+    setBusy(true); setError(null);
+    try {
+      await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
+      await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
+    } catch (e) { showError(e); } finally { setBusy(false); }
+  };
+
   const submitFeedback = async (orderId, rating, comment) => {
     setFeedbackBusy(true); setError(null);
     try {
@@ -1561,8 +1586,9 @@ function App() {
     setBusy(true); setError(null);
     try {
       await call("/api/wallet/topup", { method: "POST", body: { amount, method } });
-      await refreshWallet();
     } catch (e) { showError(e); throw e; } finally { setBusy(false); }
+    // The top-up already succeeded on the server; a refresh hiccup shouldn't look like a failed payment.
+    try { await refreshWallet(); } catch (e) { showError(e); }
   };
 
   const toggleDay = async (day, currentStatus) => {
@@ -1621,7 +1647,7 @@ function App() {
           <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy} />
         )}
         {session.user.role !== "admin" && tab === "track" && (
-          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} />
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} />
         )}
         {session.user.role !== "admin" && tab === "calendar" && (
           <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay}
