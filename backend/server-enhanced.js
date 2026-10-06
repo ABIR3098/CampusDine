@@ -2,25 +2,26 @@ require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
-const rateLimit = require("express-rate-limit");
 const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const mysql = require("mysql2/promise");
+const rateLimit = require("express-rate-limit");
+const { v4: uuidv4 } = require("uuid");
 
-const authRoutes = require("./src/routes/auth");
-const menuRoutes = require("./src/routes/menu");
-const orderRoutes = require("./src/routes/orders");
-const walletRoutes = require("./src/routes/wallet");
+const authRoutes = require("./src/routes/auth-enhanced");
+const menuRoutes = require("./src/routes/menu-enhanced");
+const orderRoutes = require("./src/routes/orders-enhanced");
+const walletRoutes = require("./src/routes/wallet-enhanced");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
 const profileRoutes = require("./src/routes/profile");
-const ratingRoutes = require("./src/routes/ratings");
+const ratingsRoutes = require("./src/routes/ratings");
 const couponRoutes = require("./src/routes/coupon");
-const favoriteRoutes = require("./src/routes/favorites");
 const paymentRoutes = require("./src/routes/payment");
-const notificationRoutes = require("./src/routes/notifications");
+const favoritesRoutes = require("./src/routes/favorites");
+const notificationsRoutes = require("./src/routes/notifications");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -63,17 +64,6 @@ async function runStartupCheck() {
       console.log("👉 phpMyAdmin-এ campusdine database-এ schema.sql import করো, তারপর আবার চালাও।");
       process.exit(1);
     }
-    const [orderColumns] = await db.query("SHOW COLUMNS FROM orders LIKE 'idempotency_key'");
-    if (orderColumns.length === 0) {
-      await db.query("ALTER TABLE orders ADD COLUMN idempotency_key VARCHAR(100) NULL");
-      await db.query("ALTER TABLE orders ADD UNIQUE KEY uniq_order_idempotency (user_id, idempotency_key)");
-      console.log("✅ Database compatibility migration applied: orders.idempotency_key");
-    }
-    const [walletColumns] = await db.query("SHOW COLUMNS FROM wallet_transactions LIKE 'hidden_at'");
-    if (walletColumns.length === 0) {
-      await db.query("ALTER TABLE wallet_transactions ADD COLUMN hidden_at TIMESTAMP NULL");
-      console.log("✅ Database compatibility migration applied: wallet_transactions.hidden_at");
-    }
   } catch (e) {
     console.error("❌ Table check failed:", e.message);
     process.exit(1);
@@ -103,12 +93,6 @@ async function runStartupCheck() {
     console.log(`✅ Demo account তৈরি হয়েছে: ${acc.externalId} / ${acc.password} (${acc.role})`);
   }
 
-  await db.query(
-    `INSERT IGNORE INTO coupons
-      (code, discount_type, discount_value, min_order_amount, max_discount, usage_limit, expiry_date, description, is_active)
-     VALUES ('CAMPUS10', 'PERCENTAGE', 10, 50, 100, 1000, DATE_ADD(NOW(), INTERVAL 1 YEAR), '10% off for campus orders', 1)`
-  );
-
   console.log("\n════════════════════════════════════════");
   console.log("🔑 LOGIN দিয়ে test করো:");
   console.log("   Admin   → ID: admin      Password: admin123");
@@ -120,14 +104,41 @@ async function runStartupCheck() {
 }
 
 // ════════════════════════════════════════════════
+//  RATE LIMITING
+// ════════════════════════════════════════════════
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // 5 attempts
+  message: "Too many login attempts, please try again later.",
+  skipSuccessfulRequests: true,
+});
+
+const walletLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // max 10 wallet operations per hour
+  message: "Too many wallet operations, please try again later.",
+});
+
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // max 3 password reset requests per hour
+  message: "Too many password reset requests, please try again later.",
+});
+
+// ════════════════════════════════════════════════
 //  EXPRESS APP
 // ════════════════════════════════════════════════
 const app = express();
 const server = http.createServer(app);
 
-// CORS_ORIGIN=* allows any origin — harmless now that the frontend is
-// served from this same server, but kept permissive in case you open the
-// HTML file separately or host the frontend elsewhere later.
 const corsOriginSetting = process.env.CORS_ORIGIN || "*";
 const corsOptions = corsOriginSetting.trim() === "*"
   ? { origin: true }
@@ -135,14 +146,13 @@ const corsOptions = corsOriginSetting.trim() === "*"
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: "draft-7", legacyHeaders: false }));
-app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-7", legacyHeaders: false }));
+app.use(generalLimiter);
 
 const io = new Server(server, { cors: corsOptions });
 app.set("io", io);
+app.set("uuidv4", uuidv4); // Make UUID available globally
 
-// Socket auth: client connects with { auth: { token } }, gets placed into
-// a personal room (user:<id>) and, if admin, the shared "admins" room.
+// Socket auth
 io.use((socket, next) => {
   try {
     const payload = jwt.verify(socket.handshake.auth.token, process.env.JWT_SECRET);
@@ -152,34 +162,38 @@ io.use((socket, next) => {
     next(new Error("Unauthorized socket connection"));
   }
 });
+
 io.on("connection", (socket) => {
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
-app.use("/api/auth", authRoutes);
+app.get("/health", (req, res) => res.json({ status: "OK", timestamp: new Date().toISOString(), uptime: process.uptime() }));
+
+// API Routes with appropriate rate limiters
+app.use("/api/auth/request-password-reset", passwordResetLimiter);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/wallet", walletRoutes);
+app.use("/api/wallet", walletLimiter, walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/ratings", ratingRoutes);
-app.use("/api/coupons", couponRoutes);
-app.use("/api/favorites", favoriteRoutes);
+app.use("/api/ratings", ratingsRoutes);
+app.use("/api/coupon", couponRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/favorites", favoritesRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
-// Serve the frontend from this same server — one process, one port,
-// no separate static server and no cross-origin requests to worry about.
+// Serve the frontend
 app.use(express.static(FRONTEND_DIR));
 app.get("/", (req, res) => res.sendFile(path.join(FRONTEND_DIR, "campusdine.html")));
 
-// Fallback error handler
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ error: "Something went wrong" });
+  res.status(500).json({ error: err.message || "Something went wrong" });
 });
 
 const PORT = process.env.PORT || 5000;
