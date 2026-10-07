@@ -178,3 +178,14 @@ ON DUPLICATE KEY UPDATE is_active = VALUES(is_active), expiry_date = VALUES(expi
 -- bcrypt hash, and one can't be safely hand-written in a SQL file. Instead, create
 -- your student/teacher/admin accounts through the running API — see Step 6 in the
 -- README ("Register your first users") — which hashes the password correctly.
+
+CREATE TABLE IF NOT EXISTS notification_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  order_id INT NULL,
+  notification_type VARCHAR(50) NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'sent',
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+);

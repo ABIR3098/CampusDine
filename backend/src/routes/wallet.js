@@ -1,36 +1,37 @@
 const express = require("express");
 const pool = require("../db");
 const { verifyToken } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 const MAX_TOPUP = Number(process.env.MAX_WALLET_TOPUP || 9999);
 
 const router = express.Router();
 
 // GET /api/wallet — balance + transaction history for the logged-in user
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", verifyToken, catchAsync(async (req, res) => {
   const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
   const [transactions] = await pool.query(
     "SELECT id, label, amount, created_at FROM wallet_transactions WHERE user_id = ? AND hidden_at IS NULL ORDER BY id DESC",
     [req.user.id]
   );
   res.json({ balance: user.wallet_balance, transactions });
-});
+}));
 
-router.delete("/transactions/:transactionId", verifyToken, async (req, res) => {
+router.delete("/transactions/:transactionId", verifyToken, catchAsync(async (req, res) => {
   const [result] = await pool.query(
     "UPDATE wallet_transactions SET hidden_at = NOW() WHERE id = ? AND user_id = ? AND hidden_at IS NULL",
     [req.params.transactionId, req.user.id]
   );
   if (result.affectedRows === 0) return res.status(404).json({ error: "Transaction not found" });
   res.json({ ok: true, message: "Transaction removed from your history" });
-});
+}));
 
-router.delete("/transactions", verifyToken, async (req, res) => {
+router.delete("/transactions", verifyToken, catchAsync(async (req, res) => {
   const [result] = await pool.query(
     "UPDATE wallet_transactions SET hidden_at = NOW() WHERE user_id = ? AND hidden_at IS NULL",
     [req.user.id]
   );
   res.json({ ok: true, removed: result.affectedRows, message: "Wallet history cleared" });
-});
+}));
 
 // POST /api/wallet/topup  body: { amount }
 router.post("/topup", verifyToken, async (req, res) => {
