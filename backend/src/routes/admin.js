@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 const LOW_STOCK_THRESHOLD = 10;
@@ -10,10 +11,10 @@ router.use(verifyToken, requireRole("admin"));
 // GET /api/admin/overview
 router.get("/overview", async (req, res) => {
   const [[pending]] = await pool.query(
-    "SELECT COUNT(*) AS cnt FROM orders WHERE status != 'Ready' AND DATE(created_at) = CURDATE()"
+    "SELECT COUNT(*) AS cnt FROM orders WHERE status IN ('Received', 'Cooking') AND DATE(created_at) = CURDATE()"
   );
   const [[revenue]] = await pool.query(
-    "SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE DATE(created_at) = CURDATE()"
+    "SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE DATE(created_at) = CURDATE() AND status NOT IN ('Cancelled', 'Refunded')"
   );
   const [lowStock] = await pool.query("SELECT id, name, stock FROM menu_items WHERE stock <= ?", [
     LOW_STOCK_THRESHOLD,
@@ -58,6 +59,62 @@ router.get("/reports/forecast", async (req, res) => {
   const predicted = weeks > 0 ? Math.round(cnt / weeks) : 0;
   res.json({ predictedMealCount: predicted });
 });
+
+// GET /api/admin/reports/daily-summary?date=YYYY-MM-DD  (date optional, default today)
+router.get("/reports/daily-summary", catchAsync(async (req, res) => {
+  let day;
+  if (req.query.date) {
+    const wanted = String(req.query.date);
+    const parsed = new Date(wanted + "T00:00:00Z");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(wanted) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== wanted) {
+      return res.status(400).json({ error: "date must be a valid YYYY-MM-DD" });
+    }
+    day = wanted;
+  } else {
+    const [[today]] = await pool.query("SELECT DATE_FORMAT(CURDATE(), '%Y-%m-%d') AS d");
+    day = today.d;
+  }
+
+  const [[totals]] = await pool.query(
+    `SELECT
+       SUM(status NOT IN ('Cancelled','Refunded')) AS orders,
+       COALESCE(SUM(CASE WHEN status NOT IN ('Cancelled','Refunded') THEN total ELSE 0 END), 0) AS revenue,
+       SUM(status IN ('Cancelled','Refunded')) AS cancelled
+     FROM orders
+     WHERE DATE(created_at) = ?`,
+    [day]
+  );
+  const [byPayment] = await pool.query(
+    `SELECT payment_method AS method, COUNT(*) AS orders, COALESCE(SUM(total), 0) AS amount
+     FROM orders
+     WHERE DATE(created_at) = ? AND status NOT IN ('Cancelled','Refunded')
+     GROUP BY payment_method
+     ORDER BY amount DESC`,
+    [day]
+  );
+  const [topItems] = await pool.query(
+    `SELECT oi.name, SUM(oi.qty) AS qty, SUM(oi.qty * oi.price) AS amount
+     FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id
+     WHERE DATE(o.created_at) = ? AND o.status NOT IN ('Cancelled','Refunded')
+     GROUP BY oi.name
+     ORDER BY qty DESC, amount DESC
+     LIMIT 5`,
+    [day]
+  );
+
+  const orderCount = Number(totals.orders) || 0;
+  const revenue = Number(totals.revenue) || 0;
+  res.json({
+    date: day,
+    orders: orderCount,
+    revenue,
+    avgOrder: orderCount ? Math.round(revenue / orderCount) : 0,
+    cancelled: Number(totals.cancelled) || 0,
+    byPayment: byPayment.map(r => ({ method: r.method, orders: Number(r.orders), amount: Number(r.amount) })),
+    topItems: topItems.map(r => ({ name: r.name, qty: Number(r.qty), amount: Number(r.amount) })),
+  });
+}));
 
 router.get("/reports/orders.csv", async (req, res) => {
   const [rows] = await pool.query("SELECT o.id, o.token, u.external_id, o.meal_date, o.total, o.payment_method, o.status, o.created_at FROM orders o JOIN users u ON u.id = o.user_id ORDER BY o.created_at DESC");
