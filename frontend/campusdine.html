@@ -827,8 +827,31 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favor
 }
 
 /* ---------------- Track Order Tab ---------------- */
-function TrackOrder({ orders, call, refreshOrders, refreshWallet }) {
+function TrackOrder({ orders, call, refreshOrders, refreshWallet, menu, setCart, setTab }) {
   const cancelOrder = async (id) => { if (!window.confirm("Cancel this Received order? Refund: 100% if 8+ hours remain, 60% if 7-8 hours remain, 50% if 5-7 hours remain, otherwise 0%.")) return; try { const result = await call(`/api/orders/${id}/cancel`, { method: "PATCH" }); alert(result.refundAmount > 0 ? `৳${result.refundAmount} refunded (${Math.round(result.refundRate * 100)}%)` : "Order cancelled. No refund is available within 5 hours of meal time."); await refreshOrders(); await refreshWallet(); } catch (e) { alert(e.message); } };
+  const reorder = (order) => {
+    const lines = [];
+    const skipped = [];
+    (order.items || []).forEach(i => {
+      const m = (menu || []).find(x => Number(x.id) === Number(i.menu_item_id));
+      if (!m || Number(m.stock) <= 0) { skipped.push(i.name); return; }
+      const qty = Math.min(Number(i.qty), Number(m.stock));
+      if (qty < Number(i.qty)) skipped.push(`${i.name} (only ${qty} available)`);
+      lines.push({ ...m, qty });
+    });
+    if (lines.length === 0) { alert("এই অর্ডারের কোনো আইটেম এখন পাওয়া যাচ্ছে না।"); return; }
+    setCart(prev => {
+      let next = [...prev];
+      lines.forEach(line => {
+        const existing = next.find(p => p.id === line.id);
+        if (existing) next = next.map(p => p.id === line.id ? { ...p, qty: Math.min(p.qty + line.qty, Number(line.stock)) } : p);
+        else next.push(line);
+      });
+      return next;
+    });
+    setTab("menu");
+    if (skipped.length) alert("কার্টে তোলা হয়েছে। এগুলো বাদ পড়েছে বা কম নেওয়া হয়েছে: " + skipped.join(", "));
+  };
   const exportCsv = async () => {
     try { const res = await fetch(`${window.__campusApiBase}/api/orders/export/csv`, { headers: { Authorization: `Bearer ${window.__campusToken}` } }); if (res.ok) { const blob = await res.blob(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "campusdine-orders.csv"; link.click(); URL.revokeObjectURL(url); return; } } catch (e) { /* use the loaded history below */ }
     const csv = ["Order ID,Order Token,Status,Total Amount,Items", ...orders.map(o => [o.id, o.token, o.status, o.total, (o.items || []).map(i => `${i.name}(${i.qty})`).join("; ")].map(value => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
@@ -868,6 +891,7 @@ function TrackOrder({ orders, call, refreshOrders, refreshWallet }) {
               <div className="text-xs text-gray-400 border-t border-amber-400/10 pt-3 mt-4">
                 Items: {o.items?.map(i => `${i.name} ×${i.qty}`).join(", ")}
               </div>
+              <button onClick={() => reorder(o)} className="mt-4 mr-2 px-3 py-2 rounded-lg border border-amber-400/40 text-amber-300 text-xs">আবার অর্ডার করুন</button>
               {o.status === "Received" && <button onClick={() => cancelOrder(o.id)} className="mt-4 px-3 py-2 rounded-lg border border-red-500/40 text-red-300 text-xs">Cancel order</button>}
               {o.items?.map(i => <RatingForm key={i.menu_item_id || i.id} item={i} call={call} />)}
             </div>
@@ -1379,7 +1403,7 @@ function App() {
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy} favorites={favorites} toggleFavorite={toggleFavorite} call={call} receivingNumber={receivingNumber} availableCoupons={availableCoupons} />
         )}
-        {session.user.role !== "admin" && tab === "track" && <TrackOrder orders={orders} call={call} refreshOrders={refreshMyOrders} refreshWallet={refreshWallet} />}
+        {session.user.role !== "admin" && tab === "track" && <TrackOrder orders={orders} call={call} refreshOrders={refreshMyOrders} refreshWallet={refreshWallet} menu={menu} setCart={setCart} setTab={setTab} />}
         {session.user.role !== "admin" && tab === "calendar" && (
           <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay} />
         )}
