@@ -11,11 +11,30 @@ CREATE TABLE IF NOT EXISTS users (
   role ENUM('student','teacher','admin') NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   wallet_balance DECIMAL(10,2) NOT NULL DEFAULT 0,
+<<<<<<< HEAD
   reset_otp_hash CHAR(64),
   reset_otp_expiry DATETIME,
   notifications_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+=======
+  phone VARCHAR(20) NULL,
+  address VARCHAR(255) NULL,
+  department VARCHAR(100) NULL,
+  father_phone VARCHAR(20) NULL,
+  room_number VARCHAR(20) NULL,              -- set by a hall resident from their profile
+  hall_id VARCHAR(20) NULL UNIQUE,           -- auto-assigned once a room number is first saved; fixed after that
+>>>>>>> 20c39de (feat: extended profile (phone, address, department, father's number, hall room) with auto-assigned fixed Hall ID and edit mode)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Feature: extended profile (phone/address/department/father's number) + hall
+-- room number with an auto-assigned fixed Hall ID. For an existing 'campusdine'
+-- DB created before this change, run once:
+--   ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL AFTER wallet_balance;
+--   ALTER TABLE users ADD COLUMN address VARCHAR(255) NULL AFTER phone;
+--   ALTER TABLE users ADD COLUMN department VARCHAR(100) NULL AFTER address;
+--   ALTER TABLE users ADD COLUMN father_phone VARCHAR(20) NULL AFTER department;
+--   ALTER TABLE users ADD COLUMN room_number VARCHAR(20) NULL AFTER father_phone;
+--   ALTER TABLE users ADD COLUMN hall_id VARCHAR(20) NULL UNIQUE AFTER room_number;
 
 CREATE TABLE IF NOT EXISTS meal_rates (
   role ENUM('student','teacher') PRIMARY KEY,

@@ -72,7 +72,100 @@ router.post("/login", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Login failed" });
   }
+<<<<<<< HEAD
 });
+=======
+}));
+
+// GET /api/auth/me — the logged-in user's own profile
+router.get("/me", verifyToken, catchAsync(async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT id, name, external_id, role, wallet_balance,
+            phone, address, department, father_phone, room_number, hall_id
+     FROM users WHERE id = ?`,
+    [req.user.id]
+  );
+  if (rows.length === 0) return res.status(404).json({ error: "User not found" });
+  const u = rows[0];
+  res.json({
+    id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance,
+    phone: u.phone, address: u.address, department: u.department, fatherPhone: u.father_phone,
+    roomNumber: u.room_number, hallId: u.hall_id,
+  });
+}));
+
+// PUT /api/auth/me — update name and/or password
+// body: { name?, currentPassword?, newPassword? }
+router.put("/me", verifyToken, catchAsync(async (req, res) => {
+  try {
+    const { name, phone, address, department, fatherPhone, roomNumber, currentPassword, newPassword } = req.body;
+    const fields = [];
+    const values = [];
+
+    if (name && name.trim()) {
+      fields.push("name = ?");
+      values.push(name.trim());
+    }
+    if (phone !== undefined) { fields.push("phone = ?"); values.push(phone.trim() || null); }
+    if (address !== undefined) { fields.push("address = ?"); values.push(address.trim() || null); }
+    if (department !== undefined) { fields.push("department = ?"); values.push(department.trim() || null); }
+    if (fatherPhone !== undefined) { fields.push("father_phone = ?"); values.push(fatherPhone.trim() || null); }
+
+    if (roomNumber !== undefined) {
+      const room = roomNumber.trim() || null;
+      fields.push("room_number = ?");
+      values.push(room);
+
+      // Hall ID: assigned automatically, once, the first time a room number is
+      // saved — fixed from then on (based on the user's own id, so it's unique
+      // and never regenerated even if the room number later changes or is cleared).
+      if (room) {
+        const [[existing]] = await pool.query("SELECT hall_id FROM users WHERE id = ?", [req.user.id]);
+        if (!existing.hall_id) {
+          fields.push("hall_id = ?");
+          values.push(`H-${String(req.user.id).padStart(4, "0")}`);
+        }
+      }
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: "Enter your current password to set a new one" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "New password must be at least 6 characters" });
+      }
+      const [rows] = await pool.query("SELECT password_hash FROM users WHERE id = ?", [req.user.id]);
+      const ok = await bcrypt.compare(currentPassword, rows[0].password_hash);
+      if (!ok) return res.status(401).json({ error: "Current password is incorrect" });
+      const hash = await bcrypt.hash(newPassword, 10);
+      fields.push("password_hash = ?");
+      values.push(hash);
+    }
+
+    if (fields.length === 0) return res.status(400).json({ error: "Nothing to update" });
+
+    values.push(req.user.id);
+    await pool.query(`UPDATE users SET ${fields.join(", ")} WHERE id = ?`, values);
+
+    const [rows] = await pool.query(
+      `SELECT id, name, external_id, role, wallet_balance,
+              phone, address, department, father_phone, room_number, hall_id
+       FROM users WHERE id = ?`,
+      [req.user.id]
+    );
+    const u = rows[0];
+    res.json({
+      id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance,
+      phone: u.phone, address: u.address, department: u.department, fatherPhone: u.father_phone,
+      roomNumber: u.room_number, hallId: u.hall_id,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Profile update failed" });
+  }
+}));
+>>>>>>> 20c39de (feat: extended profile (phone, address, department, father's number, hall room) with auto-assigned fixed Hall ID and edit mode)
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
