@@ -1,7 +1,7 @@
 {
   "name": "campusdine-backend",
-  "version": "2.0.0",
-  "description": "CampusDine campus food ordering backend",
+  "version": "1.0.0",
+  "description": "Backend REST + WebSocket API for CampusDine (CSE 3208 Software Development Project I)",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -9,16 +9,13 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "express-rate-limit": "^7.1.5",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.10.0",
-    "socket.io": "^4.7.5",
-    "uuid": "^14.0.2"
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

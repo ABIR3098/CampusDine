@@ -2,7 +2,6 @@ require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
-const rateLimit = require("express-rate-limit");
 const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
@@ -15,12 +14,6 @@ const orderRoutes = require("./src/routes/orders");
 const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
-const profileRoutes = require("./src/routes/profile");
-const ratingRoutes = require("./src/routes/ratings");
-const couponRoutes = require("./src/routes/coupon");
-const favoriteRoutes = require("./src/routes/favorites");
-const paymentRoutes = require("./src/routes/payment");
-const notificationRoutes = require("./src/routes/notifications");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -63,17 +56,6 @@ async function runStartupCheck() {
       console.log("👉 phpMyAdmin-এ campusdine database-এ schema.sql import করো, তারপর আবার চালাও।");
       process.exit(1);
     }
-    const [orderColumns] = await db.query("SHOW COLUMNS FROM orders LIKE 'idempotency_key'");
-    if (orderColumns.length === 0) {
-      await db.query("ALTER TABLE orders ADD COLUMN idempotency_key VARCHAR(100) NULL");
-      await db.query("ALTER TABLE orders ADD UNIQUE KEY uniq_order_idempotency (user_id, idempotency_key)");
-      console.log("✅ Database compatibility migration applied: orders.idempotency_key");
-    }
-    const [walletColumns] = await db.query("SHOW COLUMNS FROM wallet_transactions LIKE 'hidden_at'");
-    if (walletColumns.length === 0) {
-      await db.query("ALTER TABLE wallet_transactions ADD COLUMN hidden_at TIMESTAMP NULL");
-      console.log("✅ Database compatibility migration applied: wallet_transactions.hidden_at");
-    }
   } catch (e) {
     console.error("❌ Table check failed:", e.message);
     process.exit(1);
@@ -103,12 +85,6 @@ async function runStartupCheck() {
     console.log(`✅ Demo account তৈরি হয়েছে: ${acc.externalId} / ${acc.password} (${acc.role})`);
   }
 
-  await db.query(
-    `INSERT IGNORE INTO coupons
-      (code, discount_type, discount_value, min_order_amount, max_discount, usage_limit, expiry_date, description, is_active)
-     VALUES ('CAMPUS10', 'PERCENTAGE', 10, 50, 100, 1000, DATE_ADD(NOW(), INTERVAL 1 YEAR), '10% off for campus orders', 1)`
-  );
-
   console.log("\n════════════════════════════════════════");
   console.log("🔑 LOGIN দিয়ে test করো:");
   console.log("   Admin   → ID: admin      Password: admin123");
@@ -135,8 +111,6 @@ const corsOptions = corsOriginSetting.trim() === "*"
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: "draft-7", legacyHeaders: false }));
-app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-7", legacyHeaders: false }));
 
 const io = new Server(server, { cors: corsOptions });
 app.set("io", io);
@@ -164,12 +138,6 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/ratings", ratingRoutes);
-app.use("/api/coupons", couponRoutes);
-app.use("/api/favorites", favoriteRoutes);
-app.use("/api/payment", paymentRoutes);
-app.use("/api/notifications", notificationRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.

@@ -12,7 +12,4 @@ const pool = mysql.createPool({
   decimalNumbers: true, // return DECIMAL columns as JS numbers, not strings
 });
 
-module.exports = {
-  query: pool.query.bind(pool),
-  getConnection: pool.getConnection.bind(pool),
-};
+module.exports = pool;
