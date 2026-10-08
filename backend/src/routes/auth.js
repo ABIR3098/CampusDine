@@ -1,22 +1,23 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const pool = require("../db");
+const { verifyToken } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 const SIGNUP_BONUS = 250;
 
 // POST /api/auth/register
 // body: { name, externalId, role: 'student'|'teacher'|'admin', password }
-router.post("/register", async (req, res) => {
+router.post("/register", catchAsync(async (req, res) => {
   try {
     const { name, externalId, role, password } = req.body;
     if (!name || !externalId || !role || !password) {
       return res.status(400).json({ error: "name, externalId, role and password are required" });
     }
-    if (!["student", "teacher"].includes(role)) {
-      return res.status(400).json({ error: "role must be student or teacher" });
+    if (!["student", "teacher", "admin"].includes(role)) {
+      return res.status(400).json({ error: "role must be student, teacher or admin" });
     }
 
     const [existing] = await pool.query("SELECT id FROM users WHERE external_id = ?", [externalId]);
@@ -45,11 +46,11 @@ router.post("/register", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Registration failed" });
   }
-});
+}));
 
 // POST /api/auth/login
 // body: { externalId, password }
-router.post("/login", async (req, res) => {
+router.post("/login", catchAsync(async (req, res) => {
   try {
     const { externalId, password } = req.body;
     if (!externalId || !password) {
@@ -72,9 +73,6 @@ router.post("/login", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Login failed" });
   }
-<<<<<<< HEAD
-});
-=======
 }));
 
 // GET /api/auth/me — the logged-in user's own profile
@@ -165,7 +163,6 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
     res.status(500).json({ error: "Profile update failed" });
   }
 }));
->>>>>>> 20c39de (feat: extended profile (phone, address, department, father's number, hall room) with auto-assigned fixed Hall ID and edit mode)
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -173,38 +170,33 @@ function signToken(payload) {
   });
 }
 
-async function requestReset(req, res) {
+// POST /api/auth/reset-password
+// body: { externalId, newPassword }
+// NOTE: simplified for a coursework demo — no email/OTP verification step.
+// A production system would email a one-time reset link/code before allowing this.
+router.post("/reset-password", catchAsync(async (req, res) => {
   try {
-    const identifier = req.body.email || req.body.externalId || req.body.external_id;
-    if (!identifier) return res.status(400).json({ error: "email or externalId is required" });
-    const [rows] = await pool.query("SELECT id FROM users WHERE email = ? OR external_id = ?", [identifier, identifier]);
-    if (rows.length) {
-      const otp = crypto.randomInt(100000, 1000000).toString();
-      const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-      await pool.query("UPDATE users SET reset_otp_hash = ?, reset_otp_expiry = DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE id = ?", [otpHash, rows[0].id]);
-      console.log(`[OTP adapter] Reset requested for ${identifier}; configure SMS_PROVIDER credentials to deliver it.`);
-      if (process.env.NODE_ENV !== "production" && process.env.EXPOSE_DEV_OTP === "true") return res.json({ ok: true, _devOTP: otp });
+    const { externalId, newPassword } = req.body;
+    if (!externalId || !newPassword) {
+      return res.status(400).json({ error: "externalId and newPassword are required" });
     }
-    return res.json({ ok: true, message: "If the account exists, an OTP has been sent" });
-  } catch (err) { console.error(err); return res.status(500).json({ error: "Password reset request failed" }); }
-}
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
 
-async function verifyReset(req, res) {
-  try {
-    const identifier = req.body.email || req.body.externalId || req.body.external_id;
-    const { otp, newPassword } = req.body;
-    if (!identifier || !otp || !newPassword) return res.status(400).json({ error: "email/externalId, otp and newPassword are required" });
-    if (String(newPassword).length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
-    const [rows] = await pool.query("SELECT id, reset_otp_hash, reset_otp_expiry FROM users WHERE email = ? OR external_id = ?", [identifier, identifier]);
-    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
-    if (!rows.length || rows[0].reset_otp_hash !== otpHash || new Date(rows[0].reset_otp_expiry) < new Date()) return res.status(400).json({ error: "Invalid or expired OTP" });
-    await pool.query("UPDATE users SET password_hash = ?, reset_otp_hash = NULL, reset_otp_expiry = NULL WHERE id = ?", [await bcrypt.hash(newPassword, 10), rows[0].id]);
-    return res.json({ ok: true, success: true, message: "Password reset successfully" });
-  } catch (err) { console.error(err); return res.status(500).json({ error: "Password reset failed" }); }
-}
+    const [rows] = await pool.query("SELECT id FROM users WHERE external_id = ?", [externalId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "No account found with this ID" });
+    }
 
-router.post("/request-password-reset", requestReset);
-router.post("/verify-otp-and-reset", verifyReset);
-router.post("/reset-password", (req, res) => req.body.otp ? verifyReset(req, res) : res.status(400).json({ error: "OTP verification is required" }));
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [passwordHash, rows[0].id]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Password reset failed" });
+  }
+}));
 
 module.exports = router;
