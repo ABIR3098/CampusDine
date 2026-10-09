@@ -24,7 +24,7 @@ const SIGNUP_BONUS = 250;
 //  so there's something to log in with immediately.
 // ════════════════════════════════════════════════
 async function runStartupCheck() {
-  console.log("\n🔧 CampusDine startup check চলছে...\n");
+  console.log("\n🔧 CampusDine startup check running...\n");
 
   let db;
   try {
@@ -38,13 +38,13 @@ async function runStartupCheck() {
   } catch (e) {
     console.error("❌ Database connection failed:", e.message);
     if (e.message.includes("ECONNREFUSED")) {
-      console.log("👉 XAMPP/MySQL চালু নেই। XAMPP Control Panel থেকে MySQL Start করো, তারপর আবার চালাও।");
+      console.log("👉 XAMPP/MySQL is not running. Start MySQL from the XAMPP Control Panel, then run this again.");
     } else if (e.message.includes("Unknown database")) {
-      console.log("👉 'campusdine' database এখনো তৈরি হয়নি। phpMyAdmin-এ database বানিয়ে schema.sql import করো।");
+      console.log("👉 The 'campusdine' database does not exist yet. Create it in phpMyAdmin and import schema.sql.");
     } else if (e.message.includes("Access denied")) {
-      console.log("👉 .env ফাইলে DB_USER / DB_PASSWORD ভুল আছে। XAMPP default হলে DB_USER=root, DB_PASSWORD= (ফাঁকা)।");
+      console.log("👉 DB_USER / DB_PASSWORD in the .env file is wrong. XAMPP defaults are DB_USER=root and an empty DB_PASSWORD.");
     } else {
-      console.log("👉 .env ফাইলের DB_HOST, DB_PORT, DB_NAME ঠিক আছে কিনা চেক করো।");
+      console.log("👉 Check that DB_HOST, DB_PORT and DB_NAME in the .env file are correct.");
     }
     process.exit(1);
   }
@@ -52,8 +52,8 @@ async function runStartupCheck() {
   try {
     const [tables] = await db.query("SHOW TABLES LIKE 'users'");
     if (tables.length === 0) {
-      console.error("❌ 'users' টেবিল পাওয়া যায়নি।");
-      console.log("👉 phpMyAdmin-এ campusdine database-এ schema.sql import করো, তারপর আবার চালাও।");
+      console.error("❌ The 'users' table was not found.");
+      console.log("👉 Import schema.sql into the campusdine database in phpMyAdmin, then run this again.");
       process.exit(1);
     }
   } catch (e) {
@@ -82,11 +82,11 @@ async function runStartupCheck() {
         acc.bonus,
       ]);
     }
-    console.log(`✅ Demo account তৈরি হয়েছে: ${acc.externalId} / ${acc.password} (${acc.role})`);
+    console.log(`✅ Demo account created: ${acc.externalId} / ${acc.password} (${acc.role})`);
   }
 
   console.log("\n════════════════════════════════════════");
-  console.log("🔑 LOGIN দিয়ে test করো:");
+  console.log("🔑 Test the app with these logins:");
   console.log("   Admin   → ID: admin      Password: admin123");
   console.log("   Student → ID: student1   Password: student123");
   console.log("   Teacher → ID: teacher1   Password: teacher123");
@@ -154,6 +154,6 @@ const PORT = process.env.PORT || 5000;
 
 runStartupCheck().then(() => {
   server.listen(PORT, () => {
-    console.log(`🚀 CampusDine চালু হয়েছে → http://localhost:${PORT}`);
+    console.log(`🚀 CampusDine is running → http://localhost:${PORT}`);
   });
 });
