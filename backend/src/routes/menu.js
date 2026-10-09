@@ -36,26 +36,27 @@ router.delete("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
 
 // POST /api/menu  (admin only) — add a new item
 router.post("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const { name, nameBn, category, price, stock, tag } = req.body;
+  const { name, nameBn, category, price, stock, tag, isVeg } = req.body;
   if (!name || !category || price == null) {
     return res.status(400).json({ error: "name, category and price are required" });
   }
   const [result] = await pool.query(
-    "INSERT INTO menu_items (name, name_bn, category, price, stock, tag) VALUES (?, ?, ?, ?, ?, ?)",
-    [name, nameBn || null, category, price, stock || 0, tag || null]
+    "INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [name, nameBn || null, category, price, stock || 0, tag || null, isVeg === false ? 0 : 1]
   );
   const [row] = await pool.query("SELECT * FROM menu_items WHERE id = ?", [result.insertId]);
   res.status(201).json(row[0]);
 }));
 
-// PUT /api/menu/:id  (admin only) — update price / stock / tag
+// PUT /api/menu/:id  (admin only) — update price / stock / tag / veg flag
 router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const { price, stock, tag } = req.body;
+  const { price, stock, tag, isVeg } = req.body;
   const fields = [];
   const values = [];
   if (price != null) { fields.push("price = ?"); values.push(price); }
   if (stock != null) { fields.push("stock = ?"); values.push(stock); }
   if (tag !== undefined) { fields.push("tag = ?"); values.push(tag); }
+  if (isVeg !== undefined) { fields.push("is_veg = ?"); values.push(isVeg ? 1 : 0); }
   if (fields.length === 0) return res.status(400).json({ error: "Nothing to update" });
 
   values.push(req.params.id);

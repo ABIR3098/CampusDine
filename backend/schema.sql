@@ -28,6 +28,10 @@ CREATE TABLE IF NOT EXISTS users (
 --   ALTER TABLE users ADD COLUMN room_number VARCHAR(20) NULL AFTER father_phone;
 --   ALTER TABLE users ADD COLUMN hall_id VARCHAR(20) NULL UNIQUE AFTER room_number;
 
+-- Feature: veg / non-veg marking. For an existing 'campusdine' DB, run once:
+--   ALTER TABLE menu_items ADD COLUMN is_veg TINYINT(1) NOT NULL DEFAULT 1 AFTER tag;
+--   UPDATE menu_items SET is_veg = 0 WHERE name IN ('Tehari', 'Chicken Roll');
+
 -- Feature: favorites / wishlist — which menu items a student has starred.
 CREATE TABLE IF NOT EXISTS favorites (
   user_id INT NOT NULL,
@@ -52,6 +56,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   price DECIMAL(10,2) NOT NULL,
   stock INT NOT NULL DEFAULT 0,
   tag VARCHAR(30),
+  is_veg TINYINT(1) NOT NULL DEFAULT 1,   -- 1 = vegetarian, 0 = non-vegetarian
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -128,17 +133,17 @@ INSERT INTO meal_rates (role, full_rate, half_rate) VALUES
   ('teacher', 130, 70)
 ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate);
 
-INSERT INTO menu_items (name, name_bn, category, price, stock, tag) VALUES
-  ('Khichuri', 'খিচুড়ি', 'heavy', 60, 40, 'Popular'),
-  ('Tehari', 'তেহারি', 'heavy', 80, 25, 'Popular'),
-  ('Porota-Vaji', 'পরোটা-ভাজি', 'heavy', 40, 6, NULL),
-  ('Plain Rice & Dal', 'ভাত-ডাল', 'heavy', 45, 30, NULL),
-  ('Singara', 'সিঙ্গারা', 'snacks', 10, 60, 'New'),
-  ('Fuchka', 'ফুচকা', 'snacks', 30, 4, 'Popular'),
-  ('Chicken Roll', 'চিকেন রোল', 'snacks', 50, 20, NULL),
-  ('Cha (Tea)', 'চা', 'drinks', 8, 120, NULL),
-  ('Lassi', 'লাচ্ছি', 'drinks', 35, 15, 'New'),
-  ('Mineral Water', 'পানি', 'drinks', 15, 50, NULL);
+INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES
+  ('Khichuri', 'খিচুড়ি', 'heavy', 60, 40, 'Popular', 1),
+  ('Tehari', 'তেহারি', 'heavy', 80, 25, 'Popular', 0),
+  ('Porota-Vaji', 'পরোটা-ভাজি', 'heavy', 40, 6, NULL, 1),
+  ('Plain Rice & Dal', 'ভাত-ডাল', 'heavy', 45, 30, NULL, 1),
+  ('Singara', 'সিঙ্গারা', 'snacks', 10, 60, 'New', 1),
+  ('Fuchka', 'ফুচকা', 'snacks', 30, 4, 'Popular', 1),
+  ('Chicken Roll', 'চিকেন রোল', 'snacks', 50, 20, NULL, 0),
+  ('Cha (Tea)', 'চা', 'drinks', 8, 120, NULL, 1),
+  ('Lassi', 'লাচ্ছি', 'drinks', 35, 15, 'New', 1),
+  ('Mineral Water', 'পানি', 'drinks', 15, 50, NULL, 1);
 
 -- No demo user accounts are seeded here on purpose: password_hash must be a real
 -- bcrypt hash, and one can't be safely hand-written in a SQL file. Instead, create

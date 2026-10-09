@@ -628,14 +628,28 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
 }
 
 /* ---------------- Menu & Order tab ---------------- */
+/* Veg / non-veg marker: green dot = vegetarian, red dot = non-vegetarian */
+function DietMark({ isVeg }) {
+  const c = isVeg ? "#16A34A" : "#B91C1C";
+  return (
+    <span title={isVeg ? "Vegetarian" : "Non-vegetarian"}
+      className="inline-grid place-items-center w-4 h-4 border-2 shrink-0"
+      style={{ borderColor: c, borderRadius: 3 }}>
+      <span className="w-2 h-2 rounded-full" style={{ background: c }} />
+    </span>
+  );
+}
+
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [diet, setDiet] = useState("all"); // "all" | "veg" | "nonveg"
   const filtered = menu
     .filter(i => i.category === cat)
     .filter(i => !favoritesOnly || i.is_favorite)
+    .filter(i => diet === "all" || (diet === "veg" ? !!i.is_veg : !i.is_veg))
     .filter(i => {
       const q = search.trim().toLowerCase();
       if (!q) return true;
@@ -701,9 +715,17 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
             Favorites
           </label>
+          <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
+            {[["all", "All"], ["veg", "Veg"], ["nonveg", "Non-veg"]].map(([key, label]) => (
+              <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
+                style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         {filtered.length === 0 && (
-          <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>No items match "{search}" in this category.</p>
+          <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>No items match your filters in this category.</p>
         )}
         <div className="grid sm:grid-cols-2 gap-4">
           {filtered.map(item => {
@@ -713,7 +735,10 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-50" : ""}`}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="font-display font-700" style={{ color: "var(--gold)" }}>{item.name}</div>
+                    <div className="flex items-center gap-1.5">
+                      <DietMark isVeg={!!item.is_veg} />
+                      <span className="font-display font-700" style={{ color: "var(--gold)" }}>{item.name}</span>
+                    </div>
                     <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{item.category}</div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1315,12 +1340,12 @@ function AdminOverview({ overview, orders }) {
 /* ---------------- Admin: Menu management ---------------- */
 function AdminMenu({ menu, updateItem, addItem, busy }) {
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", bn: "", category: "heavy", price: "", stock: "" });
+  const [form, setForm] = useState({ name: "", bn: "", category: "heavy", price: "", stock: "", isVeg: true });
 
   const submit = () => {
     if (!form.name || !form.price) return;
-    addItem({ name: form.name, nameBn: form.bn, category: form.category, price: Number(form.price), stock: Number(form.stock) || 0, tag: "New" });
-    setForm({ name: "", bn: "", category: "heavy", price: "", stock: "" });
+    addItem({ name: form.name, nameBn: form.bn, category: form.category, price: Number(form.price), stock: Number(form.stock) || 0, tag: "New", isVeg: form.isVeg });
+    setForm({ name: "", bn: "", category: "heavy", price: "", stock: "", isVeg: true });
     setShowAdd(false);
   };
 
@@ -1334,11 +1359,15 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
       </div>
 
       {showAdd && (
-        <div className="card p-4 mb-5 grid sm:grid-cols-5 gap-3 fade-in">
+        <div className="card p-4 mb-5 grid sm:grid-cols-6 gap-3 fade-in">
           <input placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
           <input placeholder="Local name (optional)" value={form.bn} onChange={e => setForm({ ...form, bn: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
           <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }}>
             {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+          <select value={form.isVeg ? "veg" : "nonveg"} onChange={e => setForm({ ...form, isVeg: e.target.value === "veg" })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }}>
+            <option value="veg">Veg</option>
+            <option value="nonveg">Non-veg</option>
           </select>
           <input placeholder="Price ৳" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
           <div className="flex gap-2">
@@ -1354,6 +1383,7 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
             <tr style={{ background: "var(--gold-soft)" }}>
               <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Item</th>
               <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Category</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Type</th>
               <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Price (৳)</th>
               <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Stock</th>
             </tr>
@@ -1365,6 +1395,13 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                   <div className="font-600">{item.name}</div>
                 </td>
                 <td className="p-3 capitalize">{item.category}</td>
+                <td className="p-3">
+                  <select value={item.is_veg ? "veg" : "nonveg"} onChange={e => updateItem(item.id, { isVeg: e.target.value === "veg" })}
+                    className="px-2 py-1 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+                    <option value="veg">Veg</option>
+                    <option value="nonveg">Non-veg</option>
+                  </select>
+                </td>
                 <td className="p-3">
                   <input type="number" defaultValue={item.price} onBlur={e => updateItem(item.id, { price: Number(e.target.value) })}
                     className="w-20 px-2 py-1 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
