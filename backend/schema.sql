@@ -69,6 +69,8 @@ CREATE TABLE IF NOT EXISTS orders (
   token VARCHAR(20) NOT NULL UNIQUE,
   user_id INT NOT NULL,
   total DECIMAL(10,2) NOT NULL,
+  discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+  discount_applied TINYINT(1) NOT NULL DEFAULT 0,
   payment_method ENUM('wallet','cash') NOT NULL,
   pickup_time DATETIME NULL,  -- NULL = ASAP; otherwise a scheduled pickup time (feature: pre-order)
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
@@ -128,6 +130,43 @@ CREATE TABLE IF NOT EXISTS order_feedback (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS coupons (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  discount_type ENUM('PERCENTAGE','FIXED') NOT NULL,
+  discount_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+  min_order_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+  max_discount DECIMAL(10,2) NULL,
+  usage_limit INT NULL,
+  used_count INT NOT NULL DEFAULT 0,
+  expiry_date DATETIME NULL,
+  description VARCHAR(255) NULL,
+  applies_to_all_items TINYINT(1) NOT NULL DEFAULT 1,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS coupon_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  coupon_id INT NOT NULL,
+  item_id INT NOT NULL,
+  UNIQUE KEY uniq_coupon_item (coupon_id, item_id),
+  FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE,
+  FOREIGN KEY (item_id) REFERENCES menu_items(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS coupon_usage (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  coupon_id INT NOT NULL,
+  order_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_user_coupon_order (user_id, coupon_id, order_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (coupon_id) REFERENCES coupons(id),
+  FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
 -- ---------- Seed data ----------

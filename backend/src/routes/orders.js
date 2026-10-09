@@ -59,13 +59,20 @@ async function attachFeedback(orders) {
 // POST /api/orders  (student/teacher) — place an order
 // body: { items: [{ id, qty }], paymentMethod: 'wallet' | 'cash' }
 router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
-  const { items, paymentMethod } = req.body;
+  const { items, paymentMethod, couponCode, couponId } = req.body;
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "items array is required" });
   }
+  if (items.some((item) => !item || !Number.isInteger(Number(item.id)) || Number(item.id) <= 0 || !Number.isInteger(Number(item.qty)) || Number(item.qty) <= 0)) {
+    return res.status(400).json({ error: "Each item must have a valid ID and positive quantity" });
+  }
+  const requestedItems = items.map((item) => ({ id: Number(item.id), qty: Number(item.qty) }));
   if (!["wallet", "cash"].includes(paymentMethod)) {
     return res.status(400).json({ error: "paymentMethod must be wallet or cash" });
   }
+
+  const couponRequested = Boolean(couponId || couponCode);
+  const normalizedCode = String(couponCode || "").trim().toUpperCase();
 
   // Optional pre-order: body.pickupTime is a "HH:MM" (24h) string for a slot today
   // (or tomorrow, if the window crosses midnight). Omitted/falsy means ASAP.
@@ -106,21 +113,79 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     await conn.beginTransaction();
 
     // Lock and re-read menu prices/stock server-side — never trust client prices
-    const ids = items.map((i) => i.id);
+    const ids = requestedItems.map((i) => i.id);
     const [menuRows] = await conn.query(
       `SELECT * FROM menu_items WHERE id IN (${ids.map(() => "?").join(",")}) FOR UPDATE`,
       ids
     );
 
-    let total = 0;
+    let subtotal = 0;
     const snapshot = [];
-    for (const reqItem of items) {
+    for (const reqItem of requestedItems) {
       const menuItem = menuRows.find((m) => m.id === reqItem.id);
       if (!menuItem) throw { status: 404, message: `Menu item ${reqItem.id} not found` };
       if (menuItem.stock < reqItem.qty) throw { status: 409, message: `${menuItem.name} is out of stock` };
-      total += menuItem.price * reqItem.qty;
+      subtotal += menuItem.price * reqItem.qty;
       snapshot.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: reqItem.qty });
     }
+
+    let appliedCoupon = null;
+    let eligibleSubtotal = subtotal;
+    if (couponRequested) {
+      const [couponRows] = await conn.query(
+        `SELECT id, code, discount_type, discount_value, min_order_amount, max_discount,
+                usage_limit, used_count, expiry_date, is_active, applies_to_all_items
+         FROM coupons WHERE ${couponId ? "id = ?" : "code = ?"} FOR UPDATE`,
+        couponId ? [couponId] : [normalizedCode]
+      );
+      if (couponRows.length === 0) throw { status: 404, message: "Coupon not found" };
+      appliedCoupon = couponRows[0];
+      if (normalizedCode && appliedCoupon.code !== normalizedCode) {
+        throw { status: 400, message: "Coupon code does not match" };
+      }
+      if (!appliedCoupon.is_active) throw { status: 400, message: "This coupon is no longer active" };
+      if (appliedCoupon.expiry_date && new Date(appliedCoupon.expiry_date) < new Date()) {
+        throw { status: 400, message: "This coupon has expired" };
+      }
+      if (appliedCoupon.usage_limit && appliedCoupon.used_count >= appliedCoupon.usage_limit) {
+        throw { status: 400, message: "This coupon usage limit has been reached" };
+      }
+      if (subtotal < Number(appliedCoupon.min_order_amount || 0)) {
+        throw { status: 400, message: `Minimum order amount required: ৳${appliedCoupon.min_order_amount || 0}` };
+      }
+      const [userUsage] = await conn.query(
+        "SELECT id FROM coupon_usage WHERE user_id = ? AND coupon_id = ?",
+        [req.user.id, appliedCoupon.id]
+      );
+      if (userUsage.length > 0) throw { status: 400, message: "You have already used this coupon" };
+
+      if (!appliedCoupon.applies_to_all_items) {
+        const [eligibleRows] = await conn.query(
+          "SELECT item_id FROM coupon_items WHERE coupon_id = ?",
+          [appliedCoupon.id]
+        );
+        const eligibleIds = new Set(eligibleRows.map((row) => Number(row.item_id)));
+        eligibleSubtotal = snapshot.reduce((sum, item) =>
+          eligibleIds.has(Number(item.id)) ? sum + item.price * item.qty : sum, 0);
+        if (eligibleSubtotal <= 0) {
+          throw { status: 400, message: "This coupon is valid only for selected menu items" };
+        }
+      }
+    }
+
+    let discountAmount = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.discount_type === "PERCENTAGE") {
+        discountAmount = Math.round(eligibleSubtotal * (Number(appliedCoupon.discount_value) / 100));
+      } else {
+        discountAmount = Math.min(Number(appliedCoupon.discount_value), eligibleSubtotal);
+      }
+      if (appliedCoupon.max_discount && discountAmount > Number(appliedCoupon.max_discount)) {
+        discountAmount = Number(appliedCoupon.max_discount);
+      }
+      discountAmount = Math.min(discountAmount, eligibleSubtotal);
+    }
+    const total = Math.max(0, subtotal - discountAmount);
 
     if (paymentMethod === "wallet") {
       const [[user]] = await conn.query("SELECT wallet_balance FROM users WHERE id = ? FOR UPDATE", [req.user.id]);
@@ -137,13 +202,12 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       await conn.query("UPDATE menu_items SET stock = stock - ? WHERE id = ?", [item.qty, item.id]);
     }
 
-    // Sequential, human-friendly token e.g. C-104
     const [[{ maxId }]] = await conn.query("SELECT COALESCE(MAX(id), 0) AS maxId FROM orders");
     const token = `C-${String(100 + maxId + 1).padStart(3, "0")}`;
 
     const [orderResult] = await conn.query(
-      "INSERT INTO orders (token, user_id, total, payment_method, pickup_time, status) VALUES (?, ?, ?, ?, ?, 'Received')",
-      [token, req.user.id, total, paymentMethod, pickupTime]
+      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, payment_method, pickup_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Received')",
+      [token, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, paymentMethod, pickupTime]
     );
     for (const item of snapshot) {
       await conn.query(
@@ -152,9 +216,20 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       );
     }
 
+    if (appliedCoupon) {
+      await conn.query(
+        "INSERT INTO coupon_usage (user_id, coupon_id, order_id) VALUES (?, ?, ?)",
+        [req.user.id, appliedCoupon.id, orderResult.insertId]
+      );
+      await conn.query(
+        "UPDATE coupons SET used_count = used_count + 1 WHERE id = ?",
+        [appliedCoupon.id]
+      );
+    }
+
     await conn.commit();
 
-    const order = { id: orderResult.insertId, token, total, status: "Received", pickup_time: pickupTime, items: snapshot };
+    const order = { id: orderResult.insertId, token, total, discount_amount: discountAmount, status: "Received", pickup_time: pickupTime, items: snapshot };
     req.app.get("io").to("admins").emit("order:new", order);
     req.app.get("io").emit("queue:changed");
     res.status(201).json(order);

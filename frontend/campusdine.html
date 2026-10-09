@@ -593,7 +593,11 @@ function Login({ apiBase, setApiBase, onAuth }) {
 }
 
 /* ---------------- Top bar ---------------- */
-function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
+function TopBar({
+  role, name, tabs, active, setActive, onLogout, connected,
+  notifications = [], notificationCount = 0, onToggleNotifications,
+  notificationOpen = false, onMarkAllRead, onClearNotifications,
+}) {
   return (
     <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "rgba(255,255,255,0.92)", borderBottom: "1px solid var(--line)" }}>
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
@@ -689,7 +693,7 @@ function DietMark({ isVeg }) {
   );
 }
 
-function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite }) {
+function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -710,9 +714,18 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
       if (sortBy === "name") return a.name.localeCompare(b.name);
       return 0; // "default" — keep the server's category/name ordering
     });
+  const starredItems = menu.filter(item => item.is_favorite);
   const [payMethod, setPayMethod] = useState("wallet");
   const [scheduleLater, setScheduleLater] = useState(false);
   const [pickupTime, setPickupTime] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
+  useEffect(() => {
+    setCouponApplied(null);
+    setCouponError("");
+  }, [cart]);
 
   // Feature: pre-order — a student can pick a slot up to 4h ahead (min 10min from now).
   // These bounds are hints for the native time input; the server enforces the real rule.
@@ -732,9 +745,31 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
     .map(p => p.id === item.id ? { ...p, qty: p.qty - 1 } : p)
     .filter(p => p.qty > 0));
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const discountAmount = couponApplied ? Number(couponApplied.discountAmount || 0) : 0;
+  const total = Math.max(0, subtotal - discountAmount);
   const canPay = payMethod === "cash" || walletBalance >= total;
   const canCheckout = canPay && (!scheduleLater || pickupTime);
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim() || cart.length === 0) return;
+    setCouponBusy(true);
+    setCouponError("");
+    try {
+      const data = await api(apiBase, "/api/coupon/validate", {
+        method: "POST",
+        token: sessionToken,
+        body: { couponCode: couponCode.trim(), orderAmount: subtotal, items: cart.map(i => ({ id: i.id, qty: i.qty })) }
+      });
+      setCouponApplied(data);
+      setCouponCode(data.code || couponCode.trim().toUpperCase());
+    } catch (e) {
+      setCouponApplied(null);
+      setCouponError(e.message || "Coupon is not valid");
+    } finally {
+      setCouponBusy(false);
+    }
+  };
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
@@ -773,6 +808,52 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             ))}
           </div>
         </div>
+        {starredItems.length > 0 && (
+          <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Icon path={I.star} className="w-4 h-4" style={{ color: "var(--gold)" }} fill="currentColor" />
+                <h3 className="font-display font-700 text-base" style={{ color: "var(--gold)" }}>Starred Items</h3>
+              </div>
+              <button onClick={() => setFavoritesOnly(true)} className="text-xs px-2.5 py-1.5 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                View favorites only
+              </button>
+            </div>
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {starredItems.map(item => {
+                const out = item.stock <= 0;
+                const inCart = cart.find(c => c.id === item.id);
+                return (
+                  <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "rgba(255,255,255,0.6)" }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <DietMark isVeg={!!item.is_veg} />
+                        <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{item.name}</span>
+                      </div>
+                      <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+                        title="Remove from favorites"
+                        className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+                        <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
+                      </button>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                      {out ? (
+                        <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>Out of stock</span>
+                      ) : inCart ? (
+                        <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
+                          +1 more
+                        </button>
+                      ) : (
+                        <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">Quick order</button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {filtered.length === 0 && (
           <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>No items match your filters in this category.</p>
         )}
@@ -842,13 +923,35 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             </div>
           )}
           <div className="border-t pt-3 mb-4" style={{ borderColor: "var(--line)" }}>
-            <div className="flex justify-between font-700">
+            <div className="flex justify-between text-sm">
+              <span>Subtotal</span>
+              <span className="font-mono">{taka(subtotal)}</span>
+            </div>
+            {couponApplied && (
+              <div className="flex justify-between text-sm mt-2" style={{ color: "var(--leaf)" }}>
+                <span>Coupon ({couponApplied.code})</span>
+                <span className="font-mono">−{taka(couponApplied.discountAmount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-700 mt-3">
               <span>Total</span>
               <span className="font-mono">{taka(total)}</span>
             </div>
           </div>
           {cart.length > 0 && (
             <>
+              <div className="mb-4">
+                <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>Coupon code</div>
+                <div className="flex gap-2">
+                  <input value={couponCode} onChange={e => { setCouponCode(e.target.value); setCouponApplied(null); if (couponError) setCouponError(""); }}
+                    placeholder="e.g. CAMPUS10" className="flex-1 px-3 py-2 rounded-lg border text-sm uppercase" style={{ borderColor: "var(--line)" }} />
+                  <button disabled={couponBusy || !couponCode.trim()} onClick={applyCoupon} className="btn-primary px-3 py-2 rounded-lg text-xs disabled:opacity-50">
+                    {couponBusy ? "..." : "Apply"}
+                  </button>
+                </div>
+                {couponError && <div className="text-xs mt-2" style={{ color: "var(--brick)" }}>{couponError}</div>}
+                {couponApplied && <div className="text-xs mt-2" style={{ color: "var(--leaf)" }}>Discount applied: {couponApplied.discountType === "PERCENTAGE" ? `${couponApplied.discountValue}%` : `${taka(couponApplied.discountValue)}`} off</div>}
+              </div>
               <div className="mb-4">
                 <label className="flex items-center gap-2 text-sm mb-2">
                   <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
@@ -881,7 +984,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               {payMethod === "wallet" && !canPay && (
                 <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>Insufficient wallet balance — top up or pay cash.</p>
               )}
-              <button disabled={!canCheckout || busy} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null)}
+              <button disabled={!canCheckout || busy} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? "Placing order…" : "Checkout — get token"}
               </button>
@@ -1140,7 +1243,7 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth
             <span>Total</span><span className="font-mono">{taka(bill.total)}</span>
           </div>
         </div>
-        <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Calculated live by the server — {role === "teacher" ? "faculty" : "student"} rate applied.</p>
+        <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Calculated live by the server — same meal-plan logic applied for students and teachers.</p>
       </div>
     </div>
   );
@@ -1612,6 +1715,134 @@ function AdminFeedback({ summary }) {
   );
 }
 
+function CouponEditor({ coupon, onSave }) {
+  const toDateTimeInput = (value) => {
+    if (!value) return "";
+    const date = new Date(String(value).replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return "";
+    const pad = (number) => String(number).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+  const makeDraft = (item) => ({
+    code: item.code || "",
+    discountType: item.discount_type || "PERCENTAGE",
+    discountValue: String(item.discount_value ?? ""),
+    minOrderAmount: String(item.min_order_amount ?? 0),
+    maxDiscount: item.max_discount == null ? "" : String(item.max_discount),
+    usageLimit: item.usage_limit == null ? "" : String(item.usage_limit),
+    expiryDate: toDateTimeInput(item.expiry_date),
+    isActive: Boolean(Number(item.is_active)),
+  });
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [draft, setDraft] = useState(() => makeDraft(coupon));
+  useEffect(() => setDraft(makeDraft(coupon)), [coupon]);
+
+  const change = (field, value) => setDraft((current) => ({ ...current, [field]: value }));
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    const saved = await onSave(coupon.id, {
+      ...draft,
+      discountValue: Number(draft.discountValue),
+      minOrderAmount: Number(draft.minOrderAmount),
+      maxDiscount: draft.maxDiscount === "" ? null : Number(draft.maxDiscount),
+      usageLimit: draft.usageLimit === "" ? null : Number(draft.usageLimit),
+      expiryDate: draft.expiryDate || null,
+    });
+    if (saved) setEditing(false);
+    setSaving(false);
+  };
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{coupon.code}</div>
+          <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+            {coupon.used_count || 0}{coupon.usage_limit ? ` / ${coupon.usage_limit}` : " used"} · {coupon.is_active ? "Active" : "Inactive"}
+          </div>
+        </div>
+        {!editing && <button onClick={() => setEditing(true)} className="btn-primary px-3 py-2 rounded-lg text-sm">Edit coupon</button>}
+      </div>
+      {editing && (
+        <form onSubmit={save} className="mt-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Coupon code
+              <input required maxLength={50} value={draft.code} onChange={e => change("code", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm uppercase" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Discount type
+              <select value={draft.discountType} onChange={e => change("discountType", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+                <option value="PERCENTAGE">Percentage</option>
+                <option value="FIXED">Fixed amount</option>
+              </select>
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Discount value {draft.discountType === "PERCENTAGE" ? "(%)" : "(৳)"}
+              <input required type="number" min="0.01" max={draft.discountType === "PERCENTAGE" ? 100 : undefined} step="0.01"
+                value={draft.discountValue} onChange={e => change("discountValue", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Minimum order (৳)
+              <input type="number" min="0" step="0.01" value={draft.minOrderAmount}
+                onChange={e => change("minOrderAmount", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Maximum discount (৳, optional)
+              <input type="number" min="0.01" step="0.01" value={draft.maxDiscount}
+                onChange={e => change("maxDiscount", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Usage limit (optional)
+              <input type="number" min="1" step="1" value={draft.usageLimit}
+                onChange={e => change("usageLimit", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Expires at (optional)
+              <input type="datetime-local" value={draft.expiryDate} onChange={e => change("expiryDate", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="flex items-center gap-2 text-sm self-end pb-2">
+              <input type="checkbox" checked={draft.isActive} onChange={e => change("isActive", e.target.checked)} />
+              Coupon active
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button type="button" onClick={() => { setDraft(makeDraft(coupon)); setEditing(false); }}
+              className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>Cancel</button>
+            <button type="submit" disabled={saving} className="btn-primary px-3 py-2 rounded-lg text-sm disabled:opacity-50">
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function AdminCoupons({ coupons, onSave }) {
+  return (
+    <section>
+      <h2 className="font-display font-700 text-xl mb-4" style={{ color: "var(--gold)" }}>Manage coupons</h2>
+      {coupons.length === 0 ? (
+        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>No coupons have been created yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {coupons.map(coupon => <CouponEditor key={coupon.id} coupon={coupon} onSave={onSave} />)}
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ---------------- Profile tab (all roles) ---------------- */
 /* ---------------- Profile tab (all roles) ---------------- */
 function ProfileField({ label, value, placeholder }) {
@@ -1926,6 +2157,10 @@ function App() {
   const refreshMyOrders = async () => setOrders(await call("/api/orders/mine"));
   const refreshAdminOrders = async () => setOrders(await call("/api/orders"));
   const refreshOverview = async () => setOverview(await call("/api/admin/overview"));
+  const refreshCoupons = async () => {
+    const data = await call("/api/coupon");
+    setCoupons(data.coupons || []);
+  };
   const refreshReports = async () => {
     setTrend(await call("/api/admin/reports/revenue-trend"));
     setForecast(await call("/api/admin/reports/forecast"));
@@ -1947,7 +2182,7 @@ function App() {
     (async () => {
       try {
         if (session.user.role === "admin") {
-          await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshFeedback()]);
+          await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshFeedback(), refreshCoupons()]);
         } else {
           await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet()]);
         }
@@ -1992,14 +2227,22 @@ function App() {
     return () => socket.disconnect();
   }, [session, apiBase]);
 
-  const placeOrder = async (cartItems, paymentMethod, pickupTime) => {
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon) => {
     setBusy(true); setError(null);
     try {
       await call("/api/orders", {
         method: "POST",
-        body: { items: cartItems.map(c => ({ id: c.id, qty: c.qty })), paymentMethod, pickupTime: pickupTime || undefined },
+        body: {
+          items: cartItems.map(c => ({ id: c.id, qty: c.qty })),
+          paymentMethod,
+          pickupTime: pickupTime || undefined,
+          couponId: coupon ? coupon.couponId : undefined,
+          couponCode: coupon ? coupon.code : undefined,
+        },
       });
       setCart([]);
+      setCouponApplied(null);
+      setCouponCode("");
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");
     } catch (e) { showError(e); } finally { setBusy(false); }
@@ -2055,6 +2298,17 @@ function App() {
       await call(`/api/menu/${id}`, { method: "PUT", body: patch });
       await refreshMenu();
     } catch (e) { showError(e); }
+  };
+  const updateCoupon = async (id, patch) => {
+    try {
+      await call(`/api/coupon/${id}`, { method: "PUT", body: patch });
+      await refreshCoupons();
+      showSuccess("Coupon updated successfully.");
+      return true;
+    } catch (e) {
+      showError(e);
+      return false;
+    }
   };
   const addMenuItem = async (item) => {
     try {
@@ -2122,7 +2376,8 @@ function App() {
         )}
 
         {session.user.role !== "admin" && tab === "menu" && (
-          <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy} onToggleFavorite={toggleFavorite} />
+          <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} />
         )}
         {session.user.role !== "admin" && tab === "track" && (
           <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} />
@@ -2140,6 +2395,7 @@ function App() {
           <AdminMenu menu={menu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={orders} advance={advanceOrder} />}
+        {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} />}
         {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
 
