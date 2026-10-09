@@ -693,6 +693,49 @@ function DietMark({ isVeg }) {
   );
 }
 
+function MenuCategoryTabs({ category, setCategory }) {
+  return (
+    <div className="flex gap-2 mb-5">
+      {CATEGORIES.map(item => (
+        <button key={item.id} onClick={() => setCategory(item.id)}
+          className={`tab-btn px-4 py-2 rounded-full text-sm ${category === item.id ? "active" : ""}`}>
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MenuSearchSortControls({ search, setSearch, sortBy, setSortBy }) {
+  return (
+    <>
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+        placeholder="Search menu (e.g. khichuri, চা)…"
+        className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+        className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+        <option value="default">Sort: Default</option>
+        <option value="priceAsc">Price: Low to High</option>
+        <option value="priceDesc">Price: High to Low</option>
+        <option value="name">Name: A-Z</option>
+      </select>
+    </>
+  );
+}
+
+function MenuDietFilter({ diet, setDiet }) {
+  return (
+    <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
+      {[["all", "All"], ["veg", "Veg"], ["nonveg", "Non-veg"]].map(([key, label]) => (
+        <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
+          style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
@@ -774,39 +817,16 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        <div className="flex gap-2 mb-5">
-          {CATEGORIES.map(c => (
-            <button key={c.id} onClick={() => setCat(c.id)}
-              className={`tab-btn px-4 py-2 rounded-full text-sm ${cat === c.id ? "active" : ""}`}>
-              {c.label}
-            </button>
-          ))}
-        </div>
+        <MenuCategoryTabs category={cat} setCategory={setCat} />
         <div className="flex flex-col sm:flex-row gap-2 mb-5">
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search menu (e.g. khichuri, চা)…"
-            className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-            className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
-            <option value="default">Sort: Default</option>
-            <option value="priceAsc">Price: Low to High</option>
-            <option value="priceDesc">Price: High to Low</option>
-            <option value="name">Name: A-Z</option>
-          </select>
+          <MenuSearchSortControls search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} />
           <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
             style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
             <input type="checkbox" checked={favoritesOnly} onChange={e => setFavoritesOnly(e.target.checked)} />
             <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
             Favorites
           </label>
-          <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
-            {[["all", "All"], ["veg", "Veg"], ["nonveg", "Non-veg"]].map(([key, label]) => (
-              <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
-                style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <MenuDietFilter diet={diet} setDiet={setDiet} />
         </div>
         {starredItems.length > 0 && (
           <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
