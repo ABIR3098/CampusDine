@@ -5,12 +5,26 @@ const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 
+async function resolveFavoriteTable() {
+  const [favourites] = await pool.query("SHOW TABLES LIKE 'favourites'");
+  if (favourites.length) return { table: "favourites", itemColumn: "item_id" };
+
+  const [favorites] = await pool.query("SHOW TABLES LIKE 'favorites'");
+  if (favorites.length) return { table: "favorites", itemColumn: "menu_item_id" };
+
+  const [userFavorites] = await pool.query("SHOW TABLES LIKE 'user_favorites'");
+  if (userFavorites.length) return { table: "user_favorites", itemColumn: "menu_item_id" };
+
+  return { table: "favourites", itemColumn: "item_id" };
+}
+
 // GET /api/menu  (any logged-in user) — includes is_favorite for the caller
 router.get("/", verifyToken, catchAsync(async (req, res) => {
+  const { table, itemColumn } = await resolveFavoriteTable();
   const [rows] = await pool.query(
     `SELECT m.*, IF(f.user_id IS NULL, 0, 1) AS is_favorite
      FROM menu_items m
-     LEFT JOIN favorites f ON f.menu_item_id = m.id AND f.user_id = ?
+     LEFT JOIN ${table} f ON f.${itemColumn} = m.id AND f.user_id = ?
      ORDER BY m.category, m.name`,
     [req.user.id]
   );
@@ -21,16 +35,22 @@ router.get("/", verifyToken, catchAsync(async (req, res) => {
 router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
   const [[item]] = await pool.query("SELECT id FROM menu_items WHERE id = ?", [req.params.id]);
   if (!item) return res.status(404).json({ error: "Item not found" });
-  await pool.query(
-    "INSERT INTO favorites (user_id, menu_item_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE user_id = user_id",
+
+  const { table, itemColumn } = await resolveFavoriteTable();
+  const [existing] = await pool.query(
+    `SELECT id FROM ${table} WHERE user_id = ? AND ${itemColumn} = ? LIMIT 1`,
     [req.user.id, req.params.id]
   );
+  if (existing.length === 0) {
+    await pool.query(`INSERT INTO ${table} (user_id, ${itemColumn}) VALUES (?, ?)`, [req.user.id, req.params.id]);
+  }
   res.json({ menuItemId: Number(req.params.id), isFavorite: true });
 }));
 
 // DELETE /api/menu/:id/favorite  (any logged-in user) — unstar an item
 router.delete("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
-  await pool.query("DELETE FROM favorites WHERE user_id = ? AND menu_item_id = ?", [req.user.id, req.params.id]);
+  const { table, itemColumn } = await resolveFavoriteTable();
+  await pool.query(`DELETE FROM ${table} WHERE user_id = ? AND ${itemColumn} = ?`, [req.user.id, req.params.id]);
   res.json({ menuItemId: Number(req.params.id), isFavorite: false });
 }));
 

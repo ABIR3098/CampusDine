@@ -33,13 +33,17 @@ CREATE TABLE IF NOT EXISTS users (
 --   UPDATE menu_items SET is_veg = 0 WHERE name IN ('Tehari', 'Chicken Roll');
 
 -- Feature: favorites / wishlist — which menu items a student has starred.
-CREATE TABLE IF NOT EXISTS favorites (
+-- The app currently stores favorites in a table named `favourites` with `item_id`
+-- to match the live production database. Keep the column naming compatible with
+-- the route code to avoid runtime 500s when fetching the menu.
+CREATE TABLE IF NOT EXISTS favourites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  menu_item_id INT NOT NULL,
+  item_id INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (user_id, menu_item_id),
+  KEY idx_user_item (user_id, item_id),
   FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+  FOREIGN KEY (item_id) REFERENCES menu_items(id)
 );
 
 CREATE TABLE IF NOT EXISTS meal_rates (
