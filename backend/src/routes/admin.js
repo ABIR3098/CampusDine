@@ -76,4 +76,22 @@ router.get("/feedback", catchAsync(async (req, res) => {
   res.json({ average: Number(stats.average), count: stats.count, entries });
 }));
 
+// POST /api/admin/announcement — broadcast a live announcement to all users
+router.post("/announcement", catchAsync(async (req, res) => {
+  const { message } = req.body || {};
+  const text = String(message || "").trim();
+  if (!text) {
+    return res.status(400).json({ error: "Announcement message is required" });
+  }
+
+  const payload = {
+    id: Date.now(),
+    message: text,
+    createdAt: new Date().toISOString(),
+  };
+
+  req.app.get("io").emit("announcement", payload);
+  res.json({ success: true, announcement: payload });
+}));
+
 module.exports = router;
