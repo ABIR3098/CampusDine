@@ -736,6 +736,78 @@ function MenuDietFilter({ diet, setDiet }) {
   );
 }
 
+function FavoritesFilterToggle({ favoritesOnly, onChange }) {
+  return (
+    <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
+      style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
+      <input type="checkbox" checked={favoritesOnly} onChange={onChange} />
+      <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
+      Favorites
+    </label>
+  );
+}
+
+function FavoriteStarButton({ item, onToggleFavorite }) {
+  return (
+    <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+      title={item.is_favorite ? "Remove from favorites" : "Add to favorites"}
+      className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+      <Icon path={I.star} className="w-4 h-4" fill={item.is_favorite ? "currentColor" : "none"}
+        style={{ color: "var(--gold)" }} />
+    </button>
+  );
+}
+
+function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavoritesOnly }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Icon path={I.star} className="w-4 h-4" style={{ color: "var(--gold)" }} fill="currentColor" />
+          <h3 className="font-display font-700 text-base" style={{ color: "var(--gold)" }}>Starred Items</h3>
+        </div>
+        <button onClick={() => setFavoritesOnly(true)} className="text-xs px-2.5 py-1.5 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+          View favorites only
+        </button>
+      </div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {items.map(item => {
+          const out = item.stock <= 0;
+          const inCart = cart.find(cartItem => cartItem.id === item.id);
+          return (
+            <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "rgba(255,255,255,0.6)" }}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <DietMark isVeg={!!item.is_veg} />
+                  <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{item.name}</span>
+                </div>
+                <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+                  title="Remove from favorites"
+                  className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+                  <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                {out ? (
+                  <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>Out of stock</span>
+                ) : inCart ? (
+                  <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
+                    +1 more
+                  </button>
+                ) : (
+                  <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">Quick order</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
@@ -820,60 +892,11 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
         <MenuCategoryTabs category={cat} setCategory={setCat} />
         <div className="flex flex-col sm:flex-row gap-2 mb-5">
           <MenuSearchSortControls search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} />
-          <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
-            style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
-            <input type="checkbox" checked={favoritesOnly} onChange={e => setFavoritesOnly(e.target.checked)} />
-            <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
-            Favorites
-          </label>
+          <FavoritesFilterToggle favoritesOnly={favoritesOnly} onChange={e => setFavoritesOnly(e.target.checked)} />
           <MenuDietFilter diet={diet} setDiet={setDiet} />
         </div>
-        {starredItems.length > 0 && (
-          <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
-            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Icon path={I.star} className="w-4 h-4" style={{ color: "var(--gold)" }} fill="currentColor" />
-                <h3 className="font-display font-700 text-base" style={{ color: "var(--gold)" }}>Starred Items</h3>
-              </div>
-              <button onClick={() => setFavoritesOnly(true)} className="text-xs px-2.5 py-1.5 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
-                View favorites only
-              </button>
-            </div>
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {starredItems.map(item => {
-                const out = item.stock <= 0;
-                const inCart = cart.find(c => c.id === item.id);
-                return (
-                  <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "rgba(255,255,255,0.6)" }}>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        <DietMark isVeg={!!item.is_veg} />
-                        <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{item.name}</span>
-                      </div>
-                      <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
-                        title="Remove from favorites"
-                        className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
-                        <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
-                      </button>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
-                      {out ? (
-                        <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>Out of stock</span>
-                      ) : inCart ? (
-                        <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
-                          +1 more
-                        </button>
-                      ) : (
-                        <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">Quick order</button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <FavoritesQuickOrderPanel items={starredItems} cart={cart} add={add}
+          onToggleFavorite={onToggleFavorite} setFavoritesOnly={setFavoritesOnly} />
         {filtered.length === 0 && (
           <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>No items match your filters in this category.</p>
         )}
@@ -897,12 +920,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                         {item.tag}
                       </span>
                     )}
-                    <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
-                      title={item.is_favorite ? "Remove from favorites" : "Add to favorites"}
-                      className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
-                      <Icon path={I.star} className="w-4 h-4" fill={item.is_favorite ? "currentColor" : "none"}
-                        style={{ color: "var(--gold)" }} />
-                    </button>
+                    <FavoriteStarButton item={item} onToggleFavorite={onToggleFavorite} />
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
