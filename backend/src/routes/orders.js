@@ -22,6 +22,27 @@ async function attachItems(orders) {
   }));
 }
 
+// Feature: queue position. An ASAP order is ordered by when it was placed; orders
+// scheduled for later don't hold up ASAP ones. Each active ASAP order gets
+// { ahead, position, est_minutes } — everything else gets queue: null.
+const AVG_MINUTES_PER_ORDER = 4;
+
+async function attachQueue(orders) {
+  const mine = orders.filter((o) => (o.status === "Received" || o.status === "Cooking") && !o.pickup_time);
+  if (mine.length === 0) return orders.map((o) => ({ ...o, queue: null }));
+
+  const [rows] = await pool.query(
+    "SELECT id, pickup_time, created_at FROM orders WHERE status IN ('Received', 'Cooking')"
+  );
+  const when = (r) => new Date(r.pickup_time || r.created_at).getTime();
+  return orders.map((o) => {
+    if (!mine.includes(o)) return { ...o, queue: null };
+    const t = when(o);
+    const ahead = rows.filter((r) => r.id !== o.id && (when(r) < t || (when(r) === t && r.id < o.id))).length;
+    return { ...o, queue: { ahead, position: ahead + 1, est_minutes: (ahead + 1) * AVG_MINUTES_PER_ORDER } };
+  });
+}
+
 async function attachFeedback(orders) {
   if (orders.length === 0) return orders;
   const ids = orders.map((o) => o.id);
@@ -135,6 +156,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 
     const order = { id: orderResult.insertId, token, total, status: "Received", pickup_time: pickupTime, items: snapshot };
     req.app.get("io").to("admins").emit("order:new", order);
+    req.app.get("io").emit("queue:changed");
     res.status(201).json(order);
   } catch (err) {
     await conn.rollback();
@@ -149,7 +171,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 // GET /api/orders/mine  (student/teacher) — my order history
 router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
-  res.json(await attachFeedback(await attachItems(orders)));
+  res.json(await attachQueue(await attachFeedback(await attachItems(orders))));
 }));
 
 // GET /api/orders  (admin) — live queue
@@ -195,6 +217,7 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
     const io = req.app.get("io");
     io.to("admins").emit("order:update", updated);
     io.to(`user:${order.user_id}`).emit("order:update", updated);
+    io.emit("queue:changed");
 
     res.json(updated);
   } catch (err) {
@@ -220,6 +243,7 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async
   const io = req.app.get("io");
   io.to("admins").emit("order:update", updated);
   io.to(`user:${order.user_id}`).emit("order:update", updated);
+  io.emit("queue:changed");
 
   res.json(updated);
 }));
