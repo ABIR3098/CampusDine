@@ -262,15 +262,467 @@ const I = {
 };
 
 /* ---------------- Helpers ---------------- */
-const taka = (n) => `৳${Number(n || 0).toLocaleString("en-BD")}`;
+/* ---------------- i18n (English / বাংলা) ---------------- */
+// CURRENT_LANG is set by <App> on every render; student/teacher pages read it through tx().
+let CURRENT_LANG = "en";
+let MENU_BN = {}; // English menu-item name -> Bangla name, so order history can show Bangla names too
+const I18N = {
+  en: {
+    "ann": "Welcome to CampusDine — order food from your campus canteen",
+    "canteen": "Campus Canteen",
+    "nav.menu": "Menu",
+    "nav.about": "About Us",
+    "nav.contact": "Contact",
+    "signin": "Sign In",
+    "hero.badge": "Smart Campus Canteen",
+    "hero.h1a": "Order Ahead. Skip The Line.",
+    "hero.h1b": "Eat Fresh, Every Day.",
+    "hero.p": "Enjoy hassle-free food ordering, automatic subscription billing, and a cashless wallet — all on one platform, even during the busiest hours of campus life.",
+    "hero.start": "Get Started",
+    "hero.explore": "Explore Menu",
+    "f1.t": "Token-Based Pickup",
+    "f1.d": "Order ahead and skip the queue — just collect your food with your token.",
+    "f2.t": "Digital Wallet",
+    "f2.d": "Cashless payments, instant top-ups, and a fully transparent transaction history.",
+    "f3.t": "Auto Subscription Billing",
+    "f3.d": "Your monthly meal bill, calculated automatically and accurately.",
+    "f4.t": "Live Order Tracking",
+    "f4.d": "Know exactly where your order stands, in real time — no refresh needed.",
+    "sm.tehari": "Tehari",
+    "sm.tehari.t": "Rice & Meat",
+    "sm.roll": "Chicken Roll",
+    "sm.roll.t": "Savory Snack",
+    "sm.brew": "Vintage Cold Brew",
+    "sm.brew.t": "Beverage",
+    "pop.k": "Popular Items",
+    "pop.h": "A Taste of Our Menu",
+    "more": "More on the full menu",
+    "more.d": "Log in to see live prices, stock & order instantly.",
+    "about.k": "About Us",
+    "about.h": "Why CampusDine",
+    "about.p": "Long canteen queues, paper tokens, and hand-calculated subscription bills — CampusDine exists to remove exactly these frustrations. With digital tokens, real-time order tracking, automatic billing, and a cashless wallet, we've built a refined, hassle-free dining experience built around campus life.",
+    "role.student.l": "Student",
+    "role.student.d": "Order meals, track pickup, manage your subscription.",
+    "role.teacher.l": "Teacher / Staff",
+    "role.teacher.d": "Same convenience, faculty meal rate.",
+    "role.admin.l": "Canteen Admin",
+    "role.admin.d": "Run the counter — orders, stock, reports.",
+    "auth.k": "Login / Register",
+    "auth.h": "Sign In To CampusDine",
+    "back.login": "Back to login",
+    "reset.h": "Reset Password",
+    "reset.p": "Enter your ID and choose a new password.",
+    "id": "ID Number",
+    "newpw": "New Password",
+    "atleast6": "At least 6 characters",
+    "wait": "Please wait…",
+    "back": "Back",
+    "access": "{role} Access",
+    "login": "Log In",
+    "create": "Create Account",
+    "fullname": "Full Name",
+    "pw": "Password",
+    "yourpw": "Your password",
+    "forgot": "Forgot password?",
+    "createlogin": "Create Account & Log In",
+    "backend": "Backend server:",
+    "err.fill": "Please fill in all fields.",
+    "err.pw6": "Password must be at least 6 characters.",
+    "reset.ok": "Password updated — log in with your new password.",
+    "foot.p": "The campus's own smart dining platform — a perfect blend of great food, fast service, and a refined atmosphere.",
+    "foot.hours": "Opening Hours",
+    "foot.h1": "Sun – Thu: 9:00 AM – 8:00 PM",
+    "foot.h2": "Fri – Sat: 12:00 PM – 9:00 PM",
+    "foot.loc": "Location",
+    "foot.loc1": "Campus Central Canteen, Main Building",
+    "foot.help": "Helpline: +880 1XXX-XXXXXX",
+    "lang.switch": "Switch language",
+    "tab.menu": "Menu & Order",
+    "tab.track": "Track Order",
+    "tab.calendar": "Meal Calendar",
+    "tab.wallet": "Wallet",
+    "tab.profile": "My Profile",
+    "live.on": "Live updates connected",
+    "live.off": "Live updates offline",
+    "logout": "Log out",
+    "r.student": "Student",
+    "r.teacher": "Teacher",
+    "r.admin": "Admin",
+    "cat.heavy": "Heavy meals",
+    "cat.snacks": "Snacks",
+    "cat.drinks": "Drinks",
+    "search.ph": "Search menu (e.g. khichuri, চা)…",
+    "sort.default": "Sort: Default",
+    "sort.priceAsc": "Price: Low to High",
+    "sort.priceDesc": "Price: High to Low",
+    "sort.name": "Name: A-Z",
+    "fav": "Favorites",
+    "diet.all": "All",
+    "diet.veg": "Veg",
+    "diet.nonveg": "Non-veg",
+    "empty": "No items match your filters in this category.",
+    "tag.Popular": "Popular",
+    "tag.New": "New",
+    "fav.add": "Add to favorites",
+    "fav.remove": "Remove from favorites",
+    "outstock": "Out of stock",
+    "add": "Add",
+    "cart.h": "Your cart",
+    "cart.empty": "Nothing here yet — add items from the menu.",
+    "total": "Total",
+    "schedule": "Schedule pickup for later",
+    "pick.hint": "Pick a time between {a} and {b}.",
+    "pay.wallet": "Wallet",
+    "pay.cash": "Cash on pickup",
+    "insufficient": "Insufficient wallet balance — top up or pay cash.",
+    "placing": "Placing order…",
+    "checkout": "Checkout — get token",
+    "rated": "You rated this order",
+    "rate": "Rate this order",
+    "comment.ph": "Leave a comment (optional)",
+    "submitting": "Submitting…",
+    "submit": "Submit Feedback",
+    "noorders": "No orders yet — place one from the Menu & Order tab.",
+    "status.Received": "Received",
+    "status.Cooking": "Cooking",
+    "status.Ready": "Ready",
+    "status.Cancelled": "Cancelled",
+    "ticket.token": "Pickup token",
+    "sched": "Scheduled pickup",
+    "q.now": "Being prepared now",
+    "q.next": "You're next",
+    "q.ahead1": "Position #{p} · 1 order ahead",
+    "q.aheadN": "Position #{p} · {a} orders ahead",
+    "q.est": "≈ {m} min",
+    "refunded": "— refunded to wallet",
+    "print": "Print receipt",
+    "cancelorder": "Cancel order",
+    "rc.title": "ORDER RECEIPT",
+    "rc.token": "PICKUP TOKEN",
+    "rc.status": "Status",
+    "rc.payment": "Payment",
+    "rc.printed": "Printed",
+    "rc.thanks": "Show this token at the counter · Thank you!",
+    "prevm": "Previous month",
+    "nextm": "Next month",
+    "today": "Today",
+    "cal.hint": "Tap a day to cycle: Off → Full → Half",
+    "wd": "S,M,T,W,T,F,S",
+    "cal.full": "Full meal",
+    "cal.half": "Half meal",
+    "cal.off": "Off",
+    "cal.bill": "Monthly bill",
+    "cal.fulldays": "Full meal days ({r} each)",
+    "cal.halfdays": "Half meal days ({r} each)",
+    "cal.note": "Calculated live by the server — {who} rate applied.",
+    "who.student": "student",
+    "who.teacher": "faculty",
+    "pc.mobile": "Mobile Banking",
+    "pc.banking": "Banking",
+    "pc.card": "Card",
+    "pay.failed": "Payment failed",
+    "pay.t1": "Choose payment method",
+    "pay.t2": "Confirm top-up",
+    "pay.t3": "Payment successful",
+    "pay.t4": "Processing payment",
+    "amount": "Amount:",
+    "no": "No",
+    "yes": "Yes, top up",
+    "confirming": "Confirming payment with {m}…",
+    "pay.added": "has been added to your wallet",
+    "paidvia": "Paid via {m}",
+    "done": "Done",
+    "wallet.bal": "Wallet balance",
+    "topup": "Top up",
+    "adding": "Adding…",
+    "addmoney": "Add money",
+    "txhist": "Transaction history",
+    "notx": "No transactions yet.",
+    "tx.welcome": "Welcome bonus",
+    "tx.order": "Order payment",
+    "tx.refund": "Refund — Order {t} cancelled",
+    "tx.topup": "Wallet top-up via {m}",
+    "edit": "Edit Profile",
+    "phone": "Phone",
+    "fphone": "Father's Phone",
+    "address": "Address",
+    "addr.ph": "Present address",
+    "dept": "Department",
+    "dept.ph": "e.g. CSE",
+    "role": "Role",
+    "hall": "Hall Residence",
+    "room": "Room Number",
+    "room.ph": "e.g. 312",
+    "notres": "Not a hall resident",
+    "hallid": "Hall ID",
+    "hallhint": "Save a room number to get a fixed Hall ID.",
+    "chpw": "Change Password (optional)",
+    "curpw": "Current password",
+    "newpw2": "New password",
+    "saving": "Saving…",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "notset": "Not set",
+    "pe.name": "Name can't be empty.",
+    "pe.pw6": "New password must be at least 6 characters.",
+    "pe.cur": "Enter your current password to set a new one.",
+    "pe.ok": "Profile updated.",
+    "msg.cancel.w": "Order {t} cancelled — {a} refunded to your wallet.",
+    "msg.cancel": "Order {t} cancelled."
+  },
+  bn: {
+    "ann": "CampusDine-এ স্বাগতম — আপনার ক্যাম্পাস ক্যান্টিন থেকে খাবার অর্ডার করুন",
+    "canteen": "ক্যাম্পাস ক্যান্টিন",
+    "nav.menu": "মেনু",
+    "nav.about": "আমাদের সম্পর্কে",
+    "nav.contact": "যোগাযোগ",
+    "signin": "সাইন ইন",
+    "hero.badge": "স্মার্ট ক্যাম্পাস ক্যান্টিন",
+    "hero.h1a": "আগেই অর্ডার করুন, লাইন এড়ান।",
+    "hero.h1b": "প্রতিদিন খান তাজা খাবার।",
+    "hero.p": "ঝামেলাহীন খাবার অর্ডার, স্বয়ংক্রিয় সাবস্ক্রিপশন বিল আর ক্যাশলেস ওয়ালেট — সবকিছু এক প্ল্যাটফর্মে, ক্যাম্পাসের সবচেয়ে ব্যস্ত সময়েও।",
+    "hero.start": "শুরু করুন",
+    "hero.explore": "মেনু দেখুন",
+    "f1.t": "টোকেনে পিকআপ",
+    "f1.d": "আগে থেকে অর্ডার করুন, লাইন এড়ান — টোকেন দেখিয়ে খাবার নিন।",
+    "f2.t": "ডিজিটাল ওয়ালেট",
+    "f2.d": "ক্যাশলেস পেমেন্ট, তাৎক্ষণিক টপ-আপ এবং স্বচ্ছ লেনদেনের ইতিহাস।",
+    "f3.t": "স্বয়ংক্রিয় সাবস্ক্রিপশন বিল",
+    "f3.d": "আপনার মাসিক মিল বিল নিজে থেকেই নির্ভুলভাবে হিসাব হয়।",
+    "f4.t": "লাইভ অর্ডার ট্র্যাকিং",
+    "f4.d": "আপনার অর্ডার এখন কোন ধাপে আছে রিয়েল টাইমে জানুন — রিফ্রেশ লাগবে না।",
+    "sm.tehari": "তেহারি",
+    "sm.tehari.t": "ভাত ও মাংস",
+    "sm.roll": "চিকেন রোল",
+    "sm.roll.t": "মুখরোচক নাস্তা",
+    "sm.brew": "ভিন্টেজ কোল্ড ব্রু",
+    "sm.brew.t": "পানীয়",
+    "pop.k": "জনপ্রিয় আইটেম",
+    "pop.h": "আমাদের মেনুর এক ঝলক",
+    "more": "পূর্ণ মেনুতে আরও আছে",
+    "more.d": "লাইভ দাম ও স্টক দেখতে এবং সাথে সাথে অর্ডার করতে লগ ইন করুন।",
+    "about.k": "আমাদের সম্পর্কে",
+    "about.h": "কেন CampusDine",
+    "about.p": "ক্যান্টিনের লম্বা লাইন, কাগজের টোকেন আর হাতে হিসাব করা সাবস্ক্রিপশন বিল — ঠিক এই বিরক্তিগুলো দূর করতেই CampusDine। ডিজিটাল টোকেন, রিয়েল-টাইম অর্ডার ট্র্যাকিং, স্বয়ংক্রিয় বিল আর ক্যাশলেস ওয়ালেট দিয়ে আমরা ক্যাম্পাস জীবনের সাথে মানানসই একটি ঝামেলাহীন খাওয়ার অভিজ্ঞতা তৈরি করেছি।",
+    "role.student.l": "শিক্ষার্থী",
+    "role.student.d": "খাবার অর্ডার করুন, পিকআপ ট্র্যাক করুন, সাবস্ক্রিপশন সামলান।",
+    "role.teacher.l": "শিক্ষক / কর্মী",
+    "role.teacher.d": "একই সুবিধা, শিক্ষকদের মিল রেট।",
+    "role.admin.l": "ক্যান্টিন অ্যাডমিন",
+    "role.admin.d": "কাউন্টার চালান — অর্ডার, স্টক, রিপোর্ট।",
+    "auth.k": "লগ ইন / নিবন্ধন",
+    "auth.h": "CampusDine-এ সাইন ইন করুন",
+    "back.login": "লগ ইনে ফিরুন",
+    "reset.h": "পাসওয়ার্ড রিসেট",
+    "reset.p": "আপনার আইডি লিখুন এবং নতুন পাসওয়ার্ড দিন।",
+    "id": "আইডি নম্বর",
+    "newpw": "নতুন পাসওয়ার্ড",
+    "atleast6": "কমপক্ষে ৬ অক্ষর",
+    "wait": "অপেক্ষা করুন…",
+    "back": "পিছনে",
+    "access": "{role} অ্যাক্সেস",
+    "login": "লগ ইন",
+    "create": "অ্যাকাউন্ট খুলুন",
+    "fullname": "পুরো নাম",
+    "pw": "পাসওয়ার্ড",
+    "yourpw": "আপনার পাসওয়ার্ড",
+    "forgot": "পাসওয়ার্ড ভুলে গেছেন?",
+    "createlogin": "অ্যাকাউন্ট খুলে লগ ইন করুন",
+    "backend": "ব্যাকএন্ড সার্ভার:",
+    "err.fill": "সবগুলো ঘর পূরণ করুন।",
+    "err.pw6": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+    "reset.ok": "পাসওয়ার্ড বদলানো হয়েছে — নতুন পাসওয়ার্ড দিয়ে লগ ইন করুন।",
+    "foot.p": "ক্যাম্পাসের নিজস্ব স্মার্ট ডাইনিং প্ল্যাটফর্ম — ভালো খাবার, দ্রুত সেবা আর পরিপাটি পরিবেশের সুন্দর মিলন।",
+    "foot.hours": "খোলার সময়",
+    "foot.h1": "রবি – বৃহস্পতি: সকাল ৯:০০ – রাত ৮:০০",
+    "foot.h2": "শুক্র – শনি: দুপুর ১২:০০ – রাত ৯:০০",
+    "foot.loc": "ঠিকানা",
+    "foot.loc1": "ক্যাম্পাস সেন্ট্রাল ক্যান্টিন, মূল ভবন",
+    "foot.help": "হেল্পলাইন: +880 1XXX-XXXXXX",
+    "lang.switch": "ভাষা বদলান",
+    "tab.menu": "মেনু ও অর্ডার",
+    "tab.track": "অর্ডার ট্র্যাক",
+    "tab.calendar": "মিল ক্যালেন্ডার",
+    "tab.wallet": "ওয়ালেট",
+    "tab.profile": "আমার প্রোফাইল",
+    "live.on": "লাইভ আপডেট চালু",
+    "live.off": "লাইভ আপডেট বন্ধ",
+    "logout": "লগ আউট",
+    "r.student": "শিক্ষার্থী",
+    "r.teacher": "শিক্ষক",
+    "r.admin": "অ্যাডমিন",
+    "cat.heavy": "ভারী খাবার",
+    "cat.snacks": "নাস্তা",
+    "cat.drinks": "পানীয়",
+    "search.ph": "মেনু খুঁজুন (যেমন খিচুড়ি, tea)…",
+    "sort.default": "সাজান: ডিফল্ট",
+    "sort.priceAsc": "দাম: কম থেকে বেশি",
+    "sort.priceDesc": "দাম: বেশি থেকে কম",
+    "sort.name": "নাম: A-Z",
+    "fav": "পছন্দের",
+    "diet.all": "সব",
+    "diet.veg": "নিরামিষ",
+    "diet.nonveg": "আমিষ",
+    "empty": "এই ক্যাটাগরিতে আপনার ফিল্টারের সাথে মেলে এমন কোনো আইটেম নেই।",
+    "tag.Popular": "জনপ্রিয়",
+    "tag.New": "নতুন",
+    "fav.add": "পছন্দের তালিকায় যোগ করুন",
+    "fav.remove": "পছন্দের তালিকা থেকে সরান",
+    "outstock": "স্টক শেষ",
+    "add": "যোগ করুন",
+    "cart.h": "আপনার কার্ট",
+    "cart.empty": "এখনো কিছু নেই — মেনু থেকে আইটেম যোগ করুন।",
+    "total": "মোট",
+    "schedule": "পরে পিকআপের সময় ঠিক করুন",
+    "pick.hint": "{a} থেকে {b} এর মধ্যে একটি সময় বাছুন।",
+    "pay.wallet": "ওয়ালেট",
+    "pay.cash": "পিকআপে নগদ",
+    "insufficient": "ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই — টপ-আপ করুন বা নগদে দিন।",
+    "placing": "অর্ডার হচ্ছে…",
+    "checkout": "চেকআউট — টোকেন নিন",
+    "rated": "আপনি এই অর্ডারে রেটিং দিয়েছেন",
+    "rate": "এই অর্ডারে রেটিং দিন",
+    "comment.ph": "মন্তব্য লিখুন (ঐচ্ছিক)",
+    "submitting": "জমা হচ্ছে…",
+    "submit": "মতামত জমা দিন",
+    "noorders": "এখনো কোনো অর্ডার নেই — মেনু ও অর্ডার ট্যাব থেকে অর্ডার করুন।",
+    "status.Received": "গৃহীত",
+    "status.Cooking": "রান্না হচ্ছে",
+    "status.Ready": "প্রস্তুত",
+    "status.Cancelled": "বাতিল",
+    "ticket.token": "পিকআপ টোকেন",
+    "sched": "নির্ধারিত পিকআপ",
+    "q.now": "এখন তৈরি হচ্ছে",
+    "q.next": "এরপর আপনার পালা",
+    "q.ahead1": "অবস্থান #{p} · সামনে ১টি অর্ডার",
+    "q.aheadN": "অবস্থান #{p} · সামনে {a}টি অর্ডার",
+    "q.est": "≈ {m} মিনিট",
+    "refunded": "— ওয়ালেটে ফেরত দেওয়া হয়েছে",
+    "print": "রসিদ প্রিন্ট করুন",
+    "cancelorder": "অর্ডার বাতিল করুন",
+    "rc.title": "অর্ডার রসিদ",
+    "rc.token": "পিকআপ টোকেন",
+    "rc.status": "অবস্থা",
+    "rc.payment": "পেমেন্ট",
+    "rc.printed": "প্রিন্টের সময়",
+    "rc.thanks": "কাউন্টারে এই টোকেনটি দেখান · ধন্যবাদ!",
+    "prevm": "আগের মাস",
+    "nextm": "পরের মাস",
+    "today": "আজ",
+    "cal.hint": "দিনে ট্যাপ করে বদলান: বন্ধ → পূর্ণ → অর্ধেক",
+    "wd": "র,সো,ম,বু,বৃ,শু,শ",
+    "cal.full": "পূর্ণ মিল",
+    "cal.half": "অর্ধ মিল",
+    "cal.off": "বন্ধ",
+    "cal.bill": "মাসিক বিল",
+    "cal.fulldays": "পূর্ণ মিলের দিন (প্রতিটি {r})",
+    "cal.halfdays": "অর্ধ মিলের দিন (প্রতিটি {r})",
+    "cal.note": "সার্ভার লাইভ হিসাব করেছে — {who} রেট প্রযোজ্য।",
+    "who.student": "শিক্ষার্থীদের",
+    "who.teacher": "শিক্ষকদের",
+    "pc.mobile": "মোবাইল ব্যাংকিং",
+    "pc.banking": "ব্যাংকিং",
+    "pc.card": "কার্ড",
+    "pay.failed": "পেমেন্ট ব্যর্থ হয়েছে",
+    "pay.t1": "পেমেন্ট পদ্ধতি বাছুন",
+    "pay.t2": "টপ-আপ নিশ্চিত করুন",
+    "pay.t3": "পেমেন্ট সফল",
+    "pay.t4": "পেমেন্ট প্রক্রিয়াধীন",
+    "amount": "পরিমাণ:",
+    "no": "না",
+    "yes": "হ্যাঁ, টপ-আপ করুন",
+    "confirming": "{m}-এর সাথে পেমেন্ট নিশ্চিত হচ্ছে…",
+    "pay.added": "আপনার ওয়ালেটে যোগ হয়েছে",
+    "paidvia": "{m} দিয়ে পরিশোধ হয়েছে",
+    "done": "সম্পন্ন",
+    "wallet.bal": "ওয়ালেট ব্যালেন্স",
+    "topup": "টপ-আপ",
+    "adding": "যোগ হচ্ছে…",
+    "addmoney": "টাকা যোগ করুন",
+    "txhist": "লেনদেনের ইতিহাস",
+    "notx": "এখনো কোনো লেনদেন নেই।",
+    "tx.welcome": "স্বাগত বোনাস",
+    "tx.order": "অর্ডারের পেমেন্ট",
+    "tx.refund": "ফেরত — অর্ডার {t} বাতিল",
+    "tx.topup": "{m} দিয়ে ওয়ালেট টপ-আপ",
+    "edit": "প্রোফাইল সম্পাদনা",
+    "phone": "ফোন",
+    "fphone": "বাবার ফোন",
+    "address": "ঠিকানা",
+    "addr.ph": "বর্তমান ঠিকানা",
+    "dept": "বিভাগ",
+    "dept.ph": "যেমন CSE",
+    "role": "ভূমিকা",
+    "hall": "হল আবাসন",
+    "room": "রুম নম্বর",
+    "room.ph": "যেমন ৩১২",
+    "notres": "হলে থাকেন না",
+    "hallid": "হল আইডি",
+    "hallhint": "স্থায়ী হল আইডি পেতে একটি রুম নম্বর সেভ করুন।",
+    "chpw": "পাসওয়ার্ড বদলান (ঐচ্ছিক)",
+    "curpw": "বর্তমান পাসওয়ার্ড",
+    "newpw2": "নতুন পাসওয়ার্ড",
+    "saving": "সেভ হচ্ছে…",
+    "save": "পরিবর্তন সেভ করুন",
+    "cancel": "বাতিল",
+    "notset": "দেওয়া নেই",
+    "pe.name": "নাম খালি রাখা যাবে না।",
+    "pe.pw6": "নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+    "pe.cur": "নতুন পাসওয়ার্ড দিতে বর্তমান পাসওয়ার্ড লিখুন।",
+    "pe.ok": "প্রোফাইল আপডেট হয়েছে।",
+    "msg.cancel.w": "অর্ডার {t} বাতিল হয়েছে — {a} আপনার ওয়ালেটে ফেরত এসেছে।",
+    "msg.cancel": "অর্ডার {t} বাতিল হয়েছে।"
+  }
+};
+const tx = (key, vars) => {
+  let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
+  if (str === undefined) str = I18N.en[key];
+  if (str === undefined) str = key;
+  if (vars) Object.keys(vars).forEach(k => { str = str.split("{" + k + "}").join(vars[k]); });
+  return str;
+};
+// lookup("status", "Ready") -> translated label, or the raw value if there is no translation
+const lookup = (prefix, val) => {
+  const k = prefix + "." + val;
+  const str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][k] : undefined;
+  if (str !== undefined) return str;
+  return I18N.en[k] !== undefined ? I18N.en[k] : val;
+};
+const num = (n) => Number(n).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-US", { useGrouping: false });
+const itemName = (item) => (CURRENT_LANG === "bn" && item.bn) ? item.bn : item.name;
+const dispName = (name) => (CURRENT_LANG === "bn" && MENU_BN[name]) ? MENU_BN[name] : name;
+// Wallet labels are stored in English by the server; map the known ones.
+const txLabel = (label) => {
+  if (CURRENT_LANG !== "bn") return label;
+  if (label === "Welcome bonus") return tx("tx.welcome");
+  if (label === "Order payment") return tx("tx.order");
+  let m = /^Refund — Order (\S+) cancelled$/.exec(label);
+  if (m) return tx("tx.refund", { t: m[1] });
+  m = /^Wallet top-up via (.+)$/.exec(label);
+  if (m) return tx("tx.topup", { m: m[1] });
+  return label;
+};
+const taka = (n) => `৳${Number(n || 0).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-BD")}`;
 function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); } // month is 1-12 here
 function monthLabel(ym) {
   const [y, m] = ym.split("-");
   return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
 }
 
+/* ---------------- Language toggle (EN | বাং) ---------------- */
+function LangToggle({ onToggle }) {
+  const seg = (active) => ({ background: active ? "var(--gold)" : "transparent", color: active ? "#fff" : "var(--ink-soft)" });
+  return (
+    <button onClick={onToggle} title={tx("lang.switch")}
+      className="flex rounded-lg border overflow-hidden text-xs font-600" style={{ borderColor: "var(--line)" }}>
+      <span className="px-2 py-1.5" style={seg(CURRENT_LANG === "en")}>EN</span>
+      <span className="px-2 py-1.5" style={seg(CURRENT_LANG === "bn")}>বাং</span>
+    </button>
+  );
+}
+
 /* ---------------- Login / Register screen ---------------- */
-function Login({ apiBase, setApiBase, onAuth }) {
+function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
   const [role, setRole] = useState(null);
   const [name, setName] = useState("");
@@ -284,22 +736,22 @@ function Login({ apiBase, setApiBase, onAuth }) {
   const authRef = useRef(null);
 
   const roleOptions = [
-    { key: "student", label: "Student", desc: "Order meals, track pickup, manage your subscription.", icon: I.user },
-    { key: "teacher", label: "Teacher / Staff", desc: "Same convenience, faculty meal rate.", icon: I.user },
-    { key: "admin", label: "Canteen Admin", desc: "Run the counter — orders, stock, reports.", icon: I.dashboard },
+    { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
+    { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
+    { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
   ];
 
   const features = [
-    { title: "Token-Based Pickup", desc: "Order ahead and skip the queue — just collect your food with your token." },
-    { title: "Digital Wallet", desc: "Cashless payments, instant top-ups, and a fully transparent transaction history." },
-    { title: "Auto Subscription Billing", desc: "Your monthly meal bill, calculated automatically and accurately." },
-    { title: "Live Order Tracking", desc: "Know exactly where your order stands, in real time — no refresh needed." },
+    { title: tx("f1.t"), desc: tx("f1.d") },
+    { title: tx("f2.t"), desc: tx("f2.d") },
+    { title: tx("f3.t"), desc: tx("f3.d") },
+    { title: tx("f4.t"), desc: tx("f4.d") },
   ];
 
   const sampleMenu = [
-    { name: "Tehari", tag: "Rice & Meat", price: "৳ 80", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" },
-    { name: "Chicken Roll", tag: "Savory Snack", price: "৳ 50", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80" },
-    { name: "Vintage Cold Brew", tag: "Beverage", price: "৳ 35", img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=500&q=80" },
+    { name: tx("sm.tehari"), tag: tx("sm.tehari.t"), price: "৳ " + num(80), img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" },
+    { name: tx("sm.roll"), tag: tx("sm.roll.t"), price: "৳ " + num(50), img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80" },
+    { name: tx("sm.brew"), tag: tx("sm.brew.t"), price: "৳ " + num(35), img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=500&q=80" },
   ];
 
   const scrollToAuth = () => authRef.current && authRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -307,7 +759,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
   const submit = async () => {
     setError(null);
     if (!externalId || !password || (mode === "register" && !name)) {
-      setError("Please fill in all fields.");
+      setError(tx("err.fill"));
       return;
     }
     setBusy(true);
@@ -325,15 +777,15 @@ function Login({ apiBase, setApiBase, onAuth }) {
 
   const submitReset = async () => {
     setError(null); setResetMsg(null);
-    if (!externalId || !newPassword) { setError("Please fill in all fields."); return; }
-    if (newPassword.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (!externalId || !newPassword) { setError(tx("err.fill")); return; }
+    if (newPassword.length < 6) { setError(tx("err.pw6")); return; }
     setBusy(true);
     try {
       await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId, newPassword } });
       setMode("login");
       setPassword("");
       setNewPassword("");
-      setResetMsg("Password updated — log in with your new password.");
+      setResetMsg(tx("reset.ok"));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -356,7 +808,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
       {/* Announcement bar */}
       <div className="text-center py-2 px-4 text-xs font-500"
         style={{ background: "var(--gold-soft)", color: "var(--teal-deep)", borderBottom: "1px solid var(--line)" }}>
-        Welcome to CampusDine — order food from your campus canteen
+        {tx("ann")}
       </div>
 
       {/* Sticky nav */}
@@ -368,15 +820,18 @@ function Login({ apiBase, setApiBase, onAuth }) {
             </div>
             <div>
               <span className="font-display gold-text text-lg font-800 block leading-none">CampusDine</span>
-              <span className="text-[10px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>Campus Canteen</span>
+              <span className="text-[10px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>{tx("canteen")}</span>
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-500" style={{ color: "var(--ink-soft)" }}>
-            <a href="#menu" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Menu</a>
-            <a href="#about" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>About Us</a>
-            <a href="#contact" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>Contact</a>
+            <a href="#menu" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.menu")}</a>
+            <a href="#about" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.about")}</a>
+            <a href="#contact" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.contact")}</a>
           </nav>
-          <button onClick={scrollToAuth} className="btn-primary px-5 py-2 rounded-lg text-xs">Sign In</button>
+          <div className="flex items-center gap-2">
+            <LangToggle onToggle={onToggleLang} />
+            <button onClick={scrollToAuth} className="btn-primary px-5 py-2 rounded-lg text-xs">{tx("signin")}</button>
+          </div>
         </div>
       </header>
 
@@ -385,18 +840,17 @@ function Login({ apiBase, setApiBase, onAuth }) {
         <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(22,163,74,0.10), transparent)" }}></div>
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full text-xs font-600" style={{ border: "1px solid var(--line)", color: "var(--gold)" }}>
-            Smart Campus Canteen
+            {tx("hero.badge")}
           </div>
           <h1 className="font-display text-4xl sm:text-5xl font-800 leading-tight" style={{ color: "var(--ink)" }}>
-            Order Ahead. Skip The Line.<br /><span className="gold-text">Eat Fresh, Every Day.</span>
+            {tx("hero.h1a")}<br /><span className="gold-text">{tx("hero.h1b")}</span>
           </h1>
           <p className="max-w-xl mx-auto text-[15px] leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-            Enjoy hassle-free food ordering, automatic subscription billing, and a cashless wallet —
-            all on one platform, even during the busiest hours of campus life.
+            {tx("hero.p")}
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
-            <button onClick={scrollToAuth} className="btn-primary px-8 py-3 rounded-lg">Get Started</button>
-            <a href="#menu" className="btn-gold px-8 py-3 rounded-lg inline-block">Explore Menu</a>
+            <button onClick={scrollToAuth} className="btn-primary px-8 py-3 rounded-lg">{tx("hero.start")}</button>
+            <a href="#menu" className="btn-gold px-8 py-3 rounded-lg inline-block">{tx("hero.explore")}</a>
           </div>
         </div>
       </section>
@@ -416,8 +870,8 @@ function Login({ apiBase, setApiBase, onAuth }) {
       {/* Menu preview */}
       <section id="menu" className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-12 space-y-3">
-          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>Popular Items</p>
-          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>A Taste of Our Menu</h2>
+          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>{tx("pop.k")}</p>
+          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>{tx("pop.h")}</h2>
           <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -435,8 +889,8 @@ function Login({ apiBase, setApiBase, onAuth }) {
           ))}
           <div className="card flex flex-col items-center justify-center text-center p-6 gap-3">
             <Icon path={I.menu} className="w-7 h-7" style={{ color: "var(--gold)" }} />
-            <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>More on the full menu</div>
-            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Log in to see live prices, stock &amp; order instantly.</p>
+            <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{tx("more")}</div>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("more.d")}</p>
           </div>
         </div>
       </section>
@@ -444,14 +898,11 @@ function Login({ apiBase, setApiBase, onAuth }) {
       {/* About */}
       <section id="about" className="border-t py-20 px-6" style={{ borderColor: "var(--line)", background: "rgba(22,163,74,0.05)" }}>
         <div className="max-w-2xl mx-auto text-center space-y-5">
-          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>About Us</p>
-          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>Why CampusDine</h2>
+          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>{tx("about.k")}</p>
+          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>{tx("about.h")}</h2>
           <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
           <p className="leading-relaxed text-[15px]" style={{ color: "var(--ink-soft)" }}>
-            Long canteen queues, paper tokens, and hand-calculated subscription bills — CampusDine exists to
-            remove exactly these frustrations. With digital tokens, real-time order tracking, automatic
-            billing, and a cashless wallet, we've built a refined, hassle-free dining experience built
-            around campus life.
+            {tx("about.p")}
           </p>
         </div>
       </section>
@@ -460,8 +911,8 @@ function Login({ apiBase, setApiBase, onAuth }) {
       <section ref={authRef} className="py-20 px-6">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8 space-y-2">
-            <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>Login / Register</p>
-            <h2 className="font-display text-2xl font-800" style={{ color: "var(--ink)" }}>Sign In To CampusDine</h2>
+            <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>{tx("auth.k")}</p>
+            <h2 className="font-display text-2xl font-800" style={{ color: "var(--ink)" }}>{tx("auth.h")}</h2>
           </div>
 
           <div className="card p-8 fade-in">
@@ -484,74 +935,74 @@ function Login({ apiBase, setApiBase, onAuth }) {
             ) : mode === "forgot" ? (
               <>
                 <button onClick={() => { setMode("login"); setError(null); }} className="text-sm mb-5 flex items-center gap-1" style={{ color: "var(--ink-soft)" }}>
-                  <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> Back to login
+                  <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> {tx("back.login")}
                 </button>
-                <div className="font-display font-700 text-xl mb-1 text-center" style={{ color: "var(--gold)" }}>Reset Password</div>
-                <p className="text-xs mb-5 text-center" style={{ color: "var(--ink-soft)" }}>Enter your ID and choose a new password.</p>
+                <div className="font-display font-700 text-xl mb-1 text-center" style={{ color: "var(--gold)" }}>{tx("reset.h")}</div>
+                <p className="text-xs mb-5 text-center" style={{ color: "var(--ink-soft)" }}>{tx("reset.p")}</p>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>ID Number</label>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("id")}</label>
                     <input value={externalId} onChange={e => setExternalId(e.target.value)} placeholder="e.g. 24524203098"
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
                   <div>
-                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>New Password</label>
-                    <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder="At least 6 characters"
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("newpw")}</label>
+                    <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("atleast6")}
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   <button disabled={busy} onClick={submitReset} className="btn-primary w-full py-2.5 rounded-xl">
-                    {busy ? "Please wait…" : "Reset Password"}
+                    {busy ? tx("wait") : tx("reset.h")}
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <button onClick={() => { setRole(null); setError(null); }} className="text-sm mb-5 flex items-center gap-1" style={{ color: "var(--ink-soft)" }}>
-                  <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> Back
+                  <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> {tx("back")}
                 </button>
                 <div className="font-display font-700 text-lg mb-5 text-center" style={{ color: "var(--gold)" }}>
-                  {roleOptions.find(r => r.key === role).label} Access
+                  {tx("access", { role: roleOptions.find(r => r.key === role).label })}
                 </div>
 
                 <div className="flex p-1 rounded-full mb-6" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
-                  {pillTab("login", "Log In")}
-                  {pillTab("register", "Create Account")}
+                  {pillTab("login", tx("login"))}
+                  {pillTab("register", tx("create"))}
                 </div>
 
                 <div className="space-y-3">
                   {mode === "register" && (
                     <div>
-                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>Full Name</label>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("fullname")}</label>
                       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Abir Hasan"
                         className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                     </div>
                   )}
                   <div>
-                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>ID Number</label>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("id")}</label>
                     <input value={externalId} onChange={e => setExternalId(e.target.value)} placeholder="e.g. 24524203098"
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
                   <div>
-                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>Password</label>
-                    <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Your password"
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("pw")}</label>
+                    <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder={tx("yourpw")}
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                     {mode === "login" && (
                       <button onClick={() => { setMode("forgot"); setError(null); setResetMsg(null); }}
                         className="text-xs mt-1.5" style={{ color: "var(--gold)" }}>
-                        Forgot password?
+                        {tx("forgot")}
                       </button>
                     )}
                   </div>
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   {resetMsg && mode === "login" && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
                   <button disabled={busy} onClick={submit} className="btn-primary w-full py-2.5 rounded-xl">
-                    {busy ? "Please wait…" : mode === "login" ? "Log In" : "Create Account & Log In"}
+                    {busy ? tx("wait") : mode === "login" ? tx("login") : tx("createlogin")}
                   </button>
                 </div>
 
                 <button onClick={() => setShowAdvanced(s => !s)} className="text-xs mt-5 flex items-center gap-1 mx-auto" style={{ color: "var(--ink-soft)" }}>
-                  <Icon path={I.plug} className="w-3.5 h-3.5" /> Backend server: {apiBase}
+                  <Icon path={I.plug} className="w-3.5 h-3.5" /> {tx("backend")} {apiBase}
                 </button>
                 {showAdvanced && (
                   <input value={apiBase} onChange={e => setApiBase(e.target.value)} placeholder="http://localhost:5000"
@@ -569,19 +1020,18 @@ function Login({ apiBase, setApiBase, onAuth }) {
           <div>
             <h3 className="font-display gold-text text-xl font-800 mb-3">CampusDine</h3>
             <p className="text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-              The campus's own smart dining platform — a perfect blend of great food, fast service,
-              and a refined atmosphere.
+              {tx("foot.p")}
             </p>
           </div>
           <div>
-            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>Opening Hours</h4>
-            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>Sun – Thu: 9:00 AM – 8:00 PM</p>
-            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Fri – Sat: 12:00 PM – 9:00 PM</p>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>{tx("foot.hours")}</h4>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("foot.h1")}</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("foot.h2")}</p>
           </div>
           <div>
-            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>Location</h4>
-            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>Campus Central Canteen, Main Building</p>
-            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Helpline: +880 1XXX-XXXXXX</p>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>{tx("foot.loc")}</h4>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("foot.loc1")}</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("foot.help")}</p>
           </div>
         </div>
         <p className="text-center text-[11px] uppercase pt-8" style={{ color: "var(--ink-soft)" }}>
@@ -593,7 +1043,7 @@ function Login({ apiBase, setApiBase, onAuth }) {
 }
 
 /* ---------------- Top bar ---------------- */
-function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
+function TopBar({ role, name, tabs, active, setActive, onLogout, connected, onToggleLang }) {
   return (
     <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "rgba(255,255,255,0.92)", borderBottom: "1px solid var(--line)" }}>
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
@@ -602,7 +1052,7 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
             <Icon path={I.ticket} className="w-4 h-4" style={{ color: "var(--gold)" }} />
           </div>
           <span className="font-display gold-text font-700">CampusDine</span>
-          <span className="w-2 h-2 rounded-full ml-1" title={connected ? "Live updates connected" : "Live updates offline"}
+          <span className="w-2 h-2 rounded-full ml-1" title={connected ? tx("live.on") : tx("live.off")}
             style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
         </div>
         <div className="flex gap-1 flex-wrap">
@@ -616,9 +1066,10 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <div className="text-sm font-600 leading-tight">{name}</div>
-            <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{role}</div>
+            <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
           </div>
-          <button onClick={onLogout} title="Log out" className="w-9 h-9 rounded-lg grid place-items-center hover:bg-white/5">
+          {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
+          <button onClick={onLogout} title={tx("logout")} className="w-9 h-9 rounded-lg grid place-items-center hover:bg-white/5">
             <Icon path={I.logout} className="w-4.5 h-4.5" style={{ color: "var(--brick)" }} />
           </button>
         </div>
@@ -632,7 +1083,7 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected }) {
 function DietMark({ isVeg }) {
   const c = isVeg ? "#16A34A" : "#B91C1C";
   return (
-    <span title={isVeg ? "Vegetarian" : "Non-vegetarian"}
+    <span title={isVeg ? tx("diet.veg") : tx("diet.nonveg")}
       className="inline-grid place-items-center w-4 h-4 border-2 shrink-0"
       style={{ borderColor: c, borderRadius: 3 }}>
       <span className="w-2 h-2 rounded-full" style={{ background: c }} />
@@ -694,29 +1145,29 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
           {CATEGORIES.map(c => (
             <button key={c.id} onClick={() => setCat(c.id)}
               className={`tab-btn px-4 py-2 rounded-full text-sm ${cat === c.id ? "active" : ""}`}>
-              {c.label}
+              {tx("cat." + c.id)}
             </button>
           ))}
         </div>
         <div className="flex flex-col sm:flex-row gap-2 mb-5">
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search menu (e.g. khichuri, চা)…"
+            placeholder={tx("search.ph")}
             className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}
             className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
-            <option value="default">Sort: Default</option>
-            <option value="priceAsc">Price: Low to High</option>
-            <option value="priceDesc">Price: High to Low</option>
-            <option value="name">Name: A-Z</option>
+            <option value="default">{tx("sort.default")}</option>
+            <option value="priceAsc">{tx("sort.priceAsc")}</option>
+            <option value="priceDesc">{tx("sort.priceDesc")}</option>
+            <option value="name">{tx("sort.name")}</option>
           </select>
           <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
             style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
             <input type="checkbox" checked={favoritesOnly} onChange={e => setFavoritesOnly(e.target.checked)} />
             <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
-            Favorites
+            {tx("fav")}
           </label>
           <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
-            {[["all", "All"], ["veg", "Veg"], ["nonveg", "Non-veg"]].map(([key, label]) => (
+            {[["all", tx("diet.all")], ["veg", tx("diet.veg")], ["nonveg", tx("diet.nonveg")]].map(([key, label]) => (
               <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
                 style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
                 {label}
@@ -725,7 +1176,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
           </div>
         </div>
         {filtered.length === 0 && (
-          <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>No items match your filters in this category.</p>
+          <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>{tx("empty")}</p>
         )}
         <div className="grid sm:grid-cols-2 gap-4">
           {filtered.map(item => {
@@ -737,18 +1188,18 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                   <div>
                     <div className="flex items-center gap-1.5">
                       <DietMark isVeg={!!item.is_veg} />
-                      <span className="font-display font-700" style={{ color: "var(--gold)" }}>{item.name}</span>
+                      <span className="font-display font-700" style={{ color: "var(--gold)" }}>{itemName(item)}</span>
                     </div>
-                    <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{item.category}</div>
+                    <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("cat." + item.category)}</div>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {item.tag && !out && (
                       <span className="text-[10px] font-mono px-2 py-1 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
-                        {item.tag}
+                        {lookup("tag", item.tag)}
                       </span>
                     )}
                     <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
-                      title={item.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                      title={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
                       className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
                       <Icon path={I.star} className="w-4 h-4" fill={item.is_favorite ? "currentColor" : "none"}
                         style={{ color: "var(--gold)" }} />
@@ -758,7 +1209,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-mono font-600 text-lg">{taka(item.price)}</span>
                   {out ? (
-                    <span className="text-xs font-600" style={{ color: "var(--brick)" }}>Out of stock</span>
+                    <span className="text-xs font-600" style={{ color: "var(--brick)" }}>{tx("outstock")}</span>
                   ) : inCart ? (
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border" style={{ borderColor: "var(--line)" }}><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
@@ -766,7 +1217,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                       <button onClick={() => add(item)} className="w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "var(--teal)" }}><Icon path={I.plus} className="w-3.5 h-3.5" /></button>
                     </div>
                   ) : (
-                    <button onClick={() => add(item)} className="btn-primary px-3 py-1.5 rounded-lg text-sm">Add</button>
+                    <button onClick={() => add(item)} className="btn-primary px-3 py-1.5 rounded-lg text-sm">{tx("add")}</button>
                   )}
                 </div>
               </div>
@@ -778,15 +1229,15 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
       <div>
         <div className="card p-5 sticky top-20">
           <div className="font-display font-700 flex items-center gap-2 mb-4" style={{ color: "var(--gold)" }}>
-            <Icon path={I.cart} className="w-5 h-5" /> Your cart
+            <Icon path={I.cart} className="w-5 h-5" /> {tx("cart.h")}
           </div>
           {cart.length === 0 ? (
-            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>Nothing here yet — add items from the menu.</p>
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("cart.empty")}</p>
           ) : (
             <div className="space-y-2 mb-4">
               {cart.map(i => (
                 <div key={i.id} className="flex justify-between text-sm">
-                  <span>{i.name} × {i.qty}</span>
+                  <span>{itemName(i)} × {num(i.qty)}</span>
                   <span className="font-mono">{taka(i.price * i.qty)}</span>
                 </div>
               ))}
@@ -794,7 +1245,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
           )}
           <div className="border-t pt-3 mb-4" style={{ borderColor: "var(--line)" }}>
             <div className="flex justify-between font-700">
-              <span>Total</span>
+              <span>{tx("total")}</span>
               <span className="font-mono">{taka(total)}</span>
             </div>
           </div>
@@ -803,7 +1254,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               <div className="mb-4">
                 <label className="flex items-center gap-2 text-sm mb-2">
                   <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
-                  Schedule pickup for later
+                  {tx("schedule")}
                 </label>
                 {scheduleLater && (
                   <>
@@ -812,7 +1263,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                       max={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMax)}
                       className="w-full px-3 py-2 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
                     <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
-                      Pick a time between {fmtHHMM(pickupMin)} and {fmtHHMM(pickupMax)}.
+                      {tx("pick.hint", { a: fmtHHMM(pickupMin), b: fmtHHMM(pickupMax) })}
                     </p>
                   </>
                 )}
@@ -821,20 +1272,20 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 <button onClick={() => setPayMethod("wallet")}
                   className={`flex-1 py-2 rounded-lg border ${payMethod === "wallet" ? "text-white" : ""}`}
                   style={payMethod === "wallet" ? { background: "var(--teal)", borderColor: "var(--teal)" } : { borderColor: "var(--line)" }}>
-                  Wallet
+                  {tx("pay.wallet")}
                 </button>
                 <button onClick={() => setPayMethod("cash")}
                   className={`flex-1 py-2 rounded-lg border ${payMethod === "cash" ? "text-white" : ""}`}
                   style={payMethod === "cash" ? { background: "var(--teal)", borderColor: "var(--teal)" } : { borderColor: "var(--line)" }}>
-                  Cash on pickup
+                  {tx("pay.cash")}
                 </button>
               </div>
               {payMethod === "wallet" && !canPay && (
-                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>Insufficient wallet balance — top up or pay cash.</p>
+                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
               )}
               <button disabled={!canCheckout || busy} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null)}
                 className="btn-primary w-full py-2.5 rounded-xl">
-                {busy ? "Placing order…" : "Checkout — get token"}
+                {busy ? tx("placing") : tx("checkout")}
               </button>
             </>
           )}
@@ -867,7 +1318,7 @@ function OrderFeedback({ order, onSubmit, busy }) {
       <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
         <div className="flex items-center gap-2 mb-1">
           <StarPicker value={order.feedback.rating} onChange={() => {}} size="w-4 h-4" />
-          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>You rated this order</span>
+          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("rated")}</span>
         </div>
         {order.feedback.comment && <p className="text-xs italic" style={{ color: "var(--ink-soft)" }}>"{order.feedback.comment}"</p>}
       </div>
@@ -876,13 +1327,13 @@ function OrderFeedback({ order, onSubmit, busy }) {
 
   return (
     <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
-      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>Rate this order</div>
+      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("rate")}</div>
       <StarPicker value={rating} onChange={setRating} />
-      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Leave a comment (optional)"
+      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("comment.ph")}
         rows="2" className="w-full mt-2 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
       <button disabled={busy || rating === 0} onClick={() => onSubmit(order.id, rating, comment)}
         className="btn-primary mt-2 px-4 py-1.5 rounded-lg text-xs">
-        {busy ? "Submitting…" : "Submit Feedback"}
+        {busy ? tx("submitting") : tx("submit")}
       </button>
     </div>
   );
@@ -902,7 +1353,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
   }, [printOrder]);
 
   if (orders.length === 0) {
-    return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>No orders yet — place one from the Menu &amp; Order tab.</div>;
+    return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>{tx("noorders")}</div>;
   }
   return (
     <div className="space-y-6 max-w-2xl">
@@ -911,27 +1362,27 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           <div className="receipt">
             <div className="text-center mb-1">
               <div className="font-display font-800" style={{ fontSize: 18 }}>🍽 CampusDine</div>
-              <div style={{ fontSize: 11, color: "#6B7280", letterSpacing: 1 }}>ORDER RECEIPT</div>
+              <div style={{ fontSize: 11, color: "#6B7280", letterSpacing: 1 }}>{tx("rc.title")}</div>
             </div>
             <div className="receipt-divider" />
             <div className="text-center" style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, color: "#6B7280" }}>PICKUP TOKEN</div>
+              <div style={{ fontSize: 10, color: "#6B7280" }}>{tx("rc.token")}</div>
               <div className="font-mono font-800" style={{ fontSize: 30, letterSpacing: 2 }}>{printOrder.token}</div>
             </div>
-            <div className="receipt-row"><span>Status</span><span style={{ fontWeight: 600 }}>{printOrder.status}</span></div>
-            <div className="receipt-row"><span>Payment</span><span>{printOrder.payment_method === "wallet" ? "Wallet" : "Cash on pickup"}</span></div>
+            <div className="receipt-row"><span>{tx("rc.status")}</span><span style={{ fontWeight: 600 }}>{lookup("status", printOrder.status)}</span></div>
+            <div className="receipt-row"><span>{tx("rc.payment")}</span><span>{printOrder.payment_method === "wallet" ? tx("pay.wallet") : tx("pay.cash")}</span></div>
             {printOrder.pickup_time && (
-              <div className="receipt-row"><span>Scheduled pickup</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
+              <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
             )}
-            <div className="receipt-row"><span>Printed</span><span>{new Date().toLocaleString()}</span></div>
+            <div className="receipt-row"><span>{tx("rc.printed")}</span><span>{new Date().toLocaleString()}</span></div>
             <div className="receipt-divider" />
             {printOrder.items.map((i, idx) => (
-              <div key={idx} className="receipt-row"><span>{i.name} ×{i.qty}</span><span>{taka(i.price * i.qty)}</span></div>
+              <div key={idx} className="receipt-row"><span>{dispName(i.name)} ×{num(i.qty)}</span><span>{taka(i.price * i.qty)}</span></div>
             ))}
             <div className="receipt-divider" />
-            <div className="receipt-row" style={{ fontSize: 15, fontWeight: 800 }}><span>Total</span><span>{taka(printOrder.total)}</span></div>
+            <div className="receipt-row" style={{ fontSize: 15, fontWeight: 800 }}><span>{tx("total")}</span><span>{taka(printOrder.total)}</span></div>
             <div className="text-center" style={{ marginTop: 16, fontSize: 11, color: "#6B7280" }}>
-              Show this token at the counter · Thank you!
+              {tx("rc.thanks")}
             </div>
           </div>
         </div>
@@ -943,18 +1394,18 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           <div key={o.token} className="card overflow-hidden">
             <div className="ticket p-5 flex items-center justify-between">
               <div className="perf pl-4">
-                <div className="text-xs opacity-70">Pickup token</div>
+                <div className="text-xs opacity-70">{tx("ticket.token")}</div>
                 <div className="font-mono text-2xl font-700 tracking-wide">{o.token}</div>
               </div>
               <div className="text-right">
-                <div className="text-xs opacity-70">Total</div>
+                <div className="text-xs opacity-70">{tx("total")}</div>
                 <div className="font-mono text-lg">{taka(o.total)}</div>
               </div>
             </div>
             <div className="p-5">
               {o.pickup_time && (
                 <div className="text-xs mb-3 font-600" style={{ color: "var(--teal)" }}>
-                  Scheduled pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {tx("sched")}: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </div>
               )}
               {o.queue && (
@@ -964,19 +1415,19 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     <span className="font-700">
                       {o.queue.ahead === 0
-                        ? (o.status === "Cooking" ? "Being prepared now" : "You're next")
-                        : `Position #${o.queue.position} · ${o.queue.ahead} ${o.queue.ahead === 1 ? "order" : "orders"} ahead`}
+                        ? (o.status === "Cooking" ? tx("q.now") : tx("q.next"))
+                        : tx(o.queue.ahead === 1 ? "q.ahead1" : "q.aheadN", { p: num(o.queue.position), a: num(o.queue.ahead) })}
                     </span>
-                    <span style={{ color: "var(--ink-soft)" }}>≈ {o.queue.est_minutes} min</span>
+                    <span style={{ color: "var(--ink-soft)" }}>{tx("q.est", { m: num(o.queue.est_minutes) })}</span>
                   </div>
                 </div>
               )}
               {isCancelled ? (
                 <div className="flex items-center gap-2 text-sm font-600" style={{ color: "var(--brick)" }}>
                   <Icon path={I.x} className="w-4 h-4" />
-                  Cancelled
+                  {lookup("status", "Cancelled")}
                   {o.payment_method === "wallet" && (
-                    <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>— refunded to wallet</span>
+                    <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>{tx("refunded")}</span>
                   )}
                 </div>
               ) : (
@@ -985,7 +1436,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                     <React.Fragment key={s}>
                       <div className="flex flex-col items-center gap-1.5 flex-1">
                         <div className={`stepper-dot ${i < stepIndex ? "done" : i === stepIndex ? "current" : ""}`}></div>
-                        <span className="text-xs text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{s}</span>
+                        <span className="text-xs text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{lookup("status", s)}</span>
                       </div>
                       {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-5" style={{ background: i < stepIndex ? "var(--gold)" : "var(--line)" }} />}
                     </React.Fragment>
@@ -993,20 +1444,20 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                 </div>
               )}
               <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
-                {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
+                {o.items.map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
               </div>
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => setPrintOrder(o)}
                   className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
                   style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
                   <Icon path={I.printer} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
-                  Print receipt
+                  {tx("print")}
                 </button>
                 {o.status === "Received" && (
                   <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
                     className="text-xs px-3 py-1.5 rounded-lg border font-600"
                     style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
-                    Cancel order
+                    {tx("cancelorder")}
                   </button>
                 )}
               </div>
@@ -1024,7 +1475,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
 /* ---------------- Meal calendar tab ---------------- */
 function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth, onNextMonth, onJumpToday, isCurrentMonth }) {
   const total = daysInMonth(year, month);
-  const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
+  const monthName = new Date(year, month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "long" });
   const firstWeekday = new Date(year, month - 1, 1).getDay();
   const now = new Date();
   const todayDay = now.getDate();
@@ -1035,13 +1486,13 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth
       <div className="lg:col-span-2 card p-5">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <button onClick={onPrevMonth} aria-label="Previous month"
+            <button onClick={onPrevMonth} aria-label={tx("prevm")}
                     className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
                     style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
               <Icon path={I.chevronLeft} className="w-4 h-4" />
             </button>
-            <div className="font-display font-700 text-lg min-w-[150px] text-center" style={{ color: "var(--gold)" }}>{monthName} {year}</div>
-            <button onClick={onNextMonth} aria-label="Next month"
+            <div className="font-display font-700 text-lg min-w-[150px] text-center" style={{ color: "var(--gold)" }}>{monthName} {num(year)}</div>
+            <button onClick={onNextMonth} aria-label={tx("nextm")}
                     className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
                     style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
               <Icon path={I.chevronRight} className="w-4 h-4" />
@@ -1049,14 +1500,14 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth
             {!isCurrentMonth && (
               <button onClick={onJumpToday} className="text-[11px] font-600 rounded-lg px-2 py-1 ml-1 border transition-colors"
                       style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
-                Today
+                {tx("today")}
               </button>
             )}
           </div>
-          <div className="text-xs" style={{ color: "var(--ink-soft)" }}>Tap a day to cycle: Off → Full → Half</div>
+          <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("cal.hint")}</div>
         </div>
         <div className="grid grid-cols-7 gap-2 mb-2 text-xs text-center font-600" style={{ color: "var(--ink-soft)" }}>
-          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i}>{d}</div>)}
+          {tx("wd").split(",").map((d, i) => <div key={i}>{d}</div>)}
         </div>
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: firstWeekday }).map((_, i) => <div key={"e" + i}></div>)}
@@ -1067,31 +1518,31 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth
             return (
               <div key={day} onClick={() => onToggle(day, status)}
                 className={`cal-cell text-sm font-600 ${status === "full" ? "cal-full" : status === "half" ? "cal-half" : ""} ${isToday ? "cal-today" : ""}`}>
-                {day}
+                {num(day)}
               </div>
             );
           })}
         </div>
         <div className="flex gap-4 mt-4 text-xs" style={{ color: "var(--ink-soft)" }}>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "var(--teal)" }}></span> Full meal</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "var(--gold)" }}></span> Half meal</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border" style={{ borderColor: "var(--line)" }}></span> Off</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border" style={{ borderColor: "var(--gold-bright)", boxShadow: "0 0 0 2px var(--gold-bright)" }}></span> Today</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "var(--teal)" }}></span> {tx("cal.full")}</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "var(--gold)" }}></span> {tx("cal.half")}</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border" style={{ borderColor: "var(--line)" }}></span> {tx("cal.off")}</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border" style={{ borderColor: "var(--gold-bright)", boxShadow: "0 0 0 2px var(--gold-bright)" }}></span> {tx("today")}</span>
         </div>
       </div>
 
       <div className="card p-5 h-fit">
-        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Monthly bill</div>
+        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("cal.bill")}</div>
         <div className="space-y-2 text-sm mb-4">
-          <div className="flex justify-between"><span>Full meal days ({taka(bill.fullRate)} each)</span><span className="font-mono">{bill.fullDays}</span></div>
-          <div className="flex justify-between"><span>Half meal days ({taka(bill.halfRate)} each)</span><span className="font-mono">{bill.halfDays}</span></div>
+          <div className="flex justify-between"><span>{tx("cal.fulldays", { r: taka(bill.fullRate) })}</span><span className="font-mono">{num(bill.fullDays)}</span></div>
+          <div className="flex justify-between"><span>{tx("cal.halfdays", { r: taka(bill.halfRate) })}</span><span className="font-mono">{num(bill.halfDays)}</span></div>
         </div>
         <div className="border-t pt-3" style={{ borderColor: "var(--line)" }}>
           <div className="flex justify-between font-700 text-lg">
-            <span>Total</span><span className="font-mono">{taka(bill.total)}</span>
+            <span>{tx("total")}</span><span className="font-mono">{taka(bill.total)}</span>
           </div>
         </div>
-        <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Calculated live by the server — {role === "teacher" ? "faculty" : "student"} rate applied.</p>
+        <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>{tx("cal.note", { who: tx(role === "teacher" ? "who.teacher" : "who.student") })}</p>
       </div>
     </div>
   );
@@ -1130,7 +1581,7 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
     if (cat.options) {
       setStep("method");
     } else {
-      setChoice({ key: cat.key, label: cat.label });
+      setChoice({ key: cat.key, label: tx("pc." + cat.key) });
       setStep("confirm");
     }
   };
@@ -1147,7 +1598,7 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
       await onConfirm(choice.key);
       setStep("success");
     } catch (e) {
-      setErr(e.message || "Payment failed");
+      setErr(e.message || tx("pay.failed"));
       setStep("confirm");
     }
   };
@@ -1157,11 +1608,11 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
     else if (step === "confirm") { setStep(category?.options ? "method" : "category"); setChoice(null); }
   };
 
-  const title = step === "category" ? "Choose payment method"
-    : step === "method" ? category.label
-    : step === "confirm" ? "Confirm top-up"
-    : step === "success" ? "Payment successful"
-    : "Processing payment";
+  const title = step === "category" ? tx("pay.t1")
+    : step === "method" ? tx("pc." + category.key)
+    : step === "confirm" ? tx("pay.t2")
+    : step === "success" ? tx("pay.t3")
+    : tx("pay.t4");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(17,24,39,0.5)" }}>
@@ -1170,7 +1621,7 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
           <button onClick={onClose} className="absolute top-3 right-3 text-sm opacity-60 hover:opacity-100">✕</button>
         )}
         <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>{title}</div>
-        <div className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Amount: <span className="font-mono">{taka(amount)}</span></div>
+        <div className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>{tx("amount")} <span className="font-mono">{taka(amount)}</span></div>
 
         {step === "category" && (
           <div className="space-y-2">
@@ -1180,7 +1631,7 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
                 style={{ borderColor: "var(--line)" }}>
                 <span className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full" style={{ background: c.color }} />
-                  {c.label}
+                  {tx("pc." + c.key)}
                 </span>
                 <span style={{ color: "var(--ink-soft)" }}>›</span>
               </button>
@@ -1201,26 +1652,28 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
                 <span style={{ color: "var(--ink-soft)" }}>›</span>
               </button>
             ))}
-            <button onClick={goBack} className="w-full py-2 rounded-lg border text-sm mt-1" style={{ borderColor: "var(--line)" }}>Back</button>
+            <button onClick={goBack} className="w-full py-2 rounded-lg border text-sm mt-1" style={{ borderColor: "var(--line)" }}>{tx("back")}</button>
           </div>
         )}
 
         {step === "confirm" && (
           <div>
             <p className="text-sm mb-4">
-              Top up <span className="font-mono font-600">{taka(amount)}</span> via <span className="font-600">{choice.label}</span>?
+              {CURRENT_LANG === "bn"
+                ? <><span className="font-600">{choice.label}</span> দিয়ে <span className="font-mono font-600">{taka(amount)}</span> টপ-আপ করবেন?</>
+                : <>Top up <span className="font-mono font-600">{taka(amount)}</span> via <span className="font-600">{choice.label}</span>?</>}
             </p>
             {err && <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{err}</p>}
             <div className="flex gap-2">
-              <button onClick={goBack} className="flex-1 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>No</button>
-              <button disabled={busy} onClick={confirmPay} className="flex-1 btn-primary py-2 rounded-lg text-sm">Yes, top up</button>
+              <button onClick={goBack} className="flex-1 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>{tx("no")}</button>
+              <button disabled={busy} onClick={confirmPay} className="flex-1 btn-primary py-2 rounded-lg text-sm">{tx("yes")}</button>
             </div>
           </div>
         )}
 
         {step === "processing" && (
           <div className="py-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
-            Confirming payment with {choice?.label}…
+            {tx("confirming", { m: choice?.label })}
           </div>
         )}
 
@@ -1229,10 +1682,10 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
             <div className="mx-auto mb-3 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
               style={{ background: "var(--leaf)", color: "#fff" }}>✓</div>
             <p className="text-sm mb-1">
-              <span className="font-mono font-600">{taka(amount)}</span> has been added to your wallet
+              <span className="font-mono font-600">{taka(amount)}</span> {tx("pay.added")}
             </p>
-            <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Paid via {choice?.label}</p>
-            <button onClick={onClose} className="btn-primary w-full py-2 rounded-lg text-sm">Done</button>
+            <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>{tx("paidvia", { m: choice?.label })}</p>
+            <button onClick={onClose} className="btn-primary w-full py-2 rounded-lg text-sm">{tx("done")}</button>
           </div>
         )}
       </div>
@@ -1257,12 +1710,12 @@ function WalletTab({ balance, topUp, transactions, busy }) {
       <div className="lg:col-span-1">
         <div className="ticket p-6 mb-5">
           <div className="perf pl-4">
-            <div className="text-xs opacity-70">Wallet balance</div>
+            <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
             <div className="font-mono text-3xl font-700 mt-1">{taka(balance)}</div>
           </div>
         </div>
         <div className="card p-5">
-          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Top up</div>
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("topup")}</div>
           <div className="flex gap-2 mb-3">
             {[100, 300, 500].map(v => (
               <button key={v} onClick={() => setAmount(v)}
@@ -1275,20 +1728,20 @@ function WalletTab({ balance, topUp, transactions, busy }) {
           <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))}
             className="w-full px-3 py-2 rounded-lg border mb-3 font-mono" style={{ borderColor: "var(--line)" }} />
           <button disabled={busy || amount <= 0} onClick={() => setShowPay(true)} className="btn-primary w-full py-2.5 rounded-xl">
-            {busy ? "Adding…" : "Add money"}
+            {busy ? tx("adding") : tx("addmoney")}
           </button>
         </div>
       </div>
       <div className="lg:col-span-2 card p-5">
-        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Transaction history</div>
+        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("txhist")}</div>
         {transactions.length === 0 ? (
-          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No transactions yet.</p>
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("notx")}</p>
         ) : (
           <div className="space-y-1">
             {transactions.map((t, i) => (
               <div key={i} className="flex justify-between items-center py-2.5 text-sm" style={{ borderBottom: "1px solid var(--line)" }}>
                 <div>
-                  <div className="font-500">{t.label}</div>
+                  <div className="font-500">{txLabel(t.label)}</div>
                   <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{t.time}</div>
                 </div>
                 <span className="font-mono font-600" style={{ color: t.amount > 0 ? "var(--leaf)" : "var(--brick)" }}>
@@ -1570,7 +2023,7 @@ function ProfileField({ label, value, placeholder }) {
     <div>
       <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>{label}</div>
       <div className="text-sm font-600" style={{ color: value ? "var(--ink)" : "var(--ink-soft)" }}>
-        {value || placeholder || "Not set"}
+        {value || placeholder || tx("notset")}
       </div>
     </div>
   );
@@ -1609,9 +2062,9 @@ function ProfileTab({ user, call, onUpdated }) {
 
   const save = async () => {
     setError(null); setSuccess(null);
-    if (!profile.name.trim()) { setError("Name can't be empty."); return; }
-    if (newPassword && newPassword.length < 6) { setError("New password must be at least 6 characters."); return; }
-    if (newPassword && !currentPassword) { setError("Enter your current password to set a new one."); return; }
+    if (!profile.name.trim()) { setError(tx("pe.name")); return; }
+    if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
+    if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
     setBusy(true);
     try {
       const body = {
@@ -1623,7 +2076,7 @@ function ProfileTab({ user, call, onUpdated }) {
       onUpdated(data);
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
       setCurrentPassword(""); setNewPassword("");
-      setSuccess("Profile updated.");
+      setSuccess(tx("pe.ok"));
       setEditing(false);
     } catch (e) {
       setError(e.message);
@@ -1642,84 +2095,84 @@ function ProfileTab({ user, call, onUpdated }) {
     <div className="max-w-lg">
       <div className="card p-6">
         <div className="flex items-center justify-between mb-5">
-          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>My Profile</div>
+          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{tx("tab.profile")}</div>
           {!editing && (
             <button onClick={() => setEditing(true)}
               className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
               style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
               <Icon path={I.edit} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
-              Edit Profile
+              {tx("edit")}
             </button>
           )}
         </div>
         <div className="space-y-4">
           {editing ? (
-            <ProfileInput label="Full Name" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
+            <ProfileInput label={tx("fullname")} value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
           ) : (
-            <ProfileField label="Full Name" value={profile.name} />
+            <ProfileField label={tx("fullname")} value={profile.name} />
           )}
 
           <div className="grid grid-cols-2 gap-4">
             {editing ? (
               <>
-                <ProfileInput label="Phone" value={profile.phone} placeholder="01XXXXXXXXX"
+                <ProfileInput label={tx("phone")} value={profile.phone} placeholder="01XXXXXXXXX"
                   onChange={e => setProfile({ ...profile, phone: e.target.value })} />
-                <ProfileInput label="Father's Phone" value={profile.fatherPhone} placeholder="01XXXXXXXXX"
+                <ProfileInput label={tx("fphone")} value={profile.fatherPhone} placeholder="01XXXXXXXXX"
                   onChange={e => setProfile({ ...profile, fatherPhone: e.target.value })} />
               </>
             ) : (
               <>
-                <ProfileField label="Phone" value={profile.phone} />
-                <ProfileField label="Father's Phone" value={profile.fatherPhone} />
+                <ProfileField label={tx("phone")} value={profile.phone} />
+                <ProfileField label={tx("fphone")} value={profile.fatherPhone} />
               </>
             )}
           </div>
 
           {editing ? (
-            <ProfileInput label="Address" value={profile.address} placeholder="Present address"
+            <ProfileInput label={tx("address")} value={profile.address} placeholder={tx("addr.ph")}
               onChange={e => setProfile({ ...profile, address: e.target.value })} />
           ) : (
-            <ProfileField label="Address" value={profile.address} />
+            <ProfileField label={tx("address")} value={profile.address} />
           )}
 
           {editing ? (
-            <ProfileInput label="Department" value={profile.department} placeholder="e.g. CSE"
+            <ProfileInput label={tx("dept")} value={profile.department} placeholder={tx("dept.ph")}
               onChange={e => setProfile({ ...profile, department: e.target.value })} />
           ) : (
-            <ProfileField label="Department" value={profile.department} />
+            <ProfileField label={tx("dept")} value={profile.department} />
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>ID Number</label>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("id")}</label>
               <input value={user.externalId} disabled
                 className="w-full px-4 py-2.5 rounded-xl border opacity-60" style={{ borderColor: "var(--line)" }} />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>Role</label>
-              <input value={user.role} disabled
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("role")}</label>
+              <input value={tx("r." + user.role)} disabled
                 className="w-full px-4 py-2.5 rounded-xl border opacity-60 capitalize" style={{ borderColor: "var(--line)" }} />
             </div>
           </div>
 
           {user.role === "student" && (
             <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
-              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>Hall Residence</div>
+              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("hall")}</div>
               <div className="grid grid-cols-2 gap-4">
                 {editing ? (
-                  <ProfileInput label="Room Number" value={profile.roomNumber} placeholder="e.g. 312"
+                  <ProfileInput label={tx("room")} value={profile.roomNumber} placeholder={tx("room.ph")}
                     onChange={e => setProfile({ ...profile, roomNumber: e.target.value })} />
                 ) : (
-                  <ProfileField label="Room Number" value={profile.roomNumber} placeholder="Not a hall resident" />
+                  <ProfileField label={tx("room")} value={profile.roomNumber} placeholder={tx("notres")} />
                 )}
                 <div>
-                  <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>Hall ID</label>
+                  <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("hallid")}</label>
                   <input value={profile.hallId || "—"} disabled
                     className="w-full px-4 py-2.5 rounded-xl border opacity-60 font-mono" style={{ borderColor: "var(--line)" }} />
                 </div>
               </div>
               {!profile.hallId && (
-                <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>Save a room number to get a fixed Hall ID.</p>
+                <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("hallhint")}</p>
               )}
             </div>
           )}
@@ -1727,7 +2180,7 @@ function ProfileTab({ user, call, onUpdated }) {
           {user.role !== "admin" && (
             <div className="ticket p-4">
               <div className="perf pl-4">
-                <div className="text-xs opacity-70">Wallet Balance</div>
+                <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
                 <div className="font-mono text-xl font-700">{taka(walletBalance)}</div>
               </div>
             </div>
@@ -1735,11 +2188,11 @@ function ProfileTab({ user, call, onUpdated }) {
 
           {editing && (
             <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
-              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>Change Password (optional)</div>
+              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
               <div className="space-y-2">
-                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type="password" placeholder="Current password"
+                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type="password" placeholder={tx("curpw")}
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder="New password"
+                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("newpw2")}
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
               </div>
             </div>
@@ -1751,12 +2204,12 @@ function ProfileTab({ user, call, onUpdated }) {
           {editing && (
             <div className="flex gap-2">
               <button disabled={busy} onClick={save} className="btn-primary flex-1 py-2.5 rounded-xl">
-                {busy ? "Saving…" : "Save Changes"}
+                {busy ? tx("saving") : tx("save")}
               </button>
               <button disabled={busy} onClick={cancelEdit}
                 className="px-5 py-2.5 rounded-xl border font-600 text-sm"
                 style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
-                Cancel
+                {tx("cancel")}
               </button>
             </div>
           )}
@@ -1773,6 +2226,7 @@ function App() {
   const [tab, setTab] = useState("menu");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [lang, setLang] = useState(() => { try { return localStorage.getItem("cd_lang") === "bn" ? "bn" : "en"; } catch (e) { return "en"; } });
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
 
@@ -1916,8 +2370,8 @@ function App() {
       await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
       showSuccess(
         cancelled.payment_method === "wallet"
-          ? `Order ${cancelled.token} cancelled — ${taka(cancelled.total)} refunded to your wallet.`
-          : `Order ${cancelled.token} cancelled.`
+          ? tx("msg.cancel.w", { t: cancelled.token, a: taka(cancelled.total) })
+          : tx("msg.cancel", { t: cancelled.token })
       );
     } catch (e) { showError(e); } finally { setBusy(false); }
   };
@@ -1960,14 +2414,24 @@ function App() {
     } catch (e) { showError(e); }
   };
 
-  if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} />;
+  // Language: admin pages are English-only for now; student/teacher pages follow the toggle.
+  CURRENT_LANG = (session && session.user.role === "admin") ? "en" : lang;
+  MENU_BN = {};
+  menu.forEach(m => { if (m.bn) MENU_BN[m.name] = m.bn; });
+  const toggleLang = () => {
+    const next = lang === "bn" ? "en" : "bn";
+    setLang(next);
+    try { localStorage.setItem("cd_lang", next); } catch (e) {}
+  };
+
+  if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} />;
 
   const userTabs = [
-    { key: "menu", label: "Menu & Order", icon: I.menu },
-    { key: "track", label: "Track Order", icon: I.clock },
-    { key: "calendar", label: "Meal Calendar", icon: I.calendar },
-    { key: "wallet", label: "Wallet", icon: I.wallet },
-    { key: "profile", label: "My Profile", icon: I.user },
+    { key: "menu", label: tx("tab.menu"), icon: I.menu },
+    { key: "track", label: tx("tab.track"), icon: I.clock },
+    { key: "calendar", label: tx("tab.calendar"), icon: I.calendar },
+    { key: "wallet", label: tx("tab.wallet"), icon: I.wallet },
+    { key: "profile", label: tx("tab.profile"), icon: I.user },
   ];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
@@ -1982,7 +2446,7 @@ function App() {
     <div className="min-h-screen">
       <TopBar role={session.user.role} name={session.user.name}
         tabs={session.user.role === "admin" ? adminTabs : userTabs}
-        active={tab} setActive={setTab} onLogout={logout} connected={connected} />
+        active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang} />
       <div className="max-w-6xl mx-auto p-5 fade-in" key={tab}>
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
