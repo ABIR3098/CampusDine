@@ -15,6 +15,7 @@ const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
+const chatRoutes = require("./src/routes/chat");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -187,6 +188,34 @@ async function ensureCouponSchema(db) {
   }
 }
 
+async function ensureChatSchema(db) {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS chat_conversations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL UNIQUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      conversation_id INT NOT NULL,
+      sender_id INT NOT NULL,
+      recipient_id INT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      read_at DATETIME NULL,
+      KEY idx_chat_conversation_message (conversation_id, id),
+      KEY idx_chat_recipient_unread (recipient_id, read_at),
+      FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+      FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+}
+
 // ════════════════════════════════════════════════
 //  Startup check — verifies the DB is reachable and
 //  creates demo accounts (only if they don't exist yet)
@@ -256,6 +285,7 @@ async function runStartupCheck() {
 
   await seedDefaultMenuAndRates(db);
   await ensureCouponSchema(db);
+  await ensureChatSchema(db);
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
@@ -311,6 +341,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/coupon", couponRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.

@@ -243,6 +243,7 @@ const I = {
   box: "M21 8L12 3 3 8l9 5 9-5Zm0 0v8l-9 5-9-5V8m18 0-9 5-9-5",
   chart: "M4 19V5M4 19h16M8 15v4M12 11v8M16 7v12",
   bell: "M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9ZM13.7 21a2 2 0 0 1-3.4 0",
+  chat: "M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z",
   plus: "M12 5v14M5 12h14",
   minus: "M5 12h14",
   check: "M20 6 9 17l-5-5",
@@ -2351,6 +2352,155 @@ function AdminCoupons({ coupons, onSave }) {
   );
 }
 
+function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
+  const [conversations, setConversations] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const isAdmin = role === "admin";
+  const selectedConversation = conversations.find(item => Number(item.user_id) === Number(selectedUserId));
+
+  const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+  const refreshConversations = async () => {
+    const data = await chatCall("/api/chat/conversations");
+    setConversations(data.conversations || []);
+  };
+  const refreshMessages = async (targetUserId = selectedUserId) => {
+    if (isAdmin) {
+      if (!targetUserId) {
+        setMessages([]);
+        return;
+      }
+      const data = await chatCall(`/api/chat/${targetUserId}/messages`);
+      setMessages(data.messages || []);
+      return;
+    }
+    const data = await chatCall("/api/chat/messages");
+    setMessages(data.messages || []);
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      refreshConversations().catch(e => setError(e.message));
+    } else {
+      refreshMessages().catch(e => setError(e.message));
+    }
+  }, [isAdmin, apiBase, sessionToken, refreshKey]);
+
+  useEffect(() => {
+    if (!isAdmin || selectedUserId || conversations.length === 0) return;
+    setSelectedUserId(conversations[0].user_id);
+  }, [isAdmin, selectedUserId, conversations]);
+
+  useEffect(() => {
+    if (!isAdmin || !selectedUserId) return;
+    refreshMessages(selectedUserId).catch(e => setError(e.message));
+  }, [isAdmin, apiBase, sessionToken, selectedUserId, refreshKey]);
+
+  const sendMessage = async (event) => {
+    event.preventDefault();
+    const message = draft.trim();
+    if (!message || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await chatCall("/api/chat/messages", {
+        method: "POST",
+        body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) },
+      });
+      setDraft("");
+      await Promise.all([
+        refreshMessages(selectedUserId),
+        isAdmin ? refreshConversations() : Promise.resolve(),
+      ]);
+    } catch (e) {
+      setError(e.message || "Message could not be sent");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const heading = isAdmin
+    ? selectedConversation?.name || "Choose a conversation"
+    : "CampusDine Admin";
+
+  return (
+    <section className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-4 min-h-[min(70vh,680px)]">
+      {isAdmin && (
+        <aside className="card p-3">
+          <h2 className="font-display font-700 px-2 py-2" style={{ color: "var(--gold)" }}>Inbox</h2>
+          {conversations.length === 0 ? (
+            <p className="px-2 py-3 text-sm" style={{ color: "var(--ink-soft)" }}>No messages yet.</p>
+          ) : (
+            <div className="space-y-1">
+              {conversations.map(item => (
+                <button key={item.user_id} onClick={() => setSelectedUserId(item.user_id)}
+                  className="w-full text-left p-3 rounded-lg transition-colors"
+                  style={{ background: Number(selectedUserId) === Number(item.user_id) ? "var(--gold-soft)" : "transparent" }}>
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="font-600 text-sm truncate">{item.name}</span>
+                    {Number(item.unread_count) > 0 && (
+                      <span className="min-w-5 h-5 px-1 rounded-full grid place-items-center text-[10px] text-white" style={{ background: "var(--brick)" }}>
+                        {item.unread_count}
+                      </span>
+                    )}
+                  </span>
+                  <span className="block text-[11px] capitalize mt-0.5" style={{ color: "var(--ink-soft)" }}>{item.role}</span>
+                  <span className="block text-xs mt-1 truncate" style={{ color: "var(--ink-soft)" }}>{item.last_message || "No messages"}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
+      )}
+      <div className="card flex flex-col min-h-[min(70vh,680px)] overflow-hidden">
+        <header className="px-4 py-3 border-b flex items-center justify-between gap-3" style={{ borderColor: "var(--line)" }}>
+          <div>
+            <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>{heading}</h2>
+            <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
+              {isAdmin ? selectedConversation?.role || "Admin inbox" : "Private support conversation"}
+            </p>
+          </div>
+          {selectedConversation && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>CampusDine support</span>}
+        </header>
+        {error && <p className="px-4 pt-3 text-sm" style={{ color: "var(--brick)" }}>{error}</p>}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3" aria-live="polite">
+          {messages.length === 0 ? (
+            <div className="h-full min-h-48 grid place-items-center text-center text-sm" style={{ color: "var(--ink-soft)" }}>
+              {isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : "No messages yet. Start the conversation with the admin."}
+            </div>
+          ) : messages.map(message => {
+            const mine = Number(message.sender_id) === Number(userId);
+            return (
+              <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div className="max-w-[85%] rounded-xl px-3 py-2" style={{ background: mine ? "var(--gold-soft)" : "var(--bg)", color: "var(--ink)" }}>
+                  <div className="text-[10px] font-700 mb-1" style={{ color: "var(--ink-soft)" }}>{mine ? "You" : message.sender_name}</div>
+                  <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
+                  <time className="block text-[10px] mt-1 text-right" style={{ color: "var(--ink-soft)" }}>
+                    {new Date(message.created_at).toLocaleString()}
+                  </time>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <form onSubmit={sendMessage} className="p-3 border-t flex items-end gap-2" style={{ borderColor: "var(--line)" }}>
+          <textarea value={draft} onChange={e => setDraft(e.target.value)} maxLength={4000} rows={2}
+            disabled={isAdmin && !selectedUserId} placeholder="Write a message…"
+            className="flex-1 resize-y px-3 py-2 rounded-lg border text-sm disabled:opacity-50"
+            style={{ borderColor: "var(--line)" }} />
+          <button type="submit" disabled={busy || !draft.trim() || (isAdmin && !selectedUserId)}
+            className="btn-primary px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+            {busy ? "Sending…" : "Send"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- Profile tab (all roles) ---------------- */
 /* ---------------- Profile tab (all roles) ---------------- */
 function ProfileField({ label, value, placeholder }) {
@@ -2595,6 +2745,7 @@ function App() {
   const [notifications, setNotifications] = useState([]);
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [chatRefreshKey, setChatRefreshKey] = useState(0);
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -2716,6 +2867,12 @@ function App() {
     socket.on("announcement", (payload) => {
       pushNotification("announcement", "Campus announcement", payload.message || "New announcement from the admin.");
     });
+    socket.on("chat:message", (payload) => {
+      setChatRefreshKey(value => value + 1);
+      if (Number(payload.senderId) !== Number(session.user.id)) {
+        pushNotification("chat", "New chat message", `${payload.senderName}: ${payload.message}`);
+      }
+    });
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
     socket.on("queue:changed", () => {
       if (session.user.role !== "admin") refreshMyOrders().catch(() => {});
@@ -2830,6 +2987,7 @@ function App() {
     { key: "track", label: tx("tab.track"), icon: I.clock },
     { key: "calendar", label: tx("tab.calendar"), icon: I.calendar },
     { key: "wallet", label: tx("tab.wallet"), icon: I.wallet },
+    { key: "chat", label: "Chat with Admin", icon: I.chat },
     { key: "profile", label: tx("tab.profile"), icon: I.user },
   ];
   const adminTabs = [
@@ -2837,6 +2995,7 @@ function App() {
     { key: "adminMenu", label: "Menu", icon: I.box },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
+    { key: "chat", label: "Messages", icon: I.chat },
     { key: "reports", label: "Reports", icon: I.chart },
     { key: "feedback", label: "Feedback", icon: I.star },
     { key: "profile", label: "My Profile", icon: I.user },
@@ -2876,6 +3035,10 @@ function App() {
         )}
         {session.user.role !== "admin" && tab === "wallet" && (
           <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} />
+        )}
+        {tab === "chat" && (
+          <ChatWorkspace role={session.user.role} userId={session.user.id} apiBase={apiBase}
+            sessionToken={session.token} refreshKey={chatRefreshKey} />
         )}
 
         {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={orders} />}
