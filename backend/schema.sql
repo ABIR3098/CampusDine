@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- CampusDine database schema
 -- Run:  mysql -u root -p campusdine < schema.sql
 -- (create the database first: CREATE DATABASE campusdine;)
@@ -33,19 +34,6 @@ CREATE TABLE IF NOT EXISTS users (
 --   UPDATE menu_items SET is_veg = 0 WHERE name IN ('Tehari', 'Chicken Roll');
 
 -- Feature: favorites / wishlist — which menu items a student has starred.
--- The app currently stores favorites in a table named `favourites` with `item_id`
--- to match the live production database. Keep the column naming compatible with
--- the route code to avoid runtime 500s when fetching the menu.
-CREATE TABLE IF NOT EXISTS favourites (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  item_id INT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_user_item (user_id, item_id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (item_id) REFERENCES menu_items(id)
-);
-
 CREATE TABLE IF NOT EXISTS meal_rates (
   role ENUM('student','teacher') PRIMARY KEY,
   full_rate DECIMAL(10,2) NOT NULL,
@@ -62,6 +50,19 @@ CREATE TABLE IF NOT EXISTS menu_items (
   tag VARCHAR(30),
   is_veg TINYINT(1) NOT NULL DEFAULT 1,   -- 1 = vegetarian, 0 = non-vegetarian
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- The app currently stores favorites in a table named `favourites` with `item_id`
+-- to match the live production database. Keep the column naming compatible with
+-- the route code to avoid runtime 500s when fetching the menu.
+CREATE TABLE IF NOT EXISTS favourites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  item_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_user_item (user_id, item_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (item_id) REFERENCES menu_items(id)
 );
 
 CREATE TABLE IF NOT EXISTS orders (
@@ -176,17 +177,21 @@ INSERT INTO meal_rates (role, full_rate, half_rate) VALUES
   ('teacher', 130, 70)
 ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate);
 
-INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES
-  ('Khichuri', 'খিচুড়ি', 'heavy', 60, 40, 'Popular', 1),
-  ('Tehari', 'তেহারি', 'heavy', 80, 25, 'Popular', 0),
-  ('Porota-Vaji', 'পরোটা-ভাজি', 'heavy', 40, 6, NULL, 1),
-  ('Plain Rice & Dal', 'ভাত-ডাল', 'heavy', 45, 30, NULL, 1),
-  ('Singara', 'সিঙ্গারা', 'snacks', 10, 60, 'New', 1),
-  ('Fuchka', 'ফুচকা', 'snacks', 30, 4, 'Popular', 1),
-  ('Chicken Roll', 'চিকেন রোল', 'snacks', 50, 20, NULL, 0),
-  ('Cha (Tea)', 'চা', 'drinks', 8, 120, NULL, 1),
-  ('Lassi', 'লাচ্ছি', 'drinks', 35, 15, 'New', 1),
-  ('Mineral Water', 'পানি', 'drinks', 15, 50, NULL, 1);
+-- Seed menu only when the table is empty, so importing this file twice can't create duplicate items.
+INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg)
+SELECT * FROM (
+  SELECT 'Khichuri' AS name, 'খিচুড়ি' AS name_bn, 'heavy' AS category, 60 AS price, 40 AS stock, 'Popular' AS tag, 1 AS is_veg
+  UNION ALL SELECT 'Tehari', 'তেহারি', 'heavy', 80, 25, 'Popular', 0
+  UNION ALL SELECT 'Porota-Vaji', 'পরোটা-ভাজি', 'heavy', 40, 6, NULL, 1
+  UNION ALL SELECT 'Plain Rice & Dal', 'ভাত-ডাল', 'heavy', 45, 30, NULL, 1
+  UNION ALL SELECT 'Singara', 'সিঙ্গারা', 'snacks', 10, 60, 'New', 1
+  UNION ALL SELECT 'Fuchka', 'ফুচকা', 'snacks', 30, 4, 'Popular', 1
+  UNION ALL SELECT 'Chicken Roll', 'চিকেন রোল', 'snacks', 50, 20, NULL, 0
+  UNION ALL SELECT 'Cha (Tea)', 'চা', 'drinks', 8, 120, NULL, 1
+  UNION ALL SELECT 'Lassi', 'লাচ্ছি', 'drinks', 35, 15, 'New', 1
+  UNION ALL SELECT 'Mineral Water', 'পানি', 'drinks', 15, 50, NULL, 1
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM menu_items);
 
 -- No demo user accounts are seeded here on purpose: password_hash must be a real
 -- bcrypt hash, and one can't be safely hand-written in a SQL file. Instead, create
