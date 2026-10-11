@@ -397,7 +397,12 @@ const I18N = {
     "q.est": "≈ {m} min",
     "refunded": "— refunded to wallet",
     "print": "Print receipt",
-    "cancelorder": "Cancel order",
+    "cancelorder": "Cancel order", 
+        "reorder": "↻ Order again",
+    "reorder.added": "Added to your cart: ",
+    "reorder.skipped": " Not available right now: ",
+    "reorder.none": "None of the items from this order are available right now.",
+    "reorder.left": " left",
     "rc.title": "ORDER RECEIPT",
     "rc.token": "PICKUP TOKEN",
     "rc.status": "Status",
@@ -483,7 +488,7 @@ const I18N = {
     "coupon.line": "Coupon ({c})",
     "subtotal": "Subtotal",
     "cal.note2": "Calculated live by the server — same meal-plan logic applied for students and teachers.",
-    "tab.chat": "Chat with Admin",
+    "tab.chat": "Chat with Canteen Admin",
     "chat.sendfail": "Message could not be sent",
     "chat.admin": "CampusDine Admin",
     "chat.private": "Private support conversation",
@@ -631,7 +636,12 @@ const I18N = {
     "q.est": "≈ {m} মিনিট",
     "refunded": "— ওয়ালেটে ফেরত দেওয়া হয়েছে",
     "print": "রসিদ প্রিন্ট করুন",
-    "cancelorder": "অর্ডার বাতিল করুন",
+    "cancelorder": "অর্ডার বাতিল করুন", 
+        "reorder": "↻ আবার অর্ডার করুন",
+    "reorder.added": "কার্টে যোগ হয়েছে: ",
+    "reorder.skipped": " এখন পাওয়া যাচ্ছে না: ",
+    "reorder.none": "এই অর্ডারের কোনো আইটেম এখন পাওয়া যাচ্ছে না।",
+    "reorder.left": "টি আছে",
     "rc.title": "অর্ডার রসিদ",
     "rc.token": "পিকআপ টোকেন",
     "rc.status": "অবস্থা",
@@ -1593,7 +1603,7 @@ function OrderFeedback({ order, onSubmit, busy }) {
   );
 }
 
-function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy }) {
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder })  {
   const [printOrder, setPrintOrder] = useState(null);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
@@ -1701,6 +1711,10 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                 {o.items.map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
               </div>
               <div className="flex items-center gap-2 mt-3">
+                <button onClick={() => onReorder(o)}
+                  className="text-xs px-3 py-1.5 rounded-lg font-600 btn-primary flex items-center gap-1.5">
+                  {tx("reorder")}
+                </button>
                 <button onClick={() => setPrintOrder(o)}
                   className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
                   style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
@@ -2956,6 +2970,26 @@ function App() {
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");
     } catch (e) { showError(e); } finally { setBusy(false); }
+  }; 
+    // Order again: put the items of a past order back into the cart (current prices, capped by stock).
+  const reorder = (order) => {
+    const next = [...cart];
+    const added = [];
+    const skipped = [];
+    for (const it of order.items) {
+      const m = menu.find(x => (it.menuItemId != null ? x.id === it.menuItemId : x.name === it.name));
+      if (!m || m.stock <= 0) { skipped.push(dispName(it.name)); continue; }
+      const idx = next.findIndex(c => c.id === m.id);
+      const have = idx >= 0 ? next[idx].qty : 0;
+      const qty = Math.min(have + it.qty, m.stock);
+      if (qty <= have) { skipped.push(dispName(it.name)); continue; }
+      if (idx >= 0) next[idx] = { ...next[idx], qty }; else next.push({ ...m, qty });
+      added.push(qty < have + it.qty ? `${dispName(m.name)} (${num(m.stock)}${tx("reorder.left")})` : dispName(m.name));
+    }
+    if (added.length === 0) { showError(tx("reorder.none")); return; }
+    setCart(next);
+    showSuccess(tx("reorder.added") + added.join(", ") + "." + (skipped.length ? tx("reorder.skipped") + skipped.join(", ") + "." : ""));
+    setTab("menu");
   };
 
   const advanceOrder = async (id) => {
@@ -3102,7 +3136,7 @@ function App() {
             onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} />
         )}
         {session.user.role !== "admin" && tab === "track" && (
-          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} />
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} />
         )}
         {session.user.role !== "admin" && tab === "calendar" && (
           <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay}
