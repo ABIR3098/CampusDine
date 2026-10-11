@@ -21,10 +21,11 @@ async function resolveFavoriteTable() {
 // GET /api/menu  (any logged-in user) — includes is_favorite for the caller
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
+  // EXISTS (not a JOIN) so a duplicate favourite row can never make a menu item appear twice
   const [rows] = await pool.query(
-    `SELECT m.*, IF(f.user_id IS NULL, 0, 1) AS is_favorite
+    `SELECT m.*,
+            EXISTS(SELECT 1 FROM ${table} f WHERE f.${itemColumn} = m.id AND f.user_id = ?) AS is_favorite
      FROM menu_items m
-     LEFT JOIN ${table} f ON f.${itemColumn} = m.id AND f.user_id = ?
      ORDER BY m.category, m.name`,
     [req.user.id]
   );
@@ -38,7 +39,8 @@ router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
 
   const { table, itemColumn } = await resolveFavoriteTable();
   const [existing] = await pool.query(
-    `SELECT id FROM ${table} WHERE user_id = ? AND ${itemColumn} = ? LIMIT 1`,
+    // SELECT 1 (not SELECT id): the `favorites` table has no id column
+    `SELECT 1 FROM ${table} WHERE user_id = ? AND ${itemColumn} = ? LIMIT 1`,
     [req.user.id, req.params.id]
   );
   if (existing.length === 0) {
