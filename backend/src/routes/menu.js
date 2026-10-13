@@ -5,27 +5,43 @@ const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 
+// The favourites table has had different shapes in different databases:
+//   favourites(id, user_id, item_id)            <- what schema.sql defines
+//   favorites(user_id, menu_item_id)            <- an older version, no id column
+//   user_favorites(user_id, menu_item_id)
+// Use whichever exists; if none does yet, create the one schema.sql defines.
+let favoriteTableCache = null;
+
 async function resolveFavoriteTable() {
-  const [favourites] = await pool.query("SHOW TABLES LIKE 'favourites'");
-  if (favourites.length) return { table: "favourites", itemColumn: "item_id" };
-
-  const [favorites] = await pool.query("SHOW TABLES LIKE 'favorites'");
-  if (favorites.length) return { table: "favorites", itemColumn: "menu_item_id" };
-
-  const [userFavorites] = await pool.query("SHOW TABLES LIKE 'user_favorites'");
-  if (userFavorites.length) return { table: "user_favorites", itemColumn: "menu_item_id" };
-
-  return { table: "favourites", itemColumn: "item_id" };
+  if (favoriteTableCache) return favoriteTableCache;
+  const candidates = [
+    { table: "favourites", itemColumn: "item_id" },
+    { table: "favorites", itemColumn: "menu_item_id" },
+    { table: "user_favorites", itemColumn: "menu_item_id" },
+  ];
+  for (const candidate of candidates) {
+    const [found] = await pool.query(`SHOW TABLES LIKE '${candidate.table}'`);
+    if (found.length) return (favoriteTableCache = candidate);
+  }
+  await pool.query(`CREATE TABLE IF NOT EXISTS favourites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_user_item (user_id, item_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (item_id) REFERENCES menu_items(id)
+  )`);
+  return (favoriteTableCache = candidates[0]);
 }
 
 // GET /api/menu  (any logged-in user) — includes is_favorite for the caller
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
-  // EXISTS (not a JOIN) so a duplicate favourite row can never make a menu item appear twice
   const [rows] = await pool.query(
-    `SELECT m.*,
-            EXISTS(SELECT 1 FROM ${table} f WHERE f.${itemColumn} = m.id AND f.user_id = ?) AS is_favorite
+    `SELECT m.*, IF(f.user_id IS NULL, 0, 1) AS is_favorite
      FROM menu_items m
+     LEFT JOIN ${table} f ON f.${itemColumn} = m.id AND f.user_id = ?
      ORDER BY m.category, m.name`,
     [req.user.id]
   );
@@ -38,8 +54,8 @@ router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
   if (!item) return res.status(404).json({ error: "Item not found" });
 
   const { table, itemColumn } = await resolveFavoriteTable();
+  // SELECT 1, not SELECT id: some versions of this table have no id column
   const [existing] = await pool.query(
-    // SELECT 1 (not SELECT id): the `favorites` table has no id column
     `SELECT 1 FROM ${table} WHERE user_id = ? AND ${itemColumn} = ? LIMIT 1`,
     [req.user.id, req.params.id]
   );

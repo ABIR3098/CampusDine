@@ -11,25 +11,85 @@
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Saved theme (light / dark / auto + accent colour) is applied before the page paints, so there is no flash.
+  (function () {
+    try {
+      var t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
+      var dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      document.documentElement.setAttribute("data-accent", t.accent || "green");
+    } catch (e) {}
+  })();
+</script>
 <style>
+  /* ---- Theme: light is the default; <html data-theme="dark"> and data-accent="blue|orange|purple|rose" override it ---- */
   :root{
     --bg: #F5F7FA;
     --panel: #FFFFFF;
     --ink: #1F2937;
     --ink-soft: #6B7280;
+    --line: #E5E7EB;
+    --panel-glass: rgba(255,255,255,0.92);
+    --panel-soft: rgba(255,255,255,0.6);
+    --input-bg: #FFFFFF;
+    --hover: rgba(0,0,0,0.05);
+    --scroll: #D1D5DB;
+    --disabled-bg: #D1D5DB; --disabled-fg: #9CA3AF; --disabled-soft: #F3F4F6;
+    --danger-bg: #FEF2F2; --danger-fg: #B91C1C; --danger-border: #FECACA;
+    --ok-bg: #F0FDF4; --ok-fg: #15803D; --ok-border: #BBF7D0;
+    --warn-bg: #FFFBEB; --warn-fg: #92400E; --warn-border: #FDE68A;
+    --brick: #DC2626;
+    --leaf: #16A34A;
+    /* accent colour (green by default) */
     --teal: #16A34A;
-    --teal-deep: #14532D;
     --gold: #16A34A;
     --gold-bright: #15803D;
     --gold-deep: #15803D;
+    --gold-hover: #15803D;
+    --teal-deep: #14532D;
     --gold-soft: #DCFCE7;
-    --brick: #DC2626;
-    --leaf: #16A34A;
-    --line: #E5E7EB;
+    --accent-border: #BBF7D0;
+    --accent-glow: rgba(22,163,74,0.18);
+    --accent-shadow: rgba(21,128,61,0.6);
   }
+  html[data-accent="blue"]  { --teal:#2563EB; --gold:#2563EB; --gold-bright:#1D4ED8; --gold-deep:#1D4ED8; --gold-hover:#1D4ED8; --teal-deep:#1E3A8A; --gold-soft:#DBEAFE; --accent-border:#BFDBFE; --accent-glow:rgba(37,99,235,0.18);  --accent-shadow:rgba(29,78,216,0.6); }
+  html[data-accent="orange"]{ --teal:#EA580C; --gold:#EA580C; --gold-bright:#C2410C; --gold-deep:#C2410C; --gold-hover:#C2410C; --teal-deep:#7C2D12; --gold-soft:#FFEDD5; --accent-border:#FED7AA; --accent-glow:rgba(234,88,12,0.18);  --accent-shadow:rgba(194,65,12,0.6); }
+  html[data-accent="purple"]{ --teal:#7C3AED; --gold:#7C3AED; --gold-bright:#6D28D9; --gold-deep:#6D28D9; --gold-hover:#6D28D9; --teal-deep:#4C1D95; --gold-soft:#EDE9FE; --accent-border:#DDD6FE; --accent-glow:rgba(124,58,237,0.18); --accent-shadow:rgba(109,40,217,0.6); }
+  html[data-accent="rose"]  { --teal:#E11D48; --gold:#E11D48; --gold-bright:#BE123C; --gold-deep:#BE123C; --gold-hover:#BE123C; --teal-deep:#881337; --gold-soft:#FFE4E6; --accent-border:#FECDD3; --accent-glow:rgba(225,29,72,0.18);  --accent-shadow:rgba(190,18,60,0.6); }
+
+  html[data-theme="dark"]{
+    color-scheme: dark;
+    --bg: #0B1220;
+    --panel: #111A2B;
+    --ink: #E5E7EB;
+    --ink-soft: #9AA4B2;
+    --line: #243044;
+    --panel-glass: rgba(11,18,32,0.9);
+    --panel-soft: rgba(255,255,255,0.04);
+    --input-bg: #0D1626;
+    --hover: rgba(255,255,255,0.08);
+    --scroll: #334155;
+    --disabled-bg: #263244; --disabled-fg: #6B7280; --disabled-soft: #1A2436;
+    --danger-bg: #2A1215; --danger-fg: #FCA5A5; --danger-border: #5B1F24;
+    --ok-bg: #0F2A1B; --ok-fg: #86EFAC; --ok-border: #1F5130;
+    --warn-bg: #2A210A; --warn-fg: #FCD34D; --warn-border: #5C4510;
+    --brick: #EF4444;
+    --gold-bright: #4ADE80; --gold-deep: #4ADE80; --gold-hover: #15803D;
+    --teal-deep: #86EFAC; --gold-soft: #0F2A1B; --accent-border: #1F5130;
+    --accent-glow: rgba(34,197,94,0.25); --accent-shadow: rgba(0,0,0,0.5);
+  }
+  html[data-theme="dark"][data-accent="blue"]  { --teal:#3B82F6; --gold:#3B82F6; --gold-bright:#60A5FA; --gold-deep:#60A5FA; --gold-hover:#2563EB; --teal-deep:#93C5FD; --gold-soft:#10234A; --accent-border:#1E3A8A; --accent-glow:rgba(59,130,246,0.25); }
+  html[data-theme="dark"][data-accent="orange"]{ --teal:#EA580C; --gold:#EA580C; --gold-bright:#FB923C; --gold-deep:#FB923C; --gold-hover:#C2410C; --teal-deep:#FDBA74; --gold-soft:#3A1D0B; --accent-border:#7C2D12; --accent-glow:rgba(234,88,12,0.25); }
+  html[data-theme="dark"][data-accent="purple"]{ --teal:#8B5CF6; --gold:#8B5CF6; --gold-bright:#A78BFA; --gold-deep:#A78BFA; --gold-hover:#7C3AED; --teal-deep:#C4B5FD; --gold-soft:#25164A; --accent-border:#4C1D95; --accent-glow:rgba(139,92,246,0.25); }
+  html[data-theme="dark"][data-accent="rose"]  { --teal:#F43F5E; --gold:#F43F5E; --gold-bright:#FB7185; --gold-deep:#FB7185; --gold-hover:#E11D48; --teal-deep:#FDA4AF; --gold-soft:#3A0F1B; --accent-border:#881337; --accent-glow:rgba(244,63,94,0.25); }
+  html[data-theme="dark"] .hover\:bg-black\/5:hover{ background-color: var(--hover) !important; }
+  /* Tailwind's default border colour is light grey; keep un-styled borders on the dark palette */
+  html[data-theme="dark"] :is(.border, .border-t, .border-b, .border-y, .border-l, .border-r){ border-color: var(--line); }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
+    transition: background-color .25s ease, color .25s ease;
     background:var(--bg);
     color:var(--ink);
     font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;
@@ -38,15 +98,15 @@
   .font-mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
   .gold-text{ color: var(--gold-deep); }
   ::-webkit-scrollbar{width:8px;height:8px;}
-  ::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:8px;}
 
   .ticket{
     position:relative;
-    background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
     color:#FFFFFF;
     border-radius: 12px;
     overflow:visible;
-    box-shadow: 0 6px 16px -8px rgba(21,128,61,0.6);
+    box-shadow: 0 6px 16px -8px var(--accent-shadow);
   }
   .ticket::before, .ticket::after{
     content:"";
@@ -87,7 +147,7 @@
     transition: border-color .2s ease, box-shadow .2s ease;
   }
   .card:hover{
-    border-color: #BBF7D0;
+    border-color: var(--accent-border);
     box-shadow: 0 4px 12px rgba(16,24,40,0.06);
   }
 
@@ -99,19 +159,19 @@
     border-radius:8px;
     transition: background .15s ease, transform .1s ease;
   }
-  .btn-primary:hover{ background: var(--gold-deep); }
+  .btn-primary:hover{ background: var(--gold-hover); }
   .btn-primary:active{ transform: scale(.98); }
-  .btn-primary:disabled{ background:#D1D5DB; color:#9CA3AF; cursor:not-allowed; transform:none; }
+  .btn-primary:disabled{ background:var(--disabled-bg); color:var(--disabled-fg); cursor:not-allowed; transform:none; }
 
   .btn-gold{
-    background: #FFFFFF;
+    background: var(--panel);
     border: 1px solid var(--gold);
     color: var(--gold-deep);
     font-weight:600;
     font-size:.9em;
   }
   .btn-gold:hover{ background: var(--gold); color: #FFFFFF; }
-  .btn-gold:disabled{ border-color:#D1D5DB; color:#9CA3AF; background:#F3F4F6; cursor:not-allowed; }
+  .btn-gold:disabled{ border-color:var(--disabled-bg); color:var(--disabled-fg); background:var(--disabled-soft); cursor:not-allowed; }
 
   .stepper-dot{
     width:14px;height:14px;border-radius:50%;
@@ -119,7 +179,7 @@
     border:2px solid var(--line);
   }
   .stepper-dot.done{ background:var(--gold); border-color:var(--gold); }
-  .stepper-dot.current{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 5px rgba(22,163,74,0.18); }
+  .stepper-dot.current{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 5px var(--accent-glow); }
 
   .cal-cell{
     aspect-ratio:1/1;
@@ -140,15 +200,17 @@
   @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
   .low-stock-banner{
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
   }
 
-  .error-banner{ background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
-  .success-banner{ background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
+  .error-banner{ background:var(--danger-bg); color:var(--danger-fg); border:1px solid var(--danger-border); }
+  .success-banner{ background:var(--ok-bg); color:var(--ok-fg); border:1px solid var(--ok-border); }
+  .warn-banner{ background:var(--warn-bg); color:var(--warn-fg); border:1px solid var(--warn-border); }
 
   #print-area{ display:none; }
   @media print{
+    html, html[data-theme="dark"] body{ background:#FFFFFF !important; color:#111827 !important; }
     body *{ visibility:hidden; }
     #print-area, #print-area *{ visibility:visible; }
     #print-area{
@@ -156,7 +218,7 @@
       display:flex; justify-content:center; padding:32px 16px;
     }
     .receipt{
-      width:320px; border:1.5px dashed #9CA3AF; border-radius:14px;
+      background:#FFFFFF; width:320px; border:1.5px dashed #9CA3AF; border-radius:14px;
       padding:22px 20px; font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, sans-serif;
       color:#111827;
     }
@@ -186,7 +248,7 @@
     content:""; flex:1; max-width:80px; border-bottom:1px solid var(--line);
   }
 
-  input, select, textarea{ background: #FFFFFF; color: var(--ink); }
+  input, select, textarea{ background: var(--input-bg); color: var(--ink); }
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -203,6 +265,7 @@ const DEFAULT_API_BASE = (window.location.origin && window.location.origin !== "
   ? window.location.origin
   : "http://localhost:5000";
 const LOW_STOCK_THRESHOLD = 10;
+const LOW_BALANCE_THRESHOLD = 50; // wallet balance (৳) below which students/teachers get a top-up reminder
 const CATEGORIES = [
   { id: "heavy", label: "Heavy meals" },
   { id: "snacks", label: "Snacks" },
@@ -260,6 +323,7 @@ const I = {
   x: "M18 6 6 18M6 6l12 12",
   printer: "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6Z",
   edit: "M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z",
+  droplet: "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z",
 };
 
 /* ---------------- Helpers ---------------- */
@@ -505,7 +569,19 @@ const I18N = {
     "n.status": "{o} — status: {s}",
     "n.announce": "Campus announcement",
     "n.announce.def": "New announcement from the admin.",
-    "n.chat": "New chat message"
+    "n.chat": "New chat message",
+    "theme.title": "Theme",
+    "theme.mode": "Mode",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
+    "theme.auto": "Auto",
+    "theme.accent": "Accent colour",
+    "theme.green": "Green",
+    "theme.blue": "Blue",
+    "theme.orange": "Orange",
+    "theme.purple": "Purple",
+    "theme.rose": "Rose",
+    "lowbal": "Your wallet balance is low ({b}). Top up to keep ordering."
   },
   bn: {
     "ann": "CampusDine-এ স্বাগতম — আপনার ক্যাম্পাস ক্যান্টিন থেকে খাবার অর্ডার করুন",
@@ -744,7 +820,19 @@ const I18N = {
     "n.status": "{o} — অবস্থা: {s}",
     "n.announce": "ক্যাম্পাস ঘোষণা",
     "n.announce.def": "অ্যাডমিনের কাছ থেকে নতুন ঘোষণা।",
-    "n.chat": "নতুন চ্যাট বার্তা"
+    "n.chat": "নতুন চ্যাট বার্তা",
+    "theme.title": "থিম",
+    "theme.mode": "মোড",
+    "theme.light": "লাইট",
+    "theme.dark": "ডার্ক",
+    "theme.auto": "অটো",
+    "theme.accent": "রঙ",
+    "theme.green": "সবুজ",
+    "theme.blue": "নীল",
+    "theme.orange": "কমলা",
+    "theme.purple": "বেগুনি",
+    "theme.rose": "গোলাপি",
+    "lowbal": "আপনার ওয়ালেটে ব্যালেন্স কম ({b})। অর্ডার চালিয়ে যেতে টপ-আপ করুন।"
   }
 };
 const tx = (key, vars) => {
@@ -780,6 +868,85 @@ function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
 function monthLabel(ym) {
   const [y, m] = ym.split("-");
   return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
+}
+
+/* ---------------- Theme (light / dark / auto + accent colour) ---------------- */
+const THEME_ACCENTS = [
+  { key: "green", color: "#16A34A" }, { key: "blue", color: "#2563EB" }, { key: "orange", color: "#EA580C" },
+  { key: "purple", color: "#7C3AED" }, { key: "rose", color: "#E11D48" },
+];
+function readTheme() {
+  try {
+    const t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
+    return {
+      mode: ["light", "dark", "auto"].includes(t.mode) ? t.mode : "light",
+      accent: THEME_ACCENTS.some(a => a.key === t.accent) ? t.accent : "green",
+    };
+  } catch (e) { return { mode: "light", accent: "green" }; }
+}
+function applyTheme(t) {
+  const dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  document.documentElement.setAttribute("data-accent", t.accent);
+}
+function ThemeMenu() {
+  const [theme, setTheme] = useState(readTheme);
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+
+  // apply + remember the choice; in "auto" mode also follow the device when it switches light/dark
+  useEffect(() => {
+    applyTheme(theme);
+    try { localStorage.setItem("cd_theme", JSON.stringify(theme)); } catch (e) {}
+    if (theme.mode !== "auto" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme(theme);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [theme]);
+
+  // close the panel when clicking elsewhere
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const modes = [["light", "theme.light"], ["dark", "theme.dark"], ["auto", "theme.auto"]];
+  return (
+    <div className="relative" ref={boxRef}>
+      <button onClick={() => setOpen(o => !o)} title={tx("theme.title")} aria-expanded={open}
+        className="w-9 h-9 rounded-lg grid place-items-center transition-colors hover:bg-black/5">
+        <Icon path={I.droplet} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl border shadow-2xl p-3 z-50 fade-in"
+          style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+          <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("theme.mode")}</div>
+          <div className="flex rounded-lg border overflow-hidden text-xs mb-3" style={{ borderColor: "var(--line)" }}>
+            {modes.map(([key, label]) => (
+              <button key={key} onClick={() => setTheme(t => ({ ...t, mode: key }))} className="flex-1 px-2 py-2 transition-colors"
+                style={{ background: theme.mode === key ? "var(--gold)" : "transparent", color: theme.mode === key ? "#fff" : "var(--ink-soft)" }}>
+                {tx(label)}
+              </button>
+            ))}
+          </div>
+          <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("theme.accent")}</div>
+          <div className="flex items-center gap-2">
+            {THEME_ACCENTS.map(a => (
+              <button key={a.key} onClick={() => setTheme(t => ({ ...t, accent: a.key }))}
+                title={tx("theme." + a.key)} aria-label={tx("theme." + a.key)}
+                className="w-8 h-8 rounded-full grid place-items-center border-2 transition-transform hover:scale-110"
+                style={{ background: a.color, borderColor: theme.accent === a.key ? "var(--ink)" : "transparent" }}>
+                {theme.accent === a.key && <Icon path={I.check} className="w-4 h-4" style={{ color: "#fff" }} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ---------------- Language toggle (EN | বাং) ---------------- */
@@ -885,7 +1052,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
       </div>
 
       {/* Sticky nav */}
-      <header className="sticky top-0 z-30 backdrop-blur" style={{ background: "rgba(255,255,255,0.92)", borderBottom: "1px solid var(--line)" }}>
+      <header className="sticky top-0 z-30 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
         <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="logo-badge w-10 h-10 rounded-full grid place-items-center">
@@ -902,6 +1069,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             <a href="#contact" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.contact")}</a>
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeMenu />
             <LangToggle onToggle={onToggleLang} />
             <button onClick={scrollToAuth} className="btn-primary px-5 py-2 rounded-lg text-xs">{tx("signin")}</button>
           </div>
@@ -929,7 +1097,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
       </section>
 
       {/* Features banner */}
-      <section className="border-y py-10" style={{ borderColor: "var(--line)", background: "#FFFFFF" }}>
+      <section className="border-y py-10" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {features.map(f => (
             <div key={f.title} className="space-y-1.5">
@@ -1122,7 +1290,7 @@ function TopBar({
   notificationOpen = false, onMarkAllRead, onClearNotifications,
 }) {
   return (
-    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "rgba(255,255,255,0.92)", borderBottom: "1px solid var(--line)" }}>
+    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <div className="logo-badge w-8 h-8 rounded-full grid place-items-center">
@@ -1151,7 +1319,7 @@ function TopBar({
               )}
             </button>
             {notificationOpen && (
-              <div className="absolute right-0 top-full mt-3 w-[min(92vw,360px)] rounded-2xl border shadow-2xl overflow-hidden" style={{ background: "#fff", borderColor: "var(--line)" }}>
+              <div className="absolute right-0 top-full mt-3 w-[min(92vw,360px)] rounded-2xl border shadow-2xl overflow-hidden" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
                 <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--line)", background: "rgba(245,179,0,0.08)" }}>
                   <div className="font-display font-700" style={{ color: "var(--gold)" }}>{tx("notif")}</div>
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide">
@@ -1194,6 +1362,7 @@ function TopBar({
             <div className="text-sm font-600 leading-tight">{name}</div>
             <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
           </div>
+          <ThemeMenu />
           {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
           <button onClick={onLogout} title={tx("logout")} className="w-9 h-9 rounded-lg grid place-items-center hover:bg-white/5">
             <Icon path={I.logout} className="w-4.5 h-4.5" style={{ color: "var(--brick)" }} />
@@ -1300,7 +1469,7 @@ function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavor
           const out = item.stock <= 0;
           const inCart = cart.find(cartItem => cartItem.id === item.id);
           return (
-            <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "rgba(255,255,255,0.6)" }}>
+            <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
                   <DietMark isVeg={!!item.is_veg} />
@@ -2802,11 +2971,12 @@ function App() {
   const [lang, setLang] = useState(() => { try { return localStorage.getItem("cd_lang") === "bn" ? "bn" : "en"; } catch (e) { return "en"; } });
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
 
   const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [wallet, setWallet] = useState({ balance: 0, transactions: [] });
+  const [wallet, setWallet] = useState({ balance: 0, transactions: [], loaded: false });
   const [calendar, setCalendar] = useState({});
   const [bill, setBill] = useState({ fullDays: 0, halfDays: 0, fullRate: 0, halfRate: 0, total: 0 });
   const [overview, setOverview] = useState({});
@@ -2853,6 +3023,7 @@ function App() {
   const mapMenu = (rows) => rows.map(m => ({ ...m, bn: m.name_bn }));
   const mapWallet = (data) => ({
     balance: data.balance,
+    loaded: true,
     transactions: data.transactions.map(t => ({ label: t.label, amount: t.amount, time: new Date(t.created_at).toLocaleString() })),
   });
   const mapCalendar = (rows) => {
@@ -2894,6 +3065,7 @@ function App() {
   const logout = () => {
     if (socketRef.current) socketRef.current.disconnect();
     setSession(null); setCart([]); setError(null); setNotificationCenterOpen(false);
+    setWallet({ balance: 0, transactions: [], loaded: false }); setLowBalanceDismissed(false);
   };
 
   // Initial data load after login
@@ -3128,6 +3300,15 @@ function App() {
           <div className="success-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
             <span>{success}</span>
             <button onClick={() => setSuccess(null)} className="font-700">✕</button>
+          </div>
+        )}
+        {session.user.role !== "admin" && wallet.loaded && wallet.balance < LOW_BALANCE_THRESHOLD && !lowBalanceDismissed && tab !== "wallet" && (
+          <div className="warn-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center gap-3">
+            <span>{tx("lowbal", { b: taka(wallet.balance) })}</span>
+            <span className="flex items-center gap-3 shrink-0">
+              <button onClick={() => setTab("wallet")} className="btn-primary px-3 py-1.5 rounded-lg text-xs">{tx("topup")}</button>
+              <button onClick={() => setLowBalanceDismissed(true)} className="font-700">✕</button>
+            </span>
           </div>
         )}
 
