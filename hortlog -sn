@@ -1,7 +1,0 @@
-* [33mbb1f040[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdiv[m[33m, [m[1;31morigin/div[m[33m)[m Add feedback and rating functionality
-* [33m2a296f0[m feat(wallet): update wallet UI with top-up confirmation modal, MFS/Card payment gateways, and collapsible transaction history
-* [33m01792bd[m Add editable My Profile tab and classic English UI redesign
-* [33m48622d0[m Update CampusDine UI and fix layout components
-* [33m285bd83[m[33m ([m[1;32mmaster[m[33m)[m Add gitignore
-* [33me8ce8ab[m Remove node_modules from repository
-* [33m1ea3f21[m Initial project setup
