@@ -83,6 +83,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), async (req, res
   if (!isDateOnly(mealDate) || mealDate < todayStr() || mealDate > addDays(todayStr(), MAX_DAYS_AHEAD)) return res.status(400).json({ error: `mealDate must be between today and ${MAX_DAYS_AHEAD} days ahead` });
   if (pickupSlot !== null && !/^\d{2}:\d{2}$/.test(String(pickupSlot))) return res.status(400).json({ error: "pickupSlot must be HH:MM" });
 
+<<<<<<< Updated upstream
   const result = await withTransaction(async (conn) => {
     if (idempotencyKey) {
       const [existing] = await conn.query("SELECT * FROM orders WHERE user_id = ? AND idempotency_key = ?", [req.user.id, idempotencyKey]);
@@ -97,6 +98,85 @@ router.post("/", verifyToken, requireRole("student", "teacher"), async (req, res
     if (couponCode) {
       const chk = await checkCoupon(conn, couponCode, req.user.id, priced.total, { lock: true });
       discount = chk.discount; coupon = chk.coupon;
+=======
+// POST /api/orders  (student/teacher) — place an order
+// body: { items: [{ id, qty }], paymentMethod: 'wallet' | 'cash' }
+router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const { items, paymentMethod, couponCode, couponId } = req.body;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
+  if (items.some((item) => !item || !Number.isInteger(Number(item.id)) || Number(item.id) <= 0 || !Number.isInteger(Number(item.qty)) || Number(item.qty) <= 0)) {
+    return res.status(400).json({ error: "Each item must have a valid ID and positive quantity" });
+  }
+  const requestedItems = items.map((item) => ({ id: Number(item.id), qty: Number(item.qty) }));
+  if (!["wallet", "cash"].includes(paymentMethod)) {
+    return res.status(400).json({ error: "paymentMethod must be wallet or cash" });
+  }
+
+  // Feature: optional note for the kitchen (e.g. "less spicy") — trimmed, at most 200 characters
+  const orderNote = typeof req.body.note === "string" ? (req.body.note.trim().slice(0, 200) || null) : null;
+
+  const couponRequested = Boolean(couponId || couponCode);
+  const normalizedCode = String(couponCode || "").trim().toUpperCase();
+
+  // Optional pre-order: body.pickupTime is a "HH:MM" (24h) string for a slot today
+  // (or tomorrow, if the window crosses midnight). Omitted/falsy means ASAP.
+  let pickupTime = null;
+  if (req.body.pickupTime) {
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(req.body.pickupTime);
+    if (!match) return res.status(400).json({ error: "pickupTime must be in HH:MM 24-hour format" });
+
+    // Truncate seconds so the allowed window matches exactly what a minute-precision
+    // <input type="time"> can express — otherwise picking the exact displayed min/max
+    // minute could still fail by a few leftover seconds.
+    const now = new Date();
+    now.setSeconds(0, 0);
+    const minAllowed = new Date(now.getTime() + PICKUP_MIN_LEAD_MINUTES * 60000);
+    const maxAllowed = new Date(now.getTime() + PICKUP_MAX_LEAD_HOURS * 3600000);
+
+    // "14:05" could mean today or, once the window crosses midnight, tomorrow —
+    // try both and accept whichever actually falls inside the allowed window,
+    // instead of always assuming "today" (which broke post-midnight slots).
+    const buildCandidate = (dayOffset) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() + dayOffset);
+      d.setHours(Number(match[1]), Number(match[2]), 0, 0);
+      return d;
+    };
+    const candidate = [0, 1].map(buildCandidate).find((d) => d >= minAllowed && d <= maxAllowed);
+
+    if (!candidate) {
+      return res.status(400).json({
+        error: `Pickup time must be at least ${PICKUP_MIN_LEAD_MINUTES} minutes and at most ${PICKUP_MAX_LEAD_HOURS} hours from now`,
+      });
+    }
+    pickupTime = candidate;
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // Lock and re-read menu prices/stock server-side — never trust client prices
+    const ids = requestedItems.map((i) => i.id);
+    const [menuRows] = await conn.query(
+      `SELECT * FROM menu_items WHERE id IN (${ids.map(() => "?").join(",")}) FOR UPDATE`,
+      ids
+    );
+
+    let subtotal = 0;
+    const snapshot = [];
+    for (const reqItem of requestedItems) {
+      const menuItem = menuRows.find((m) => m.id === reqItem.id);
+      if (!menuItem) throw { status: 404, message: `Menu item ${reqItem.id} not found` };
+      // Feature: sold-out / hidden items cannot be ordered even if some stock is left
+      if (menuItem.availability === "sold_out") throw { status: 409, message: `${menuItem.name} is sold out` };
+      if (menuItem.availability === "hidden") throw { status: 409, message: `${menuItem.name} is not available right now` };
+      if (menuItem.stock < reqItem.qty) throw { status: 409, message: `${menuItem.name} is out of stock` };
+      subtotal += menuItem.price * reqItem.qty;
+      snapshot.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: reqItem.qty });
+>>>>>>> Stashed changes
     }
     const payable = round2(priced.total - discount);
     if (paymentMethod === "wallet") {
@@ -123,12 +203,50 @@ router.post("/", verifyToken, requireRole("student", "teacher"), async (req, res
   result.lowNow.forEach((i) => io.to("admins").emit("stock:low", i));
   notifyOrder(req.app, result.order, "Received");
 
+<<<<<<< Updated upstream
   // Weekly budget: report status and warn when crossing 80% / 100%.
   const budget = await budgetStatus(pool, req.user.id);
   if (budget.limit) {
     const before = ((budget.spent - result.payable) / budget.limit) * 100;
     if (before < 100 && budget.percent >= 100) await pushNotification(req.app, req.user.id, `Budget alert: you've passed your ৳${budget.limit} weekly budget (spent ৳${budget.spent}).`, { type: "budget" });
     else if (before < 80 && budget.percent >= 80) await pushNotification(req.app, req.user.id, `Heads up: you've used ${budget.percent}% of your ৳${budget.limit} weekly budget.`, { type: "budget" });
+=======
+    const [orderResult] = await conn.query(
+      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, payment_method, pickup_time, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
+      [token, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, paymentMethod, pickupTime, orderNote]
+    );
+    for (const item of snapshot) {
+      await conn.query(
+        "INSERT INTO order_items (order_id, menu_item_id, name, price, qty) VALUES (?, ?, ?, ?, ?)",
+        [orderResult.insertId, item.id, item.name, item.price, item.qty]
+      );
+    }
+
+    if (appliedCoupon) {
+      await conn.query(
+        "INSERT INTO coupon_usage (user_id, coupon_id, order_id) VALUES (?, ?, ?)",
+        [req.user.id, appliedCoupon.id, orderResult.insertId]
+      );
+      await conn.query(
+        "UPDATE coupons SET used_count = used_count + 1 WHERE id = ?",
+        [appliedCoupon.id]
+      );
+    }
+
+    await conn.commit();
+
+    const order = { id: orderResult.insertId, token, total, discount_amount: discountAmount, status: "Received", pickup_time: pickupTime, note: orderNote, items: snapshot };
+    req.app.get("io").to("admins").emit("order:new", order);
+    req.app.get("io").emit("queue:changed");
+    res.status(201).json(order);
+  } catch (err) {
+    await conn.rollback();
+    const status = err.status || 500;
+    console.error(err);
+    res.status(status).json({ error: err.message || "Failed to place order" });
+  } finally {
+    conn.release();
+>>>>>>> Stashed changes
   }
   res.status(201).json({ ...result.order, budget });
 });

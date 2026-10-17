@@ -556,6 +556,7 @@ const I = {
 };
 
 /* ---------------- Helpers ---------------- */
+<<<<<<< Updated upstream
 async function downloadFile(path, filename) {
   const res = await fetch(`${window.__campusApiBase}${path}`, { headers: { Authorization: `Bearer ${window.__campusToken}` } });
   if (!res.ok) throw new Error("Download failed");
@@ -564,6 +565,554 @@ async function downloadFile(path, filename) {
 }
 const taka = (n) => `৳${Number(n || 0).toLocaleString("en-BD")}`;
 function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
+=======
+/* ---------------- i18n (English / বাংলা) ---------------- */
+// CURRENT_LANG is set by <App> on every render; student/teacher pages read it through tx().
+let CURRENT_LANG = "en";
+let MENU_BN = {}; // English menu-item name -> Bangla name, so order history can show Bangla names too
+const I18N = {
+  en: {
+    "ann": "Welcome to CampusDine — order food from your campus canteen",
+    "canteen": "Campus Canteen",
+    "nav.menu": "Menu",
+    "nav.about": "About Us",
+    "nav.contact": "Contact",
+    "signin": "Sign In",
+    "hero.badge": "Smart Campus Canteen",
+    "hero.h1a": "Order Ahead. Skip The Line.",
+    "hero.h1b": "Eat Fresh, Every Day.",
+    "hero.p": "Enjoy hassle-free food ordering, automatic subscription billing, and a cashless wallet — all on one platform, even during the busiest hours of campus life.",
+    "hero.start": "Get Started",
+    "hero.explore": "Explore Menu",
+    "f1.t": "Token-Based Pickup",
+    "f1.d": "Order ahead and skip the queue — just collect your food with your token.",
+    "f2.t": "Digital Wallet",
+    "f2.d": "Cashless payments, instant top-ups, and a fully transparent transaction history.",
+    "f3.t": "Auto Subscription Billing",
+    "f3.d": "Your monthly meal bill, calculated automatically and accurately.",
+    "f4.t": "Live Order Tracking",
+    "f4.d": "Know exactly where your order stands, in real time — no refresh needed.",
+    "sm.tehari": "Tehari",
+    "sm.tehari.t": "Rice & Meat",
+    "sm.roll": "Chicken Roll",
+    "sm.roll.t": "Savory Snack",
+    "sm.brew": "Vintage Cold Brew",
+    "sm.brew.t": "Beverage",
+    "pop.k": "Popular Items",
+    "pop.h": "A Taste of Our Menu",
+    "more": "More on the full menu",
+    "more.d": "Log in to see live prices, stock & order instantly.",
+    "about.k": "About Us",
+    "about.h": "Why CampusDine",
+    "about.p": "Long canteen queues, paper tokens, and hand-calculated subscription bills — CampusDine exists to remove exactly these frustrations. With digital tokens, real-time order tracking, automatic billing, and a cashless wallet, we've built a refined, hassle-free dining experience built around campus life.",
+    "role.student.l": "Student",
+    "role.student.d": "Order meals, track pickup, manage your subscription.",
+    "role.teacher.l": "Teacher / Staff",
+    "role.teacher.d": "Same convenience, faculty meal rate.",
+    "role.admin.l": "Canteen Admin",
+    "role.admin.d": "Run the counter — orders, stock, reports.",
+    "auth.k": "Login / Register",
+    "auth.h": "Sign In To CampusDine",
+    "back.login": "Back to login",
+    "reset.h": "Reset Password",
+    "reset.p": "Enter your ID and choose a new password.",
+    "id": "ID Number",
+    "newpw": "New Password",
+    "atleast6": "At least 6 characters",
+    "wait": "Please wait…",
+    "back": "Back",
+    "access": "{role} Access",
+    "login": "Log In",
+    "create": "Create Account",
+    "fullname": "Full Name",
+    "pw": "Password",
+    "yourpw": "Your password",
+    "forgot": "Forgot password?",
+    "createlogin": "Create Account & Log In",
+    "backend": "Backend server:",
+    "err.fill": "Please fill in all fields.",
+    "err.pw6": "Password must be at least 6 characters.",
+    "reset.ok": "Password updated — log in with your new password.",
+    "foot.p": "The campus's own smart dining platform — a perfect blend of great food, fast service, and a refined atmosphere.",
+    "foot.hours": "Opening Hours",
+    "foot.h1": "Sun – Thu: 9:00 AM – 8:00 PM",
+    "foot.h2": "Fri – Sat: 12:00 PM – 9:00 PM",
+    "foot.loc": "Location",
+    "foot.loc1": "Campus Central Canteen, Main Building",
+    "foot.help": "Helpline: +880 1XXX-XXXXXX",
+    "lang.switch": "Switch language",
+    "tab.menu": "Menu & Order",
+    "tab.track": "Track Order",
+    "tab.calendar": "Meal Calendar",
+    "tab.wallet": "Wallet",
+    "tab.profile": "My Profile",
+    "live.on": "Live updates connected",
+    "live.off": "Live updates offline",
+    "logout": "Log out",
+    "r.student": "Student",
+    "r.teacher": "Teacher",
+    "r.admin": "Admin",
+    "cat.heavy": "Heavy meals",
+    "cat.snacks": "Snacks",
+    "cat.drinks": "Drinks",
+    "search.ph": "Search menu (e.g. khichuri, চা)…",
+    "sort.default": "Sort: Default",
+    "sort.priceAsc": "Price: Low to High",
+    "sort.priceDesc": "Price: High to Low",
+    "sort.name": "Name: A-Z",
+    "fav": "Favorites",
+    "diet.all": "All",
+    "diet.veg": "Veg",
+    "diet.nonveg": "Non-veg",
+    "empty": "No items match your filters in this category.",
+    "tag.Popular": "Popular",
+    "tag.New": "New",
+    "fav.add": "Add to favorites",
+    "fav.remove": "Remove from favorites",
+    "outstock": "Out of stock",
+    "add": "Add",
+    "cart.h": "Your cart",
+    "cart.empty": "Nothing here yet — add items from the menu.",
+    "total": "Total",
+    "schedule": "Schedule pickup for later",
+    "pick.hint": "Pick a time between {a} and {b}.",
+    "pay.wallet": "Wallet",
+    "pay.cash": "Cash on pickup",
+    "insufficient": "Insufficient wallet balance — top up or pay cash.",
+    "placing": "Placing order…",
+    "checkout": "Checkout — get token",
+    "rated": "You rated this order",
+    "rate": "Rate this order",
+    "comment.ph": "Leave a comment (optional)",
+    "submitting": "Submitting…",
+    "submit": "Submit Feedback",
+    "noorders": "No orders yet — place one from the Menu & Order tab.",
+    "status.Received": "Received",
+    "status.Cooking": "Cooking",
+    "status.Ready": "Ready",
+    "status.Cancelled": "Cancelled",
+    "ticket.token": "Pickup token",
+    "sched": "Scheduled pickup",
+    "q.now": "Being prepared now",
+    "q.next": "You're next",
+    "q.ahead1": "Position #{p} · 1 order ahead",
+    "q.aheadN": "Position #{p} · {a} orders ahead",
+    "q.est": "≈ {m} min",
+    "refunded": "— refunded to wallet",
+    "print": "Print receipt",
+    "cancelorder": "Cancel order", 
+        "reorder": "↻ Order again",
+    "reorder.added": "Added to your cart: ",
+    "reorder.skipped": " Not available right now: ",
+    "reorder.none": "None of the items from this order are available right now.",
+    "reorder.left": " left",
+    "rc.title": "ORDER RECEIPT",
+    "rc.token": "PICKUP TOKEN",
+    "rc.status": "Status",
+    "rc.payment": "Payment",
+    "rc.printed": "Printed",
+    "rc.thanks": "Show this token at the counter · Thank you!",
+    "prevm": "Previous month",
+    "nextm": "Next month",
+    "today": "Today",
+    "cal.hint": "Tap a day to cycle: Off → Full → Half",
+    "wd": "S,M,T,W,T,F,S",
+    "cal.full": "Full meal",
+    "cal.half": "Half meal",
+    "cal.off": "Off",
+    "cal.bill": "Monthly bill",
+    "cal.fulldays": "Full meal days ({r} each)",
+    "cal.halfdays": "Half meal days ({r} each)",
+    "pc.mobile": "Mobile Banking",
+    "pc.banking": "Banking",
+    "pc.card": "Card",
+    "pay.failed": "Payment failed",
+    "pay.t1": "Choose payment method",
+    "pay.t2": "Confirm top-up",
+    "pay.t3": "Payment successful",
+    "pay.t4": "Processing payment",
+    "amount": "Amount:",
+    "no": "No",
+    "yes": "Yes, top up",
+    "confirming": "Confirming payment with {m}…",
+    "pay.added": "has been added to your wallet",
+    "paidvia": "Paid via {m}",
+    "done": "Done",
+    "wallet.bal": "Wallet balance",
+    "topup": "Top up",
+    "adding": "Adding…",
+    "addmoney": "Add money",
+    "txhist": "Transaction history",
+    "notx": "No transactions yet.",
+    "tx.welcome": "Welcome bonus",
+    "tx.order": "Order payment",
+    "tx.refund": "Refund — Order {t} cancelled",
+    "tx.topup": "Wallet top-up via {m}",
+    "edit": "Edit Profile",
+    "phone": "Phone",
+    "fphone": "Father's Phone",
+    "address": "Address",
+    "addr.ph": "Present address",
+    "dept": "Department",
+    "dept.ph": "e.g. CSE",
+    "role": "Role",
+    "hall": "Hall Residence",
+    "room": "Room Number",
+    "room.ph": "e.g. 312",
+    "notres": "Not a hall resident",
+    "hallid": "Hall ID",
+    "hallhint": "Save a room number to get a fixed Hall ID.",
+    "chpw": "Change Password (optional)",
+    "curpw": "Current password",
+    "newpw2": "New password",
+    "saving": "Saving…",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "notset": "Not set",
+    "pe.name": "Name can't be empty.",
+    "pe.pw6": "New password must be at least 6 characters.",
+    "pe.cur": "Enter your current password to set a new one.",
+    "pe.ok": "Profile updated.",
+    "msg.cancel.w": "Order {t} cancelled — {a} refunded to your wallet.",
+    "msg.cancel": "Order {t} cancelled.",
+    "notif": "Notifications",
+    "notif.markall": "Mark all read",
+    "notif.clear": "Clear",
+    "notif.none": "No notifications yet.",
+    "starred": "Starred Items",
+    "viewfav": "View favorites only",
+    "plus1": "+1 more",
+    "quick": "Quick order",
+    "coupon.label": "Coupon code",
+    "coupon.ph": "e.g. CAMPUS10",
+    "apply": "Apply",
+    "coupon.invalid": "Coupon is not valid",
+    "coupon.applied": "Discount applied: {d} off",
+    "coupon.line": "Coupon ({c})",
+    "subtotal": "Subtotal",
+    "cal.note2": "Calculated live by the server — same meal-plan logic applied for students and teachers.",
+    "tab.chat": "Chat with Canteen Admin",
+    "chat.sendfail": "Message could not be sent",
+    "chat.admin": "CampusDine Admin",
+    "chat.private": "Private support conversation",
+    "chat.support": "CampusDine support",
+    "chat.empty": "No messages yet. Start the conversation with the admin.",
+    "chat.you": "You",
+    "chat.ph": "Write a message…",
+    "chat.sending": "Sending…",
+    "chat.send": "Send",
+    "n.accepted": "Order accepted",
+    "n.cooking": "Order cooking",
+    "n.ready": "Order ready",
+    "n.other": "Order {s}",
+    "n.status": "{o} — status: {s}",
+    "n.announce": "Campus announcement",
+    "n.announce.def": "New announcement from the admin.",
+    "n.chat": "New chat message",
+    "theme.title": "Theme",
+    "theme.mode": "Mode",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
+    "theme.auto": "Auto",
+    "theme.accent": "Accent colour",
+    "theme.green": "Green",
+    "theme.blue": "Blue",
+    "theme.orange": "Orange",
+    "theme.purple": "Purple",
+    "theme.rose": "Rose",
+    "lowbal": "Your wallet balance is low ({b}). Top up to keep ordering.",
+    "note.label": "Note for the kitchen (optional)",
+    "note.ph": "e.g. less spicy, no onion",
+    "note.show": "Note",
+    "soldout": "Sold out"
+  },
+  bn: {
+    "ann": "CampusDine-এ স্বাগতম — আপনার ক্যাম্পাস ক্যান্টিন থেকে খাবার অর্ডার করুন",
+    "canteen": "ক্যাম্পাস ক্যান্টিন",
+    "nav.menu": "মেনু",
+    "nav.about": "আমাদের সম্পর্কে",
+    "nav.contact": "যোগাযোগ",
+    "signin": "সাইন ইন",
+    "hero.badge": "স্মার্ট ক্যাম্পাস ক্যান্টিন",
+    "hero.h1a": "আগেই অর্ডার করুন, লাইন এড়ান।",
+    "hero.h1b": "প্রতিদিন খান তাজা খাবার।",
+    "hero.p": "ঝামেলাহীন খাবার অর্ডার, স্বয়ংক্রিয় সাবস্ক্রিপশন বিল আর ক্যাশলেস ওয়ালেট — সবকিছু এক প্ল্যাটফর্মে, ক্যাম্পাসের সবচেয়ে ব্যস্ত সময়েও।",
+    "hero.start": "শুরু করুন",
+    "hero.explore": "মেনু দেখুন",
+    "f1.t": "টোকেনে পিকআপ",
+    "f1.d": "আগে থেকে অর্ডার করুন, লাইন এড়ান — টোকেন দেখিয়ে খাবার নিন।",
+    "f2.t": "ডিজিটাল ওয়ালেট",
+    "f2.d": "ক্যাশলেস পেমেন্ট, তাৎক্ষণিক টপ-আপ এবং স্বচ্ছ লেনদেনের ইতিহাস।",
+    "f3.t": "স্বয়ংক্রিয় সাবস্ক্রিপশন বিল",
+    "f3.d": "আপনার মাসিক মিল বিল নিজে থেকেই নির্ভুলভাবে হিসাব হয়।",
+    "f4.t": "লাইভ অর্ডার ট্র্যাকিং",
+    "f4.d": "আপনার অর্ডার এখন কোন ধাপে আছে রিয়েল টাইমে জানুন — রিফ্রেশ লাগবে না।",
+    "sm.tehari": "তেহারি",
+    "sm.tehari.t": "ভাত ও মাংস",
+    "sm.roll": "চিকেন রোল",
+    "sm.roll.t": "মুখরোচক নাস্তা",
+    "sm.brew": "ভিন্টেজ কোল্ড ব্রু",
+    "sm.brew.t": "পানীয়",
+    "pop.k": "জনপ্রিয় আইটেম",
+    "pop.h": "আমাদের মেনুর এক ঝলক",
+    "more": "পূর্ণ মেনুতে আরও আছে",
+    "more.d": "লাইভ দাম ও স্টক দেখতে এবং সাথে সাথে অর্ডার করতে লগ ইন করুন।",
+    "about.k": "আমাদের সম্পর্কে",
+    "about.h": "কেন CampusDine",
+    "about.p": "ক্যান্টিনের লম্বা লাইন, কাগজের টোকেন আর হাতে হিসাব করা সাবস্ক্রিপশন বিল — ঠিক এই বিরক্তিগুলো দূর করতেই CampusDine। ডিজিটাল টোকেন, রিয়েল-টাইম অর্ডার ট্র্যাকিং, স্বয়ংক্রিয় বিল আর ক্যাশলেস ওয়ালেট দিয়ে আমরা ক্যাম্পাস জীবনের সাথে মানানসই একটি ঝামেলাহীন খাওয়ার অভিজ্ঞতা তৈরি করেছি।",
+    "role.student.l": "শিক্ষার্থী",
+    "role.student.d": "খাবার অর্ডার করুন, পিকআপ ট্র্যাক করুন, সাবস্ক্রিপশন সামলান।",
+    "role.teacher.l": "শিক্ষক / কর্মী",
+    "role.teacher.d": "একই সুবিধা, শিক্ষকদের মিল রেট।",
+    "role.admin.l": "ক্যান্টিন অ্যাডমিন",
+    "role.admin.d": "কাউন্টার চালান — অর্ডার, স্টক, রিপোর্ট।",
+    "auth.k": "লগ ইন / নিবন্ধন",
+    "auth.h": "CampusDine-এ সাইন ইন করুন",
+    "back.login": "লগ ইনে ফিরুন",
+    "reset.h": "পাসওয়ার্ড রিসেট",
+    "reset.p": "আপনার আইডি লিখুন এবং নতুন পাসওয়ার্ড দিন।",
+    "id": "আইডি নম্বর",
+    "newpw": "নতুন পাসওয়ার্ড",
+    "atleast6": "কমপক্ষে ৬ অক্ষর",
+    "wait": "অপেক্ষা করুন…",
+    "back": "পিছনে",
+    "access": "{role} অ্যাক্সেস",
+    "login": "লগ ইন",
+    "create": "অ্যাকাউন্ট খুলুন",
+    "fullname": "পুরো নাম",
+    "pw": "পাসওয়ার্ড",
+    "yourpw": "আপনার পাসওয়ার্ড",
+    "forgot": "পাসওয়ার্ড ভুলে গেছেন?",
+    "createlogin": "অ্যাকাউন্ট খুলে লগ ইন করুন",
+    "backend": "ব্যাকএন্ড সার্ভার:",
+    "err.fill": "সবগুলো ঘর পূরণ করুন।",
+    "err.pw6": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+    "reset.ok": "পাসওয়ার্ড বদলানো হয়েছে — নতুন পাসওয়ার্ড দিয়ে লগ ইন করুন।",
+    "foot.p": "ক্যাম্পাসের নিজস্ব স্মার্ট ডাইনিং প্ল্যাটফর্ম — ভালো খাবার, দ্রুত সেবা আর পরিপাটি পরিবেশের সুন্দর মিলন।",
+    "foot.hours": "খোলার সময়",
+    "foot.h1": "রবি – বৃহস্পতি: সকাল ৯:০০ – রাত ৮:০০",
+    "foot.h2": "শুক্র – শনি: দুপুর ১২:০০ – রাত ৯:০০",
+    "foot.loc": "ঠিকানা",
+    "foot.loc1": "ক্যাম্পাস সেন্ট্রাল ক্যান্টিন, মূল ভবন",
+    "foot.help": "হেল্পলাইন: +880 1XXX-XXXXXX",
+    "lang.switch": "ভাষা বদলান",
+    "tab.menu": "মেনু ও অর্ডার",
+    "tab.track": "অর্ডার ট্র্যাক",
+    "tab.calendar": "মিল ক্যালেন্ডার",
+    "tab.wallet": "ওয়ালেট",
+    "tab.profile": "আমার প্রোফাইল",
+    "live.on": "লাইভ আপডেট চালু",
+    "live.off": "লাইভ আপডেট বন্ধ",
+    "logout": "লগ আউট",
+    "r.student": "শিক্ষার্থী",
+    "r.teacher": "শিক্ষক",
+    "r.admin": "অ্যাডমিন",
+    "cat.heavy": "ভারী খাবার",
+    "cat.snacks": "নাস্তা",
+    "cat.drinks": "পানীয়",
+    "search.ph": "মেনু খুঁজুন (যেমন খিচুড়ি, tea)…",
+    "sort.default": "সাজান: ডিফল্ট",
+    "sort.priceAsc": "দাম: কম থেকে বেশি",
+    "sort.priceDesc": "দাম: বেশি থেকে কম",
+    "sort.name": "নাম: A-Z",
+    "fav": "পছন্দের",
+    "diet.all": "সব",
+    "diet.veg": "নিরামিষ",
+    "diet.nonveg": "আমিষ",
+    "empty": "এই ক্যাটাগরিতে আপনার ফিল্টারের সাথে মেলে এমন কোনো আইটেম নেই।",
+    "tag.Popular": "জনপ্রিয়",
+    "tag.New": "নতুন",
+    "fav.add": "পছন্দের তালিকায় যোগ করুন",
+    "fav.remove": "পছন্দের তালিকা থেকে সরান",
+    "outstock": "স্টক শেষ",
+    "add": "যোগ করুন",
+    "cart.h": "আপনার কার্ট",
+    "cart.empty": "এখনো কিছু নেই — মেনু থেকে আইটেম যোগ করুন।",
+    "total": "মোট",
+    "schedule": "পরে পিকআপের সময় ঠিক করুন",
+    "pick.hint": "{a} থেকে {b} এর মধ্যে একটি সময় বাছুন।",
+    "pay.wallet": "ওয়ালেট",
+    "pay.cash": "পিকআপে নগদ",
+    "insufficient": "ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই — টপ-আপ করুন বা নগদে দিন।",
+    "placing": "অর্ডার হচ্ছে…",
+    "checkout": "চেকআউট — টোকেন নিন",
+    "rated": "আপনি এই অর্ডারে রেটিং দিয়েছেন",
+    "rate": "এই অর্ডারে রেটিং দিন",
+    "comment.ph": "মন্তব্য লিখুন (ঐচ্ছিক)",
+    "submitting": "জমা হচ্ছে…",
+    "submit": "মতামত জমা দিন",
+    "noorders": "এখনো কোনো অর্ডার নেই — মেনু ও অর্ডার ট্যাব থেকে অর্ডার করুন।",
+    "status.Received": "গৃহীত",
+    "status.Cooking": "রান্না হচ্ছে",
+    "status.Ready": "প্রস্তুত",
+    "status.Cancelled": "বাতিল",
+    "ticket.token": "পিকআপ টোকেন",
+    "sched": "নির্ধারিত পিকআপ",
+    "q.now": "এখন তৈরি হচ্ছে",
+    "q.next": "এরপর আপনার পালা",
+    "q.ahead1": "অবস্থান #{p} · সামনে ১টি অর্ডার",
+    "q.aheadN": "অবস্থান #{p} · সামনে {a}টি অর্ডার",
+    "q.est": "≈ {m} মিনিট",
+    "refunded": "— ওয়ালেটে ফেরত দেওয়া হয়েছে",
+    "print": "রসিদ প্রিন্ট করুন",
+    "cancelorder": "অর্ডার বাতিল করুন", 
+        "reorder": "↻ আবার অর্ডার করুন",
+    "reorder.added": "কার্টে যোগ হয়েছে: ",
+    "reorder.skipped": " এখন পাওয়া যাচ্ছে না: ",
+    "reorder.none": "এই অর্ডারের কোনো আইটেম এখন পাওয়া যাচ্ছে না।",
+    "reorder.left": "টি আছে",
+    "rc.title": "অর্ডার রসিদ",
+    "rc.token": "পিকআপ টোকেন",
+    "rc.status": "অবস্থা",
+    "rc.payment": "পেমেন্ট",
+    "rc.printed": "প্রিন্টের সময়",
+    "rc.thanks": "কাউন্টারে এই টোকেনটি দেখান · ধন্যবাদ!",
+    "prevm": "আগের মাস",
+    "nextm": "পরের মাস",
+    "today": "আজ",
+    "cal.hint": "দিনে ট্যাপ করে বদলান: বন্ধ → পূর্ণ → অর্ধেক",
+    "wd": "র,সো,ম,বু,বৃ,শু,শ",
+    "cal.full": "পূর্ণ মিল",
+    "cal.half": "অর্ধ মিল",
+    "cal.off": "বন্ধ",
+    "cal.bill": "মাসিক বিল",
+    "cal.fulldays": "পূর্ণ মিলের দিন (প্রতিটি {r})",
+    "cal.halfdays": "অর্ধ মিলের দিন (প্রতিটি {r})",
+    "pc.mobile": "মোবাইল ব্যাংকিং",
+    "pc.banking": "ব্যাংকিং",
+    "pc.card": "কার্ড",
+    "pay.failed": "পেমেন্ট ব্যর্থ হয়েছে",
+    "pay.t1": "পেমেন্ট পদ্ধতি বাছুন",
+    "pay.t2": "টপ-আপ নিশ্চিত করুন",
+    "pay.t3": "পেমেন্ট সফল",
+    "pay.t4": "পেমেন্ট প্রক্রিয়াধীন",
+    "amount": "পরিমাণ:",
+    "no": "না",
+    "yes": "হ্যাঁ, টপ-আপ করুন",
+    "confirming": "{m}-এর সাথে পেমেন্ট নিশ্চিত হচ্ছে…",
+    "pay.added": "আপনার ওয়ালেটে যোগ হয়েছে",
+    "paidvia": "{m} দিয়ে পরিশোধ হয়েছে",
+    "done": "সম্পন্ন",
+    "wallet.bal": "ওয়ালেট ব্যালেন্স",
+    "topup": "টপ-আপ",
+    "adding": "যোগ হচ্ছে…",
+    "addmoney": "টাকা যোগ করুন",
+    "txhist": "লেনদেনের ইতিহাস",
+    "notx": "এখনো কোনো লেনদেন নেই।",
+    "tx.welcome": "স্বাগত বোনাস",
+    "tx.order": "অর্ডারের পেমেন্ট",
+    "tx.refund": "ফেরত — অর্ডার {t} বাতিল",
+    "tx.topup": "{m} দিয়ে ওয়ালেট টপ-আপ",
+    "edit": "প্রোফাইল সম্পাদনা",
+    "phone": "ফোন",
+    "fphone": "বাবার ফোন",
+    "address": "ঠিকানা",
+    "addr.ph": "বর্তমান ঠিকানা",
+    "dept": "বিভাগ",
+    "dept.ph": "যেমন CSE",
+    "role": "ভূমিকা",
+    "hall": "হল আবাসন",
+    "room": "রুম নম্বর",
+    "room.ph": "যেমন ৩১২",
+    "notres": "হলে থাকেন না",
+    "hallid": "হল আইডি",
+    "hallhint": "স্থায়ী হল আইডি পেতে একটি রুম নম্বর সেভ করুন।",
+    "chpw": "পাসওয়ার্ড বদলান (ঐচ্ছিক)",
+    "curpw": "বর্তমান পাসওয়ার্ড",
+    "newpw2": "নতুন পাসওয়ার্ড",
+    "saving": "সেভ হচ্ছে…",
+    "save": "পরিবর্তন সেভ করুন",
+    "cancel": "বাতিল",
+    "notset": "দেওয়া নেই",
+    "pe.name": "নাম খালি রাখা যাবে না।",
+    "pe.pw6": "নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+    "pe.cur": "নতুন পাসওয়ার্ড দিতে বর্তমান পাসওয়ার্ড লিখুন।",
+    "pe.ok": "প্রোফাইল আপডেট হয়েছে।",
+    "msg.cancel.w": "অর্ডার {t} বাতিল হয়েছে — {a} আপনার ওয়ালেটে ফেরত এসেছে।",
+    "msg.cancel": "অর্ডার {t} বাতিল হয়েছে।",
+    "notif": "বিজ্ঞপ্তি",
+    "notif.markall": "সব পড়া হয়েছে",
+    "notif.clear": "মুছুন",
+    "notif.none": "এখনো কোনো বিজ্ঞপ্তি নেই।",
+    "starred": "তারকা চিহ্নিত আইটেম",
+    "viewfav": "শুধু পছন্দের দেখুন",
+    "plus1": "আরও ১টি",
+    "quick": "দ্রুত অর্ডার",
+    "coupon.label": "কুপন কোড",
+    "coupon.ph": "যেমন CAMPUS10",
+    "apply": "প্রয়োগ করুন",
+    "coupon.invalid": "কুপনটি বৈধ নয়",
+    "coupon.applied": "{d} ছাড় প্রয়োগ হয়েছে",
+    "coupon.line": "কুপন ({c})",
+    "subtotal": "উপমোট",
+    "cal.note2": "সার্ভার লাইভ হিসাব করেছে — শিক্ষার্থী ও শিক্ষক উভয়ের জন্য একই মিল-প্ল্যান নিয়ম প্রযোজ্য।",
+    "tab.chat": "অ্যাডমিনের সাথে চ্যাট",
+    "chat.sendfail": "বার্তা পাঠানো যায়নি",
+    "chat.admin": "CampusDine অ্যাডমিন",
+    "chat.private": "ব্যক্তিগত সহায়তা কথোপকথন",
+    "chat.support": "CampusDine সহায়তা",
+    "chat.empty": "এখনো কোনো বার্তা নেই। অ্যাডমিনের সাথে কথা শুরু করুন।",
+    "chat.you": "আপনি",
+    "chat.ph": "বার্তা লিখুন…",
+    "chat.sending": "পাঠানো হচ্ছে…",
+    "chat.send": "পাঠান",
+    "n.accepted": "অর্ডার গৃহীত",
+    "n.cooking": "অর্ডার রান্না হচ্ছে",
+    "n.ready": "অর্ডার প্রস্তুত",
+    "n.other": "অর্ডার {s}",
+    "n.status": "{o} — অবস্থা: {s}",
+    "n.announce": "ক্যাম্পাস ঘোষণা",
+    "n.announce.def": "অ্যাডমিনের কাছ থেকে নতুন ঘোষণা।",
+    "n.chat": "নতুন চ্যাট বার্তা",
+    "theme.title": "থিম",
+    "theme.mode": "মোড",
+    "theme.light": "লাইট",
+    "theme.dark": "ডার্ক",
+    "theme.auto": "অটো",
+    "theme.accent": "রঙ",
+    "theme.green": "সবুজ",
+    "theme.blue": "নীল",
+    "theme.orange": "কমলা",
+    "theme.purple": "বেগুনি",
+    "theme.rose": "গোলাপি",
+    "lowbal": "আপনার ওয়ালেটে ব্যালেন্স কম ({b})। অর্ডার চালিয়ে যেতে টপ-আপ করুন।",
+    "note.label": "রান্নাঘরের জন্য নোট (ঐচ্ছিক)",
+    "note.ph": "যেমন ঝাল কম, পেঁয়াজ ছাড়া",
+    "note.show": "নোট",
+    "soldout": "বিক্রি শেষ"
+  }
+};
+const tx = (key, vars) => {
+  let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
+  if (str === undefined) str = I18N.en[key];
+  if (str === undefined) str = key;
+  if (vars) Object.keys(vars).forEach(k => { str = str.split("{" + k + "}").join(vars[k]); });
+  return str;
+};
+// lookup("status", "Ready") -> translated label, or the raw value if there is no translation
+const lookup = (prefix, val) => {
+  const k = prefix + "." + val;
+  const str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][k] : undefined;
+  if (str !== undefined) return str;
+  return I18N.en[k] !== undefined ? I18N.en[k] : val;
+};
+const num = (n) => Number(n).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-US", { useGrouping: false });
+const itemName = (item) => (CURRENT_LANG === "bn" && item.bn) ? item.bn : item.name;
+const dispName = (name) => (CURRENT_LANG === "bn" && MENU_BN[name]) ? MENU_BN[name] : name;
+// Wallet labels are stored in English by the server; map the known ones.
+const txLabel = (label) => {
+  if (CURRENT_LANG !== "bn") return label;
+  if (label === "Welcome bonus") return tx("tx.welcome");
+  if (label === "Order payment") return tx("tx.order");
+  let m = /^Refund — Order (\S+) cancelled$/.exec(label);
+  if (m) return tx("tx.refund", { t: m[1] });
+  m = /^Wallet top-up via (.+)$/.exec(label);
+  if (m) return tx("tx.topup", { m: m[1] });
+  return label;
+};
+const taka = (n) => `৳${Number(n || 0).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-BD")}`;
+function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); } // month is 1-12 here
+>>>>>>> Stashed changes
 function monthLabel(ym) {
   const [y, m] = ym.split("-");
   return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
@@ -923,6 +1472,7 @@ function TopBar({ role, name, tabs, active, setActive, onLogout, connected, noti
   );
 }
 
+<<<<<<< Updated upstream
 /* ---------------- Menu & Order Tab ---------------- */
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favorites, toggleFavorite, call, receivingNumber, availableCoupons, refreshMenu }) {
   const [cat, setCat] = useState("");
@@ -976,6 +1526,180 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favor
   const dealItems = mealDate === isoDay(0) ? menu.filter(m => m.surplus_active) : [];
   const filtered = menu.filter(i => (!veg || i.is_veg) && (!noNuts || !i.has_nuts) && (!mild || i.spice_level <= 1) && (!cat || i.category === cat) && (!debouncedSearch || `${i.name} ${i.bn || ""} ${i.description || ""}`.toLowerCase().includes(debouncedSearch.toLowerCase())) && (!minPrice || Number(i.price) >= Number(minPrice)) && (!maxPrice || Number(i.price) <= Number(maxPrice)) && (!availableOnly || i.stock > 0));
   const [payMethod, setPayMethod] = useState("wallet");
+=======
+/* ---------------- Menu & Order tab ---------------- */
+/* Veg / non-veg marker: green dot = vegetarian, red dot = non-vegetarian */
+function DietMark({ isVeg }) {
+  const c = isVeg ? "#16A34A" : "#B91C1C";
+  return (
+    <span title={isVeg ? tx("diet.veg") : tx("diet.nonveg")}
+      className="inline-grid place-items-center w-4 h-4 border-2 shrink-0"
+      style={{ borderColor: c, borderRadius: 3 }}>
+      <span className="w-2 h-2 rounded-full" style={{ background: c }} />
+    </span>
+  );
+}
+
+function MenuCategoryTabs({ category, setCategory }) {
+  return (
+    <div className="flex gap-2 mb-5">
+      {CATEGORIES.map(item => (
+        <button key={item.id} onClick={() => setCategory(item.id)}
+          className={`tab-btn px-4 py-2 rounded-full text-sm ${category === item.id ? "active" : ""}`}>
+          {tx("cat." + item.id)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MenuSearchSortControls({ search, setSearch, sortBy, setSortBy }) {
+  return (
+    <>
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+        placeholder={tx("search.ph")}
+        className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+        className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+        <option value="default">{tx("sort.default")}</option>
+        <option value="priceAsc">{tx("sort.priceAsc")}</option>
+        <option value="priceDesc">{tx("sort.priceDesc")}</option>
+        <option value="name">{tx("sort.name")}</option>
+      </select>
+    </>
+  );
+}
+
+function MenuDietFilter({ diet, setDiet }) {
+  return (
+    <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
+      {[["all", tx("diet.all")], ["veg", tx("diet.veg")], ["nonveg", tx("diet.nonveg")]].map(([key, label]) => (
+        <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
+          style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FavoritesFilterToggle({ favoritesOnly, onChange }) {
+  return (
+    <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
+      style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
+      <input type="checkbox" checked={favoritesOnly} onChange={onChange} />
+      <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
+      {tx("fav")}
+    </label>
+  );
+}
+
+function FavoriteStarButton({ item, onToggleFavorite }) {
+  return (
+    <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+      title={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
+      className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+      <Icon path={I.star} className="w-4 h-4" fill={item.is_favorite ? "currentColor" : "none"}
+        style={{ color: "var(--gold)" }} />
+    </button>
+  );
+}
+
+function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavoritesOnly }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Icon path={I.star} className="w-4 h-4" style={{ color: "var(--gold)" }} fill="currentColor" />
+          <h3 className="font-display font-700 text-base" style={{ color: "var(--gold)" }}>{tx("starred")}</h3>
+        </div>
+        <button onClick={() => setFavoritesOnly(true)} className="text-xs px-2.5 py-1.5 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+          {tx("viewfav")}
+        </button>
+      </div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {items.map(item => {
+          const out = item.stock <= 0 || item.availability === "sold_out";
+          const inCart = cart.find(cartItem => cartItem.id === item.id);
+          return (
+            <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <DietMark isVeg={!!item.is_veg} />
+                  <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{itemName(item)}</span>
+                </div>
+                <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+                  title={tx("fav.remove")}
+                  className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+                  <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                {out ? (
+                  <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                ) : inCart ? (
+                  <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
+                    {tx("plus1")}
+                  </button>
+                ) : (
+                  <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">{tx("quick")}</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken }) {
+  const [cat, setCat] = useState("heavy");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("default");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [diet, setDiet] = useState("all"); // "all" | "veg" | "nonveg"
+  const filtered = menu
+    .filter(i => i.category === cat)
+    .filter(i => !favoritesOnly || i.is_favorite)
+    .filter(i => diet === "all" || (diet === "veg" ? !!i.is_veg : !i.is_veg))
+    .filter(i => {
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      return i.name.toLowerCase().includes(q) || (i.bn && i.bn.includes(search.trim()));
+    })
+    .sort((a, b) => {
+      if (sortBy === "priceAsc") return a.price - b.price;
+      if (sortBy === "priceDesc") return b.price - a.price;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return 0; // "default" — keep the server's category/name ordering
+    });
+  const starredItems = menu.filter(item => item.is_favorite);
+  const [payMethod, setPayMethod] = useState("wallet");
+  const [scheduleLater, setScheduleLater] = useState(false);
+  const [pickupTime, setPickupTime] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
+  const [orderNote, setOrderNote] = useState("");
+  useEffect(() => {
+    setCouponApplied(null);
+    setCouponError("");
+    if (cart.length === 0) { setCouponCode(""); setOrderNote(""); }
+  }, [cart]);
+
+  // Feature: pre-order — a student can pick a slot up to 4h ahead (min 10min from now).
+  // These bounds are hints for the native time input; the server enforces the real rule.
+  const fmtHHMM = (d) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const pickupNow = new Date();
+  pickupNow.setSeconds(0, 0); // whole-minute precision — must match the server's rounding exactly
+  const pickupMin = new Date(pickupNow.getTime() + 10 * 60000);
+  const pickupMax = new Date(pickupNow.getTime() + 4 * 3600000);
+  const pickupCrossesMidnight = pickupMin.getDate() !== pickupMax.getDate();
+>>>>>>> Stashed changes
 
   const add = (item) => setCart(prev => {
     const existing = prev.find(p => p.id === item.id);
@@ -1034,7 +1758,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favor
         {favorites.length > 0 && <div className="card p-3 mb-5 text-xs"><span className="text-amber-300 font-700">Favorites:</span> {favorites.map(item => <button key={item.id} disabled={item.stock <= 0} onClick={() => add(item)} className="ml-2 text-gray-300 hover:text-amber-300 disabled:opacity-40 disabled:line-through">{item.name}</button>)}</div>}
         <div className="grid sm:grid-cols-2 gap-4">
           {filtered.map(item => {
-            const out = item.stock <= 0;
+            const out = item.stock <= 0 || item.availability === "sold_out";
             const inCart = cart.find(c => c.id === item.id);
             const isFavorite = favorites.some(f => f.id === item.id);
             return (
@@ -1059,7 +1783,11 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favor
                 <div className="mt-4 flex items-center justify-between">
                   <span className="font-mono font-700 text-lg">{mealDate === isoDay(0) && item.surplus_price != null ? <><span className="text-xs line-through text-gray-400 mr-1">{taka(item.price)}</span><span style={{ color: "#D92D20" }}>{taka(item.surplus_price)}</span></> : taka(item.price)}</span>
                   {out ? (
+<<<<<<< Updated upstream
                     <span className="text-xs text-red-400 font-600">{tr("Stock Out")}</span>
+=======
+                    <span className="text-xs font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+>>>>>>> Stashed changes
                   ) : inCart ? (
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border border-amber-400/30"><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
@@ -1112,11 +1840,42 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favor
                 <input value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} placeholder="Coupon code" className="flex-1 px-3 py-2 rounded-lg border text-xs" style={{ borderColor: "var(--panel-border)" }} />
                 <button onClick={validateCoupon} className="px-3 rounded-lg border border-amber-400/30 text-xs">Apply</button>
               </div>
+<<<<<<< Updated upstream
               {availableCoupons.length > 0 && <div className="note note-warn mb-3 p-3"><div className="text-[10px] uppercase tracking-wider font-700 mb-2" style={{ color: "#8A5B00" }}>Available offers</div><div className="flex flex-wrap gap-2">{availableCoupons.map(offer => <button key={offer.id} onClick={() => setCouponCode(offer.code)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-700" style={{ background: "#fff", color: "#101B2D", border: "1.5px dashed #101B2D" }}>{offer.code} <span className="font-sans">{offer.discount_type === "PERCENTAGE" ? `${offer.discount_value}% off` : `${taka(offer.discount_value)} off`}</span></button>)}</div></div>}
               {couponMessage && <p className="text-[11px] text-gray-400 mb-3">{couponMessage}</p>}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-xs">
                 <button onClick={() => setPayMethod("wallet")} className={`flex-1 py-2 rounded-lg border ${payMethod === "wallet" ? "bg-amber-400 text-slate-950 font-700" : "border-amber-400/20"}`}>
                   Wallet
+=======
+              <div className="mb-4">
+                <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("note.label")}</label>
+                <textarea value={orderNote} onChange={e => setOrderNote(e.target.value.slice(0, 200))} rows={2} maxLength={200}
+                  placeholder={tx("note.ph")} className="w-full px-3 py-2 rounded-lg border text-sm resize-none" style={{ borderColor: "var(--line)" }} />
+                <div className="text-[10px] text-right mt-0.5" style={{ color: "var(--ink-soft)" }}>{num(orderNote.length)}/{num(200)}</div>
+              </div>
+              <div className="mb-4">
+                <label className="flex items-center gap-2 text-sm mb-2">
+                  <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
+                  {tx("schedule")}
+                </label>
+                {scheduleLater && (
+                  <>
+                    <input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)}
+                      min={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMin)}
+                      max={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMax)}
+                      className="w-full px-3 py-2 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
+                    <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                      {tx("pick.hint", { a: fmtHHMM(pickupMin), b: fmtHHMM(pickupMax) })}
+                    </p>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2 mb-4 text-sm">
+                <button onClick={() => setPayMethod("wallet")}
+                  className={`flex-1 py-2 rounded-lg border ${payMethod === "wallet" ? "text-white" : ""}`}
+                  style={payMethod === "wallet" ? { background: "var(--teal)", borderColor: "var(--teal)" } : { borderColor: "var(--line)" }}>
+                  {tx("pay.wallet")}
+>>>>>>> Stashed changes
                 </button>
                 <button onClick={() => setPayMethod("cash")} className={`flex-1 py-2 rounded-lg border ${payMethod === "cash" ? "bg-amber-400 text-slate-950 font-700" : "border-amber-400/20"}`}>
                   Cash
@@ -1127,9 +1886,15 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, favor
               {payMethod === "wallet" && !canPay && (
                 <p className="text-[11px] text-red-400 mb-3">পর্যাপ্ত ব্যালেন্স নেই, ওয়ালেট রিচার্জ করুন।</p>
               )}
+<<<<<<< Updated upstream
               {iftarBlock && <p className="text-[11px] mb-3" style={{ color: "#3F2E8C" }}>🌙 Iftar items need an iftar pickup slot — choose one above.</p>}
               <button disabled={!canPay || busy || iftarBlock} onClick={() => placeOrder(cart, payMethod, coupon, total, { pickupSlot: slot || null, mealDate })} className="btn-primary w-full py-2.5 rounded-lg text-xs">
                 {busy ? "Placing Order..." : tr("Confirm & Get Token")}
+=======
+              <button disabled={!canCheckout || busy} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote)}
+                className="btn-primary w-full py-2.5 rounded-xl">
+                {busy ? tx("placing") : tx("checkout")}
+>>>>>>> Stashed changes
               </button>
             </>
           )}
@@ -1245,9 +2010,34 @@ function GroupSection({ call, menu, me, showError, refreshWallet, refreshOrders 
               <SlotPicker data={slotData} value={form.slot} onChange={s => setForm({ ...form, slot: s })} />
               <button onClick={create} disabled={!form.name.trim()} className="btn-primary px-4 py-2 rounded-lg text-xs">{tr("Create group")}</button>
             </div>
+<<<<<<< Updated upstream
             <div className="space-y-2">
               <div className="flex gap-2"><input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={8} placeholder={tr("Group code")} className={`${inputCls} flex-1 font-mono`} style={inputStyle} /><button onClick={join} disabled={joinCode.length < 4} className="px-4 rounded-lg border border-amber-400/40 text-xs">{tr("Join")}</button></div>
               {groups.length > 0 && <div className="text-[11px] space-y-1 pt-2">{groups.map(g => <button key={g.code} onClick={() => open(g.code)} className="block w-full text-left p-2 rounded-lg border border-amber-400/20 hover:border-amber-400"><b>{g.name}</b> · <span className="font-mono">{g.code}</span> · {g.members} 👤 · {String(g.meal_date).slice(0, 10)}{g.pickup_slot ? ` ${g.pickup_slot}` : ""} · <span className={g.status === "open" ? "text-emerald-600" : "text-gray-400"}>{g.status}</span></button>)}</div>}
+=======
+            <div className="receipt-divider" />
+            <div className="text-center" style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, color: "#6B7280" }}>{tx("rc.token")}</div>
+              <div className="font-mono font-800" style={{ fontSize: 30, letterSpacing: 2 }}>{printOrder.token}</div>
+            </div>
+            <div className="receipt-row"><span>{tx("rc.status")}</span><span style={{ fontWeight: 600 }}>{lookup("status", printOrder.status)}</span></div>
+            <div className="receipt-row"><span>{tx("rc.payment")}</span><span>{printOrder.payment_method === "wallet" ? tx("pay.wallet") : tx("pay.cash")}</span></div>
+            {printOrder.note && (
+              <div className="receipt-row"><span>{tx("note.show")}</span><span>{printOrder.note}</span></div>
+            )}
+            {printOrder.pickup_time && (
+              <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
+            )}
+            <div className="receipt-row"><span>{tx("rc.printed")}</span><span>{new Date().toLocaleString()}</span></div>
+            <div className="receipt-divider" />
+            {printOrder.items.map((i, idx) => (
+              <div key={idx} className="receipt-row"><span>{dispName(i.name)} ×{num(i.qty)}</span><span>{taka(i.price * i.qty)}</span></div>
+            ))}
+            <div className="receipt-divider" />
+            <div className="receipt-row" style={{ fontSize: 15, fontWeight: 800 }}><span>{tx("total")}</span><span>{taka(printOrder.total)}</span></div>
+            <div className="text-center" style={{ marginTop: 16, fontSize: 11, color: "#6B7280" }}>
+              {tx("rc.thanks")}
+>>>>>>> Stashed changes
             </div>
           </div>
         </div>
@@ -1428,6 +2218,7 @@ function TrackOrder({ orders, call, refreshOrders, refreshWallet, reorder, meId 
                   </React.Fragment>
                 ))}
               </div>
+<<<<<<< Updated upstream
               {closed && <div className="note note-danger text-xs mb-3 px-3 py-2">{o.status === "Refunded" ? `Cancelled — ${taka(o.refund_amount)} refunded to your wallet` : "Cancelled"}</div>}
               <div className="text-xs text-gray-400 border-t border-amber-400/10 pt-3 mt-4">
                 {o.meal_date && <div className="mb-1">{tr("Meal date")}: {String(o.meal_date).slice(0, 10)}</div>}
@@ -1457,6 +2248,30 @@ function TrackOrder({ orders, call, refreshOrders, refreshWallet, reorder, meId 
                     }}
                     className="mt-4 px-3 py-2 rounded-lg border border-amber-400/40 text-xs"
                   >🖨️ Print Token</button>
+=======
+              {o.note && (
+                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                  {tx("note.show")}: {o.note}
+                </div>
+              )}
+              <div className="flex items-center gap-2 mt-3">
+                <button onClick={() => onReorder(o)}
+                  className="text-xs px-3 py-1.5 rounded-lg font-600 btn-primary flex items-center gap-1.5">
+                  {tx("reorder")}
+                </button>
+                <button onClick={() => setPrintOrder(o)}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                  <Icon path={I.printer} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
+                  {tx("print")}
+                </button>
+                {o.status === "Received" && (
+                  <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600"
+                    style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+                    {tx("cancelorder")}
+                  </button>
+>>>>>>> Stashed changes
                 )}
               </div>
               {showCode && showQr[o.id] && <div><QRBox orderId={o.id} /><div className="text-[11px] text-gray-400 mt-1">Show this at the counter — or give the code <b className="font-mono">{shortToken(o.token)}</b>.</div></div>}
@@ -1864,6 +2679,7 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
       )}
 
       <div className="card overflow-hidden">
+<<<<<<< Updated upstream
         <table className="w-full text-xs text-left">
           <thead className="bg-amber-400 text-slate-950 font-display">
             <tr>
@@ -1873,12 +2689,30 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
               <th className="p-3">Stock</th>
               <th className="p-3">Tags</th>
               <th className="p-3"></th>
+=======
+        <table className="w-full text-sm">
+          <thead>
+            <tr style={{ background: "var(--gold-soft)" }}>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Item</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Category</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Type</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Price (৳)</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Stock</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Availability</th>
+>>>>>>> Stashed changes
             </tr>
           </thead>
           <tbody>
             {menu.map(item => (
+<<<<<<< Updated upstream
               <tr key={item.id} className={`border-t border-amber-400/10 ${item.is_active === 0 || item.is_active === false ? "opacity-50" : ""}`}>
                 <td className="p-3 font-600">{item.name} <div className="text-[10px] text-gray-400 font-normal">{item.bn}</div></td>
+=======
+              <tr key={item.id} style={{ borderTop: "1px solid var(--line)", opacity: (item.availability || "available") === "available" ? 1 : 0.6 }}>
+                <td className="p-3">
+                  <div className="font-600">{item.name}</div>
+                </td>
+>>>>>>> Stashed changes
                 <td className="p-3 capitalize">{item.category}</td>
                 <td className="p-3">
                   <input type="number" defaultValue={item.price} onBlur={e => Number(e.target.value) !== Number(item.price) && updateItem(item.id, { price: Number(e.target.value) })} className="w-20 px-2 py-1 rounded border font-mono" style={{ borderColor: "var(--panel-border)" }} />
@@ -1896,12 +2730,45 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                     <select value={item.spice_level || 0} onChange={e => updateItem(item.id, { spiceLevel: Number(e.target.value) })} className="border rounded px-1" style={{ borderColor: "var(--panel-border)" }}>{[0, 1, 2, 3].map(n => <option key={n} value={n}>{n ? SPICE[n] : "no spice"}</option>)}</select>
                   </div>
                 </td>
+<<<<<<< Updated upstream
                 <td className="p-3">{item.is_active === 0 || item.is_active === false ? <button onClick={() => updateItem(item.id, { isActive: true })} className="text-emerald-600 text-[11px]">Restore</button> : <button onClick={() => window.confirm(`Hide ${item.name} from the menu? Past orders are kept.`) && updateItem(item.id, { isActive: false })} className="text-red-400 text-[11px]">Archive</button>}</td>
+=======
+                <td className="p-3">
+                  {(() => {
+                    const a = item.availability || "available";
+                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : "Available";
+                    const pillStyle = a === "available"
+                      ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
+                      : a === "sold_out"
+                        ? { background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }
+                        : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
+                    return (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-700 px-2 py-0.5 rounded-full" style={pillStyle}>{pill}</span>
+                        {a !== "hidden" && (
+                          <button onClick={() => updateItem(item.id, { availability: a === "sold_out" ? "available" : "sold_out" })}
+                            className="text-xs px-2.5 py-1 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>
+                            {a === "sold_out" ? "Mark available" : "Sold out"}
+                          </button>
+                        )}
+                        <button onClick={() => updateItem(item.id, { availability: a === "hidden" ? "available" : "hidden" })}
+                          className="text-xs px-2.5 py-1 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>
+                          {a === "hidden" ? "Show" : "Hide"}
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </td>
+>>>>>>> Stashed changes
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+<<<<<<< Updated upstream
+=======
+      <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>Edit a price or stock number and click outside the box to save. "Sold out" keeps an item on the menu but blocks ordering; "Hide" removes it from students' menu until you show it again.</p>
+>>>>>>> Stashed changes
     </div>
   );
 }
@@ -1914,6 +2781,7 @@ function AdminCoupons({ coupons, createCoupon, toggleCoupon }) {
   const bd = { borderColor: "var(--panel-border)" };
   const submit = async () => { if (!form.code || !form.discountValue) return; if (await createCoupon(form)) setForm(blank); };
   return (
+<<<<<<< Updated upstream
     <div className="space-y-4">
       <div className="font-display font-700 text-lg text-amber-300">Coupons</div>
       <div className="card p-4 grid sm:grid-cols-4 gap-3">
@@ -1944,6 +2812,46 @@ function AdminCoupons({ coupons, createCoupon, toggleCoupon }) {
           </tbody>
         </table>
       </div>
+=======
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {sorted.map(o => (
+        <div key={o.token} className="card p-4">
+          <div className="flex justify-between items-start mb-2">
+            <span className="font-mono font-700 text-lg" style={{ color: "var(--gold)" }}>{o.token}</span>
+            <span className="text-xs px-2 py-1 rounded-full font-600" style={{
+              background: o.status === "Ready" ? "var(--leaf)" : o.status === "Cooking" ? "var(--gold)" : o.status === "Cancelled" ? "var(--brick)" : "var(--line)",
+              color: o.status === "Received" ? "var(--ink)" : "#fff"
+            }}>{o.status}</span>
+          </div>
+          {o.pickup_time && (
+            <div className="text-xs mb-2 font-600" style={{ color: "var(--teal)" }}>
+              Pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </div>
+          )}
+          <div className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
+            {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
+          </div>
+          {o.note && (
+            <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
+              style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
+              📝 Note: {o.note}
+            </div>
+          )}
+          <div className="flex justify-between items-center">
+            <span className="font-mono text-sm">{taka(o.total)}</span>
+            {o.status === "Cancelled" ? (
+              <span className="text-xs flex items-center gap-1" style={{ color: "var(--brick)" }}><Icon path={I.x} className="w-4 h-4" /> Cancelled</span>
+            ) : o.status !== "Ready" ? (
+              <button onClick={() => advance(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
+                Advance <Icon path={I.arrow} className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <span className="text-xs flex items-center gap-1" style={{ color: "var(--leaf)" }}><Icon path={I.check} className="w-4 h-4" /> Done</span>
+            )}
+          </div>
+        </div>
+      ))}
+>>>>>>> Stashed changes
     </div>
   );
 }
@@ -2150,19 +3058,33 @@ function App() {
         api(apiBase, "/api/orders/mine", { token: session.token }).then(setOrders).catch(() => {}); // picks up treats / group orders other people placed for you
       }
     });
+<<<<<<< Updated upstream
+=======
+    // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
+    // Admin changed an item (sold out / hidden / price): refresh the menu live
+    socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
+    socket.on("queue:changed", () => {
+      if (session.user.role !== "admin") refreshMyOrders().catch(() => {});
+    });
+>>>>>>> Stashed changes
     return () => socket.disconnect();
   }, [session?.token, apiBase]);
 
+<<<<<<< Updated upstream
   const toggleFavorite = async (item) => {
     try { const exists = favorites.some(f => f.id === item.id); await call(`/api/favorites/${item.id}`, { method: exists ? "DELETE" : "POST" }); await refreshFavorites(); } catch (e) { showError(e); }
   };
 
   const placeOrder = async (cartItems, paymentMethod, coupon, total, extra = {}) => {
+=======
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note) => {
+>>>>>>> Stashed changes
     setBusy(true); setError(null);
     // Same cart + same payment = same key, so a double-click / network retry can never create two orders.
     const sig = JSON.stringify([cartItems.map(c => [c.id, c.qty]), paymentMethod, coupon?.code || "", extra.pickupSlot || "", extra.mealDate || ""]);
     if (!orderKeyRef.current || orderKeyRef.current.sig !== sig) orderKeyRef.current = { sig, key: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}` };
     try {
+<<<<<<< Updated upstream
       const order = await call("/api/orders", { method: "POST", body: { items: cartItems.map(c => ({ id: Number(c.id), qty: Number(c.qty) })), couponCode: coupon?.code, paymentMethod, pickupSlot: extra.pickupSlot || undefined, mealDate: extra.mealDate || undefined, idempotencyKey: orderKeyRef.current.key } });
       orderKeyRef.current = null;
       if (order.savings > 0) pushToast(`🌱 You saved ${taka(order.savings)} with the last-hour deal!`);
@@ -2173,10 +3095,46 @@ function App() {
           if (paymentUrl) window.open(paymentUrl, "_blank", "noopener");
         } catch (e) { showError(`Order placed, but online payment could not start: ${e.message} You can pay at pickup or cancel the order in Track Order.`); }
       }
+=======
+      await call("/api/orders", {
+        method: "POST",
+        body: {
+          items: cartItems.map(c => ({ id: c.id, qty: c.qty })),
+          paymentMethod,
+          pickupTime: pickupTime || undefined,
+          couponId: coupon ? coupon.couponId : undefined,
+          couponCode: coupon ? coupon.code : undefined,
+          note: note && note.trim() ? note.trim() : undefined,
+        },
+      });
+>>>>>>> Stashed changes
       setCart([]);
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve(), refreshCoupons()]);
       setTab("track");
     } catch (e) { showError(e); } finally { setBusy(false); }
+<<<<<<< Updated upstream
+=======
+  }; 
+    // Order again: put the items of a past order back into the cart (current prices, capped by stock).
+  const reorder = (order) => {
+    const next = [...cart];
+    const added = [];
+    const skipped = [];
+    for (const it of order.items) {
+      const m = menu.find(x => (it.menuItemId != null ? x.id === it.menuItemId : x.name === it.name));
+      if (!m || m.stock <= 0 || m.availability === "sold_out") { skipped.push(dispName(it.name)); continue; }
+      const idx = next.findIndex(c => c.id === m.id);
+      const have = idx >= 0 ? next[idx].qty : 0;
+      const qty = Math.min(have + it.qty, m.stock);
+      if (qty <= have) { skipped.push(dispName(it.name)); continue; }
+      if (idx >= 0) next[idx] = { ...next[idx], qty }; else next.push({ ...m, qty });
+      added.push(qty < have + it.qty ? `${dispName(m.name)} (${num(m.stock)}${tx("reorder.left")})` : dispName(m.name));
+    }
+    if (added.length === 0) { showError(tx("reorder.none")); return; }
+    setCart(next);
+    showSuccess(tx("reorder.added") + added.join(", ") + "." + (skipped.length ? tx("reorder.skipped") + skipped.join(", ") + "." : ""));
+    setTab("menu");
+>>>>>>> Stashed changes
   };
 
   const reorder = (order) => {

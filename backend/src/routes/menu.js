@@ -33,6 +33,7 @@ function parseItem(body, { partial }) {
   return { value: v };
 }
 
+<<<<<<< Updated upstream
 // GET /api/menu?search=&category=&available=true&veg=true&halal=true&nonuts=true&maxSpice=1&includeArchived=true(admin)
 router.get("/", verifyToken, async (req, res) => {
   const S = await loadSettings(pool);
@@ -55,6 +56,23 @@ router.get("/", verifyToken, async (req, res) => {
       ${filters.length ? `WHERE ${filters.join(" AND ")}` : ""} ORDER BY m.category, m.name`, values);
   res.json(decorateMenu(rows, S));
 });
+=======
+// GET /api/menu  (any logged-in user) — includes is_favorite for the caller
+router.get("/", verifyToken, catchAsync(async (req, res) => {
+  const { table, itemColumn } = await resolveFavoriteTable();
+  // Feature: hidden items are only visible to the admin (who needs them to un-hide them)
+  const hiddenFilter = req.user.role === "admin" ? "" : "WHERE m.availability IS NULL OR m.availability <> 'hidden'";
+  const [rows] = await pool.query(
+    `SELECT m.*, IF(f.user_id IS NULL, 0, 1) AS is_favorite
+     FROM menu_items m
+     LEFT JOIN ${table} f ON f.${itemColumn} = m.id AND f.user_id = ?
+     ${hiddenFilter}
+     ORDER BY m.category, m.name`,
+    [req.user.id]
+  );
+  res.json(rows);
+}));
+>>>>>>> Stashed changes
 
 router.post("/", verifyToken, requireRole("admin"), async (req, res) => {
   const { error, value } = parseItem(req.body, { partial: false });
@@ -65,6 +83,7 @@ router.post("/", verifyToken, requireRole("admin"), async (req, res) => {
   res.status(201).json(row[0]);
 });
 
+<<<<<<< Updated upstream
 router.put("/:id", verifyToken, requireRole("admin"), async (req, res) => {
   const { error, value } = parseItem(req.body, { partial: true });
   if (error) return res.status(400).json({ error });
@@ -73,6 +92,31 @@ router.put("/:id", verifyToken, requireRole("admin"), async (req, res) => {
   const [result] = await pool.query(`UPDATE menu_items SET ${cols.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, [...cols.map((c) => value[c]), req.params.id]);
   if (!result.affectedRows) return res.status(404).json({ error: "Item not found" });
   const [row] = await pool.query("SELECT * FROM menu_items WHERE id = ?", [req.params.id]);
+=======
+// PUT /api/menu/:id  (admin only) — update price / stock / tag / veg flag
+router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const { price, stock, tag, isVeg, availability } = req.body;
+  const fields = [];
+  const values = [];
+  if (price != null) { fields.push("price = ?"); values.push(price); }
+  if (stock != null) { fields.push("stock = ?"); values.push(stock); }
+  if (tag !== undefined) { fields.push("tag = ?"); values.push(tag); }
+  if (isVeg !== undefined) { fields.push("is_veg = ?"); values.push(isVeg ? 1 : 0); }
+  if (availability !== undefined) {
+    if (!["available", "sold_out", "hidden"].includes(availability)) {
+      return res.status(400).json({ error: "availability must be available, sold_out or hidden" });
+    }
+    fields.push("availability = ?"); values.push(availability);
+  }
+  if (fields.length === 0) return res.status(400).json({ error: "Nothing to update" });
+
+  values.push(req.params.id);
+  await pool.query(`UPDATE menu_items SET ${fields.join(", ")} WHERE id = ?`, values);
+  const [row] = await pool.query("SELECT * FROM menu_items WHERE id = ?", [req.params.id]);
+  if (row.length === 0) return res.status(404).json({ error: "Item not found" });
+  const io = req.app.get("io");
+  if (io) io.emit("menu:changed"); // students' menus refresh live (sold out / hidden / price changes)
+>>>>>>> Stashed changes
   res.json(row[0]);
 });
 

@@ -30,7 +30,56 @@ async function seedOnce(key, fn) {
   await db.query("INSERT INTO app_settings (k, v) VALUES (?, '1')", [`seed_${key}`]);
 }
 
+<<<<<<< Updated upstream
 const NEW_TABLES = ["app_settings", "order_shares", "class_schedule", "group_orders", "group_members", "group_items", "treats", "loyalty", "points_log"];
+=======
+// Feature: order note + sold-out/hide. Adds the new columns to databases created before this change
+// (same SHOW COLUMNS / ALTER TABLE approach as the coupon schema check above).
+async function ensureNoteAndAvailabilitySchema(db) {
+  try {
+    const [noteColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'note'");
+    if (noteColumn.length === 0) {
+      await db.query("ALTER TABLE orders ADD COLUMN note VARCHAR(255) NULL");
+      console.log("✅ Added orders.note column");
+    }
+    const [availabilityColumn] = await db.query("SHOW COLUMNS FROM menu_items LIKE 'availability'");
+    if (availabilityColumn.length === 0) {
+      await db.query("ALTER TABLE menu_items ADD COLUMN availability VARCHAR(12) NOT NULL DEFAULT 'available'");
+      console.log("✅ Added menu_items.availability column");
+    }
+  } catch (error) {
+    console.warn("⚠️ Order note / availability schema check failed:", error.message);
+  }
+}
+
+async function ensureChatSchema(db) {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS chat_conversations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL UNIQUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      conversation_id INT NOT NULL,
+      sender_id INT NOT NULL,
+      recipient_id INT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      read_at DATETIME NULL,
+      KEY idx_chat_conversation_message (conversation_id, id),
+      KEY idx_chat_recipient_unread (recipient_id, read_at),
+      FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+      FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+}
+>>>>>>> Stashed changes
 
 async function runStartupCheck() {
   console.log("\n🔧 CampusDine startup check চলছে...\n");
@@ -142,9 +191,26 @@ async function runStartupCheck() {
     const [[a]] = await db.query("SELECT COUNT(*) AS c FROM users WHERE role = 'admin'");
     if (!a.c) console.warn("⚠️  Production mode and no admin user exists. Create one manually, or start once with SEED_DEMO=true and change the password.");
   }
+<<<<<<< Updated upstream
   await db.query("INSERT IGNORE INTO meal_rates (role, full_rate, half_rate) VALUES ('student', 90, 50), ('teacher', 130, 70)");
   await db.query(`INSERT IGNORE INTO coupons (code, discount_type, discount_value, min_order_amount, max_discount, usage_limit, expiry_date, description, is_active)
                   VALUES ('CAMPUS10', 'PERCENTAGE', 10, 50, 100, 1000, DATE_ADD(NOW(), INTERVAL 1 YEAR), '10% off for campus orders', 1)`);
+=======
+
+  await seedDefaultMenuAndRates(db);
+  await ensureCouponSchema(db);
+  await ensureChatSchema(db);
+  await ensureNoteAndAvailabilitySchema(db);
+
+  console.log("\n════════════════════════════════════════");
+  console.log("🔑 Test the app with these logins:");
+  console.log("   Admin   → ID: admin      Password: admin123");
+  console.log("   Student → ID: student1   Password: student123");
+  console.log("   Teacher → ID: teacher1   Password: teacher123");
+  console.log("════════════════════════════════════════\n");
+
+  await db.end();
+>>>>>>> Stashed changes
 }
 
 // ── Express app ──

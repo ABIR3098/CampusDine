@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   price DECIMAL(10,2) NOT NULL,
   stock INT NOT NULL DEFAULT 0,
   tag VARCHAR(30),
+<<<<<<< Updated upstream
   description VARCHAR(255),
   image_url VARCHAR(500),
   is_active BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE = archived (hidden from students)
@@ -43,6 +44,10 @@ CREATE TABLE IF NOT EXISTS menu_items (
   has_nuts BOOLEAN NOT NULL DEFAULT FALSE,
   iftar_only BOOLEAN NOT NULL DEFAULT FALSE, -- only orderable while Ramadan mode is on
   surplus_eligible BOOLEAN NOT NULL DEFAULT TRUE,
+=======
+  is_veg TINYINT(1) NOT NULL DEFAULT 1,   -- 1 = vegetarian, 0 = non-vegetarian
+  availability VARCHAR(12) NOT NULL DEFAULT 'available',   -- available | sold_out | hidden
+>>>>>>> Stashed changes
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -56,6 +61,7 @@ CREATE TABLE IF NOT EXISTS orders (
   meal_date DATE NOT NULL,
   idempotency_key VARCHAR(100),
   discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+<<<<<<< Updated upstream
   discount_applied BOOLEAN NOT NULL DEFAULT FALSE,
   refund_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
   pickup_slot VARCHAR(5) NULL,                 -- e.g. '13:10' (10-minute pickup window)
@@ -68,6 +74,13 @@ CREATE TABLE IF NOT EXISTS orders (
   points_awarded BOOLEAN NOT NULL DEFAULT FALSE,
   payment_method ENUM('wallet','cash','bkash','nagad') NOT NULL,
   status ENUM('Received','Cooking','Ready','Confirmed','Cancelled','Refunded') NOT NULL DEFAULT 'Received',
+=======
+  discount_applied TINYINT(1) NOT NULL DEFAULT 0,
+  payment_method ENUM('wallet','cash') NOT NULL,
+  pickup_time DATETIME NULL,  -- NULL = ASAP; otherwise a scheduled pickup time (feature: pre-order)
+  note VARCHAR(255) NULL,     -- optional note for the kitchen, e.g. "less spicy"
+  status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
+>>>>>>> Stashed changes
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uniq_order_idempotency (user_id, idempotency_key),
   FOREIGN KEY (user_id) REFERENCES users(id)
