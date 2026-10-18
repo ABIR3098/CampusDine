@@ -67,7 +67,7 @@ router.post("/login", catchAsync(async (req, res) => {
     const token = signToken({ id: user.id, name: user.name, role: user.role });
     res.json({
       token,
-      user: { id: user.id, name: user.name, role: user.role, walletBalance: user.wallet_balance },
+      user: { id: user.id, name: user.name, role: user.role, walletBalance: user.wallet_balance, avatar: user.avatar || null },
     });
   } catch (err) {
     console.error(err);
@@ -79,7 +79,7 @@ router.post("/login", catchAsync(async (req, res) => {
 router.get("/me", verifyToken, catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     `SELECT id, name, external_id, role, wallet_balance,
-            phone, address, department, father_phone, room_number, hall_id
+            phone, address, department, father_phone, room_number, hall_id, avatar
      FROM users WHERE id = ?`,
     [req.user.id]
   );
@@ -88,7 +88,7 @@ router.get("/me", verifyToken, catchAsync(async (req, res) => {
   res.json({
     id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance,
     phone: u.phone, address: u.address, department: u.department, fatherPhone: u.father_phone,
-    roomNumber: u.room_number, hallId: u.hall_id,
+    roomNumber: u.room_number, hallId: u.hall_id, avatar: u.avatar || null,
   });
 }));
 
@@ -96,7 +96,7 @@ router.get("/me", verifyToken, catchAsync(async (req, res) => {
 // body: { name?, currentPassword?, newPassword? }
 router.put("/me", verifyToken, catchAsync(async (req, res) => {
   try {
-    const { name, phone, address, department, fatherPhone, roomNumber, currentPassword, newPassword } = req.body;
+    const { name, phone, address, department, fatherPhone, roomNumber, currentPassword, newPassword, avatar } = req.body;
     const fields = [];
     const values = [];
 
@@ -126,6 +126,19 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
       }
     }
 
+    // Profile picture: a small data-URL image, or null/"" to remove it.
+    if (avatar !== undefined) {
+      if (avatar === null || avatar === "") {
+        fields.push("avatar = ?"); values.push(null);
+      } else {
+        if (typeof avatar !== "string" || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(avatar)) {
+          return res.status(400).json({ error: "Profile picture must be a PNG, JPG or WebP image" });
+        }
+        if (avatar.length > 400000) return res.status(400).json({ error: "Profile picture is too large" });
+        fields.push("avatar = ?"); values.push(avatar);
+      }
+    }
+
     if (newPassword) {
       if (!currentPassword) {
         return res.status(400).json({ error: "Enter your current password to set a new one" });
@@ -148,7 +161,7 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
 
     const [rows] = await pool.query(
       `SELECT id, name, external_id, role, wallet_balance,
-              phone, address, department, father_phone, room_number, hall_id
+              phone, address, department, father_phone, room_number, hall_id, avatar
        FROM users WHERE id = ?`,
       [req.user.id]
     );
@@ -156,7 +169,7 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
     res.json({
       id: u.id, name: u.name, externalId: u.external_id, role: u.role, walletBalance: u.wallet_balance,
       phone: u.phone, address: u.address, department: u.department, fatherPhone: u.father_phone,
-      roomNumber: u.room_number, hallId: u.hall_id,
+      roomNumber: u.room_number, hallId: u.hall_id, avatar: u.avatar || null,
     });
   } catch (err) {
     console.error(err);

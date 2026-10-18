@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
   father_phone VARCHAR(20) NULL,
   room_number VARCHAR(20) NULL,              -- set by a hall resident from their profile
   hall_id VARCHAR(20) NULL UNIQUE,           -- auto-assigned once a room number is first saved; fixed after that
+  avatar MEDIUMTEXT NULL,                    -- profile picture (small base64 data-URL)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   tag VARCHAR(30),
   is_veg TINYINT(1) NOT NULL DEFAULT 1,   -- 1 = vegetarian, 0 = non-vegetarian
   availability VARCHAR(12) NOT NULL DEFAULT 'available',   -- available | sold_out | hidden
+  image VARCHAR(200) NULL,                 -- local image path, e.g. /images/food/tehari.svg
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

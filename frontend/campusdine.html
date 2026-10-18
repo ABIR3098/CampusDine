@@ -587,6 +587,12 @@ const I18N = {
     "notset": "Not set",
     "pe.name": "Name can't be empty.",
     "pe.pw6": "New password must be at least 6 characters.",
+    "pe.match": "New password and confirm password do not match.",
+    "cfpw": "Confirm new password",
+    "showpw": "Show passwords",
+    "pic.change": "Change photo", "pic.add": "Add photo", "pic.remove": "Remove",
+    "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
+    "pic.hint": "Click Save to keep your new photo.",
     "pe.cur": "Enter your current password to set a new one.",
     "pe.ok": "Profile updated.",
     "msg.cancel.w": "Order {t} cancelled — {a} refunded to your wallet.",
@@ -863,6 +869,12 @@ const I18N = {
     "notset": "দেওয়া নেই",
     "pe.name": "নাম খালি রাখা যাবে না।",
     "pe.pw6": "নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+    "pe.match": "নতুন পাসওয়ার্ড ও নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।",
+    "cfpw": "নতুন পাসওয়ার্ড আবার লিখুন",
+    "showpw": "পাসওয়ার্ড দেখান",
+    "pic.change": "ছবি বদলান", "pic.add": "ছবি যোগ করুন", "pic.remove": "সরান",
+    "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
+    "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
     "pe.cur": "নতুন পাসওয়ার্ড দিতে বর্তমান পাসওয়ার্ড লিখুন।",
     "pe.ok": "প্রোফাইল আপডেট হয়েছে।",
     "msg.cancel.w": "অর্ডার {t} বাতিল হয়েছে — {a} আপনার ওয়ালেটে ফেরত এসেছে।",
@@ -1094,9 +1106,9 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   ];
 
   const sampleMenu = [
-    { name: tx("sm.tehari"), tag: tx("sm.tehari.t"), price: "৳ " + num(80), img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" },
-    { name: tx("sm.roll"), tag: tx("sm.roll.t"), price: "৳ " + num(50), img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80" },
-    { name: tx("sm.brew"), tag: tx("sm.brew.t"), price: "৳ " + num(35), img: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=500&q=80" },
+    { name: tx("sm.tehari"), tag: tx("sm.tehari.t"), price: "৳ " + num(80), img: "/images/food/tehari.svg" },
+    { name: tx("sm.roll"), tag: tx("sm.roll.t"), price: "৳ " + num(50), img: "/images/food/chicken-roll.svg" },
+    { name: tx("sm.brew"), tag: tx("sm.brew.t"), price: "৳ " + num(35), img: "/images/food/lassi.svg" },
   ];
 
   const scrollToAuth = () => authRef.current && authRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1390,7 +1402,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
 /* ---------------- Top bar ---------------- */
 function TopBar({
-  role, name, tabs, active, setActive, onLogout, connected, onToggleLang,
+  role, name, avatar, tabs, active, setActive, onLogout, connected, onToggleLang,
   notifications = [], notificationCount = 0, onToggleNotifications,
   notificationOpen = false, onMarkAllRead, onClearNotifications,
 }) {
@@ -1485,7 +1497,7 @@ function TopBar({
             <div className="text-sm font-600 leading-tight">{name}</div>
             <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
           </div>
-          <div className="avatar-dot hidden sm:grid" title={`${name} · ${tx("r." + role)}`}>{(name || "?").trim().charAt(0).toUpperCase()}</div>
+          <div className="hidden sm:block" title={`${name} · ${tx("r." + role)}`}><Avatar src={avatar} name={name} size={34} /></div>
           <ThemeMenu />
           {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
           <button onClick={onLogout} title={tx("logout")} aria-label={tx("logout")} className="w-9 h-9 rounded-lg grid place-items-center hover:bg-black/5 transition-colors shrink-0">
@@ -1727,6 +1739,11 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             const inCart = cart.find(c => c.id === item.id);
             return (
               <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-50" : ""}`}>
+                <div className="overflow-hidden mb-3" style={{ margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
+                  <img src={(apiBase || "") + (item.image || "/images/food/default.svg")} alt={item.name} loading="lazy"
+                    onError={(e) => { if (!e.target.dataset.fb) { e.target.dataset.fb = "1"; e.target.src = (apiBase || "") + "/images/food/default.svg"; } }}
+                    className="w-full h-full object-cover" />
+                </div>
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -3093,6 +3110,36 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
 
 /* ---------------- Profile tab (all roles) ---------------- */
 /* ---------------- Profile tab (all roles) ---------------- */
+function Avatar({ src, name, size = 34, className = "" }) {
+  const letter = (name || "?").trim().charAt(0).toUpperCase();
+  const base = { width: size, height: size, borderRadius: 999, flexShrink: 0 };
+  if (src) return <img src={src} alt={name || ""} className={className} style={{ ...base, objectFit: "cover" }} />;
+  return (
+    <div className={`grid place-items-center text-white font-700 ${className}`}
+      style={{ ...base, fontSize: size * 0.4, background: "linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%)" }}>{letter}</div>
+  );
+}
+// Reads an image file, crops it to a centred square and shrinks it to 256px (keeps the upload tiny).
+function fileToAvatar(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("img"));
+      img.onload = () => {
+        const size = 256, side = Math.min(img.width, img.height);
+        const c = document.createElement("canvas"); c.width = size; c.height = size;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+        resolve(c.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 function ProfileField({ label, value, placeholder }) {
   return (
     <div>
@@ -3120,6 +3167,11 @@ function ProfileTab({ user, call, onUpdated }) {
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [avatar, setAvatar] = useState(user.avatar || null);
+  const [avatarChanged, setAvatarChanged] = useState(false);
+  const fileRef = useRef(null);
   const [announcementText, setAnnouncementText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -3132,7 +3184,18 @@ function ProfileTab({ user, call, onUpdated }) {
       roomNumber: data.roomNumber || "", hallId: data.hallId || null,
     });
     setWalletBalance(data.walletBalance);
+    setAvatar(data.avatar || null); setAvatarChanged(false);
   }).catch(() => {});
+
+  const pickPhoto = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    if (!/^image\/(png|jpe?g|webp|gif|bmp)$/i.test(file.type)) { setError(tx("pic.bad")); return; }
+    try { setAvatar(await fileToAvatar(file)); setAvatarChanged(true); }
+    catch (_) { setError(tx("pic.bad")); }
+  };
 
   useEffect(() => { loadProfile(); }, []);
 
@@ -3141,6 +3204,7 @@ function ProfileTab({ user, call, onUpdated }) {
     if (!profile.name.trim()) { setError(tx("pe.name")); return; }
     if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
     if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
+    if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
     setBusy(true);
     try {
       const body = {
@@ -3148,10 +3212,12 @@ function ProfileTab({ user, call, onUpdated }) {
         department: profile.department, fatherPhone: profile.fatherPhone, roomNumber: profile.roomNumber,
       };
       if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
+      if (avatarChanged) body.avatar = avatar;
       const data = await call("/api/auth/me", { method: "PUT", body });
       onUpdated(data);
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
-      setCurrentPassword(""); setNewPassword("");
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+      setAvatarChanged(false);
       setSuccess(tx("pe.ok"));
       setEditing(false);
     } catch (e) {
@@ -3162,7 +3228,7 @@ function ProfileTab({ user, call, onUpdated }) {
   };
 
   const cancelEdit = () => {
-    setError(null); setCurrentPassword(""); setNewPassword("");
+    setError(null); setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
     setEditing(false);
     loadProfile();
   };
@@ -3193,6 +3259,29 @@ function ProfileTab({ user, call, onUpdated }) {
               <Icon path={I.edit} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
               {tx("edit")}
             </button>
+          )}
+        </div>
+        <div className="flex flex-col items-center gap-2 mb-5">
+          <Avatar src={avatar} name={profile.name} size={96} />
+          {editing && (
+            <>
+              <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} className="hidden" />
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => fileRef.current && fileRef.current.click()}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                  {avatar ? tx("pic.change") : tx("pic.add")}
+                </button>
+                {avatar && (
+                  <button type="button" onClick={() => { setAvatar(null); setAvatarChanged(true); }}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600 transition-colors hover:bg-black/5"
+                    style={{ borderColor: "var(--line)", color: "var(--brick)" }}>
+                    {tx("pic.remove")}
+                  </button>
+                )}
+              </div>
+              {avatarChanged && <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("pic.hint")}</div>}
+            </>
           )}
         </div>
         <div className="space-y-4">
@@ -3293,10 +3382,15 @@ function ProfileTab({ user, call, onUpdated }) {
             <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
               <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
               <div className="space-y-2">
-                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type="password" placeholder={tx("curpw")}
+                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password"
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("newpw2")}
+                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
+                  <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} /> {tx("showpw")}
+                </label>
               </div>
             </div>
           )}
@@ -3664,7 +3758,7 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <TopBar role={session.user.role} name={session.user.name}
+      <TopBar role={session.user.role} name={session.user.name} avatar={session.user.avatar}
         tabs={session.user.role === "admin" ? adminTabs : userTabs}
         active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang}
         notifications={notifications} notificationCount={unreadNotifications}
@@ -3742,7 +3836,7 @@ function App() {
 
         {tab === "profile" && (
           <ProfileTab user={session.user} call={call}
-            onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance } }))} />
+            onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null } }))} />
         )}
       </div>
     </div>

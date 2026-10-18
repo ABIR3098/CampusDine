@@ -17,6 +17,7 @@ const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
 const feedbackRoutes = require("./src/routes/feedback");
+const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -57,7 +58,7 @@ async function seedDefaultMenuAndRates(db) {
 
     await db.query(
       `INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES ?`,
-      [defaultMenu]
+      [defaultMenu.concat(NEW_ITEMS)]
     );
     await db.query(
       "INSERT INTO meal_rates (role, full_rate, half_rate) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate)",
@@ -271,6 +272,43 @@ async function ensureChatSchema(db) {
 //  creates demo accounts (only if they don't exist yet)
 //  so there's something to log in with immediately.
 // ════════════════════════════════════════════════
+async function ensureProfilePictureAndMenuImages(db) {
+  try {
+    const [avatarCol] = await db.query("SHOW COLUMNS FROM users LIKE 'avatar'");
+    if (avatarCol.length === 0) {
+      await db.query("ALTER TABLE users ADD COLUMN avatar MEDIUMTEXT NULL");
+      console.log("✅ Added users.avatar column (profile picture)");
+    }
+    const [imageCol] = await db.query("SHOW COLUMNS FROM menu_items LIKE 'image'");
+    if (imageCol.length === 0) {
+      await db.query("ALTER TABLE menu_items ADD COLUMN image VARCHAR(200) NULL");
+      console.log("✅ Added menu_items.image column");
+    }
+
+    // One-time: add the extra menu items (marker table stops deleted items coming back on restart).
+    await db.query("CREATE TABLE IF NOT EXISTS app_meta (meta_key VARCHAR(60) PRIMARY KEY, meta_value VARCHAR(255))");
+    const [done] = await db.query("SELECT 1 FROM app_meta WHERE meta_key = 'menu_catalog_v2'");
+    const [[{ n }]] = await db.query("SELECT COUNT(*) AS n FROM menu_items");
+    if (done.length === 0 && Number(n) > 0) {
+      for (const row of NEW_ITEMS) {
+        const [exists] = await db.query("SELECT 1 FROM menu_items WHERE name = ?", [row[0]]);
+        if (exists.length === 0) {
+          await db.query("INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES (?, ?, ?, ?, ?, ?, ?)", row);
+        }
+      }
+      await db.query("INSERT INTO app_meta (meta_key, meta_value) VALUES ('menu_catalog_v2', '1')");
+      console.log("✅ Added extra menu items");
+    }
+
+    // Fill images for items that have none yet (never overwrites an image the admin set).
+    for (const [name, image] of Object.entries(IMAGE_BY_NAME)) {
+      await db.query("UPDATE menu_items SET image = ? WHERE name = ? AND (image IS NULL OR image = '')", [image, name]);
+    }
+  } catch (e) {
+    console.warn("⚠️ Could not set up profile pictures / menu images:", e.message);
+  }
+}
+
 async function runStartupCheck() {
   console.log("\n🔧 CampusDine startup check running...\n");
 
@@ -338,6 +376,7 @@ async function runStartupCheck() {
   await ensureFeedbackSchema(db);
   await ensureChatSchema(db);
   await ensureNoteAndAvailabilitySchema(db);
+  await ensureProfilePictureAndMenuImages(db);
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
@@ -364,7 +403,7 @@ const corsOptions = corsOriginSetting.trim() === "*"
   : { origin: corsOriginSetting.split(",").map((o) => o.trim()) };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "2mb" })); // profile pictures arrive as small base64 images
 
 const io = new Server(server, { cors: corsOptions });
 app.set("io", io);

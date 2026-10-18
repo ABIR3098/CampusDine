@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3f1f4"/><stop offset="1" stop-color="#bfdde6"/></linearGradient>
+<radialGradient id="pl" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e6e2da"/></radialGradient>
+<linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".25" stop-color="#fff" stop-opacity=".12"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".3"/></linearGradient></defs>
+<rect width="400" height="300" fill="url(#bg)"/>
+<circle cx="70" cy="40" r="60" fill="#ffffff" opacity=".18"/><circle cx="350" cy="270" r="80" fill="#ffffff" opacity=".14"/>
+<ellipse cx="206" cy="252" rx="58.5" ry="9" fill="#000" opacity=".16"/><clipPath id="c390205"><path d="M140 78 L260 78 L245 238 Q200 248 155 238Z"/></clipPath>
+<path d="M140 78 L260 78 L245 238 Q200 248 155 238Z" fill="#ffffff" fill-opacity=".35"/>
+<g clip-path="url(#c390205)"><path d="M142.8 108 L257.2 108 L245 238 Q200 248 155 238Z" fill="#8a5a38"/><rect x="0" y="108" width="400" height="140" fill="#6b3f22" opacity=".35"/><g transform="rotate(14 178 150)"><rect x="164" y="136" width="28" height="28" rx="4" fill="#ffffff" opacity=".55" stroke="#ffffff" stroke-opacity=".8"/></g><g transform="rotate(-10 222 186)"><rect x="209" y="173" width="26" height="26" rx="4" fill="#ffffff" opacity=".55" stroke="#ffffff" stroke-opacity=".8"/></g><g transform="rotate(25 190 214)"><rect x="178" y="202" width="24" height="24" rx="4" fill="#ffffff" opacity=".55" stroke="#ffffff" stroke-opacity=".8"/></g></g>
+<path d="M140 78 L260 78 L245 238 Q200 248 155 238Z" fill="url(#gl)" stroke="#9fb8c0" stroke-width="2.2" stroke-opacity=".8"/>
+<ellipse cx="200" cy="78" rx="60" ry="5" fill="none" stroke="#9fb8c0" stroke-width="2" stroke-opacity=".8"/><path d="M142 108 Q144 66 180 58 Q200 36 222 56 Q256 62 258 108 Z" fill="#fffaf0"/><ellipse cx="200" cy="106" rx="58" ry="8" fill="#fffaf0" /><path d="M156 92 q14 -10 28 0 t28 0 t28 0" stroke="#6b3a1a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M166 76 q10 -8 20 0 t20 0" stroke="#6b3a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M230 26L206 200" stroke="#3a3a3a" stroke-width="6" stroke-linecap="round"/><path d="M230 26L206 200" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 9" opacity=".7"/>
+</svg>
