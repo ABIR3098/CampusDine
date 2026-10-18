@@ -2023,6 +2023,14 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   const [sortBy, setSortBy] = useState("default");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [diet, setDiet] = useState("all"); // "all" | "veg" | "nonveg"
+  // A restaurant may have no items in the selected category (e.g. no "heavy" meals):
+  // jump to the first category that does have items so the menu never opens empty.
+  useEffect(() => {
+    if (menu.length > 0 && !menu.some(i => i.category === cat)) {
+      const first = ["heavy", "snacks", "drinks"].find(c => menu.some(i => i.category === c));
+      if (first) setCat(first);
+    }
+  }, [menu]);
   const filtered = menu
     .filter(i => i.category === cat)
     .filter(i => !favoritesOnly || i.is_favorite)
