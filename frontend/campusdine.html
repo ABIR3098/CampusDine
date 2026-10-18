@@ -4698,6 +4698,10 @@ function App() {
 
   if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} />;
 
+  if (session.user.role === "admin" && !restaurant) {
+    return <RestaurantPicker adminName={session.user.name} onPick={(r) => { setRestaurant(r); setTab("overview"); }} onLogout={logout} />;
+  }
+
   const toRate = orders.filter(o => o.status === "Ready" && !o.feedback).length;
   const userTabs = [
     { key: "menu", label: tx("nav.menu"), icon: I.menu },
