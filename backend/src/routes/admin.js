@@ -2,14 +2,44 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { restaurantOf, isRestaurantId } = require("../catalog");
+const { loadItemRestaurants } = require("../restaurants");
 
 const router = express.Router();
 const LOW_STOCK_THRESHOLD = 10;
 
 router.use(verifyToken, requireRole("admin"));
 
-// GET /api/admin/overview
+// GET /api/admin/overview[?restaurant=<id>]
+// With ?restaurant= the pending-orders, revenue and low-stock numbers cover only that restaurant
+// (worked out from each order's items, so no database change is needed). Meal-plan counts stay campus-wide.
+async function restaurantOverview(restaurant) {
+  const extra = await loadItemRestaurants();
+  const [todays] = await pool.query(
+    "SELECT id, status, total FROM orders WHERE DATE(created_at) = CURDATE()"
+  );
+  let pendingOrders = 0;
+  let revenueToday = 0;
+  if (todays.length > 0) {
+    const [items] = await pool.query(
+      `SELECT order_id, menu_item_id, name FROM order_items WHERE order_id IN (${todays.map(() => "?").join(",")})`,
+      todays.map((o) => o.id)
+    );
+    for (const order of todays) {
+      const first = items.find((i) => i.order_id === order.id);
+      if (restaurantOf(first && first.name, first && first.menu_item_id, extra) !== restaurant) continue;
+      if (order.status !== "Ready") pendingOrders += 1;
+      if (order.status !== "Cancelled") revenueToday += Number(order.total);
+    }
+  }
+  const [stock] = await pool.query("SELECT id, name, stock FROM menu_items WHERE stock <= ?", [LOW_STOCK_THRESHOLD]);
+  const lowStock = stock.filter((m) => restaurantOf(m.name, m.id, extra) === restaurant);
+  return { pendingOrders, revenueToday, lowStock };
+}
+
 router.get("/overview", catchAsync(async (req, res) => {
+  const restaurant = req.query.restaurant;
+  if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
   const [[pending]] = await pool.query(
     "SELECT COUNT(*) AS cnt FROM orders WHERE status != 'Ready' AND DATE(created_at) = CURDATE()"
   );
@@ -23,10 +53,12 @@ router.get("/overview", catchAsync(async (req, res) => {
     "SELECT status, COUNT(*) AS cnt FROM meal_calendar WHERE the_date = CURDATE() GROUP BY status"
   );
 
+  const scoped = restaurant ? await restaurantOverview(restaurant) : null;
+
   res.json({
-    pendingOrders: pending.cnt,
-    revenueToday: revenue.total,
-    lowStock,
+    pendingOrders: scoped ? scoped.pendingOrders : pending.cnt,
+    revenueToday: scoped ? scoped.revenueToday : revenue.total,
+    lowStock: scoped ? scoped.lowStock : lowStock,
     fullMealsToday: mealCounts.find((r) => r.status === "full")?.cnt || 0,
     halfMealsToday: mealCounts.find((r) => r.status === "half")?.cnt || 0,
   });
