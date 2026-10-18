@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { nutritionFor } = require("../catalog");
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ async function resolveFavoriteTable() {
   return (favoriteTableCache = candidates[0]);
 }
 
-// GET /api/menu  (any logged-in user) — includes is_favorite for the caller
+// GET /api/menu  (any logged-in user) — includes is_favorite, calories and allergens
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
   // Feature: hidden items are only visible to the admin (who needs them to un-hide them)
@@ -48,7 +49,8 @@ router.get("/", verifyToken, catchAsync(async (req, res) => {
      ORDER BY m.category, m.name`,
     [req.user.id]
   );
-  res.json(rows);
+  // Feature: approximate calories + allergens for each item (see catalog.js)
+  res.json(rows.map((row) => ({ ...row, ...nutritionFor(row.name) })));
 }));
 
 // POST /api/menu/:id/favorite  (any logged-in user) — star an item (idempotent)
