@@ -1,156 +1,337 @@
 # CampusDine Backend
 
-REST + WebSocket API for CampusDine (CSE 3208 Software Development Project I),
-implementing Phase 2–4 of the project's phased plan: menu, ordering/token
-tracking, subscription-calendar billing, wallet, and admin reporting, backed
-by MySQL, with JWT auth and live order-status push via Socket.io.
+### REST API and Real-Time Communication for CampusDine
 
-## 1. Install prerequisites
+CampusDine is an online university canteen management system developed as part of **CSE 3208: Software Development Project I** at Bangladesh University of Professionals (BUP).
 
-- **Node.js** v18 or later — check with `node -v`. If missing, install from
-  https://nodejs.org (LTS version).
-- **MySQL Server** 8.x — either install it directly, or install **XAMPP**
-  (includes MySQL + phpMyAdmin, easiest on Windows) from
-  https://www.apachefriends.org and start the MySQL service from the XAMPP
-  control panel.
+The backend provides RESTful APIs and real-time communication to support menu management, food ordering, token tracking, subscription calendar and billing, digital wallet management, and administrative reporting.
 
-## 2. Create the database
+The system uses **Node.js, Express.js, MySQL, JSON Web Token (JWT) authentication, and Socket.IO** to support students, teachers, and administrators.
 
-Open a terminal (or MySQL Workbench / phpMyAdmin) and run:
+## 1. Key Features
+
+- **Authentication and Authorization:** User registration and login using JWT.
+- **Menu Management:** Retrieve menu items and manage prices, availability, and categories.
+- **Online Food Ordering:** Place orders, generate order tokens, and view order history.
+- **Real-Time Order Tracking:** Receive order-status updates through Socket.IO.
+- **Digital Wallet:** Manage wallet balances, top-ups, and transaction history.
+- **Subscription Calendar:** Mark meal availability and calculate monthly bills.
+- **Admin Dashboard:** Monitor daily orders, revenue, and low-stock items.
+- **Revenue Analytics:** View revenue trends and meal-demand forecasts.
+- **Database Management:** Store application data in MySQL.
+- **Frontend Integration:** Serve the CampusDine frontend through the backend server.
+
+## 2. Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Node.js | JavaScript runtime |
+| Express.js | REST API development |
+| MySQL | Relational database |
+| JSON Web Token (JWT) | Authentication and authorization |
+| Socket.IO | Real-time communication |
+| HTML, CSS, and JavaScript | Frontend |
+
+## 3. Prerequisites
+
+Install the following before running the backend:
+
+- **Node.js v18 or later:** https://nodejs.org/
+- **MySQL Server 8.x** or a compatible MariaDB installation through XAMPP.
+- **Git:** https://git-scm.com/
+
+For Windows users, XAMPP is a convenient option because it includes MariaDB and phpMyAdmin.
+
+Verify your Node.js installation:
 
 ```bash
-mysql -u root -p
+node -v
+npm -v
 ```
 
-Then inside the MySQL prompt:
+## 4. Database Configuration
+
+CampusDine uses MySQL to store user information, menu items, orders, wallet transactions, subscription details, and other application data.
+
+### Step 1: Create the database
+
+Run the following SQL command in MySQL Workbench, phpMyAdmin, or a MySQL terminal:
 
 ```sql
 CREATE DATABASE campusdine;
-EXIT;
 ```
 
-Now load the schema and seed data (menu items + meal rates) from this
-project's folder:
+### Step 2: Import the schema
+
+From the backend directory, run:
 
 ```bash
 mysql -u root -p campusdine < schema.sql
 ```
 
-## 3. Install dependencies
+Enter your MySQL password when prompted. This imports the database structure and any initial data defined in `schema.sql`.
 
-From inside the `campusdine-backend` folder:
+**Note:** If you use XAMPP with an empty root password, adjust the command to match your local configuration.
+
+## 5. Installation
+
+Clone the repository if you have not already done so:
+
+```bash
+git clone <repository-url>
+```
+
+Navigate to the backend directory:
+
+```bash
+cd CampusDine/backend
+```
+
+Install the dependencies:
 
 ```bash
 npm install
 ```
 
-## 4. Configure environment variables
+## 6. Environment Configuration
 
-```bash
-cp .env.example .env
+Create a `.env` file from the example configuration.
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-Open `.env` and fill in your real MySQL password and a random `JWT_SECRET`
-(any long random string — e.g. mash your keyboard for 40 characters).
+Open `.env` and configure the variables required by the project. For example:
 
-## 5. Start the server
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=campusdine
+JWT_SECRET=your_long_random_secret
+PORT=5000
+```
 
-For development (auto-restarts on file changes):
+**Important:** These variable names are examples. Confirm that they match the names used in the backend code and `.env.example`. Use a strong, randomly generated value for `JWT_SECRET`. Never commit your real `.env` file or expose database credentials in a public repository.
+
+## 7. Running the Backend Server
+
+Make sure the MySQL service is running before starting the server.
+
+### Development mode
 
 ```bash
 npm run dev
 ```
 
-Or for a plain run:
+Development mode uses Nodemon to restart the server when relevant files change.
+
+### Normal start
 
 ```bash
 npm start
 ```
 
-The server checks the database connection itself on startup and prints a
-plain-language fix if something's wrong (MySQL not running, database
-missing, wrong `.env` credentials). On success you'll see it auto-create
-three demo accounts (admin / student1 / teacher1 — passwords in the
-terminal output) and then:
+After the server starts successfully, open:
 
+**http://localhost:5000**
+
+The backend serves the CampusDine frontend directly, so a separate frontend development server is not required for the standard local setup.
+
+If demo-account creation is enabled in the current project configuration, the server may also display demo credentials in the terminal.
+
+## 8. API Reference
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Log in and obtain a JWT |
+
+### Menu Management
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| GET | `/api/menu` | Authenticated users | Retrieve menu items |
+| POST | `/api/menu` | Admin | Add a menu item |
+| PUT | `/api/menu/:id` | Admin | Update menu item details |
+
+### Order Management
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| POST | `/api/orders` | Students and teachers | Place a food order |
+| GET | `/api/orders/mine` | Students and teachers | View personal order history |
+| GET | `/api/orders` | Admin | View the order queue |
+| PATCH | `/api/orders/:id/advance` | Admin | Advance an order's status |
+
+The order status progresses through these stages:
+
+**Received → Cooking → Ready**
+
+Socket.IO broadcasts relevant order events to support real-time updates.
+
+### Wallet Management
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/wallet` | Retrieve wallet balance and transaction history |
+| POST | `/api/wallet/topup` | Add money to the wallet |
+
+### Subscription Calendar and Billing
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/calendar` | Retrieve the current month's calendar |
+| PUT | `/api/calendar/:day` | Update a day's meal status |
+| GET | `/api/calendar/bill` | Calculate the current month's bill |
+
+### Administration and Reports
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/admin/overview` | Retrieve daily statistics and low-stock information |
+| GET | `/api/admin/reports/revenue-trend` | Retrieve the last six months of revenue trends |
+| GET | `/api/admin/reports/forecast` | Retrieve the forecast for tomorrow's meal demand |
+
+Protected endpoints require a valid JWT in the `Authorization` header. Administrative endpoints are restricted to authorized administrators.
+
+## 9. Testing the API
+
+You can test the API using Postman, Thunder Client, or a command-line tool.
+
+### Step 1: Register a user
+
+Send a `POST` request to:
+
+```text
+http://localhost:5000/api/auth/register
 ```
-🚀 CampusDine চালু হয়েছে → http://localhost:5000
+
+Example JSON body:
+
+```json
+{
+  "name": "Abir Hasan",
+  "externalId": "YOUR_TEST_ID",
+  "role": "student",
+  "password": "your_test_password"
+}
 ```
 
-This same server also serves the frontend — open `http://localhost:5000`
-directly in a browser and log in with one of the printed demo accounts,
-or register a new one from the UI. No separate frontend server needed.
+Use a test account and a non-production password when experimenting with the API.
 
-## 6. Register more users
+### Step 2: Log in
 
-Need more accounts than the three demo ones? Either use "Create account"
-in the app UI, or call the endpoint directly:
+Send a `POST` request to:
+
+```text
+http://localhost:5000/api/auth/login
+```
+
+Example JSON body:
+
+```json
+{
+  "externalId": "YOUR_TEST_ID",
+  "password": "your_test_password"
+}
+```
+
+A successful response provides an authentication token.
+
+### Step 3: Retrieve the menu
+
+Send a `GET` request to:
+
+```text
+http://localhost:5000/api/menu
+```
+
+Add this request header:
+
+```text
+Authorization: Bearer YOUR_TOKEN
+```
+
+Replace `YOUR_TOKEN` with the token returned by the login endpoint.
+
+### Step 4: Place an order
+
+Send a `POST` request to:
+
+```text
+http://localhost:5000/api/orders
+```
+
+Example JSON body:
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "qty": 2
+    }
+  ],
+  "paymentMethod": "wallet"
+}
+```
+
+Include the authentication token and set `Content-Type` to `application/json`. The menu item ID must exist in the database, and the wallet must satisfy the application's payment requirements.
+
+## 10. Frontend Integration
+
+The CampusDine frontend is located at:
+
+```text
+../frontend/campusdine.html
+```
+
+It communicates with the backend through REST API requests and uses Socket.IO for real-time order updates.
+
+The integration supports:
+
+- User registration and login.
+- Menu browsing and food selection.
+- Order placement and order history.
+- Wallet balance and transaction management.
+- Subscription calendar and billing.
+- Administrative order management.
+- Live order-status notifications.
+
+Start the backend and visit **http://localhost:5000** to access the application locally.
+
+## 11. Deployment
+
+Deployment is planned as a subsequent project phase. Potential hosting options include:
+
+- **Backend:** Render or Railway.
+- **Database:** A compatible managed MySQL service.
+- **Frontend:** Vercel or Netlify, if deployed separately.
+
+For deployment, configure the required environment variables in the hosting platform and use the appropriate production start command:
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Abir Hasan","externalId":"24524203098","role":"student","password":"password123"}'
+npm start
 ```
 
-(No `curl`? Use Postman or Thunder Client in VS Code instead — same JSON body,
-same URL, method POST.) Each response returns a `token`, needed as an
-`Authorization: Bearer <token>` header on every other request if you're
-calling the API directly rather than through the UI.
+Ensure that the production database is accessible to the backend and that the frontend uses the correct API URL.
 
-## 7. Try it out
+### Payment Gateway Integration
 
-```bash
-# Log in
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"externalId":"24524203098","password":"password123"}'
+The wallet system can be extended to support payment gateways such as SSLCommerz or bKash through their supported sandbox environments. Before enabling real payments, implement payment verification, secure callback handling, transaction validation, and appropriate error handling.
 
-# List the menu (replace TOKEN with the token from login)
-curl http://localhost:5000/api/menu -H "Authorization: Bearer TOKEN"
+## 12. Project Information
 
-# Place an order
-curl -X POST http://localhost:5000/api/orders \
-  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
-  -d '{"items":[{"id":1,"qty":2}],"paymentMethod":"wallet"}'
-```
+**Project:** CampusDine — Online University Canteen Management System  
+**Course:** CSE 3208 — Software Development Project I  
+**Institution:** Bangladesh University of Professionals (BUP)  
+**Repository:** https://github.com/ABIR3098/CampusDine
 
-## 8. API reference (quick summary)
+---
 
-| Method | Endpoint                      | Role            | Purpose                              |
-|--------|--------------------------------|-----------------|---------------------------------------|
-| POST   | /api/auth/register             | anyone          | create an account                     |
-| POST   | /api/auth/login                | anyone          | get a JWT                             |
-| GET    | /api/menu                      | any logged-in   | list menu items                       |
-| POST   | /api/menu                      | admin           | add a menu item                       |
-| PUT    | /api/menu/:id                  | admin           | update price/stock/tag                |
-| POST   | /api/orders                    | student/teacher | place an order, get a token           |
-| GET    | /api/orders/mine                | student/teacher | my order history                      |
-| GET    | /api/orders                    | admin           | live order queue                      |
-| PATCH  | /api/orders/:id/advance        | admin           | Received → Cooking → Ready            |
-| GET    | /api/wallet                    | any logged-in   | balance + transaction history         |
-| POST   | /api/wallet/topup               | any logged-in   | add money to wallet                   |
-| GET    | /api/calendar                  | any logged-in   | this month's marked days              |
-| PUT    | /api/calendar/:day              | any logged-in   | mark a day off/full/half              |
-| GET    | /api/calendar/bill              | any logged-in   | this month's auto-computed bill       |
-| GET    | /api/admin/overview             | admin           | today's counts, revenue, low stock    |
-| GET    | /api/admin/reports/revenue-trend| admin           | last 6 months' revenue                |
-| GET    | /api/admin/reports/forecast     | admin           | predicted meal count for tomorrow     |
-
-## 9. Frontend
-
-`../frontend/campusdine.html` is already wired to this API — real login/
-register, `fetch()` calls to every endpoint above with the JWT sent as an
-`Authorization: Bearer` header, and a `socket.io-client` connection for live
-`order:new` / `order:update` events. This server serves that file directly
-(`express.static`), so starting the backend is the only step — just visit
-`http://localhost:5000`. See the top-level `README.md` for the full walkthrough.
-
-## 10. Deploying (Phase 5)
-
-- **Backend + MySQL:** Render or Railway — create a MySQL instance, set the
-  same environment variables as `.env` in the host's dashboard, deploy this
-  folder as a Node web service (`npm start` as the start command).
-- **Frontend:** Vercel or Netlify.
-- **Payments:** swap the wallet top-up flow for the SSLCommerz or bKash
-  sandbox API once you're ready for Phase 5 — the `wallet_transactions`
-  table already has everything needed to log gateway callbacks.
+*Before publishing, verify that the API endpoints, environment variables, demo-account behavior, and deployment instructions match the current codebase.*
