@@ -39,7 +39,12 @@ CREATE TABLE IF NOT EXISTS users (
 --   ALTER TABLE users ADD UNIQUE KEY uniq_users_email (email);
 --   ALTER TABLE users ADD COLUMN account_type ENUM('regular','hall') NOT NULL DEFAULT 'regular';
 --   ALTER TABLE users ADD COLUMN hall_name VARCHAR(60) NULL;
+--   ALTER TABLE orders ADD COLUMN picked_up_at DATETIME NULL;
 --   UPDATE users SET account_type = 'hall' WHERE hall_id IS NOT NULL;
+
+-- Feature: meal plan. The server adds these on start; by hand on an existing DB, run once:
+--   ALTER TABLE meal_calendar ADD COLUMN paid_amount DECIMAL(10,2) NULL;
+--   ALTER TABLE meal_calendar ADD COLUMN paid_at DATETIME NULL;
 
 -- Feature: veg / non-veg marking. For an existing 'campusdine' DB, run once:
 --   ALTER TABLE menu_items ADD COLUMN is_veg TINYINT(1) NOT NULL DEFAULT 1 AFTER tag;
@@ -90,6 +95,7 @@ CREATE TABLE IF NOT EXISTS orders (
   pickup_time DATETIME NULL,  -- NULL = ASAP; otherwise a scheduled pickup time (feature: pre-order)
   note VARCHAR(255) NULL,     -- optional note for the kitchen, e.g. "less spicy"
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
+  picked_up_at DATETIME NULL, -- set when the counter scans the QR and hands the order over
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -128,6 +134,8 @@ CREATE TABLE IF NOT EXISTS meal_calendar (
   user_id INT NOT NULL,
   the_date DATE NOT NULL,
   status ENUM('off','full','half') NOT NULL DEFAULT 'off',
+  paid_amount DECIMAL(10,2) NULL,   -- meal plan: what this day cost when paid from the wallet (NULL = not paid yet)
+  paid_at DATETIME NULL,
   UNIQUE KEY uniq_user_date (user_id, the_date),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

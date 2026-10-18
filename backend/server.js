@@ -269,6 +269,24 @@ async function ensureAccountAndQrSchema(db) {
   }
 }
 
+// Feature: meal plan — paid meal-calendar days. A day is "paid" when paid_amount is not NULL.
+async function ensureMealPlanSchema(db) {
+  try {
+    const [paidCol] = await db.query("SHOW COLUMNS FROM meal_calendar LIKE 'paid_amount'");
+    if (paidCol.length === 0) {
+      await db.query("ALTER TABLE meal_calendar ADD COLUMN paid_amount DECIMAL(10,2) NULL");
+      console.log("✅ Added meal_calendar.paid_amount column");
+    }
+    const [paidAt] = await db.query("SHOW COLUMNS FROM meal_calendar LIKE 'paid_at'");
+    if (paidAt.length === 0) {
+      await db.query("ALTER TABLE meal_calendar ADD COLUMN paid_at DATETIME NULL");
+      console.log("✅ Added meal_calendar.paid_at column");
+    }
+  } catch (error) {
+    console.warn("⚠️ Meal plan schema check failed:", error.message);
+  }
+}
+
 async function ensureChatSchema(db) {
   await db.query(`
     CREATE TABLE IF NOT EXISTS chat_conversations (
@@ -408,6 +426,7 @@ async function runStartupCheck() {
   await ensureNoteAndAvailabilitySchema(db);
   await ensureProfilePictureAndMenuImages(db);
   await ensureAccountAndQrSchema(db);
+  await ensureMealPlanSchema(db);
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
