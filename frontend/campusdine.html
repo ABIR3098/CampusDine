@@ -612,6 +612,7 @@ const I18N = {
     "nut.kcal": "kcal",
     "nut.approx": "Approximate calories per serving",
     "nut.contains": "Contains",
+    "nut.none": "No common allergens",
     "allergen.egg": "Egg",
     "allergen.milk": "Milk",
     "allergen.gluten": "Gluten",
@@ -903,6 +904,7 @@ const I18N = {
     "nut.kcal": "ক্যালরি",
     "nut.approx": "প্রতি পরিবেশনে আনুমানিক ক্যালরি",
     "nut.contains": "যা আছে",
+    "nut.none": "সাধারণ অ্যালার্জেন নেই",
     "allergen.egg": "ডিম",
     "allergen.milk": "দুধ",
     "allergen.gluten": "গ্লুটেন",
@@ -1941,20 +1943,26 @@ function NutritionInfo({ item }) {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-1.5">
       {hasCalories && (
-        <span title={tx("nut.approx")} className="text-[10px] font-mono px-2 py-1 rounded-full"
+        <span title={tx("nut.approx")} className="text-[11px] font-mono px-2 py-1 rounded-full"
           style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
           ~{num(item.calories)} {tx("nut.kcal")}
         </span>
       )}
       {allergens.length > 0 && (
-        <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("nut.contains")}:</span>
+        <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("nut.contains")}:</span>
       )}
       {allergens.map(a => (
-        <span key={a} className="text-[10px] font-600 px-2 py-0.5 rounded-full border"
+        <span key={a} className="text-[11px] font-600 px-2 py-0.5 rounded-full border"
           style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
           {lookup("allergen", a)}
         </span>
       ))}
+      {hasCalories && allergens.length === 0 && (
+        <span className="text-[11px] font-600 px-2 py-0.5 rounded-full border"
+          style={{ borderColor: "#16A34A", color: "#16A34A" }}>
+          {tx("nut.none")}
+        </span>
+      )}
     </div>
   );
 }
