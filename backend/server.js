@@ -239,6 +239,34 @@ async function ensureNoteAndAvailabilitySchema(db) {
   }
 }
 
+// Feature: email + hall-resident accounts. Adds the new columns to databases created before
+// this change (same SHOW COLUMNS / ALTER TABLE approach as the other schema checks). Safe to run every start.
+async function ensureAccountAndQrSchema(db) {
+  try {
+    const addColumn = async (table, column, definition) => {
+      const [existing] = await db.query(`SHOW COLUMNS FROM ${table} LIKE ?`, [column]);
+      if (existing.length === 0) {
+        await db.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+        console.log(`✅ Added ${table}.${column} column`);
+      }
+    };
+    await addColumn("users", "email", "VARCHAR(120) NULL");
+    await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
+    await addColumn("users", "hall_name", "VARCHAR(60) NULL");
+
+    const [emailIndex] = await db.query("SHOW INDEX FROM users WHERE Column_name = 'email' AND Non_unique = 0");
+    if (emailIndex.length === 0) {
+      await db.query("ALTER TABLE users ADD UNIQUE KEY uniq_users_email (email)");
+      console.log("✅ Added unique index on users.email");
+    }
+
+    // Anyone who already has a Hall ID is a hall resident.
+    await db.query("UPDATE users SET account_type = 'hall' WHERE hall_id IS NOT NULL AND account_type = 'regular'");
+  } catch (error) {
+    console.warn("⚠️ Account / QR schema check failed:", error.message);
+  }
+}
+
 async function ensureChatSchema(db) {
   await db.query(`
     CREATE TABLE IF NOT EXISTS chat_conversations (
@@ -377,6 +405,7 @@ async function runStartupCheck() {
   await ensureChatSchema(db);
   await ensureNoteAndAvailabilitySchema(db);
   await ensureProfilePictureAndMenuImages(db);
+  await ensureAccountAndQrSchema(db);
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");

@@ -6,15 +6,18 @@ SET NAMES utf8mb4;
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
+  email VARCHAR(120) NULL UNIQUE,            -- collected at sign-up; also usable to log in and to reset a password
   external_id VARCHAR(50) NOT NULL UNIQUE,   -- student/teacher/admin ID used to log in
   role ENUM('student','teacher','admin') NOT NULL,
+  account_type ENUM('regular','hall') NOT NULL DEFAULT 'regular',  -- 'hall' = lives in a hall (has hall_name, room_number, hall_id)
   password_hash VARCHAR(255) NOT NULL,
   wallet_balance DECIMAL(10,2) NOT NULL DEFAULT 0,
   phone VARCHAR(20) NULL,
   address VARCHAR(255) NULL,
   department VARCHAR(100) NULL,
   father_phone VARCHAR(20) NULL,
-  room_number VARCHAR(20) NULL,              -- set by a hall resident from their profile
+  hall_name VARCHAR(60) NULL,                -- which hall the resident lives in
+  room_number VARCHAR(20) NULL,              -- hall room number (given at hall sign-up or from the profile)
   hall_id VARCHAR(20) NULL UNIQUE,           -- auto-assigned once a room number is first saved; fixed after that
   avatar MEDIUMTEXT NULL,                    -- profile picture (small base64 data-URL)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -29,6 +32,14 @@ CREATE TABLE IF NOT EXISTS users (
 --   ALTER TABLE users ADD COLUMN father_phone VARCHAR(20) NULL AFTER department;
 --   ALTER TABLE users ADD COLUMN room_number VARCHAR(20) NULL AFTER father_phone;
 --   ALTER TABLE users ADD COLUMN hall_id VARCHAR(20) NULL UNIQUE AFTER room_number;
+
+-- Feature: email + hall-resident accounts + QR pickup. The server adds these automatically on start
+-- (see ensureAccountAndQrSchema in server.js); to do it by hand on an existing DB, run once:
+--   ALTER TABLE users ADD COLUMN email VARCHAR(120) NULL;
+--   ALTER TABLE users ADD UNIQUE KEY uniq_users_email (email);
+--   ALTER TABLE users ADD COLUMN account_type ENUM('regular','hall') NOT NULL DEFAULT 'regular';
+--   ALTER TABLE users ADD COLUMN hall_name VARCHAR(60) NULL;
+--   UPDATE users SET account_type = 'hall' WHERE hall_id IS NOT NULL;
 
 -- Feature: veg / non-veg marking. For an existing 'campusdine' DB, run once:
 --   ALTER TABLE menu_items ADD COLUMN is_veg TINYINT(1) NOT NULL DEFAULT 1 AFTER tag;

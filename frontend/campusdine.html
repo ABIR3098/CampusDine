@@ -952,6 +952,69 @@ const I18N = {
     "soldout": "বিক্রি শেষ"
   }
 };
+// ---- Added: sign-up with email / hall residents, QR pickup token, forgot-password check ----
+Object.assign(I18N.en, {
+  "idoremail": "ID number or email",
+  "email": "Email",
+  "email.ph": "you@example.com",
+  "confirmpw": "Confirm password",
+  "showpw": "Show",
+  "hidepw": "Hide",
+  "acct.type": "I am",
+  "acct.regular": "Regular",
+  "acct.regular.d": "Not living in a hall",
+  "acct.hall": "Hall resident",
+  "acct.hall.d": "Lives in a campus hall",
+  "hallname": "Hall name",
+  "hallname.ph": "e.g. North Hall",
+  "room.signup.ph": "e.g. 204",
+  "hall.signup.note": "You'll get your fixed Hall ID as soon as the account is created.",
+  "err.email": "Enter a valid email address.",
+  "err.id": "ID must be 3–50 characters: letters, numbers, dot, dash or underscore.",
+  "err.pwmatch": "The two passwords don't match.",
+  "err.hall": "Enter your hall name and room number.",
+  "taken.id": "This ID already has an account.",
+  "taken.email": "This email already has an account.",
+  "pw.weak": "Weak password",
+  "pw.ok": "Okay password",
+  "pw.strong": "Strong password",
+  "reset.p": "Enter your ID and the email you signed up with, then choose a new password.",
+  "reset.noemail": "Accounts without an email (or admin accounts) can't be reset here — ask the canteen admin.",
+  "acct.badge.hall": "Hall resident",
+  "acct.badge.regular": "Regular account",
+  "hallhint": "Enter your hall name and a room number, then save, to get a fixed Hall ID."
+});
+Object.assign(I18N.bn, {
+  "idoremail": "আইডি নম্বর বা ইমেইল",
+  "email": "ইমেইল",
+  "email.ph": "you@example.com",
+  "confirmpw": "পাসওয়ার্ড আবার দিন",
+  "showpw": "দেখান",
+  "hidepw": "লুকান",
+  "acct.type": "আমি",
+  "acct.regular": "সাধারণ",
+  "acct.regular.d": "হলে থাকি না",
+  "acct.hall": "হলের আবাসিক",
+  "acct.hall.d": "ক্যাম্পাসের হলে থাকি",
+  "hallname": "হলের নাম",
+  "hallname.ph": "যেমন নর্থ হল",
+  "room.signup.ph": "যেমন ২০৪",
+  "hall.signup.note": "অ্যাকাউন্ট খোলার সাথে সাথেই আপনি আপনার স্থায়ী হল আইডি পাবেন।",
+  "err.email": "সঠিক ইমেইল ঠিকানা দিন।",
+  "err.id": "আইডি ৩–৫০ অক্ষরের হতে হবে: ইংরেজি অক্ষর, সংখ্যা, ডট, ড্যাশ বা আন্ডারস্কোর।",
+  "err.pwmatch": "দুটি পাসওয়ার্ড মিলছে না।",
+  "err.hall": "হলের নাম ও রুম নম্বর দিন।",
+  "taken.id": "এই আইডিতে আগেই অ্যাকাউন্ট আছে।",
+  "taken.email": "এই ইমেইলে আগেই অ্যাকাউন্ট আছে।",
+  "pw.weak": "দুর্বল পাসওয়ার্ড",
+  "pw.ok": "মোটামুটি পাসওয়ার্ড",
+  "pw.strong": "শক্তিশালী পাসওয়ার্ড",
+  "reset.p": "আপনার আইডি ও সাইন-আপের ইমেইল দিন, তারপর নতুন পাসওয়ার্ড বেছে নিন।",
+  "reset.noemail": "ইমেইল ছাড়া অ্যাকাউন্ট (বা অ্যাডমিন অ্যাকাউন্ট) এখানে রিসেট করা যায় না — ক্যান্টিন অ্যাডমিনকে জানান।",
+  "acct.badge.hall": "হলের আবাসিক",
+  "acct.badge.regular": "সাধারণ অ্যাকাউন্ট",
+  "hallhint": "স্থায়ী হল আইডি পেতে হলের নাম ও রুম নম্বর দিয়ে সেভ করুন।"
+});
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
   if (str === undefined) str = I18N.en[key];
@@ -1078,6 +1141,11 @@ function LangToggle({ onToggle }) {
   );
 }
 
+/* ---------------- Added: validation helpers + QR code ---------------- */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const ID_RE = /^[A-Za-z0-9._-]{3,50}$/;
+
+
 /* ---------------- Login / Register screen ---------------- */
 function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
@@ -1085,6 +1153,13 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [name, setName] = useState("");
   const [externalId, setExternalId] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [accountType, setAccountType] = useState("regular"); // 'regular' | 'hall'
+  const [hallName, setHallName] = useState("");
+  const [roomNumber, setRoomNumber] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [taken, setTaken] = useState({ email: false, externalId: false });
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -1115,15 +1190,25 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
   const submit = async () => {
     setError(null);
-    if (!externalId || !password || (mode === "register" && !name)) {
-      setError(tx("err.fill"));
-      return;
+    const id = externalId.trim();
+    if (mode === "login") {
+      if (!id || !password) { setError(tx("err.fill")); return; }
+    } else {
+      if (!name.trim() || !email.trim() || !id || !password || !confirmPassword) { setError(tx("err.fill")); return; }
+      if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+      if (!ID_RE.test(id)) { setError(tx("err.id")); return; }
+      if (password.length < 6) { setError(tx("err.pw6")); return; }
+      if (password !== confirmPassword) { setError(tx("err.pwmatch")); return; }
+      if (accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
     }
     setBusy(true);
     try {
       const data = mode === "login"
-        ? await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId, password } })
-        : await api(apiBase, "/api/auth/register", { method: "POST", body: { name, externalId, role, password } });
+        ? await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } })
+        : await api(apiBase, "/api/auth/register", { method: "POST", body: {
+            name: name.trim(), email: email.trim(), externalId: id, role, password,
+            accountType, hallName: hallName.trim(), roomNumber: roomNumber.trim(),
+          } });
       onAuth(data.token, data.user);
     } catch (e) {
       setError(e.message);
@@ -1132,13 +1217,34 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     }
   };
 
+  // Tell the person right away if the ID / email already has an account
+  const checkTaken = async (field) => {
+    const v = field === "email" ? email.trim().toLowerCase() : externalId.trim();
+    if (!v || (field === "email" ? !EMAIL_RE.test(v) : !ID_RE.test(v))) return;
+    try {
+      const r = await api(apiBase, `/api/auth/availability?${field === "email" ? "email" : "externalId"}=${encodeURIComponent(v)}`);
+      setTaken(t => ({ ...t, [field]: field === "email" ? !!r.emailTaken : !!r.externalIdTaken }));
+    } catch (_) { /* the real check happens on submit */ }
+  };
+
+  const pwStrength = (() => {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Za-z]/.test(password) && /\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password) || (/[a-z]/.test(password) && /[A-Z]/.test(password))) score++;
+    return password.length < 6 ? 0 : Math.max(1, score);
+  })();
+  const strengthLabel = pwStrength <= 1 ? tx("pw.weak") : pwStrength === 2 ? tx("pw.ok") : tx("pw.strong");
+  const strengthColor = pwStrength <= 1 ? "#DC2626" : pwStrength === 2 ? "#D97706" : "var(--leaf)";
+
   const submitReset = async () => {
     setError(null); setResetMsg(null);
-    if (!externalId || !newPassword) { setError(tx("err.fill")); return; }
+    if (!externalId.trim() || !email.trim() || !newPassword) { setError(tx("err.fill")); return; }
+    if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
     if (newPassword.length < 6) { setError(tx("err.pw6")); return; }
     setBusy(true);
     try {
-      await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId, newPassword } });
+      await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim(), newPassword } });
       setMode("login");
       setPassword("");
       setNewPassword("");
@@ -1277,7 +1383,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             {!role ? (
               <div className="space-y-3">
                 {roleOptions.map((r) => (
-                  <button key={r.key} onClick={() => setRole(r.key)}
+                  <button key={r.key} onClick={() => { setRole(r.key); if (r.key === "admin") setMode("login"); }}
                     className="w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:-translate-y-0.5"
                     style={{ borderColor: "var(--line)" }}>
                     <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0" style={{ background: "var(--gold-soft)" }}>
@@ -1304,10 +1410,16 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
                   <div>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("email")}</label>
+                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder={tx("email.ph")}
+                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                  </div>
+                  <div>
                     <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("newpw")}</label>
                     <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("atleast6")}
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
+                  <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("reset.noemail")}</p>
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   <button disabled={busy} onClick={submitReset} className="btn-primary w-full py-2.5 rounded-xl">
                     {busy ? tx("wait") : tx("reset.h")}
@@ -1325,39 +1437,111 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
                 <div className="flex p-1 rounded-full mb-6" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
                   {pillTab("login", tx("login"))}
-                  {pillTab("register", tx("create"))}
+                  {role !== "admin" && pillTab("register", tx("create"))}
                 </div>
 
-                <div className="space-y-3">
+                <form className="space-y-3" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
                   {mode === "register" && (
-                    <div>
-                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("fullname")}</label>
-                      <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Abir Hasan"
-                        className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                    </div>
+                    <>
+                      <div>
+                        <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("fullname")}</label>
+                        <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Abir Hasan" autoComplete="name"
+                          className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("email")}</label>
+                        <input value={email} type="email" autoComplete="email" placeholder={tx("email.ph")}
+                          onChange={e => { setEmail(e.target.value); setTaken(t => ({ ...t, email: false })); }}
+                          onBlur={() => checkTaken("email")}
+                          className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: taken.email ? "#DC2626" : "var(--line)" }} />
+                        {taken.email && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.email")}</p>}
+                      </div>
+                    </>
                   )}
                   <div>
-                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("id")}</label>
-                    <input value={externalId} onChange={e => setExternalId(e.target.value)} placeholder="e.g. 24524203098"
-                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{mode === "login" ? tx("idoremail") : tx("id")}</label>
+                    <input value={externalId} autoComplete="username" placeholder={mode === "login" ? "ID / email" : "e.g. 24524203098"}
+                      onChange={e => { setExternalId(e.target.value); setTaken(t => ({ ...t, externalId: false })); }}
+                      onBlur={() => mode === "register" && checkTaken("externalId")}
+                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: taken.externalId ? "#DC2626" : "var(--line)" }} />
+                    {mode === "register" && taken.externalId && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.id")}</p>}
                   </div>
+
+                  {mode === "register" && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("acct.type")}</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[["regular", tx("acct.regular"), tx("acct.regular.d")], ["hall", tx("acct.hall"), tx("acct.hall.d")]].map(([key, label, desc]) => (
+                          <button type="button" key={key} onClick={() => setAccountType(key)}
+                            className="text-left px-3 py-2.5 rounded-xl border transition-all"
+                            style={accountType === key
+                              ? { borderColor: "var(--gold)", background: "var(--gold-soft)", color: "var(--teal-deep)" }
+                              : { borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                            <div className="text-sm font-700">{label}</div>
+                            <div className="text-[11px] mt-0.5 opacity-80">{desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {mode === "register" && accountType === "hall" && (
+                    <div className="rounded-xl border p-3 space-y-3" style={{ borderColor: "var(--line)", background: "var(--bg)" }}>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("hallname")}</label>
+                          <input value={hallName} onChange={e => setHallName(e.target.value)} placeholder={tx("hallname.ph")}
+                            className="w-full px-3 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                        </div>
+                        <div>
+                          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("room")}</label>
+                          <input value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={tx("room.signup.ph")}
+                            className="w-full px-3 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                        </div>
+                      </div>
+                      <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("hall.signup.note")}</p>
+                    </div>
+                  )}
+
                   <div>
                     <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("pw")}</label>
-                    <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder={tx("yourpw")}
-                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                    <div className="relative">
+                      <input value={password} onChange={e => setPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("yourpw")}
+                        autoComplete={mode === "login" ? "current-password" : "new-password"}
+                        className="w-full pl-4 pr-16 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                      <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-600" style={{ color: "var(--gold)" }}>
+                        {showPw ? tx("hidepw") : tx("showpw")}
+                      </button>
+                    </div>
+                    {mode === "register" && password && (
+                      <div className="mt-1.5">
+                        <div className="flex gap-1">
+                          {[1, 2, 3].map(n => <div key={n} className="h-1 flex-1 rounded-full" style={{ background: n <= pwStrength ? strengthColor : "var(--line)" }} />)}
+                        </div>
+                        <div className="text-[11px] mt-1" style={{ color: strengthColor }}>{strengthLabel}</div>
+                      </div>
+                    )}
                     {mode === "login" && (
-                      <button onClick={() => { setMode("forgot"); setError(null); setResetMsg(null); }}
+                      <button type="button" onClick={() => { setMode("forgot"); setError(null); setResetMsg(null); }}
                         className="text-xs mt-1.5" style={{ color: "var(--gold)" }}>
                         {tx("forgot")}
                       </button>
                     )}
                   </div>
+                  {mode === "register" && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("confirmpw")}</label>
+                      <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} autoComplete="new-password"
+                        className="w-full px-4 py-2.5 rounded-xl border"
+                        style={{ borderColor: confirmPassword && confirmPassword !== password ? "#DC2626" : "var(--line)" }} />
+                    </div>
+                  )}
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   {resetMsg && mode === "login" && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
-                  <button disabled={busy} onClick={submit} className="btn-primary w-full py-2.5 rounded-xl">
+                  <button type="submit" disabled={busy} className="btn-primary w-full py-2.5 rounded-xl">
                     {busy ? tx("wait") : mode === "login" ? tx("login") : tx("createlogin")}
                   </button>
-                </div>
+                </form>
 
                 <button onClick={() => setShowAdvanced(s => !s)} className="text-xs mt-5 flex items-center gap-1 mx-auto" style={{ color: "var(--ink-soft)" }}>
                   <Icon path={I.plug} className="w-3.5 h-3.5" /> {tx("backend")} {apiBase}
@@ -3162,7 +3346,7 @@ function ProfileInput({ label, value, onChange, placeholder }) {
 function ProfileTab({ user, call, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
-    name: user.name, phone: "", address: "", department: "", fatherPhone: "", roomNumber: "", hallId: null,
+    name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
   });
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -3179,9 +3363,10 @@ function ProfileTab({ user, call, onUpdated }) {
 
   const loadProfile = () => call("/api/auth/me").then(data => {
     setProfile({
-      name: data.name, phone: data.phone || "", address: data.address || "",
+      name: data.name, email: data.email || "", accountType: data.accountType || "regular",
+      phone: data.phone || "", address: data.address || "",
       department: data.department || "", fatherPhone: data.fatherPhone || "",
-      roomNumber: data.roomNumber || "", hallId: data.hallId || null,
+      hallName: data.hallName || "", roomNumber: data.roomNumber || "", hallId: data.hallId || null,
     });
     setWalletBalance(data.walletBalance);
     setAvatar(data.avatar || null); setAvatarChanged(false);
@@ -3209,8 +3394,10 @@ function ProfileTab({ user, call, onUpdated }) {
     try {
       const body = {
         name: profile.name, phone: profile.phone, address: profile.address,
-        department: profile.department, fatherPhone: profile.fatherPhone, roomNumber: profile.roomNumber,
+        department: profile.department, fatherPhone: profile.fatherPhone,
       };
+      if (profile.email.trim()) body.email = profile.email.trim();
+      if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
       if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
       if (avatarChanged) body.avatar = avatar;
       const data = await call("/api/auth/me", { method: "PUT", body });
@@ -3291,6 +3478,13 @@ function ProfileTab({ user, call, onUpdated }) {
             <ProfileField label={tx("fullname")} value={profile.name} />
           )}
 
+          {editing ? (
+            <ProfileInput label={tx("email")} value={profile.email} placeholder={tx("email.ph")}
+              onChange={e => setProfile({ ...profile, email: e.target.value })} />
+          ) : (
+            <ProfileField label={tx("email")} value={profile.email} />
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             {editing ? (
               <>
@@ -3350,14 +3544,27 @@ function ProfileTab({ user, call, onUpdated }) {
           {user.role !== "admin" && (
             <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
               <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("hall")}</div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs px-2.5 py-1 rounded-full font-700"
+                  style={profile.accountType === "hall" ? { background: "var(--gold-soft)", color: "var(--teal-deep)" } : { background: "var(--bg)", color: "var(--ink-soft)", border: "1px solid var(--line)" }}>
+                  {profile.accountType === "hall" ? tx("acct.badge.hall") : tx("acct.badge.regular")}
+                </span>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 {editing ? (
-                  <ProfileInput label={tx("room")} value={profile.roomNumber} placeholder={tx("room.ph")}
-                    onChange={e => setProfile({ ...profile, roomNumber: e.target.value })} />
+                  <>
+                    <ProfileInput label={tx("hallname")} value={profile.hallName} placeholder={tx("hallname.ph")}
+                      onChange={e => setProfile({ ...profile, hallName: e.target.value })} />
+                    <ProfileInput label={tx("room")} value={profile.roomNumber} placeholder={tx("room.ph")}
+                      onChange={e => setProfile({ ...profile, roomNumber: e.target.value })} />
+                  </>
                 ) : (
-                  <ProfileField label={tx("room")} value={profile.roomNumber} placeholder={tx("notres")} />
+                  <>
+                    <ProfileField label={tx("hallname")} value={profile.hallName} placeholder={tx("notres")} />
+                    <ProfileField label={tx("room")} value={profile.roomNumber} placeholder={tx("notres")} />
+                  </>
                 )}
-                <div>
+                <div className="col-span-2">
                   <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("hallid")}</label>
                   <input value={profile.hallId || "—"} disabled
                     className="w-full px-4 py-2.5 rounded-xl border opacity-60 font-mono" style={{ borderColor: "var(--line)" }} />
@@ -3836,7 +4043,7 @@ function App() {
 
         {tab === "profile" && (
           <ProfileTab user={session.user} call={call}
-            onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null } }))} />
+            onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
         )}
       </div>
     </div>
