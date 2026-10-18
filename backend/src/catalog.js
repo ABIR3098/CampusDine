@@ -61,6 +61,53 @@ function nutritionFor(name) {
     : { calories: null, allergens: [] };
 }
 
+// ── Restaurants ──────────────────────────────────────────────────────────────
+// Campus has four restaurants. To avoid any database change, which restaurant an item
+// belongs to is decided here, by item name — each item belongs to exactly one restaurant,
+// and the order of each list is the order the items are shown in that restaurant's menu
+// (so no two restaurants share a menu or a serial). Items an admin adds later get their
+// restaurant stored in app_meta (see src/restaurants.js); anything unassigned falls back
+// to DEFAULT_RESTAURANT.
+const RESTAURANTS = [
+  { id: "amitie", name: "Amitié", subtitle: "Friendship" },
+  { id: "vista", name: "Vista Cafeteria", subtitle: "" },
+  { id: "thirdplace", name: "Third Place", subtitle: "" },
+  { id: "staff", name: "Staff Canteen", subtitle: "" },
+];
+const DEFAULT_RESTAURANT = "amitie";
+
+const ITEMS_BY_RESTAURANT = {
+  // café: coffee, sandwiches, burgers, sweet drinks
+  amitie: ["Egg Sandwich", "Chicken Burger", "French Fries", "Cold Coffee", "Cha (Tea)", "Lassi", "Falooda"],
+  // street-food counter: chaat, fried snacks, rolls
+  vista: ["Fuchka", "Chotpoti", "Singara", "Veg Pakora", "Chicken Roll", "Jhalmuri", "Lemon Soda"],
+  // rice & noodle bowls with cold drinks
+  thirdplace: ["Chicken Biryani", "Tehari", "Fried Rice", "Chowmein", "Mango Juice", "Coconut Water", "Mineral Water"],
+  // home-style meals
+  staff: ["Khichuri", "Plain Rice & Dal", "Beef Bhuna & Rice", "Fish Curry & Rice", "Egg Curry & Rice", "Mixed Veg & Rice", "Porota-Vaji", "Borhani"],
+};
+
+const RESTAURANT_BY_ITEM = {};
+const RANK_BY_ITEM = {};
+for (const [restaurantId, names] of Object.entries(ITEMS_BY_RESTAURANT)) {
+  names.forEach((name, index) => { RESTAURANT_BY_ITEM[name] = restaurantId; RANK_BY_ITEM[name] = index; });
+}
+
+// extra = { [menu_item_id]: restaurantId } for items an admin added (may be omitted)
+function restaurantOf(name, id, extra) {
+  if (extra && id != null && extra[id]) return extra[id];
+  return RESTAURANT_BY_ITEM[name] || DEFAULT_RESTAURANT;
+}
+
+function isRestaurantId(value) {
+  return RESTAURANTS.some((r) => r.id === value);
+}
+
+// Position of an item inside its restaurant's menu (unlisted items go last).
+function menuRank(name) {
+  return name in RANK_BY_ITEM ? RANK_BY_ITEM[name] : 999;
+}
+
 // [name, name_bn, category, price, stock, tag, is_veg]
 const NEW_ITEMS = [
   ["Chicken Biryani", "চিকেন বিরিয়ানি", "heavy", 120, 30, "Popular", 0],
@@ -84,4 +131,7 @@ const NEW_ITEMS = [
   ["Coconut Water", "ডাবের পানি", "drinks", 40, 25, null, 1],
 ];
 
-module.exports = { IMAGE_BY_NAME, NEW_ITEMS, NUTRITION_BY_NAME, nutritionFor };
+module.exports = {
+  IMAGE_BY_NAME, NEW_ITEMS, NUTRITION_BY_NAME, nutritionFor,
+  RESTAURANTS, DEFAULT_RESTAURANT, ITEMS_BY_RESTAURANT, restaurantOf, isRestaurantId, menuRank,
+};
