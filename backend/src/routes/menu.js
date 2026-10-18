@@ -2,7 +2,8 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
-const { nutritionFor } = require("../catalog");
+const { nutritionFor, restaurantOf, isRestaurantId, menuRank, DEFAULT_RESTAURANT } = require("../catalog");
+const { loadItemRestaurants, saveItemRestaurant } = require("../restaurants");
 
 const router = express.Router();
 
@@ -50,7 +51,15 @@ router.get("/", verifyToken, catchAsync(async (req, res) => {
     [req.user.id]
   );
   // Feature: approximate calories + allergens for each item (see catalog.js)
-  res.json(rows.map((row) => ({ ...row, ...nutritionFor(row.name) })));
+  // Feature: every item belongs to one restaurant (`restaurant`); `rank` is its position in that
+  // restaurant's menu. The client shows only the restaurant the person picked.
+  const extra = await loadItemRestaurants();
+  const catOrder = { heavy: 0, snacks: 1, drinks: 2 };
+  res.json(
+    rows
+      .map((row) => ({ ...row, ...nutritionFor(row.name), restaurant: restaurantOf(row.name, row.id, extra), rank: menuRank(row.name) }))
+      .sort((a, b) => (catOrder[a.category] - catOrder[b.category]) || (a.rank - b.rank) || a.name.localeCompare(b.name))
+  );
 }));
 
 // POST /api/menu/:id/favorite  (any logged-in user) — star an item (idempotent)
@@ -83,12 +92,16 @@ router.post("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) 
   if (!name || !category || price == null) {
     return res.status(400).json({ error: "name, category and price are required" });
   }
+  // Feature: the admin adds the item to the restaurant they are managing
+  const restaurant = req.body.restaurant || DEFAULT_RESTAURANT;
+  if (!isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
   const [result] = await pool.query(
     "INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [name, nameBn || null, category, price, stock || 0, tag || null, isVeg === false ? 0 : 1]
   );
+  await saveItemRestaurant(result.insertId, restaurant);
   const [row] = await pool.query("SELECT * FROM menu_items WHERE id = ?", [result.insertId]);
-  res.status(201).json(row[0]);
+  res.status(201).json({ ...row[0], restaurant });
 }));
 
 // PUT /api/menu/:id  (admin only) — update price / stock / tag / veg flag
