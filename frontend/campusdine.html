@@ -281,6 +281,10 @@
     }
     .receipt-row{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
     .receipt-divider{ border-top:1px dashed #9CA3AF; margin:12px 0; }
+    .no-print{ display:none !important; }
+    #report-area, #report-area *{ visibility:visible; color:#111827 !important; }
+    #report-area{ position:absolute; left:0; top:0; width:100%; padding:16px; }
+    #report-area .card{ background:#FFFFFF !important; border:1px solid #D1D5DB !important; box-shadow:none !important; }
   }
 
   .chip{
@@ -3120,10 +3124,156 @@ function AdminVerify({ call, onCollected }) {
 }
 
 /* ---------------- Admin: Reports ---------------- */
-function AdminReports({ trend, forecast }) {
+function AdminReports({ trend, forecast, call, apiBase, token }) {
   const max = Math.max(1, ...trend.map(r => r.revenue));
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+  const [from, setFrom] = useState(() => daysAgo(29));
+  const [to, setTo] = useState(() => iso(new Date()));
+  const [report, setReport] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const preset = (f, t) => { setFrom(f); setTo(t); };
+  const generate = async () => {
+    setBusy(true); setError(null);
+    try { setReport(await call(`/api/admin/reports/summary?from=${from}&to=${to}`)); }
+    catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  };
+  const download = async (type) => {
+    setError(null);
+    try {
+      const res = await fetch(`${apiBase}/api/admin/reports/export?type=${type}&from=${from}&to=${to}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        let msg = `Download failed (${res.status})`;
+        try { msg = (await res.json()).error || msg; } catch (_) {}
+        throw new Error(msg);
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url; a.download = `campusdine-${type}-${from}_to_${to}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { setError(e.message); }
+  };
+
+  const Tile = ({ label, value, sub }) => (
+    <div className="card p-4">
+      <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</div>
+      <div className="font-mono text-xl font-700 mt-1">{value}</div>
+      {sub && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{sub}</div>}
+    </div>
+  );
+  const Table = ({ title, head, rows, empty }) => (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{title}</div>
+      {rows.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{empty || "Nothing in this period."}</p> : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="text-left text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>
+              {head.map((h, i) => <th key={i} className={`py-1.5 pr-3 font-600 ${i > 0 ? "text-right" : ""}`}>{h}</th>)}
+            </tr></thead>
+            <tbody>{rows.map((r, ri) => (
+              <tr key={ri} className="border-t" style={{ borderColor: "var(--line)" }}>
+                {r.map((c, i) => <td key={i} className={`py-1.5 pr-3 ${i > 0 ? "text-right font-mono" : ""}`}>{c}</td>)}
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  const t = report && report.totals;
+  const dayMax = report ? Math.max(1, ...report.byDay.map(d => d.revenue)) : 1;
+  const nice = (s) => s === "hall" ? "Hall residents" : s === "regular" ? "Regular" : s;
+
   return (
-    <div className="grid lg:grid-cols-3 gap-6">
+    <div className="space-y-6">
+      {/* ---------- Generate a report ---------- */}
+      <div className="card p-5 no-print">
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Generate report</div>
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Pick a period (up to one year), then generate it on screen, print / save as PDF, or download it as a spreadsheet (CSV).</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1" style={{ color: "var(--ink-soft)" }}>From</label>
+            <input type="date" value={from} max={to} onChange={e => setFrom(e.target.value)} className="px-3 py-2 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1" style={{ color: "var(--ink-soft)" }}>To</label>
+            <input type="date" value={to} min={from} onChange={e => setTo(e.target.value)} className="px-3 py-2 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+          </div>
+          <button onClick={generate} disabled={busy || !from || !to} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">{busy ? "Generating…" : "Generate report"}</button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {[["Today", 0, 0], ["Last 7 days", 6, 0], ["Last 30 days", 29, 0], ["Last 90 days", 89, 0]].map(([label, a, b]) => (
+            <button key={label} onClick={() => preset(daysAgo(a), daysAgo(b))} className="chip text-xs px-3 py-1.5 rounded-full">{label}</button>
+          ))}
+          <button onClick={() => { const d = new Date(); preset(iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(d)); }} className="chip text-xs px-3 py-1.5 rounded-full">This month</button>
+        </div>
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+          <button onClick={() => download("orders")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download orders (CSV)</button>
+          <button onClick={() => download("hall")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download hall residents (CSV)</button>
+          {report && <button onClick={() => window.print()} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Print / Save as PDF</button>}
+        </div>
+      </div>
+
+      {/* ---------- The generated report ---------- */}
+      {report && (
+        <div id="report-area" className="space-y-5">
+          <div>
+            <div className="font-display font-800 text-xl">CampusDine — Sales report</div>
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>
+              {report.range.from} to {report.range.to} ({report.range.days} day{report.range.days === 1 ? "" : "s"}) · generated {new Date(report.generatedAt).toLocaleString()}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Tile label="Orders" value={t.orders} sub={`${t.customers} customer${t.customers === 1 ? "" : "s"}`} />
+            <Tile label="Revenue" value={taka(t.revenue)} sub={`after ${taka(t.discounts)} in discounts`} />
+            <Tile label="Average order" value={taka(Math.round(t.avgOrder))} />
+            <Tile label="Collected" value={`${t.collected} / ${t.orders}`} sub="handed over by QR scan" />
+            <Tile label="Cancelled" value={t.cancelledOrders} sub={`${taka(t.cancelledAmount)} refunded / not counted`} />
+            <Tile label="New sign-ups" value={report.users.joined} sub={`${report.users.total} users, ${report.users.hall} in halls`} />
+            <Tile label="Avg. rating" value={report.feedback.count ? report.feedback.average.toFixed(1) + " ★" : "—"} sub={`${report.feedback.count} feedback`} />
+            <Tile label="Wallet top-ups" value={taka(report.wallet.topups)} sub={`${taka(report.wallet.balanceHeld)} held in wallets`} />
+          </div>
+
+          <div className="card p-5">
+            <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Revenue by day</div>
+            {report.byDay.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No orders in this period.</p> : (
+              <div className="overflow-x-auto">
+                <div className="flex items-end gap-1 h-40" style={{ minWidth: report.byDay.length * 14 }}>
+                  {report.byDay.map(d => (
+                    <div key={d.day} className="flex-1 flex flex-col items-center justify-end" title={`${d.day}: ${taka(d.revenue)} · ${d.orders} orders`}>
+                      <div className="w-full rounded-t" style={{ height: `${Math.max(2, (d.revenue / dayMax) * 130)}px`, background: "var(--gold)" }}></div>
+                      <div className="text-[9px] mt-1 font-mono" style={{ color: "var(--ink-soft)" }}>{d.day.slice(8)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            <Table title="Top selling items" head={["Item", "Qty", "Revenue"]} rows={report.topItems.map(i => [i.name, i.qty, taka(i.revenue)])} />
+            <Table title="Hall residents vs regular" head={["Group", "Customers", "Orders", "Revenue"]}
+              rows={report.byResidence.map(r => [nice(r.type), r.customers, r.orders, taka(r.revenue)])} />
+            <Table title="Payment method" head={["Method", "Orders", "Revenue"]}
+              rows={report.byPayment.map(p => [p.method === "wallet" ? "Wallet" : "Cash", p.orders, taka(p.revenue)])} />
+            <Table title="Students vs teachers" head={["Role", "Orders", "Revenue"]}
+              rows={report.byRole.map(r => [r.role, r.orders, taka(r.revenue)])} />
+          </div>
+
+          <Table title={`Hall residents (${report.hallResidents.length})`} head={["Name", "Hall · Room", "Hall ID", "Orders", "Spent"]}
+            empty="No hall residents have signed up yet."
+            rows={report.hallResidents.map(h => [`${h.name} (${h.externalId})`, `${h.hallName || "—"} · ${h.roomNumber || "—"}`, h.hallId || "—", h.orders, taka(h.spent)])} />
+        </div>
+      )}
+
+      {/* ---------- Existing trend + forecast ---------- */}
+      <div className="grid lg:grid-cols-3 gap-6 no-print">
       <div className="lg:col-span-2 card p-5">
         <div className="font-display font-700 mb-5" style={{ color: "var(--gold)" }}>Revenue trend — last 6 months</div>
         {trend.length === 0 ? (
@@ -3150,6 +3300,7 @@ function AdminReports({ trend, forecast }) {
           </div>
         </div>
         <p className="text-xs mt-4" style={{ color: "var(--ink-soft)" }}>Use this to plan how much khichuri and tehari to prepare.</p>
+      </div>
       </div>
     </div>
   );
@@ -4272,7 +4423,7 @@ function App() {
         {session.user.role === "admin" && tab === "verify" && (
           <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
         )}
-        {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} />}
+        {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} call={call} apiBase={apiBase} token={session.token} />}
         {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
 
         {tab === "profile" && (
