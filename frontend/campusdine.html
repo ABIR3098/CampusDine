@@ -4370,6 +4370,8 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
   const [restaurant, setRestaurant] = useState(null); // the restaurant chosen after login (everyone)
+  const restaurantRef = useRef(null); // lets refresh functions (also called from socket handlers) see the latest choice
+  restaurantRef.current = restaurant;
 
   const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
@@ -4456,8 +4458,9 @@ function App() {
     setBill(await call(`/api/calendar/bill?year=${year}&month=${month}`));
   };
   const refreshMyOrders = async () => setOrders(await call("/api/orders/mine"));
-  const refreshAdminOrders = async () => setOrders(await call("/api/orders"));
-  const refreshOverview = async () => setOverview(await call("/api/admin/overview"));
+  const restaurantQuery = () => (restaurantRef.current ? `?restaurant=${restaurantRef.current.id}` : "");
+  const refreshAdminOrders = async () => setOrders(await call("/api/orders" + restaurantQuery()));
+  const refreshOverview = async () => setOverview(await call("/api/admin/overview" + restaurantQuery()));
   const refreshCoupons = async () => {
     const data = await call("/api/coupon");
     setCoupons(data.coupons || []);
@@ -4493,6 +4496,13 @@ function App() {
       } catch (e) { showError(e); }
     })();
   }, [session]);
+
+  // Admin: reload the queue and overview numbers for the restaurant they just picked / switched to
+  useEffect(() => {
+    if (!session || session.user.role !== "admin" || !restaurant) return;
+    refreshAdminOrders().catch(() => {});
+    refreshOverview().catch(() => {});
+  }, [restaurant]);
 
   // Refetch the meal calendar & bill whenever the visible month changes
   useEffect(() => {
@@ -4692,7 +4702,7 @@ function App() {
   };
   const addMenuItem = async (item) => {
     try {
-      await call("/api/menu", { method: "POST", body: item });
+      await call("/api/menu", { method: "POST", body: { ...item, restaurant: restaurant && restaurant.id } });
       await refreshMenu();
     } catch (e) { showError(e); }
   };
@@ -4713,6 +4723,17 @@ function App() {
     return <RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
       onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} />;
   }
+
+  // Each restaurant sells its own items; admin orders are also limited to the chosen restaurant
+  const restaurantMenu = menu.filter(m => m.restaurant === restaurant.id);
+  const restaurantOrders = session.user.role === "admin" ? orders.filter(o => o.restaurant === restaurant.id) : orders;
+  const switchRestaurant = () => {
+    if (cart.length > 0 && !window.confirm(session.user.role !== "admin" && lang === "bn"
+      ? "রেস্টুরেন্ট বদলালে আপনার কার্ট খালি হয়ে যাবে। চালিয়ে যাবেন?"
+      : "Switching restaurant will empty your cart. Continue?")) return;
+    setCart([]);
+    setRestaurant(null);
+  };
 
   const toRate = orders.filter(o => o.status === "Ready" && !o.feedback).length;
   const userTabs = [
@@ -4770,7 +4791,7 @@ function App() {
             {restaurant.subtitle && <div className="text-[11px] opacity-60">({restaurant.subtitle})</div>}
           </div>
         </div>
-        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setRestaurant(null)}>
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={switchRestaurant}>
           {session.user.role !== "admin" && lang === "bn" ? "রেস্টুরেন্ট বদলান" : "Switch restaurant"}
         </button>
       </div>
@@ -4798,7 +4819,7 @@ function App() {
         )}
 
         {session.user.role !== "admin" && tab === "menu" && (
-          <MenuOrder menu={menu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
+          <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
             onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} />
         )}
         {session.user.role !== "admin" && tab === "track" && (
@@ -4822,11 +4843,11 @@ function App() {
             sessionToken={session.token} refreshKey={chatRefreshKey} />
         )}
 
-        {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={orders} />}
+        {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={restaurantOrders} />}
         {session.user.role === "admin" && tab === "adminMenu" && (
-          <AdminMenu menu={menu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
+          <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
-        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={orders} advance={advanceOrder} />}
+        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "verify" && (
           <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
