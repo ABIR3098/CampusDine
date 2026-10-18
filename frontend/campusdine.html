@@ -4358,6 +4358,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
   const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
+  const [restaurant, setRestaurant] = useState(null); // admin: the restaurant chosen after login
 
   const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
@@ -4459,11 +4460,12 @@ function App() {
 
   const onAuth = (token, user) => {
     setSession({ token, user });
+    setRestaurant(null); // admin picks a restaurant first
     setTab(user.role === "admin" ? "overview" : "menu");
   };
   const logout = () => {
     if (socketRef.current) socketRef.current.disconnect();
-    setSession(null); setCart([]); setError(null); setNotificationCenterOpen(false);
+    setSession(null); setRestaurant(null); setCart([]); setError(null); setNotificationCenterOpen(false);
     setWallet({ balance: 0, transactions: [], loaded: false }); setLowBalanceDismissed(false);
   };
 
