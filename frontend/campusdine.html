@@ -4750,6 +4750,12 @@ function App() {
           </div>
         ))}
       </div>
+      {session.user.role === "admin" && restaurant && (
+        <div className="max-w-6xl mx-auto px-5 pt-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="text-sm font-700">{restaurant.emoji} {restaurant.name}</div>
+          <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setRestaurant(null)}>Switch restaurant</button>
+        </div>
+      )}
       <div className="max-w-6xl mx-auto p-5 pb-24 sm:pb-5 fade-in" key={tab}>
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
