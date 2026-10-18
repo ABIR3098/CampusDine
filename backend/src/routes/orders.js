@@ -2,6 +2,8 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { restaurantOf, isRestaurantId } = require("../catalog");
+const { loadItemRestaurants } = require("../restaurants");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
@@ -16,10 +18,16 @@ async function attachItems(orders) {
     `SELECT * FROM order_items WHERE order_id IN (${ids.map(() => "?").join(",")})`,
     ids
   );
-  return orders.map((o) => ({
-    ...o,
-    items: items.filter((i) => i.order_id === o.id).map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
-  }));
+  // Feature: restaurants — an order belongs to the restaurant its items come from (one order = one restaurant)
+  const extra = await loadItemRestaurants();
+  return orders.map((o) => {
+    const own = items.filter((i) => i.order_id === o.id);
+    return {
+      ...o,
+      restaurant: restaurantOf(own[0] && own[0].name, own[0] && own[0].menu_item_id, extra),
+      items: own.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
+    };
+  });
 }
 
 // Feature: queue position. An ASAP order is ordered by when it was placed; orders
@@ -133,6 +141,13 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       if (menuItem.stock < reqItem.qty) throw { status: 409, message: `${menuItem.name} is out of stock` };
       subtotal += menuItem.price * reqItem.qty;
       snapshot.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: reqItem.qty });
+    }
+
+    // Feature: restaurants — one order can only contain items from a single restaurant
+    const extraRestaurants = await loadItemRestaurants();
+    const restaurantsInCart = new Set(snapshot.map((i) => restaurantOf(i.name, i.id, extraRestaurants)));
+    if (restaurantsInCart.size > 1) {
+      throw { status: 400, message: "One order can only contain items from a single restaurant" };
     }
 
     let appliedCoupon = null;
@@ -256,9 +271,15 @@ router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(a
 }));
 
 // GET /api/orders  (admin) — live queue
+// Optional ?restaurant=<id> keeps only that restaurant's orders.
 router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const [orders] = await pool.query("SELECT * FROM orders ORDER BY id DESC LIMIT 100");
-  res.json(await attachFeedback(await attachItems(orders)));
+  const restaurant = req.query.restaurant;
+  if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
+  // With a restaurant filter, look at more recent orders first, since other restaurants' orders are dropped
+  const [orders] = await pool.query("SELECT * FROM orders ORDER BY id DESC LIMIT ?", [restaurant ? 400 : 100]);
+  const withItems = await attachItems(orders);
+  const kept = restaurant ? withItems.filter((o) => o.restaurant === restaurant).slice(0, 100) : withItems;
+  res.json(await attachFeedback(kept));
 }));
 
 // PATCH /api/orders/:id/cancel  (student/teacher) — cancel while still "Received"
