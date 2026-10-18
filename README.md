@@ -24,6 +24,22 @@ registering anything by hand.
 
 ---
 
+## Restaurants
+
+CampusDine has four restaurants — **Amitié (Friendship)**, **Vista Cafeteria**, **Third Place** and
+**Staff Canteen** — each with its own logo (`frontend/images/restaurants/`). After login, every role
+(student, teacher/staff and admin) first chooses a restaurant, and from then on sees only that
+restaurant's menu; an admin also sees only its orders and overview numbers.
+
+No database change is needed:
+- Which restaurant an item belongs to is set by item name in `backend/src/catalog.js`
+  (`ITEMS_BY_RESTAURANT`); every item belongs to exactly one restaurant and the list order is the menu order.
+- Items an admin adds later are remembered in the existing `app_meta` table (`item_restaurant_<id>`).
+- An order's restaurant is worked out from its items; a single order can only hold one restaurant's items.
+- Reports (revenue trend, summary, CSV) are still campus-wide.
+
+---
+
 ## Run it — start to finish
 
 ### 1. Install prerequisites
