@@ -17,6 +17,50 @@ const IMAGE_BY_NAME = {
   "Borhani": IMG("borhani"), "Falooda": IMG("falooda"), "Coconut Water": IMG("coconut-water"),
 };
 
+// Nutrition info shown on the menu cards. Values are approximate (per serving) and are kept
+// here, next to the images, so no database change is needed. Items an admin adds later that
+// are not listed here simply show no nutrition badges.
+// allergen keys: egg | milk | gluten | fish | nuts | soy
+const NUTRITION_BY_NAME = {
+  "Khichuri": { calories: 450, allergens: ["milk"] },
+  "Tehari": { calories: 650, allergens: [] },
+  "Porota-Vaji": { calories: 420, allergens: ["gluten"] },
+  "Plain Rice & Dal": { calories: 380, allergens: [] },
+  "Singara": { calories: 260, allergens: ["gluten"] },
+  "Fuchka": { calories: 220, allergens: ["gluten"] },
+  "Chicken Roll": { calories: 380, allergens: ["gluten", "egg"] },
+  "Cha (Tea)": { calories: 60, allergens: ["milk"] },
+  "Lassi": { calories: 150, allergens: ["milk"] },
+  "Mineral Water": { calories: 0, allergens: [] },
+  "Chicken Biryani": { calories: 600, allergens: ["milk"] },
+  "Beef Bhuna & Rice": { calories: 650, allergens: [] },
+  "Egg Curry & Rice": { calories: 520, allergens: ["egg"] },
+  "Fish Curry & Rice": { calories: 500, allergens: ["fish"] },
+  "Mixed Veg & Rice": { calories: 420, allergens: [] },
+  "Fried Rice": { calories: 480, allergens: ["egg", "soy"] },
+  "Chowmein": { calories: 450, allergens: ["gluten", "egg", "soy"] },
+  "Chotpoti": { calories: 250, allergens: ["egg"] },
+  "Jhalmuri": { calories: 150, allergens: ["nuts"] },
+  "French Fries": { calories: 320, allergens: [] },
+  "Chicken Burger": { calories: 480, allergens: ["gluten", "egg", "milk"] },
+  "Egg Sandwich": { calories: 300, allergens: ["gluten", "egg"] },
+  "Veg Pakora": { calories: 200, allergens: [] },
+  "Cold Coffee": { calories: 180, allergens: ["milk"] },
+  "Mango Juice": { calories: 120, allergens: [] },
+  "Lemon Soda": { calories: 90, allergens: [] },
+  "Borhani": { calories: 80, allergens: ["milk"] },
+  "Falooda": { calories: 320, allergens: ["milk", "nuts"] },
+  "Coconut Water": { calories: 45, allergens: [] },
+};
+
+// Always returns { calories, allergens } so callers never have to check for undefined.
+function nutritionFor(name) {
+  const info = NUTRITION_BY_NAME[name];
+  return info
+    ? { calories: info.calories, allergens: [...info.allergens] }
+    : { calories: null, allergens: [] };
+}
+
 // [name, name_bn, category, price, stock, tag, is_veg]
 const NEW_ITEMS = [
   ["Chicken Biryani", "চিকেন বিরিয়ানি", "heavy", 120, 30, "Popular", 0],
@@ -40,4 +84,4 @@ const NEW_ITEMS = [
   ["Coconut Water", "ডাবের পানি", "drinks", 40, 25, null, 1],
 ];
 
-module.exports = { IMAGE_BY_NAME, NEW_ITEMS };
+module.exports = { IMAGE_BY_NAME, NEW_ITEMS, NUTRITION_BY_NAME, nutritionFor };
