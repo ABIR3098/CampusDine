@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Third Place">
+  <rect width="120" height="120" rx="26" fill="#1E3B2F"/>
+  <circle cx="60" cy="46" r="27" fill="none" stroke="#F2C14E" stroke-width="4"/>
+  <text x="60" y="58" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="36" font-weight="700" fill="#F2C14E">3</text>
+  <circle cx="60" cy="19" r="4.5" fill="#F2C14E"/>
+  <text x="60" y="97" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="17" font-weight="700" fill="#FFF6DD">Third Place</text>
+  <rect x="38" y="104" width="44" height="2.5" rx="1.25" fill="#F2C14E"/>
+</svg>

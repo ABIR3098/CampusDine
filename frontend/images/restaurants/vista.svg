@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Vista Cafeteria">
+  <rect width="120" height="120" rx="26" fill="#E8F3FB"/>
+  <path d="M26 74V50a34 34 0 0 1 68 0v24z" fill="#FFFFFF" stroke="#1D5F8F" stroke-width="5"/>
+  <circle cx="60" cy="52" r="13" fill="#F5A623"/>
+  <path d="M30 74c10-12 20-12 30 0c10-12 20-12 30 0z" fill="#2C8C5A"/>
+  <rect x="26" y="74" width="68" height="5" rx="2.5" fill="#1D5F8F"/>
+  <text x="60" y="97" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="800" fill="#1D5F8F">VISTA</text>
+  <text x="60" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" letter-spacing="2.5" fill="#4F7F9F">CAFETERIA</text>
+</svg>

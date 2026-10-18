@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Staff Canteen">
+  <rect width="120" height="120" rx="26" fill="#F7EBDD"/>
+  <circle cx="60" cy="46" r="27" fill="#FFFFFF" stroke="#8C2F39" stroke-width="5"/>
+  <circle cx="60" cy="46" r="17" fill="none" stroke="#C9A24B" stroke-width="2.5"/>
+  <path d="M26 38v14M30 38v14M34 38v14M26 52q4 4 8 0M30 52v18" fill="none" stroke="#8C2F39" stroke-width="3" stroke-linecap="round"/>
+  <path d="M94 38c-4 3-4 12 0 14v18M94 38v14" fill="none" stroke="#8C2F39" stroke-width="3" stroke-linecap="round"/>
+  <path d="M60 36l3.2 6.6 7.2 1-5.2 5 1.2 7.2-6.4-3.4-6.4 3.4 1.2-7.2-5.2-5 7.2-1z" fill="#C9A24B"/>
+  <text x="60" y="94" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" fill="#8C2F39">STAFF</text>
+  <text x="60" y="109" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" letter-spacing="3" fill="#8A6A55">CANTEEN</text>
+</svg>

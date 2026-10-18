@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Amitié">
+  <rect width="120" height="120" rx="26" fill="#FFF3E6"/>
+  <circle cx="48" cy="46" r="22" fill="#E8604C" fill-opacity="0.85"/>
+  <circle cx="72" cy="46" r="22" fill="#1F8A8A" fill-opacity="0.85"/>
+  <path d="M60 30.5a22 22 0 0 1 0 31a22 22 0 0 1 0-31z" fill="#7A3E7C" fill-opacity="0.9"/>
+  <text x="60" y="95" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-style="italic" font-weight="700" fill="#5A2A2A">Amitié</text>
+  <text x="60" y="109" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" letter-spacing="2" fill="#8A6A5A">FRIENDSHIP</text>
+</svg>
