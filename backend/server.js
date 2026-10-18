@@ -17,6 +17,7 @@ const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
 const feedbackRoutes = require("./src/routes/feedback");
+const summaryRoutes = require("./src/routes/summary");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
@@ -239,7 +240,7 @@ async function ensureNoteAndAvailabilitySchema(db) {
   }
 }
 
-// Feature: email + hall-resident accounts. Adds the new columns to databases created before
+// Feature: email + hall-resident accounts + QR pickup. Adds the new columns to databases created before
 // this change (same SHOW COLUMNS / ALTER TABLE approach as the other schema checks). Safe to run every start.
 async function ensureAccountAndQrSchema(db) {
   try {
@@ -253,6 +254,7 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "email", "VARCHAR(120) NULL");
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
+    await addColumn("orders", "picked_up_at", "DATETIME NULL");
 
     const [emailIndex] = await db.query("SHOW INDEX FROM users WHERE Column_name = 'email' AND Non_unique = 0");
     if (emailIndex.length === 0) {
@@ -463,6 +465,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/coupon", couponRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/summary", summaryRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.

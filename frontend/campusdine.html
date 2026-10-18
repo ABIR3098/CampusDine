@@ -986,6 +986,12 @@ Object.assign(I18N.en, {
   "pw.strong": "Strong password",
   "reset.p": "Enter your ID and the email you signed up with, then choose a new password.",
   "reset.noemail": "Accounts without an email (or admin accounts) can't be reset here — ask the canteen admin.",
+  "qr.title": "Show this QR at the counter",
+  "qr.hint": "Your pickup token {t} is inside this code. The counter scans it to hand over your order.",
+  "qr.collected": "Collected",
+  "qr.noqr": "QR code unavailable — show the token {t} instead.",
+  "n.collected.t": "Order collected",
+  "n.collected": "Order {o} was handed over. Enjoy your meal!",
   "acct.badge.hall": "Hall resident",
   "acct.badge.regular": "Regular account",
   "hallhint": "Enter your hall name and a room number, then save, to get a fixed Hall ID."
@@ -1017,26 +1023,70 @@ Object.assign(I18N.bn, {
   "pw.strong": "শক্তিশালী পাসওয়ার্ড",
   "reset.p": "আপনার আইডি ও সাইন-আপের ইমেইল দিন, তারপর নতুন পাসওয়ার্ড বেছে নিন।",
   "reset.noemail": "ইমেইল ছাড়া অ্যাকাউন্ট (বা অ্যাডমিন অ্যাকাউন্ট) এখানে রিসেট করা যায় না — ক্যান্টিন অ্যাডমিনকে জানান।",
-  "acct.badge.hall": "হলের আবাসিক",
-  "acct.badge.regular": "সাধারণ অ্যাকাউন্ট",
-  "hallhint": "স্থায়ী হল আইডি পেতে হলের নাম ও রুম নম্বর দিয়ে সেভ করুন।"
-});
-// ---- Added: sign-up with email / hall residents, QR pickup token, forgot-password check ----
-Object.assign(I18N.en, {
-  "qr.title": "Show this QR at the counter",
-  "qr.hint": "Your pickup token {t} is inside this code. The counter scans it to hand over your order.",
-  "qr.collected": "Collected",
-  "qr.noqr": "QR code unavailable — show the token {t} instead.",
-  "n.collected.t": "Order collected",
-  "n.collected": "Order {o} was handed over. Enjoy your meal!"
-});
-Object.assign(I18N.bn, {
   "qr.title": "কাউন্টারে এই QR দেখান",
   "qr.hint": "আপনার পিকআপ টোকেন {t} এই কোডের ভেতরে আছে। কাউন্টার স্ক্যান করে অর্ডার দেবে।",
   "qr.collected": "নেওয়া হয়েছে",
   "qr.noqr": "QR কোড পাওয়া যাচ্ছে না — টোকেন {t} দেখান।",
   "n.collected.t": "অর্ডার নেওয়া হয়েছে",
-  "n.collected": "অর্ডার {o} হস্তান্তর হয়েছে। ভালো খাবার খান!"
+  "n.collected": "অর্ডার {o} হস্তান্তর হয়েছে। ভালো খাবার খান!",
+  "acct.badge.hall": "হলের আবাসিক",
+  "acct.badge.regular": "সাধারণ অ্যাকাউন্ট",
+  "hallhint": "স্থায়ী হল আইডি পেতে হলের নাম ও রুম নম্বর দিয়ে সেভ করুন।"
+});
+// ---- Added: spending summary ----
+Object.assign(I18N.en, {
+  "nav.spending": "Spending",
+  "sp.loading": "Loading your summary…",
+  "sp.empty": "No orders this month yet — once you order, your spending summary appears here.",
+  "sp.spent": "Spent",
+  "sp.orders": "Orders",
+  "sp.activedays": "on {d} day(s)",
+  "sp.avg": "Average order",
+  "sp.biggest": "Biggest: {a}",
+  "sp.saved": "Saved",
+  "sp.saved.d": "with coupons",
+  "sp.more": "{p}% more than last month",
+  "sp.less": "{p}% less than last month",
+  "sp.same": "Same as last month",
+  "sp.noprev": "No orders last month to compare",
+  "sp.daily": "Spending by day",
+  "sp.top": "Most ordered",
+  "sp.cat": "Where it went",
+  "sp.cat.heavy": "Main meals",
+  "sp.cat.snacks": "Snacks",
+  "sp.cat.drinks": "Drinks",
+  "sp.cat.other": "Other",
+  "sp.pay": "How you paid",
+  "sp.norders": "{n} order(s)",
+  "sp.wallet": "Wallet",
+  "sp.topups": "Added this month"
+});
+Object.assign(I18N.bn, {
+  "nav.spending": "খরচ",
+  "sp.loading": "আপনার সারসংক্ষেপ লোড হচ্ছে…",
+  "sp.empty": "এই মাসে এখনো কোনো অর্ডার নেই — অর্ডার করলে আপনার খরচের সারসংক্ষেপ এখানে দেখা যাবে।",
+  "sp.spent": "খরচ",
+  "sp.orders": "অর্ডার",
+  "sp.activedays": "{d} দিনে",
+  "sp.avg": "গড় অর্ডার",
+  "sp.biggest": "সর্বোচ্চ: {a}",
+  "sp.saved": "সাশ্রয়",
+  "sp.saved.d": "কুপন দিয়ে",
+  "sp.more": "গত মাসের চেয়ে {p}% বেশি",
+  "sp.less": "গত মাসের চেয়ে {p}% কম",
+  "sp.same": "গত মাসের সমান",
+  "sp.noprev": "তুলনার জন্য গত মাসে অর্ডার নেই",
+  "sp.daily": "দিন অনুযায়ী খরচ",
+  "sp.top": "সবচেয়ে বেশি অর্ডার",
+  "sp.cat": "কোথায় খরচ হলো",
+  "sp.cat.heavy": "মূল খাবার",
+  "sp.cat.snacks": "স্ন্যাক্স",
+  "sp.cat.drinks": "পানীয়",
+  "sp.cat.other": "অন্যান্য",
+  "sp.pay": "কীভাবে পরিশোধ করেছেন",
+  "sp.norders": "{n}টি অর্ডার",
+  "sp.wallet": "ওয়ালেট",
+  "sp.topups": "এই মাসে যোগ হয়েছে"
 });
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
@@ -1167,7 +1217,6 @@ function LangToggle({ onToggle }) {
 /* ---------------- Added: validation helpers + QR code ---------------- */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ID_RE = /^[A-Za-z0-9._-]{3,50}$/;
-
 
 // Draws a QR code as inline SVG (black on white, so scanners work in dark theme too).
 // Uses the small "qrcode-generator" library loaded in <head>; if it failed to load we show the plain token instead.
@@ -2536,6 +2585,154 @@ function MealCalendar({ role, year, month, calendar, bill, onToggle, onPrevMonth
   );
 }
 
+/* ---------------- Spending summary (student / teacher) ---------------- */
+function SpendingTab({ call }) {
+  const now = new Date();
+  const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 });
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    setData(null); setError(null);
+    call(`/api/summary?year=${ym.year}&month=${ym.month}`)
+      .then(d => { if (live) setData(d); })
+      .catch(e => { if (live) setError(e.message); });
+    return () => { live = false; };
+  }, [ym.year, ym.month]);
+
+  const shift = (d) => setYm(({ year, month }) => {
+    const m = month - 1 + d;
+    return { year: year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 + 1 };
+  });
+  const isCurrent = ym.year === now.getFullYear() && ym.month === now.getMonth() + 1;
+  const monthName = new Date(ym.year, ym.month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "long" });
+
+  const Tile = ({ label, value, sub }) => (
+    <div className="card p-4">
+      <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</div>
+      <div className="font-mono text-xl font-700 mt-1">{value}</div>
+      {sub && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{sub}</div>}
+    </div>
+  );
+
+  let body = null;
+  if (error) {
+    body = <div className="card p-6 text-sm" style={{ color: "#DC2626" }}>{error}</div>;
+  } else if (!data) {
+    body = <div className="card p-6 text-sm" style={{ color: "var(--ink-soft)" }}>{tx("sp.loading")}</div>;
+  } else if (data.totals.orders === 0) {
+    body = <div className="card p-10 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("sp.empty")}</div>;
+  } else {
+    const t = data.totals;
+    const total = daysInMonth(ym.year, ym.month);
+    const perDay = {};
+    data.byDay.forEach(d => { perDay[d.day] = d.spent; });
+    const dayMax = Math.max(1, ...data.byDay.map(d => d.spent));
+    const catTotal = Math.max(1, data.byCategory.reduce((a, c) => a + c.spent, 0));
+    let compare;
+    if (data.prev.spent > 0) {
+      const pct = Math.round(Math.abs(t.spent - data.prev.spent) / data.prev.spent * 100);
+      compare = pct === 0 ? tx("sp.same") : tx(t.spent > data.prev.spent ? "sp.more" : "sp.less", { p: num(pct) });
+    } else {
+      compare = tx("sp.noprev");
+    }
+    body = (
+      <>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Tile label={tx("sp.spent")} value={taka(t.spent)} sub={compare} />
+          <Tile label={tx("sp.orders")} value={num(t.orders)} sub={tx("sp.activedays", { d: num(t.activeDays) })} />
+          <Tile label={tx("sp.avg")} value={taka(Math.round(t.avgOrder))} sub={tx("sp.biggest", { a: taka(t.biggest) })} />
+          <Tile label={tx("sp.saved")} value={taka(t.discounts)} sub={tx("sp.saved.d")} />
+        </div>
+
+        <div className="card p-5">
+          <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("sp.daily")}</div>
+          <div className="overflow-x-auto">
+            <div className="flex items-end gap-1 h-40" style={{ minWidth: total * 14 }}>
+              {Array.from({ length: total }).map((_, i) => {
+                const day = i + 1, v = perDay[day] || 0;
+                return (
+                  <div key={day} className="flex-1 flex flex-col items-center justify-end" title={`${day}: ${taka(v)}`}>
+                    <div className="w-full rounded-t" style={{ height: v ? `${Math.max(3, (v / dayMax) * 130)}px` : "2px", background: v ? "var(--gold)" : "var(--line)" }}></div>
+                    <div className="text-[9px] mt-1 font-mono" style={{ color: "var(--ink-soft)" }}>{num(day)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <div className="card p-5">
+            <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("sp.top")}</div>
+            <div className="space-y-2 text-sm">
+              {data.topItems.map((it, i) => (
+                <div key={it.name} className="flex justify-between gap-3">
+                  <span>{num(i + 1)}. {dispName(it.name)} <span style={{ color: "var(--ink-soft)" }}>×{num(it.qty)}</span></span>
+                  <span className="font-mono">{taka(it.spent)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card p-5">
+            <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("sp.cat")}</div>
+            <div className="space-y-3">
+              {data.byCategory.map(c => (
+                <div key={c.category}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{tx("sp.cat." + c.category)}</span>
+                    <span className="font-mono">{taka(c.spent)} · {num(Math.round(c.spent / catTotal * 100))}%</span>
+                  </div>
+                  <div className="h-2 rounded-full" style={{ background: "var(--line)" }}>
+                    <div className="h-2 rounded-full" style={{ width: `${(c.spent / catTotal) * 100}%`, background: "var(--gold)" }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card p-5">
+            <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("sp.pay")}</div>
+            <div className="space-y-2 text-sm">
+              {data.byPayment.map(p => (
+                <div key={p.method} className="flex justify-between">
+                  <span>{p.method === "wallet" ? tx("pay.wallet") : tx("pay.cash")} <span style={{ color: "var(--ink-soft)" }}>· {tx("sp.norders", { n: num(p.orders) })}</span></span>
+                  <span className="font-mono">{taka(p.spent)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card p-5">
+            <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("sp.wallet")}</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span>{tx("sp.topups")}</span><span className="font-mono">{taka(data.wallet.topups)}</span></div>
+              <div className="flex justify-between"><span>{tx("wallet.bal")}</span><span className="font-mono">{taka(data.wallet.balance)}</span></div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-2">
+        <button onClick={() => shift(-1)} aria-label={tx("prevm")} className="w-8 h-8 rounded-lg border flex items-center justify-center" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+          <Icon path={I.chevronLeft} className="w-4 h-4" />
+        </button>
+        <div className="font-display font-700 text-lg min-w-[150px] text-center" style={{ color: "var(--gold)" }}>{monthName} {num(ym.year)}</div>
+        <button onClick={() => shift(1)} disabled={isCurrent} aria-label={tx("nextm")} className="w-8 h-8 rounded-lg border flex items-center justify-center disabled:opacity-40" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+          <Icon path={I.chevronRight} className="w-4 h-4" />
+        </button>
+        {!isCurrent && (
+          <button onClick={() => setYm({ year: now.getFullYear(), month: now.getMonth() + 1 })} className="text-[11px] font-600 rounded-lg px-2 py-1 ml-1 border" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>{tx("today")}</button>
+        )}
+      </div>
+      {body}
+    </div>
+  );
+}
+
 /* ---------------- Payment method picker (Mobile Banking / Banking / Card) ---------------- */
 const PAY_CATEGORIES = [
   {
@@ -2959,170 +3156,6 @@ function AdminOrders({ orders, advance }) {
   );
 }
 
-/* ---------------- Admin: Scan / verify a pickup token ---------------- */
-function AdminVerify({ call, onCollected }) {
-  const [code, setCode] = useState("");
-  const [result, setResult] = useState(null);   // { order, problem, justCollected }
-  const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-
-  const check = async (raw) => {
-    const text = String(raw === undefined ? code : raw).trim();
-    if (!text) return;
-    setBusy(true); setError(null); setResult(null);
-    try {
-      const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
-      setResult({ order: data.order, problem: data.problem || null, justCollected: false });
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const collect = async () => {
-    if (!result) return;
-    setBusy(true); setError(null);
-    try {
-      const data = await call("/api/orders/verify", { method: "POST", body: { code: result.order.token, collect: true } });
-      setResult({ order: data.order, problem: null, justCollected: true });
-      if (onCollected) onCollected(data.order);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const stopScan = () => {
-    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
-    setScanning(false);
-  };
-  useEffect(() => () => { if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop()); }, []);
-
-  const startScan = async () => {
-    setError(null);
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setError("This browser can't open the camera here (the page must be on https:// or localhost). Type the token instead.");
-      return;
-    }
-    try {
-      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      setScanning(true);
-    } catch (e) {
-      setError("Couldn't open the camera — allow camera access, or type the token instead.");
-    }
-  };
-
-  // While the camera is on, look for a QR code in the video about 4 times a second
-  useEffect(() => {
-    if (!scanning) return;
-    const video = videoRef.current;
-    if (!video || !streamRef.current) return;
-    video.srcObject = streamRef.current;
-    video.play().catch(() => {});
-    let stopped = false;
-    const detector = ("BarcodeDetector" in window) ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    const tick = async () => {
-      if (stopped) return;
-      if (video.readyState >= 2 && video.videoWidth) {
-        let text = null;
-        try {
-          if (detector) {
-            const found = await detector.detect(video);
-            if (found.length) text = found[0].rawValue;
-          } else if (window.jsQR) {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const hit = window.jsQR(img.data, img.width, img.height);
-            if (hit) text = hit.data;
-          }
-        } catch (_) { /* keep trying */ }
-        if (text && !stopped) { stopped = true; stopScan(); setCode(text); check(text); return; }
-      }
-      setTimeout(tick, 250);
-    };
-    tick();
-    return () => { stopped = true; };
-  }, [scanning]);
-
-  const o = result && result.order;
-  const okToHandOver = result && !result.problem && !result.justCollected;
-  const banner = !result ? null
-    : result.justCollected ? { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Handed over — marked as collected" }
-    : result.problem ? (result.problem.code === "NOT_READY"
-        ? { bg: "var(--warn-bg, #FFFBEB)", fg: "var(--warn-fg, #92400E)", bd: "var(--warn-border, #FDE68A)", text: result.problem.message }
-        : { bg: "var(--danger-bg)", fg: "var(--danger-fg)", bd: "var(--danger-border)", text: result.problem.message + (result.problem.code === "ALREADY_COLLECTED" && o.picked_up_at ? " at " + new Date(o.picked_up_at).toLocaleString() : "") })
-    : { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Genuine token, order is Ready — hand it over" };
-
-  return (
-    <div className="max-w-xl space-y-5">
-      <div className="card p-5">
-        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
-        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
-          Scan the QR on the customer's ticket, or type the token (e.g. C-105). A barcode scanner that "types" into the box works too.
-        </p>
-        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
-          <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
-            className="flex-1 px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
-          <button type="submit" disabled={busy || !code.trim()} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">Check</button>
-        </form>
-        <div className="mt-3">
-          {scanning ? (
-            <button type="button" onClick={stopScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Stop camera</button>
-          ) : (
-            <button type="button" onClick={startScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Scan with camera</button>
-          )}
-        </div>
-        {scanning && (
-          <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)", background: "#000" }}>
-            <video ref={videoRef} playsInline muted className="w-full" style={{ maxHeight: 320, objectFit: "cover" }} />
-          </div>
-        )}
-        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
-      </div>
-
-      {o && (
-        <div className="card overflow-hidden">
-          <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
-          <div className="p-5 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>{o.token}</div>
-                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Status: {o.status} · {o.payment_method === "wallet" ? "Paid by wallet" : "Cash at counter"}</div>
-              </div>
-              <div className="font-mono text-lg font-700">{taka(o.total)}</div>
-            </div>
-            <div className="text-sm">
-              <div className="font-600">{o.customer_name} <span className="font-400" style={{ color: "var(--ink-soft)" }}>· {o.customer_id} · {o.customer_role}</span></div>
-              {o.account_type === "hall" && (
-                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
-                  Hall resident — {o.hall_name || "—"}, room {o.room_number || "—"}{o.hall_id ? ` · ${o.hall_id}` : ""}
-                </div>
-              )}
-            </div>
-            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
-            {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
-            <div className="flex gap-2">
-              {okToHandOver && (
-                <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
-              )}
-              <button onClick={() => { setResult(null); setCode(""); setError(null); }}
-                className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ---------------- Admin: Reports ---------------- */
 function AdminReports({ trend, forecast, call, apiBase, token }) {
   const max = Math.max(1, ...trend.map(r => r.revenue));
@@ -3305,6 +3338,171 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
     </div>
   );
 }
+
+/* ---------------- Admin: Scan / verify a pickup token ---------------- */
+function AdminVerify({ call, onCollected }) {
+  const [code, setCode] = useState("");
+  const [result, setResult] = useState(null);   // { order, problem, justCollected }
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const check = async (raw) => {
+    const text = String(raw === undefined ? code : raw).trim();
+    if (!text) return;
+    setBusy(true); setError(null); setResult(null);
+    try {
+      const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
+      setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const collect = async () => {
+    if (!result) return;
+    setBusy(true); setError(null);
+    try {
+      const data = await call("/api/orders/verify", { method: "POST", body: { code: result.order.token, collect: true } });
+      setResult({ order: data.order, problem: null, justCollected: true });
+      if (onCollected) onCollected(data.order);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const stopScan = () => {
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    setScanning(false);
+  };
+  useEffect(() => () => { if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop()); }, []);
+
+  const startScan = async () => {
+    setError(null);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError("This browser can't open the camera here (the page must be on https:// or localhost). Type the token instead.");
+      return;
+    }
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      setScanning(true);
+    } catch (e) {
+      setError("Couldn't open the camera — allow camera access, or type the token instead.");
+    }
+  };
+
+  // While the camera is on, look for a QR code in the video about 4 times a second
+  useEffect(() => {
+    if (!scanning) return;
+    const video = videoRef.current;
+    if (!video || !streamRef.current) return;
+    video.srcObject = streamRef.current;
+    video.play().catch(() => {});
+    let stopped = false;
+    const detector = ("BarcodeDetector" in window) ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const tick = async () => {
+      if (stopped) return;
+      if (video.readyState >= 2 && video.videoWidth) {
+        let text = null;
+        try {
+          if (detector) {
+            const found = await detector.detect(video);
+            if (found.length) text = found[0].rawValue;
+          } else if (window.jsQR) {
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const hit = window.jsQR(img.data, img.width, img.height);
+            if (hit) text = hit.data;
+          }
+        } catch (_) { /* keep trying */ }
+        if (text && !stopped) { stopped = true; stopScan(); setCode(text); check(text); return; }
+      }
+      setTimeout(tick, 250);
+    };
+    tick();
+    return () => { stopped = true; };
+  }, [scanning]);
+
+  const o = result && result.order;
+  const okToHandOver = result && !result.problem && !result.justCollected;
+  const banner = !result ? null
+    : result.justCollected ? { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Handed over — marked as collected" }
+    : result.problem ? (result.problem.code === "NOT_READY"
+        ? { bg: "var(--warn-bg, #FFFBEB)", fg: "var(--warn-fg, #92400E)", bd: "var(--warn-border, #FDE68A)", text: result.problem.message }
+        : { bg: "var(--danger-bg)", fg: "var(--danger-fg)", bd: "var(--danger-border)", text: result.problem.message + (result.problem.code === "ALREADY_COLLECTED" && o.picked_up_at ? " at " + new Date(o.picked_up_at).toLocaleString() : "") })
+    : { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Genuine token, order is Ready — hand it over" };
+
+  return (
+    <div className="max-w-xl space-y-5">
+      <div className="card p-5">
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
+          Scan the QR on the customer's ticket, or type the token (e.g. C-105). A barcode scanner that "types" into the box works too.
+        </p>
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
+          <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
+            className="flex-1 px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+          <button type="submit" disabled={busy || !code.trim()} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">Check</button>
+        </form>
+        <div className="mt-3">
+          {scanning ? (
+            <button type="button" onClick={stopScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Stop camera</button>
+          ) : (
+            <button type="button" onClick={startScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Scan with camera</button>
+          )}
+        </div>
+        {scanning && (
+          <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)", background: "#000" }}>
+            <video ref={videoRef} playsInline muted className="w-full" style={{ maxHeight: 320, objectFit: "cover" }} />
+          </div>
+        )}
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+      </div>
+
+      {o && (
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
+          <div className="p-5 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>{o.token}</div>
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Status: {o.status} · {o.payment_method === "wallet" ? "Paid by wallet" : "Cash at counter"}</div>
+              </div>
+              <div className="font-mono text-lg font-700">{taka(o.total)}</div>
+            </div>
+            <div className="text-sm">
+              <div className="font-600">{o.customer_name} <span className="font-400" style={{ color: "var(--ink-soft)" }}>· {o.customer_id} · {o.customer_role}</span></div>
+              {o.account_type === "hall" && (
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                  Hall resident — {o.hall_name || "—"}, room {o.room_number || "—"}{o.hall_id ? ` · ${o.hall_id}` : ""}
+                </div>
+              )}
+            </div>
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
+            {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
+            <div className="flex gap-2">
+              {okToHandOver && (
+                <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
+              )}
+              <button onClick={() => { setResult(null); setCode(""); setError(null); }}
+                className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 /* ---------------- Admin: Feedback ---------------- */
 function AdminFeedback({ summary }) {
@@ -4327,6 +4525,7 @@ function App() {
     { key: "track", label: tx("nav.track"), icon: I.clock },
     { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
+    { key: "spending", label: tx("nav.spending"), icon: I.chart },
     { key: "chat", label: tx("nav.chat"), icon: I.chat },
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
@@ -4406,6 +4605,7 @@ function App() {
           <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay}
                         onPrevMonth={goPrevMonth} onNextMonth={goNextMonth} onJumpToday={goToday} isCurrentMonth={isCurrentMonth} />
         )}
+        {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} />}
         {session.user.role !== "admin" && tab === "wallet" && (
           <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} />
         )}
