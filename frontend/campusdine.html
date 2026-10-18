@@ -4313,35 +4313,46 @@ function ProfileTab({ user, call, onUpdated }) {
 }
 
 /* ---------------- App root ---------------- */
-// Restaurants an admin can choose from after login. Frontend-only for now (no database
-// change), so every restaurant currently shows the same menu, orders and reports.
-const ADMIN_RESTAURANTS = [
-  { id: "r1", name: "Campus Canteen", emoji: "🍛", desc: "Main canteen — rice, curries & daily specials" },
-  { id: "r2", name: "Snacks Corner", emoji: "🥪", desc: "Singara, fuchka, rolls & quick bites" },
-  { id: "r3", name: "Juice & Tea Bar", emoji: "🥤", desc: "Tea, lassi, juices & cold drinks" },
+// The four campus restaurants. Everyone (student, teacher, staff and admin) picks one after
+// login. The ids match backend/src/catalog.js, which decides which items each restaurant sells.
+const RESTAURANTS = [
+  { id: "amitie", name: "Amitié", subtitle: "Friendship", logo: "/images/restaurants/amitie.svg",
+    desc: "Coffee, sandwiches, burgers & sweet drinks", descBn: "কফি, স্যান্ডউইচ, বার্গার ও মিষ্টি পানীয়" },
+  { id: "vista", name: "Vista Cafeteria", subtitle: "", logo: "/images/restaurants/vista.svg",
+    desc: "Fuchka, chotpoti, singara & street snacks", descBn: "ফুচকা, চটপটি, সিঙ্গারা ও স্ট্রিট স্ন্যাকস" },
+  { id: "thirdplace", name: "Third Place", subtitle: "", logo: "/images/restaurants/thirdplace.svg",
+    desc: "Biryani, tehari, fried rice & noodles", descBn: "বিরিয়ানি, তেহারি, ফ্রাইড রাইস ও নুডলস" },
+  { id: "staff", name: "Staff Canteen", subtitle: "", logo: "/images/restaurants/staff.svg",
+    desc: "Home-style rice meals, curries & porota", descBn: "ঘরোয়া ভাত, তরকারি ও পরোটা" },
 ];
 
-function RestaurantPicker({ adminName, onPick, onLogout }) {
+function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
+  const bn = lang === "bn" && role !== "admin";
   return (
     <div className="min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-2xl fade-in">
+      <div className="w-full max-w-4xl fade-in">
         <div className="text-center mb-6">
           <div className="font-display gold-text text-3xl font-800">🍽 CampusDine</div>
-          <h1 className="font-display text-xl font-700 mt-3">Welcome, {adminName}</h1>
-          <p className="text-sm opacity-70 mt-1">Which restaurant do you want to manage?</p>
+          <h1 className="font-display text-xl font-700 mt-3">{bn ? "স্বাগতম" : "Welcome"}, {userName}</h1>
+          <p className="text-sm opacity-70 mt-1">
+            {role === "admin"
+              ? "Which restaurant do you want to manage?"
+              : bn ? "কোন রেস্টুরেন্ট থেকে খাবার অর্ডার করতে চান?" : "Which restaurant do you want to order from?"}
+          </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {ADMIN_RESTAURANTS.map(r => (
-            <button key={r.id} onClick={() => onPick(r)} className="rounded-2xl border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          {RESTAURANTS.map(r => (
+            <button key={r.id} onClick={() => onPick(r)} className="rounded-2xl border p-4 text-center transition hover:-translate-y-0.5 hover:shadow-lg"
               style={{ background: "var(--card, #fff)", borderColor: "rgba(0,0,0,0.12)", color: "var(--ink)" }}>
-              <div style={{ fontSize: 34 }}>{r.emoji}</div>
-              <div className="font-display font-700 mt-2">{r.name}</div>
-              <div className="text-xs opacity-70 mt-1 leading-relaxed">{r.desc}</div>
+              <img src={r.logo} alt={r.name} className="mx-auto" style={{ width: 104, height: 104 }} />
+              <div className="font-display font-700 mt-3">{r.name}</div>
+              {r.subtitle && <div className="text-[11px] opacity-60">({r.subtitle})</div>}
+              <div className="text-xs opacity-70 mt-1 leading-relaxed">{bn ? r.descBn : r.desc}</div>
             </button>
           ))}
         </div>
         <div className="text-center mt-6">
-          <button className="btn-gold px-4 py-2 rounded-xl text-sm" onClick={onLogout}>Log out</button>
+          <button className="btn-gold px-4 py-2 rounded-xl text-sm" onClick={onLogout}>{bn ? "লগআউট" : "Log out"}</button>
         </div>
       </div>
     </div>
@@ -4358,7 +4369,7 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
   const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
-  const [restaurant, setRestaurant] = useState(null); // admin: the restaurant chosen after login
+  const [restaurant, setRestaurant] = useState(null); // the restaurant chosen after login (everyone)
 
   const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
@@ -4460,7 +4471,7 @@ function App() {
 
   const onAuth = (token, user) => {
     setSession({ token, user });
-    setRestaurant(null); // admin picks a restaurant first
+    setRestaurant(null); // everyone picks a restaurant first
     setTab(user.role === "admin" ? "overview" : "menu");
   };
   const logout = () => {
@@ -4698,8 +4709,9 @@ function App() {
 
   if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} />;
 
-  if (session.user.role === "admin" && !restaurant) {
-    return <RestaurantPicker adminName={session.user.name} onPick={(r) => { setRestaurant(r); setTab("overview"); }} onLogout={logout} />;
+  if (!restaurant) {
+    return <RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
+      onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} />;
   }
 
   const toRate = orders.filter(o => o.status === "Ready" && !o.feedback).length;
@@ -4750,12 +4762,18 @@ function App() {
           </div>
         ))}
       </div>
-      {session.user.role === "admin" && restaurant && (
-        <div className="max-w-6xl mx-auto px-5 pt-4 flex items-center justify-between gap-3 flex-wrap">
-          <div className="text-sm font-700">{restaurant.emoji} {restaurant.name}</div>
-          <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setRestaurant(null)}>Switch restaurant</button>
+      <div className="max-w-6xl mx-auto px-5 pt-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <img src={restaurant.logo} alt="" style={{ width: 36, height: 36 }} />
+          <div className="leading-tight">
+            <div className="text-sm font-700">{restaurant.name}</div>
+            {restaurant.subtitle && <div className="text-[11px] opacity-60">({restaurant.subtitle})</div>}
+          </div>
         </div>
-      )}
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setRestaurant(null)}>
+          {session.user.role !== "admin" && lang === "bn" ? "রেস্টুরেন্ট বদলান" : "Switch restaurant"}
+        </button>
+      </div>
       <div className="max-w-6xl mx-auto p-5 pb-24 sm:pb-5 fade-in" key={tab}>
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
