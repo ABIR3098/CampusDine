@@ -609,6 +609,15 @@ const I18N = {
     "notif.none": "No notifications yet.",
     "starred": "Starred Items",
     "viewfav": "View favorites only",
+    "nut.kcal": "kcal",
+    "nut.approx": "Approximate calories per serving",
+    "nut.contains": "Contains",
+    "allergen.egg": "Egg",
+    "allergen.milk": "Milk",
+    "allergen.gluten": "Gluten",
+    "allergen.fish": "Fish",
+    "allergen.nuts": "Nuts",
+    "allergen.soy": "Soy",
     "plus1": "+1 more",
     "quick": "Quick order",
     "coupon.label": "Coupon code",
@@ -891,6 +900,15 @@ const I18N = {
     "notif.none": "এখনো কোনো বিজ্ঞপ্তি নেই।",
     "starred": "তারকা চিহ্নিত আইটেম",
     "viewfav": "শুধু পছন্দের দেখুন",
+    "nut.kcal": "ক্যালরি",
+    "nut.approx": "প্রতি পরিবেশনে আনুমানিক ক্যালরি",
+    "nut.contains": "যা আছে",
+    "allergen.egg": "ডিম",
+    "allergen.milk": "দুধ",
+    "allergen.gluten": "গ্লুটেন",
+    "allergen.fish": "মাছ",
+    "allergen.nuts": "বাদাম",
+    "allergen.soy": "সয়া",
     "plus1": "আরও ১টি",
     "quick": "দ্রুত অর্ডার",
     "coupon.label": "কুপন কোড",
@@ -1914,6 +1932,33 @@ function FavoriteStarButton({ item, onToggleFavorite }) {
   );
 }
 
+// Feature: approximate calories + allergen chips shown on a menu card.
+// Renders nothing for items that have no nutrition data (e.g. items added later by the admin).
+function NutritionInfo({ item }) {
+  const allergens = Array.isArray(item.allergens) ? item.allergens : [];
+  const hasCalories = typeof item.calories === "number";
+  if (!hasCalories && allergens.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      {hasCalories && (
+        <span title={tx("nut.approx")} className="text-[10px] font-mono px-2 py-1 rounded-full"
+          style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+          ~{num(item.calories)} {tx("nut.kcal")}
+        </span>
+      )}
+      {allergens.length > 0 && (
+        <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("nut.contains")}:</span>
+      )}
+      {allergens.map(a => (
+        <span key={a} className="text-[10px] font-600 px-2 py-0.5 rounded-full border"
+          style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+          {lookup("allergen", a)}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavoritesOnly }) {
   if (items.length === 0) return null;
   return (
@@ -2086,6 +2131,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                     <FavoriteStarButton item={item} onToggleFavorite={onToggleFavorite} />
                   </div>
                 </div>
+                <NutritionInfo item={item} />
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-mono font-600 text-lg">{taka(item.price)}</span>
                   {out ? (
