@@ -1,4 +1,13 @@
 require("dotenv").config();
+
+// Without a JWT_SECRET (e.g. backend/.env was not created) every login used to fail with a
+// vague "Something went wrong". Fall back to a random secret for this run and say so clearly.
+// Logins then work straight away, but sessions end whenever the server restarts.
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = require("crypto").randomBytes(32).toString("hex");
+  console.warn("⚠️  JWT_SECRET is not set — using a temporary one for this run.");
+  console.warn("    Copy backend/.env.example to backend/.env to keep users logged in across restarts.");
+}
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
