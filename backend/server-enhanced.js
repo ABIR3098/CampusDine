@@ -26,6 +26,59 @@ const notificationsRoutes = require("./src/routes/notifications");
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
 
+async function seedDefaultMenuAndRates(db) {
+  try {
+    const [menuTable] = await db.query("SHOW TABLES LIKE 'menu_items'");
+    if (menuTable.length === 0) {
+      console.log("⚠️ menu_items table is missing; import the latest schema.sql before continuing.");
+      return;
+    }
+
+    const [menuRows] = await db.query("SELECT COUNT(*) AS count FROM menu_items");
+    if (Number(menuRows[0].count) > 0) {
+      await db.query(
+        "INSERT INTO meal_rates (role, full_rate, half_rate) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate)",
+        ["student", 90, 50]
+      );
+      await db.query(
+        "INSERT INTO meal_rates (role, full_rate, half_rate) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate)",
+        ["teacher", 130, 70]
+      );
+      return;
+    }
+
+    const defaultMenu = [
+      ["Khichuri", "খিচুড়ি", "heavy", 60, 40, "Popular", 1],
+      ["Tehari", "তেহারি", "heavy", 80, 25, "Popular", 0],
+      ["Porota-Vaji", "পরোটা-ভাজি", "heavy", 40, 6, null, 1],
+      ["Plain Rice & Dal", "ভাত-ডাল", "heavy", 45, 30, null, 1],
+      ["Singara", "সিঙ্গারা", "snacks", 10, 60, "New", 1],
+      ["Fuchka", "ফুচকা", "snacks", 30, 4, "Popular", 1],
+      ["Chicken Roll", "চিকেন রোল", "snacks", 50, 20, null, 0],
+      ["Cha (Tea)", "চা", "drinks", 8, 120, null, 1],
+      ["Lassi", "লাচ্ছি", "drinks", 35, 15, "New", 1],
+      ["Mineral Water", "পানি", "drinks", 15, 50, null, 1],
+    ];
+
+    await db.query(
+      `INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg) VALUES ?`,
+      [defaultMenu]
+    );
+    await db.query(
+      "INSERT INTO meal_rates (role, full_rate, half_rate) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate)",
+      ["student", 90, 50]
+    );
+    await db.query(
+      "INSERT INTO meal_rates (role, full_rate, half_rate) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE full_rate = VALUES(full_rate), half_rate = VALUES(half_rate)",
+      ["teacher", 130, 70]
+    );
+
+    console.log("✅ Demo menu items were added because the menu table was empty.");
+  } catch (e) {
+    console.warn("⚠️ Failed to seed menu defaults:", e.message);
+  }
+}
+
 // ════════════════════════════════════════════════
 //  Startup check — verifies the DB is reachable and
 //  creates demo accounts (only if they don't exist yet)
@@ -92,6 +145,8 @@ async function runStartupCheck() {
     }
     console.log(`✅ Demo account তৈরি হয়েছে: ${acc.externalId} / ${acc.password} (${acc.role})`);
   }
+
+  await seedDefaultMenuAndRates(db);
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 LOGIN দিয়ে test করো:");

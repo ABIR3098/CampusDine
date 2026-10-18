@@ -123,31 +123,12 @@ Leave this terminal running the whole time you're using the app.
 
 ---
 
-## Deploying to Vercel
+## Deploying (optional, Phase 5 of your report)
 
-This project is not a single Vercel deployment: the frontend is a static
-HTML app, while the backend needs a persistent Node.js process, MySQL, and
-Socket.IO. Deploy them separately:
-
-1. Import this repository into Vercel and set **Root Directory** to
-   `frontend`. Select **Other** as the framework preset and leave the build
-   command empty. `frontend/vercel.json` routes the site root to
-   `campusdine.html`.
-2. Deploy `backend/` to a Node.js host that supports persistent servers
-   (for example Render or Railway), and connect it to a managed MySQL
-   database. Set the backend environment variables from `backend/.env.example`;
-   use a strong `JWT_SECRET` and set `CORS_ORIGIN` to the Vercel site URL.
-3. Open the Vercel site, select **Backend Server Host** on the login screen,
-   and enter the deployed backend's base URL (for example,
-   `https://your-api.example.com`). The frontend cannot use Vercel's own URL
-   as its API host unless the backend is deployed there too.
-
-Deploying the repository root as a Vercel app will not work: there is no
-root-level frontend build, and the backend exits at startup if its required
-MySQL configuration/database is not available. The backend also starts an
-HTTP/Socket.IO server, so it should run on a persistent Node host rather than
-as Vercel functions.
-
-For payments, replace the wallet top-up flow with the SSLCommerz or bKash
-sandbox API — `wallet_transactions` already has everything needed to log
-gateway callbacks.
+- **Backend + MySQL + frontend, all together:** Render or Railway — since
+  one server now serves everything, deploy `backend/` as a single Node
+  web service (`npm start`), pointed at a managed MySQL instance with the
+  same variables as `.env`.
+- **Payments:** swap the wallet top-up flow for the SSLCommerz or bKash
+  sandbox API — `wallet_transactions` already has everything needed to
+  log gateway callbacks.
