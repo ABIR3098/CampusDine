@@ -10,6 +10,8 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   // Saved theme (light / dark / auto + accent colour) is applied before the page paints, so there is no flash.
@@ -1015,6 +1017,23 @@ Object.assign(I18N.bn, {
   "acct.badge.regular": "সাধারণ অ্যাকাউন্ট",
   "hallhint": "স্থায়ী হল আইডি পেতে হলের নাম ও রুম নম্বর দিয়ে সেভ করুন।"
 });
+// ---- Added: sign-up with email / hall residents, QR pickup token, forgot-password check ----
+Object.assign(I18N.en, {
+  "qr.title": "Show this QR at the counter",
+  "qr.hint": "Your pickup token {t} is inside this code. The counter scans it to hand over your order.",
+  "qr.collected": "Collected",
+  "qr.noqr": "QR code unavailable — show the token {t} instead.",
+  "n.collected.t": "Order collected",
+  "n.collected": "Order {o} was handed over. Enjoy your meal!"
+});
+Object.assign(I18N.bn, {
+  "qr.title": "কাউন্টারে এই QR দেখান",
+  "qr.hint": "আপনার পিকআপ টোকেন {t} এই কোডের ভেতরে আছে। কাউন্টার স্ক্যান করে অর্ডার দেবে।",
+  "qr.collected": "নেওয়া হয়েছে",
+  "qr.noqr": "QR কোড পাওয়া যাচ্ছে না — টোকেন {t} দেখান।",
+  "n.collected.t": "অর্ডার নেওয়া হয়েছে",
+  "n.collected": "অর্ডার {o} হস্তান্তর হয়েছে। ভালো খাবার খান!"
+});
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
   if (str === undefined) str = I18N.en[key];
@@ -1145,6 +1164,32 @@ function LangToggle({ onToggle }) {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ID_RE = /^[A-Za-z0-9._-]{3,50}$/;
 
+
+// Draws a QR code as inline SVG (black on white, so scanners work in dark theme too).
+// Uses the small "qrcode-generator" library loaded in <head>; if it failed to load we show the plain token instead.
+function QrCode({ value, size = 120, dim = false }) {
+  const qr = useMemo(() => {
+    try {
+      if (typeof window.qrcode !== "function" || !value) return null;
+      const q = window.qrcode(0, "M");
+      q.addData(String(value));
+      q.make();
+      const n = q.getModuleCount();
+      let d = "";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c},${r}h1v1h-1z`;
+      return { n, d };
+    } catch (e) { return null; }
+  }, [value]);
+  if (!qr) return null;
+  const pad = 4;
+  return (
+    <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
+      shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
+      <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
+      <path d={qr.d} fill="#000" />
+    </svg>
+  );
+}
 
 /* ---------------- Login / Register screen ---------------- */
 function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
@@ -2280,6 +2325,9 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               <div style={{ fontSize: 10, color: "#6B7280" }}>{tx("rc.token")}</div>
               <div className="font-mono font-800" style={{ fontSize: 30, letterSpacing: 2 }}>{printOrder.token}</div>
             </div>
+            {printOrder.qr && (
+              <div className="flex justify-center" style={{ marginBottom: 10 }}><QrCode value={printOrder.qr} size={120} /></div>
+            )}
             <div className="receipt-row"><span>{tx("rc.status")}</span><span style={{ fontWeight: 600 }}>{lookup("status", printOrder.status)}</span></div>
             <div className="receipt-row"><span>{tx("rc.payment")}</span><span>{printOrder.payment_method === "wallet" ? tx("pay.wallet") : tx("pay.cash")}</span></div>
             {printOrder.note && (
@@ -2355,6 +2403,19 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                       {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-5" style={{ background: i < stepIndex ? "var(--gold)" : "var(--line)" }} />}
                     </React.Fragment>
                   ))}
+                </div>
+              )}
+              {!isCancelled && o.qr && (
+                <div className="flex items-center gap-4 mt-4 p-3 rounded-xl border" style={{ borderColor: "var(--line)" }}>
+                  <QrCode value={o.qr} size={112} dim={!!o.picked_up_at} />
+                  <div className="min-w-0">
+                    <div className="text-sm font-700" style={{ color: o.picked_up_at ? "var(--leaf)" : "var(--ink)" }}>
+                      {o.picked_up_at ? tx("qr.collected") : tx("qr.title")}
+                    </div>
+                    <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                      {o.picked_up_at ? new Date(o.picked_up_at).toLocaleString() : tx("qr.hint", { t: o.token })}
+                    </p>
+                  </div>
                 </div>
               )}
               <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
@@ -2885,11 +2946,175 @@ function AdminOrders({ orders, advance }) {
                 Advance <Icon path={I.arrow} className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <span className="text-xs flex items-center gap-1" style={{ color: "var(--leaf)" }}><Icon path={I.check} className="w-4 h-4" /> Done</span>
+              <span className="text-xs flex items-center gap-1" style={{ color: "var(--leaf)" }}><Icon path={I.check} className="w-4 h-4" /> {o.picked_up_at ? "Collected" : "Ready — awaiting pickup"}</span>
             )}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ---------------- Admin: Scan / verify a pickup token ---------------- */
+function AdminVerify({ call, onCollected }) {
+  const [code, setCode] = useState("");
+  const [result, setResult] = useState(null);   // { order, problem, justCollected }
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const check = async (raw) => {
+    const text = String(raw === undefined ? code : raw).trim();
+    if (!text) return;
+    setBusy(true); setError(null); setResult(null);
+    try {
+      const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
+      setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const collect = async () => {
+    if (!result) return;
+    setBusy(true); setError(null);
+    try {
+      const data = await call("/api/orders/verify", { method: "POST", body: { code: result.order.token, collect: true } });
+      setResult({ order: data.order, problem: null, justCollected: true });
+      if (onCollected) onCollected(data.order);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const stopScan = () => {
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    setScanning(false);
+  };
+  useEffect(() => () => { if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop()); }, []);
+
+  const startScan = async () => {
+    setError(null);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError("This browser can't open the camera here (the page must be on https:// or localhost). Type the token instead.");
+      return;
+    }
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      setScanning(true);
+    } catch (e) {
+      setError("Couldn't open the camera — allow camera access, or type the token instead.");
+    }
+  };
+
+  // While the camera is on, look for a QR code in the video about 4 times a second
+  useEffect(() => {
+    if (!scanning) return;
+    const video = videoRef.current;
+    if (!video || !streamRef.current) return;
+    video.srcObject = streamRef.current;
+    video.play().catch(() => {});
+    let stopped = false;
+    const detector = ("BarcodeDetector" in window) ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const tick = async () => {
+      if (stopped) return;
+      if (video.readyState >= 2 && video.videoWidth) {
+        let text = null;
+        try {
+          if (detector) {
+            const found = await detector.detect(video);
+            if (found.length) text = found[0].rawValue;
+          } else if (window.jsQR) {
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const hit = window.jsQR(img.data, img.width, img.height);
+            if (hit) text = hit.data;
+          }
+        } catch (_) { /* keep trying */ }
+        if (text && !stopped) { stopped = true; stopScan(); setCode(text); check(text); return; }
+      }
+      setTimeout(tick, 250);
+    };
+    tick();
+    return () => { stopped = true; };
+  }, [scanning]);
+
+  const o = result && result.order;
+  const okToHandOver = result && !result.problem && !result.justCollected;
+  const banner = !result ? null
+    : result.justCollected ? { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Handed over — marked as collected" }
+    : result.problem ? (result.problem.code === "NOT_READY"
+        ? { bg: "var(--warn-bg, #FFFBEB)", fg: "var(--warn-fg, #92400E)", bd: "var(--warn-border, #FDE68A)", text: result.problem.message }
+        : { bg: "var(--danger-bg)", fg: "var(--danger-fg)", bd: "var(--danger-border)", text: result.problem.message + (result.problem.code === "ALREADY_COLLECTED" && o.picked_up_at ? " at " + new Date(o.picked_up_at).toLocaleString() : "") })
+    : { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Genuine token, order is Ready — hand it over" };
+
+  return (
+    <div className="max-w-xl space-y-5">
+      <div className="card p-5">
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
+          Scan the QR on the customer's ticket, or type the token (e.g. C-105). A barcode scanner that "types" into the box works too.
+        </p>
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
+          <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
+            className="flex-1 px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+          <button type="submit" disabled={busy || !code.trim()} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">Check</button>
+        </form>
+        <div className="mt-3">
+          {scanning ? (
+            <button type="button" onClick={stopScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Stop camera</button>
+          ) : (
+            <button type="button" onClick={startScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Scan with camera</button>
+          )}
+        </div>
+        {scanning && (
+          <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)", background: "#000" }}>
+            <video ref={videoRef} playsInline muted className="w-full" style={{ maxHeight: 320, objectFit: "cover" }} />
+          </div>
+        )}
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+      </div>
+
+      {o && (
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
+          <div className="p-5 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>{o.token}</div>
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Status: {o.status} · {o.payment_method === "wallet" ? "Paid by wallet" : "Cash at counter"}</div>
+              </div>
+              <div className="font-mono text-lg font-700">{taka(o.total)}</div>
+            </div>
+            <div className="text-sm">
+              <div className="font-600">{o.customer_name} <span className="font-400" style={{ color: "var(--ink-soft)" }}>· {o.customer_id} · {o.customer_role}</span></div>
+              {o.account_type === "hall" && (
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                  Hall resident — {o.hall_name || "—"}, room {o.room_number || "—"}{o.hall_id ? ` · ${o.hall_id}` : ""}
+                </div>
+              )}
+            </div>
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
+            {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
+            <div className="flex gap-2">
+              {okToHandOver && (
+                <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
+              )}
+              <button onClick={() => { setResult(null); setCode(""); setError(null); }}
+                className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3768,7 +3993,12 @@ function App() {
       }
     });
     socket.on("order:update", (order) => {
-      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: order.status } : o));
+      setOrders(prev => prev.map(o => o.id === order.id
+        ? { ...o, status: order.status, ...(order.picked_up_at !== undefined ? { picked_up_at: order.picked_up_at } : {}) } : o));
+      if (order.picked_up_at && session.user.role !== "admin") {
+        pushNotification("order", tx("n.collected.t"), tx("n.collected", { o: order.token || "#" + order.id }));
+        return;
+      }
       const label = order.status === "Received" ? tx("n.accepted")
         : order.status === "Cooking" ? tx("n.cooking")
         : order.status === "Ready" ? tx("n.ready")
@@ -3954,6 +4184,7 @@ function App() {
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "adminMenu", label: "Menu", icon: I.box },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
+    { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "chat", label: "Messages", icon: I.chat },
     { key: "reports", label: "Reports", icon: I.chart },
@@ -4038,6 +4269,9 @@ function App() {
         )}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={orders} advance={advanceOrder} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
+        {session.user.role === "admin" && tab === "verify" && (
+          <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
+        )}
         {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} />}
         {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
 
