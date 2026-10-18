@@ -16,6 +16,7 @@ const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
+const feedbackRoutes = require("./src/routes/feedback");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -70,6 +71,36 @@ async function seedDefaultMenuAndRates(db) {
     console.log("✅ Demo menu items were added because the menu table was empty.");
   } catch (e) {
     console.warn("⚠️ Failed to seed menu defaults:", e.message);
+  }
+}
+
+async function ensureFeedbackSchema(db) {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS order_feedback (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL UNIQUE,
+        user_id INT NOT NULL,
+        rating TINYINT NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS general_feedback (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        category ENUM('food','service','hygiene','suggestion','other') NOT NULL DEFAULT 'other',
+        rating TINYINT NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+  } catch (e) {
+    console.warn("⚠️ Could not verify feedback tables:", e.message);
   }
 }
 
@@ -304,6 +335,7 @@ async function runStartupCheck() {
 
   await seedDefaultMenuAndRates(db);
   await ensureCouponSchema(db);
+  await ensureFeedbackSchema(db);
   await ensureChatSchema(db);
   await ensureNoteAndAvailabilitySchema(db);
 
@@ -362,6 +394,7 @@ app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/coupon", couponRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.

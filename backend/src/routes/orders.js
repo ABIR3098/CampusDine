@@ -332,10 +332,14 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async
 // POST /api/orders/:id/feedback  (student/teacher) — rate a completed order
 // body: { rating: 1-5, comment? }
 router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
-  const { rating, comment } = req.body;
+  const { rating } = req.body;
+  const comment = String(req.body.comment || "").trim();
   const r = Number(rating);
   if (!Number.isInteger(r) || r < 1 || r > 5) {
     return res.status(400).json({ error: "rating must be an integer from 1 to 5" });
+  }
+  if (comment.length > 500) {
+    return res.status(400).json({ error: "Comment must be 500 characters or fewer" });
   }
 
   const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
@@ -343,11 +347,25 @@ router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), cat
   if (order.user_id !== req.user.id) return res.status(403).json({ error: "This isn't your order" });
   if (order.status !== "Ready") return res.status(400).json({ error: "You can only rate an order once it's Ready" });
 
+  const [[existing]] = await pool.query("SELECT id FROM order_feedback WHERE order_id = ?", [order.id]);
+
   await pool.query(
     `INSERT INTO order_feedback (order_id, user_id, rating, comment) VALUES (?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment)`,
     [order.id, req.user.id, r, comment || null]
   );
+
+  // Tell every admin who's online so their Feedback tab updates without a reload
+  const io = req.app.get("io");
+  if (io) {
+    io.to("admins").emit("feedback:new", {
+      kind: "order",
+      token: order.token,
+      rating: r,
+      userName: req.user.name,
+      updated: Boolean(existing),
+    });
+  }
 
   res.json({ orderId: order.id, rating: r, comment: comment || null });
 }));

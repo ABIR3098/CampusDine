@@ -121,6 +121,61 @@
   .ticket::after{ right:-9px; }
   .ticket .perf{ border-left: 2px dashed rgba(255,255,255,0.45); }
 
+  /* ---- One-line navigation bar ---- */
+  .no-scrollbar{ scrollbar-width:none; -ms-overflow-style:none; }
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .nav-track{
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .nav-pill{
+    position:relative; flex-shrink:0;
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 12px; border-radius:999px;
+    font-size:13px; font-weight:600; white-space:nowrap;
+    color: var(--ink-soft);
+    transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+  .nav-pill:hover{ color: var(--gold-deep); background: var(--hover); }
+  .nav-pill.active{
+    background: var(--gold); color:#FFFFFF;
+    box-shadow: 0 3px 10px -3px var(--accent-shadow);
+  }
+  .nav-pill .nav-label{ display:none; }
+  .nav-pill.active .nav-label{ display:inline; }
+  @media (min-width: 1100px){ .nav-pill .nav-label{ display:inline; } }
+  /* Phones: the tab bar moves to the bottom (like a native app) so the top bar stays one line */
+  .mobile-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--panel-glass);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-top:1px solid var(--line);
+  }
+  .mobile-nav .nav-track{ width:100%; border:0; background:transparent; padding:0; border-radius:0; gap:2px; }
+  .mobile-nav .nav-pill{
+    flex:1 0 auto; min-width:54px; flex-direction:column; gap:2px;
+    padding:6px 6px; font-size:10px; border-radius:12px; justify-content:center;
+  }
+  .mobile-nav .nav-pill .nav-label{ display:inline; }
+  .mobile-nav .nav-badge{ position:absolute; top:2px; right:10px; }
+  .nav-badge{
+    min-width:16px; height:16px; padding:0 4px; border-radius:999px;
+    display:inline-grid; place-items:center;
+    font-size:10px; font-weight:700; line-height:1;
+    background: var(--brick); color:#FFFFFF;
+  }
+  .avatar-dot{
+    width:34px; height:34px; border-radius:999px; flex-shrink:0;
+    place-items:center;
+    font-weight:700; font-size:13px; color:#FFFFFF;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+  }
+  .rating-bar{ height:8px; border-radius:999px; background: var(--line); overflow:hidden; }
+  .rating-bar > span{ display:block; height:100%; border-radius:999px; background: var(--gold); transition: width .4s ease; }
+
   .tab-btn{
     font-weight:600;
     transition: all .15s ease;
@@ -553,6 +608,27 @@ const I18N = {
     "subtotal": "Subtotal",
     "cal.note2": "Calculated live by the server — same meal-plan logic applied for students and teachers.",
     "tab.chat": "Chat with Canteen Admin",
+    "nav.menu": "Menu", "nav.track": "Orders", "nav.calendar": "Calendar", "nav.wallet": "Wallet",
+    "nav.chat": "Chat", "nav.feedback": "Feedback", "nav.profile": "Profile",
+    "fb.title": "Your feedback matters",
+    "fb.sub": "Rate your meals and tell the canteen how it can get better.",
+    "fb.orders": "Rate your orders",
+    "fb.orders.empty": "Nothing to rate yet. Once an order is Ready, you can rate it here.",
+    "fb.general": "Share general feedback",
+    "fb.general.sub": "Suggestions, complaints or compliments — no order needed.",
+    "fb.cat": "Category",
+    "fb.cat.food": "Food", "fb.cat.service": "Service", "fb.cat.hygiene": "Hygiene", "fb.cat.suggestion": "Suggestion", "fb.cat.other": "Other",
+    "fb.r1": "Poor", "fb.r2": "Fair", "fb.r3": "Good", "fb.r4": "Very good", "fb.r5": "Excellent",
+    "fb.send": "Send feedback",
+    "fb.edit": "Edit",
+    "fb.cancel": "Cancel",
+    "fb.update": "Update rating",
+    "fb.thanks": "Thank you! Your feedback reached the canteen team.",
+    "fb.history": "Your previous feedback",
+    "fb.history.empty": "You haven't sent any general feedback yet.",
+    "fb.pickrating": "Pick a star rating to continue",
+    "fb.ph.general": "What's on your mind? (optional)",
+    "fb.toreview": "{n} to rate",
     "chat.sendfail": "Message could not be sent",
     "chat.admin": "CampusDine Admin",
     "chat.private": "Private support conversation",
@@ -808,6 +884,27 @@ const I18N = {
     "subtotal": "উপমোট",
     "cal.note2": "সার্ভার লাইভ হিসাব করেছে — শিক্ষার্থী ও শিক্ষক উভয়ের জন্য একই মিল-প্ল্যান নিয়ম প্রযোজ্য।",
     "tab.chat": "অ্যাডমিনের সাথে চ্যাট",
+    "nav.menu": "মেনু", "nav.track": "অর্ডার", "nav.calendar": "ক্যালেন্ডার", "nav.wallet": "ওয়ালেট",
+    "nav.chat": "চ্যাট", "nav.feedback": "মতামত", "nav.profile": "প্রোফাইল",
+    "fb.title": "আপনার মতামত গুরুত্বপূর্ণ",
+    "fb.sub": "আপনার খাবারের রেটিং দিন এবং ক্যান্টিন কীভাবে আরও ভালো হতে পারে জানান।",
+    "fb.orders": "আপনার অর্ডারে রেটিং দিন",
+    "fb.orders.empty": "এখনো রেটিং দেওয়ার মতো কিছু নেই। অর্ডার রেডি হলে এখানে রেটিং দিতে পারবেন।",
+    "fb.general": "সাধারণ মতামত জানান",
+    "fb.general.sub": "পরামর্শ, অভিযোগ বা প্রশংসা — অর্ডার ছাড়াই দেওয়া যাবে।",
+    "fb.cat": "বিভাগ",
+    "fb.cat.food": "খাবার", "fb.cat.service": "সার্ভিস", "fb.cat.hygiene": "পরিচ্ছন্নতা", "fb.cat.suggestion": "পরামর্শ", "fb.cat.other": "অন্যান্য",
+    "fb.r1": "খারাপ", "fb.r2": "মোটামুটি", "fb.r3": "ভালো", "fb.r4": "খুব ভালো", "fb.r5": "চমৎকার",
+    "fb.send": "মতামত পাঠান",
+    "fb.edit": "সম্পাদনা",
+    "fb.cancel": "বাতিল",
+    "fb.update": "রেটিং আপডেট করুন",
+    "fb.thanks": "ধন্যবাদ! আপনার মতামত ক্যান্টিন টিমের কাছে পৌঁছেছে।",
+    "fb.history": "আপনার আগের মতামত",
+    "fb.history.empty": "আপনি এখনো কোনো সাধারণ মতামত পাঠাননি।",
+    "fb.pickrating": "এগিয়ে যেতে স্টার রেটিং বেছে নিন",
+    "fb.ph.general": "আপনার মনে কী আছে? (ঐচ্ছিক)",
+    "fb.toreview": "{n}টি বাকি",
     "chat.sendfail": "বার্তা পাঠানো যায়নি",
     "chat.admin": "CampusDine অ্যাডমিন",
     "chat.private": "ব্যক্তিগত সহায়তা কথোপকথন",
@@ -1297,26 +1394,44 @@ function TopBar({
   notifications = [], notificationCount = 0, onToggleNotifications,
   notificationOpen = false, onMarkAllRead, onClearNotifications,
 }) {
+  const deskRef = useRef(null);
+  const mobRef = useRef(null);
+  // keep the active tab visible when the bar has to scroll
+  useEffect(() => {
+    [deskRef.current, mobRef.current].forEach(root => {
+      const el = root && root.querySelector(".nav-pill.active");
+      if (el && el.scrollIntoView) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    });
+  }, [active]);
+
+  const renderTabs = (ref) => (
+    <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
+      {tabs.map(t => (
+        <button key={t.key} onClick={() => setActive(t.key)} title={t.label} aria-label={t.label}
+          className={`nav-pill ${active === t.key ? "active" : ""}`}>
+          <Icon path={t.icon} className="w-4 h-4" />
+          <span className="nav-label">{t.label}</span>
+          {t.badge > 0 && <span className="nav-badge">{t.badge > 9 ? "9+" : t.badge}</span>}
+        </button>
+      ))}
+    </nav>
+  );
+
   return (
+    <>
     <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
+        <div className="flex items-center gap-2 shrink-0">
           <div className="logo-badge w-8 h-8 rounded-full grid place-items-center">
             <Icon path={I.ticket} className="w-4 h-4" style={{ color: "var(--gold)" }} />
           </div>
-          <span className="font-display gold-text font-700">CampusDine</span>
-          <span className="w-2 h-2 rounded-full ml-1" title={connected ? tx("live.on") : tx("live.off")}
+          <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
+          <span className="w-2 h-2 rounded-full" title={connected ? tx("live.on") : tx("live.off")}
             style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
         </div>
-        <div className="flex gap-1 flex-wrap">
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setActive(t.key)}
-              className={`tab-btn px-3.5 py-2 rounded-lg text-sm flex items-center gap-1.5 ${active === t.key ? "active" : ""}`}>
-              <Icon path={t.icon} className="w-4 h-4" /> {t.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-3 relative">
+        <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
+        <div className="flex-1 sm:hidden" />
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
           <div className="relative">
             <button onClick={onToggleNotifications} title={tx("notif")} className="relative w-10 h-10 rounded-lg grid place-items-center hover:bg-black/5 transition-colors">
               <Icon path={I.bell} className="w-5 h-5" style={{ color: "var(--gold)" }} />
@@ -1366,18 +1481,21 @@ function TopBar({
               </div>
             )}
           </div>
-          <div className="text-right hidden sm:block">
+          <div className="hidden min-[1400px]:block text-right mr-1">
             <div className="text-sm font-600 leading-tight">{name}</div>
             <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
           </div>
+          <div className="avatar-dot hidden sm:grid" title={`${name} · ${tx("r." + role)}`}>{(name || "?").trim().charAt(0).toUpperCase()}</div>
           <ThemeMenu />
           {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
-          <button onClick={onLogout} title={tx("logout")} className="w-9 h-9 rounded-lg grid place-items-center hover:bg-white/5">
-            <Icon path={I.logout} className="w-4.5 h-4.5" style={{ color: "var(--brick)" }} />
+          <button onClick={onLogout} title={tx("logout")} aria-label={tx("logout")} className="w-9 h-9 rounded-lg grid place-items-center hover:bg-black/5 transition-colors shrink-0">
+            <Icon path={I.logout} className="w-5 h-5" style={{ color: "var(--brick)" }} />
           </button>
         </div>
       </div>
     </div>
+    <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
+    </>
   );
 }
 
@@ -1744,11 +1862,13 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
 }
 
 /* ---------------- Track order tab ---------------- */
-function StarPicker({ value, onChange, size = "w-6 h-6" }) {
+function StarPicker({ value, onChange, size = "w-6 h-6", readOnly = false }) {
   return (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map(n => (
-        <button key={n} type="button" onClick={() => onChange(n)} className="transition-transform hover:scale-110">
+        <button key={n} type="button" disabled={readOnly} aria-label={`${n} / 5`}
+          onClick={() => onChange && onChange(n)}
+          className={readOnly ? "cursor-default" : "transition-transform hover:scale-110"}>
           <Icon path={I.star} className={size} style={{ color: n <= value ? "var(--gold)" : "var(--line)" }}
             fill={n <= value ? "var(--gold)" : "none"} />
         </button>
@@ -1757,18 +1877,39 @@ function StarPicker({ value, onChange, size = "w-6 h-6" }) {
   );
 }
 
-function OrderFeedback({ order, onSubmit, busy }) {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
+const RATING_KEYS = ["", "fb.r1", "fb.r2", "fb.r3", "fb.r4", "fb.r5"];
+const FEEDBACK_CATS = [
+  { id: "food", emoji: "🍛" }, { id: "service", emoji: "🛎️" }, { id: "hygiene", emoji: "🧼" },
+  { id: "suggestion", emoji: "💡" }, { id: "other", emoji: "💬" },
+];
 
-  if (order.feedback) {
+function OrderFeedback({ order, onSubmit, busy }) {
+  const fb = order.feedback;
+  const [editing, setEditing] = useState(false);
+  const [rating, setRating] = useState(fb ? fb.rating : 0);
+  const [comment, setComment] = useState(fb && fb.comment ? fb.comment : "");
+
+  // keep the form in sync when the server copy changes (e.g. after saving)
+  useEffect(() => {
+    if (fb) { setRating(fb.rating); setComment(fb.comment || ""); }
+  }, [fb && fb.rating, fb && fb.comment]);
+
+  const send = async () => {
+    const ok = await onSubmit(order.id, rating, comment);
+    if (ok !== false) setEditing(false);
+  };
+
+  if (fb && !editing) {
     return (
       <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
-        <div className="flex items-center gap-2 mb-1">
-          <StarPicker value={order.feedback.rating} onChange={() => {}} size="w-4 h-4" />
-          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("rated")}</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <StarPicker value={fb.rating} readOnly size="w-4 h-4" />
+            <span className="text-xs" style={{ color: "var(--ink-soft)" }}>✓ {tx("rated")}</span>
+          </div>
+          <button onClick={() => setEditing(true)} className="text-xs font-600" style={{ color: "var(--gold-deep)" }}>{tx("fb.edit")}</button>
         </div>
-        {order.feedback.comment && <p className="text-xs italic" style={{ color: "var(--ink-soft)" }}>"{order.feedback.comment}"</p>}
+        {fb.comment && <p className="text-xs italic mt-1.5" style={{ color: "var(--ink-soft)" }}>"{fb.comment}"</p>}
       </div>
     );
   }
@@ -1776,13 +1917,134 @@ function OrderFeedback({ order, onSubmit, busy }) {
   return (
     <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
       <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("rate")}</div>
-      <StarPicker value={rating} onChange={setRating} />
-      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("comment.ph")}
+      <div className="flex items-center gap-3">
+        <StarPicker value={rating} onChange={setRating} />
+        {rating > 0 && <span className="text-sm font-600" style={{ color: "var(--gold-deep)" }}>{tx(RATING_KEYS[rating])}</span>}
+      </div>
+      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("comment.ph")} maxLength={500}
         rows="2" className="w-full mt-2 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
-      <button disabled={busy || rating === 0} onClick={() => onSubmit(order.id, rating, comment)}
-        className="btn-primary mt-2 px-4 py-1.5 rounded-lg text-xs">
-        {busy ? tx("submitting") : tx("submit")}
-      </button>
+      <div className="flex items-center gap-2 mt-2">
+        <button disabled={busy || rating === 0} onClick={send} className="btn-primary px-4 py-1.5 rounded-lg text-xs">
+          {busy ? tx("submitting") : (fb ? tx("fb.update") : tx("submit"))}
+        </button>
+        {fb && (
+          <button onClick={() => { setEditing(false); setRating(fb.rating); setComment(fb.comment || ""); }}
+            className="px-3 py-1.5 rounded-lg text-xs border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+            {tx("fb.cancel")}
+          </button>
+        )}
+        {rating === 0 && !fb && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("fb.pickrating")}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Feedback tab (student / teacher) ---------------- */
+function FeedbackTab({ orders, onSubmitOrder, orderBusy, general, onSubmitGeneral, generalBusy }) {
+  const [category, setCategory] = useState("food");
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (!sent) return;
+    const t = setTimeout(() => setSent(false), 4000);
+    return () => clearTimeout(t);
+  }, [sent]);
+
+  const rateable = orders.filter(o => o.status === "Ready");
+
+  const submit = async () => {
+    const ok = await onSubmitGeneral(category, rating, comment);
+    if (ok) { setRating(0); setComment(""); setSent(true); }
+  };
+
+  return (
+    <div className="max-w-2xl space-y-8">
+      <div>
+        <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>{tx("fb.title")}</div>
+        <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{tx("fb.sub")}</p>
+      </div>
+
+      <section>
+        <div className="font-display font-700 mb-3">{tx("fb.orders")}</div>
+        {rateable.length === 0 ? (
+          <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("fb.orders.empty")}</div>
+        ) : (
+          <div className="space-y-3">
+            {rateable.map(o => (
+              <div key={o.id} className="card p-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-mono font-700">{o.token}</span>
+                  <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(o.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
+                  {(o.items || []).map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
+                </div>
+                <OrderFeedback order={o} onSubmit={onSubmitOrder} busy={orderBusy} />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="font-display font-700">{tx("fb.general")}</div>
+        <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>{tx("fb.general.sub")}</p>
+        <div className="card p-4">
+          <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("fb.cat")}</div>
+          <div className="flex gap-2 flex-wrap mb-4">
+            {FEEDBACK_CATS.map(c => (
+              <button key={c.id} type="button" onClick={() => setCategory(c.id)}
+                className={`tab-btn px-3 py-1.5 rounded-full text-sm ${category === c.id ? "active" : ""}`}>
+                {c.emoji} {tx("fb.cat." + c.id)}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <StarPicker value={rating} onChange={setRating} />
+            {rating > 0 && <span className="text-sm font-600" style={{ color: "var(--gold-deep)" }}>{tx(RATING_KEYS[rating])}</span>}
+          </div>
+          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("fb.ph.general")} maxLength={500}
+            rows="3" className="w-full mt-3 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
+            <span className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{comment.length}/500</span>
+            <div className="flex items-center gap-3">
+              {rating === 0 && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("fb.pickrating")}</span>}
+              <button disabled={generalBusy || rating === 0} onClick={submit} className="btn-primary px-5 py-2 rounded-lg text-sm">
+                {generalBusy ? tx("submitting") : tx("fb.send")}
+              </button>
+            </div>
+          </div>
+          {sent && (
+            <div className="success-banner rounded-lg px-3 py-2 mt-3 text-sm">✓ {tx("fb.thanks")}</div>
+          )}
+        </div>
+      </section>
+
+      <section>
+        <div className="font-display font-700 mb-3">{tx("fb.history")}</div>
+        {general.length === 0 ? (
+          <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("fb.history.empty")}</div>
+        ) : (
+          <div className="space-y-3">
+            {general.map(g => (
+              <div key={g.id} className="card p-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <StarPicker value={g.rating} readOnly size="w-4 h-4" />
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                      {tx("fb.cat." + g.category)}
+                    </span>
+                  </div>
+                  <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(g.created_at).toLocaleDateString()}</span>
+                </div>
+                {g.comment && <p className="text-sm mt-1.5">"{g.comment}"</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -2469,37 +2731,80 @@ function AdminReports({ trend, forecast }) {
 
 /* ---------------- Admin: Feedback ---------------- */
 function AdminFeedback({ summary }) {
-  const { average = 0, count = 0, entries = [] } = summary;
+  const { average = 0, count = 0, entries = [], distribution = {} } = summary;
+  const [filter, setFilter] = useState("all");
+
+  const FILTERS = [
+    ["all", "All"], ["order", "Orders"], ["general", "General"], ["low", "Needs attention"],
+  ];
+  const CAT = {
+    food: "🍛 Food", service: "🛎️ Service", hygiene: "🧼 Hygiene", suggestion: "💡 Suggestion", other: "💬 Other",
+  };
+  const countFor = (key) => entries.filter(e => key === "all" ? true : key === "low" ? e.rating <= 2 : e.kind === key).length;
+  const shown = entries.filter(e => filter === "all" ? true : filter === "low" ? e.rating <= 2 : e.kind === filter);
+  const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map(n => distribution[n] || 0));
+  const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
   return (
     <div>
-      <div className="card p-6 mb-6 flex items-center gap-6 flex-wrap">
-        <div>
-          <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Average Rating</div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-3xl font-700" style={{ color: "var(--gold)" }}>{average.toFixed(1)}</span>
-            <StarPicker value={Math.round(average)} onChange={() => {}} size="w-5 h-5" />
+      <div className="card p-6 mb-6 grid gap-6 md:grid-cols-[auto_1fr] items-center">
+        <div className="flex items-center gap-6 flex-wrap">
+          <div>
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Average Rating</div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-4xl font-700" style={{ color: "var(--gold)" }}>{average.toFixed(1)}</span>
+              <StarPicker value={Math.round(average)} readOnly size="w-5 h-5" />
+            </div>
+          </div>
+          <div className="border-l pl-6" style={{ borderColor: "var(--line)" }}>
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Total Reviews</div>
+            <div className="font-mono text-4xl font-700" style={{ color: "var(--ink)" }}>{count}</div>
           </div>
         </div>
-        <div className="border-l pl-6" style={{ borderColor: "var(--line)" }}>
-          <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Total Reviews</div>
-          <div className="font-mono text-3xl font-700" style={{ color: "var(--ink)" }}>{count}</div>
+        <div className="space-y-1.5 md:max-w-sm md:justify-self-end w-full">
+          {[5, 4, 3, 2, 1].map(n => (
+            <div key={n} className="flex items-center gap-2 text-xs">
+              <span className="w-6 font-mono text-right" style={{ color: "var(--ink-soft)" }}>{n}★</span>
+              <div className="rating-bar flex-1"><span style={{ width: `${((distribution[n] || 0) / maxBar) * 100}%` }} /></div>
+              <span className="w-6 font-mono" style={{ color: "var(--ink-soft)" }}>{distribution[n] || 0}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Recent Feedback</div>
-      {entries.length === 0 ? (
-        <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>No feedback submitted yet.</div>
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div className="font-display font-700" style={{ color: "var(--gold)" }}>Recent Feedback</div>
+        <div className="flex gap-2 flex-wrap">
+          {FILTERS.map(([key, label]) => (
+            <button key={key} onClick={() => setFilter(key)}
+              className={`tab-btn px-3 py-1 rounded-full text-xs ${filter === key ? "active" : ""}`}>
+              {label} · {countFor(key)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {shown.length === 0 ? (
+        <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>
+          {entries.length === 0 ? "No feedback submitted yet." : "No feedback matches this filter."}
+        </div>
       ) : (
         <div className="space-y-3">
-          {entries.map((e, i) => (
-            <div key={i} className="card p-4">
+          {shown.map(e => (
+            <div key={`${e.kind}-${e.id}`} className="card p-4"
+              style={{ borderLeft: e.rating <= 2 ? "3px solid var(--brick)" : undefined }}>
               <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
-                <div className="flex items-center gap-3">
-                  <StarPicker value={e.rating} onChange={() => {}} size="w-4 h-4" />
-                  <span className="font-mono text-xs" style={{ color: "var(--ink-soft)" }}>{e.token}</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <StarPicker value={e.rating} readOnly size="w-4 h-4" />
+                  {e.kind === "order" ? (
+                    <span className="font-mono text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>Order {e.token}</span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>{CAT[e.category] || CAT.other}</span>
+                  )}
                 </div>
-                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.userName} · {e.userRole}</span>
+                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.userName} · {e.userRole} · {when(e.created_at)}</span>
               </div>
+              {e.items && <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.items}</div>}
               {e.comment && <p className="text-sm mt-1" style={{ color: "var(--ink)" }}>"{e.comment}"</p>}
             </div>
           ))}
@@ -3041,6 +3346,9 @@ function App() {
   const [feedbackSummary, setFeedbackSummary] = useState({ average: 0, count: 0, entries: [] });
   const [coupons, setCoupons] = useState([]);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
+  const [myGeneralFeedback, setMyGeneralFeedback] = useState([]);
+  const [generalBusy, setGeneralBusy] = useState(false);
+  const [newFeedbackCount, setNewFeedbackCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
@@ -3113,6 +3421,7 @@ function App() {
     setForecast(await call("/api/admin/reports/forecast"));
   };
   const refreshFeedback = async () => setFeedbackSummary(await call("/api/admin/feedback"));
+  const refreshMyGeneralFeedback = async () => setMyGeneralFeedback(await call("/api/feedback/mine"));
 
   const onAuth = (token, user) => {
     setSession({ token, user });
@@ -3132,7 +3441,7 @@ function App() {
         if (session.user.role === "admin") {
           await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshFeedback(), refreshCoupons()]);
         } else {
-          await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet()]);
+          await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet(), refreshMyGeneralFeedback()]);
         }
       } catch (e) { showError(e); }
     })();
@@ -3164,6 +3473,15 @@ function App() {
         : order.status === "Ready" ? tx("n.ready")
         : tx("n.other", { s: lookup("status", order.status) });
       pushNotification("order", label, tx("n.status", { o: order.token || "#" + order.id, s: lookup("status", order.status) }));
+    });
+    // A student/teacher just sent feedback: refresh the admin's Feedback tab live
+    socket.on("feedback:new", (payload) => {
+      if (session.user.role !== "admin") return;
+      refreshFeedback().catch(() => {});
+      setNewFeedbackCount(c => c + 1);
+      const who = payload.userName || "A user";
+      const what = payload.kind === "order" ? `order ${payload.token}` : `the canteen (${payload.category})`;
+      pushNotification("feedback", payload.updated ? "Feedback updated" : "New feedback", `${who} rated ${what} ${payload.rating}★`);
     });
     socket.on("announcement", (payload) => {
       pushNotification("announcement", tx("n.announce"), payload.message || tx("n.announce.def"));
@@ -3248,8 +3566,25 @@ function App() {
     try {
       await call(`/api/orders/${orderId}/feedback`, { method: "POST", body: { rating, comment } });
       await refreshMyOrders();
-    } catch (e) { showError(e); } finally { setFeedbackBusy(false); }
+      return true;
+    } catch (e) { showError(e); return false; } finally { setFeedbackBusy(false); }
   };
+
+  const submitGeneralFeedback = async (category, rating, comment) => {
+    setGeneralBusy(true); setError(null);
+    try {
+      await call("/api/feedback", { method: "POST", body: { category, rating, comment } });
+      await refreshMyGeneralFeedback();
+      return true;
+    } catch (e) { showError(e); return false; } finally { setGeneralBusy(false); }
+  };
+
+  // Admin: opening the Feedback tab always pulls the latest and clears the unread badge
+  useEffect(() => {
+    if (!session || session.user.role !== "admin" || tab !== "feedback") return;
+    refreshFeedback().catch(() => {});
+    setNewFeedbackCount(0);
+  }, [tab, session, newFeedbackCount]);
 
   const topUp = async (amount, method) => {
     setBusy(true); setError(null);
@@ -3304,13 +3639,15 @@ function App() {
 
   if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} />;
 
+  const toRate = orders.filter(o => o.status === "Ready" && !o.feedback).length;
   const userTabs = [
-    { key: "menu", label: tx("tab.menu"), icon: I.menu },
-    { key: "track", label: tx("tab.track"), icon: I.clock },
-    { key: "calendar", label: tx("tab.calendar"), icon: I.calendar },
-    { key: "wallet", label: tx("tab.wallet"), icon: I.wallet },
-    { key: "chat", label: tx("tab.chat"), icon: I.chat },
-    { key: "profile", label: tx("tab.profile"), icon: I.user },
+    { key: "menu", label: tx("nav.menu"), icon: I.menu },
+    { key: "track", label: tx("nav.track"), icon: I.clock },
+    { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
+    { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
+    { key: "chat", label: tx("nav.chat"), icon: I.chat },
+    { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
+    { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
@@ -3319,8 +3656,8 @@ function App() {
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "chat", label: "Messages", icon: I.chat },
     { key: "reports", label: "Reports", icon: I.chart },
-    { key: "feedback", label: "Feedback", icon: I.star },
-    { key: "profile", label: "My Profile", icon: I.user },
+    { key: "feedback", label: "Feedback", icon: I.star, badge: newFeedbackCount },
+    { key: "profile", label: "Profile", icon: I.user },
   ];
 
   const unreadNotifications = notifications.filter(item => !item.read).length;
@@ -3336,7 +3673,7 @@ function App() {
         onMarkAllRead={markAllNotificationsRead}
         onClearNotifications={clearNotifications}
       />
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-[min(90vw,320px)] pointer-events-none">
+      <div className="fixed top-[76px] right-4 z-50 flex flex-col gap-2 w-[min(90vw,320px)] pointer-events-none">
         {toastNotifications.map(item => (
           <div key={item.id} className="pointer-events-auto rounded-xl border p-3 shadow-lg" style={{
             background: item.kind === "announcement" ? "rgba(22,163,74,0.10)" : "rgba(245,179,0,0.12)",
@@ -3348,7 +3685,7 @@ function App() {
           </div>
         ))}
       </div>
-      <div className="max-w-6xl mx-auto p-5 fade-in" key={tab}>
+      <div className="max-w-6xl mx-auto p-5 pb-24 sm:pb-5 fade-in" key={tab}>
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
             <span>{error}</span>
@@ -3377,6 +3714,10 @@ function App() {
         )}
         {session.user.role !== "admin" && tab === "track" && (
           <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} />
+        )}
+        {session.user.role !== "admin" && tab === "feedback" && (
+          <FeedbackTab orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
+            general={myGeneralFeedback} onSubmitGeneral={submitGeneralFeedback} generalBusy={generalBusy} />
         )}
         {session.user.role !== "admin" && tab === "calendar" && (
           <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} bill={bill} onToggle={toggleDay}

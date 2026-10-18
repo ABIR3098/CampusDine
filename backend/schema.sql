@@ -135,6 +135,18 @@ CREATE TABLE IF NOT EXISTS order_feedback (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- General (not order-linked) feedback: lets a student/teacher share a
+-- suggestion or complaint even when they have no completed order to rate.
+CREATE TABLE IF NOT EXISTS general_feedback (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  category ENUM('food','service','hygiene','suggestion','other') NOT NULL DEFAULT 'other',
+  rating TINYINT NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 CREATE TABLE IF NOT EXISTS coupons (
   id INT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(50) NOT NULL UNIQUE,

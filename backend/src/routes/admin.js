@@ -60,20 +60,59 @@ router.get("/reports/forecast", catchAsync(async (req, res) => {
   res.json({ predictedMealCount: predicted });
 }));
 
-// GET /api/admin/feedback — average rating + recent customer feedback
+// GET /api/admin/feedback — summary + rating breakdown + recent feedback
+// Combines per-order ratings with general (not order-linked) feedback.
 router.get("/feedback", catchAsync(async (req, res) => {
-  const [[stats]] = await pool.query(
-    "SELECT COALESCE(AVG(rating), 0) AS average, COUNT(*) AS count FROM order_feedback"
-  );
-  const [entries] = await pool.query(`
-    SELECT f.rating, f.comment, f.created_at, o.token, u.name AS userName, u.role AS userRole
+  const [orderRows] = await pool.query(`
+    SELECT f.id, f.rating, f.comment, f.created_at, o.token, u.name AS userName, u.role AS userRole,
+           (SELECT GROUP_CONCAT(CONCAT(oi.name, ' ×', oi.qty) SEPARATOR ', ') FROM order_items oi WHERE oi.order_id = o.id) AS items
     FROM order_feedback f
     JOIN orders o ON o.id = f.order_id
     JOIN users u ON u.id = f.user_id
     ORDER BY f.id DESC
-    LIMIT 50
+    LIMIT 100
+  `).catch(async () => {
+    // Older databases may not have order_items.name — fall back to the plain query
+    return pool.query(`
+      SELECT f.id, f.rating, f.comment, f.created_at, o.token, u.name AS userName, u.role AS userRole, NULL AS items
+      FROM order_feedback f
+      JOIN orders o ON o.id = f.order_id
+      JOIN users u ON u.id = f.user_id
+      ORDER BY f.id DESC
+      LIMIT 100
+    `);
+  });
+  const [generalRows] = await pool.query(`
+    SELECT g.id, g.rating, g.comment, g.category, g.created_at, u.name AS userName, u.role AS userRole
+    FROM general_feedback g
+    JOIN users u ON u.id = g.user_id
+    ORDER BY g.id DESC
+    LIMIT 100
   `);
-  res.json({ average: Number(stats.average), count: stats.count, entries });
+
+  const entries = [
+    ...orderRows.map((r) => ({ ...r, kind: "order" })),
+    ...generalRows.map((r) => ({ ...r, kind: "general" })),
+  ]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 100);
+
+  const [[orderStats]] = await pool.query("SELECT COALESCE(SUM(rating), 0) AS total, COUNT(*) AS count FROM order_feedback");
+  const [[generalStats]] = await pool.query("SELECT COALESCE(SUM(rating), 0) AS total, COUNT(*) AS count FROM general_feedback");
+  const count = Number(orderStats.count) + Number(generalStats.count);
+  const average = count ? (Number(orderStats.total) + Number(generalStats.total)) / count : 0;
+
+  const [dist] = await pool.query(`
+    SELECT rating, COUNT(*) AS cnt FROM (
+      SELECT rating FROM order_feedback
+      UNION ALL
+      SELECT rating FROM general_feedback
+    ) t GROUP BY rating
+  `);
+  const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  dist.forEach((d) => { distribution[d.rating] = Number(d.cnt); });
+
+  res.json({ average, count, distribution, entries });
 }));
 
 // POST /api/admin/announcement — broadcast a live announcement to all users
