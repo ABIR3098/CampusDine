@@ -2021,12 +2021,16 @@ function FavoritesFilterToggle({ favoritesOnly, onChange }) {
 }
 
 function FavoriteStarButton({ item, onToggleFavorite }) {
+  const isFavorite = Boolean(item.is_favorite);
   return (
     <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+      type="button"
+      aria-pressed={isFavorite}
+      aria-label={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
       title={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
       className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
-      <Icon path={I.star} className="w-4 h-4" fill={item.is_favorite ? "currentColor" : "none"}
-        style={{ color: "var(--gold)" }} />
+      <Icon path={I.star} className="w-4 h-4" fill={isFavorite ? "currentColor" : "none"}
+        style={{ color: isFavorite ? "var(--gold)" : "var(--ink-soft)" }} />
     </button>
   );
 }
@@ -2089,6 +2093,9 @@ function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavor
                   <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{itemName(item)}</span>
                 </div>
                 <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+                  type="button"
+                  aria-pressed="true"
+                  aria-label={tx("fav.remove")}
                   title={tx("fav.remove")}
                   className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
                   <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
