@@ -266,6 +266,8 @@
   .warn-banner{ background:var(--warn-bg); color:var(--warn-fg); border:1px solid var(--warn-border); }
 
   #print-area{ display:none; }
+  #print-sheet{ display:none; }
+  @page{ margin:14mm; }
   @media print{
     html, html[data-theme="dark"] body{ background:#FFFFFF !important; color:#111827 !important; }
     body *{ visibility:hidden; }
@@ -282,9 +284,26 @@
     .receipt-row{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
     .receipt-divider{ border-top:1px dashed #9CA3AF; margin:12px 0; }
     .no-print{ display:none !important; }
-    #report-area, #report-area *{ visibility:visible; color:#111827 !important; }
-    #report-area{ position:absolute; left:0; top:0; width:100%; padding:16px; }
-    #report-area .card{ background:#FFFFFF !important; border:1px solid #D1D5DB !important; box-shadow:none !important; }
+    body.printing-sheet > #root{ display:none !important; }
+    body.printing-sheet #print-sheet, body.printing-sheet #print-sheet *{ visibility:visible; }
+    body.printing-sheet #print-sheet{ display:block !important; }
+    #print-sheet{ font-family:'Plus Jakarta Sans','Hind Siliguri',ui-sans-serif,sans-serif; color:#111827; background:#FFFFFF; font-size:12px; line-height:1.45; }
+    #print-sheet *{ color:#111827; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    #print-sheet h1{ font-size:20px; margin:0 0 2px; }
+    #print-sheet h2{ font-size:13px; margin:16px 0 6px; padding-bottom:3px; border-bottom:1px solid #9CA3AF; break-after:avoid; }
+    #print-sheet .ps-meta{ color:#4B5563; font-size:11px; margin-bottom:14px; }
+    #print-sheet .ps-empty{ color:#6B7280; font-size:11.5px; margin:4px 0; }
+    #print-sheet .ps-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+    #print-sheet .ps-tile{ border:1px solid #D1D5DB; border-radius:6px; padding:6px 9px; break-inside:avoid; }
+    #print-sheet .ps-k{ font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:#6B7280; }
+    #print-sheet .ps-v{ font-size:15px; font-weight:700; font-family:ui-monospace,Menlo,Consolas,monospace; }
+    #print-sheet table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+    #print-sheet th, #print-sheet td{ padding:4px 6px; border-bottom:1px solid #E5E7EB; text-align:left; vertical-align:top; }
+    #print-sheet th{ background:#F3F4F6; font-weight:700; }
+    #print-sheet .num{ text-align:right; white-space:nowrap; font-family:ui-monospace,Menlo,Consolas,monospace; }
+    #print-sheet thead{ display:table-header-group; }
+    #print-sheet tr{ break-inside:avoid; page-break-inside:avoid; }
+    #print-sheet .ps-bar{ height:8px; min-width:2px; background:#374151; border-radius:2px; }
   }
 
   .chip{
@@ -2287,6 +2306,43 @@ const FEEDBACK_CATS = [
   { id: "suggestion", emoji: "💡" }, { id: "other", emoji: "💬" },
 ];
 
+/* ---------------- Print sheets (reports / feedback / bills) ----------------
+   A print sheet is a plain black-on-white page rendered outside the app (a portal on <body>).
+   While it prints, the whole app is hidden, so there are no blank pages, no dark-theme colours,
+   no clipped charts. Tables repeat their header on every page. */
+function PrintSheet({ title, meta, children }) {
+  const host = useMemo(() => {
+    let el = document.getElementById("print-sheet");
+    if (!el) { el = document.createElement("div"); el.id = "print-sheet"; document.body.appendChild(el); }
+    return el;
+  }, []);
+  useEffect(() => {
+    document.body.classList.add("printing-sheet");
+    const done = () => document.body.classList.remove("printing-sheet");
+    window.addEventListener("afterprint", done);
+    const t = setTimeout(() => window.print(), 120);
+    return () => { clearTimeout(t); window.removeEventListener("afterprint", done); done(); };
+  }, []);
+  return ReactDOM.createPortal(
+    <div>
+      <h1>CampusDine — {title}</h1>
+      <div className="ps-meta">{meta}</div>
+      {children}
+    </div>, host);
+}
+function PsTable({ head, rows, numCols = [], empty }) {
+  if (!rows.length) return <p className="ps-empty">{empty || "—"}</p>;
+  return (
+    <table>
+      <thead><tr>{head.map((h, i) => <th key={i} className={numCols.includes(i) ? "num" : ""} style={h === "" ? { width: "40%" } : undefined}>{h}</th>)}</tr></thead>
+      <tbody>{rows.map((r, ri) => (
+        <tr key={ri}>{r.map((c, i) => <td key={i} className={numCols.includes(i) ? "num" : ""}>{c}</td>)}</tr>
+      ))}</tbody>
+    </table>
+  );
+}
+const psStars = (n) => "★".repeat(Math.max(0, Math.min(5, n))) + "☆".repeat(5 - Math.max(0, Math.min(5, n)));
+
 function OrderFeedback({ order, onSubmit, busy }) {
   const fb = order.feedback;
   const [editing, setEditing] = useState(false);
@@ -3287,6 +3343,7 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
   const [from, setFrom] = useState(() => daysAgo(29));
   const [to, setTo] = useState(() => iso(new Date()));
   const [report, setReport] = useState(null);
+  const [printKey, setPrintKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -3347,6 +3404,38 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
 
   return (
     <div className="space-y-6">
+      {printKey > 0 && report && (
+        <PrintSheet key={printKey} title="Sales report"
+          meta={`${report.range.from} to ${report.range.to} (${report.range.days} day${report.range.days === 1 ? "" : "s"}) · generated ${new Date(report.generatedAt).toLocaleString()}`}>
+          <div className="ps-grid">
+            {[
+              ["Orders", t.orders], ["Revenue", taka(t.revenue)], ["Average order", taka(Math.round(t.avgOrder))],
+              ["Collected", `${t.collected} / ${t.orders}`], ["Cancelled", `${t.cancelledOrders} (${taka(t.cancelledAmount)})`],
+              ["New sign-ups", report.users.joined], ["Avg. rating", report.feedback.count ? report.feedback.average.toFixed(1) + " / 5" : "—"],
+              ["Wallet top-ups", taka(report.wallet.topups)],
+            ].map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <h2>Revenue by day</h2>
+          <PsTable head={["Date", "Orders", "Revenue", ""]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.byDay.map(d => [d.day, d.orders, taka(d.revenue), <div className="ps-bar" style={{ width: `${(d.revenue / dayMax) * 100}%` }}></div>])} />
+          <h2>Top selling items</h2>
+          <PsTable head={["Item", "Qty", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.topItems.map(i => [i.name, i.qty, taka(i.revenue)])} />
+          <h2>Hall residents vs regular</h2>
+          <PsTable head={["Group", "Customers", "Orders", "Revenue"]} numCols={[1, 2, 3]} empty="No orders in this period."
+            rows={report.byResidence.map(r => [nice(r.type), r.customers, r.orders, taka(r.revenue)])} />
+          <h2>Payment method</h2>
+          <PsTable head={["Method", "Orders", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.byPayment.map(p => [p.method === "wallet" ? "Wallet" : "Cash", p.orders, taka(p.revenue)])} />
+          <h2>Students vs teachers</h2>
+          <PsTable head={["Role", "Orders", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.byRole.map(r => [r.role, r.orders, taka(r.revenue)])} />
+          <h2>{`Hall residents (${report.hallResidents.length})`}</h2>
+          <PsTable head={["Name", "Hall · Room", "Hall ID", "Orders", "Spent"]} numCols={[3, 4]} empty="No hall residents have signed up yet."
+            rows={report.hallResidents.map(h => [`${h.name} (${h.externalId})`, `${h.hallName || "—"} · ${h.roomNumber || "—"}`, h.hallId || "—", h.orders, taka(h.spent)])} />
+        </PrintSheet>
+      )}
+
       {/* ---------- Generate a report ---------- */}
       <div className="card p-5 no-print">
         <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Generate report</div>
@@ -3372,7 +3461,7 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
         <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
           <button onClick={() => download("orders")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download orders (CSV)</button>
           <button onClick={() => download("hall")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download hall residents (CSV)</button>
-          {report && <button onClick={() => window.print()} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Print / Save as PDF</button>}
+          {report && <button onClick={() => setPrintKey(k => k + 1)} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Print / Save as PDF</button>}
         </div>
       </div>
 
@@ -3631,6 +3720,7 @@ function AdminVerify({ call, onCollected }) {
 function AdminFeedback({ summary }) {
   const { average = 0, count = 0, entries = [], distribution = {} } = summary;
   const [filter, setFilter] = useState("all");
+  const [printKey, setPrintKey] = useState(0);
 
   const FILTERS = [
     ["all", "All"], ["order", "Orders"], ["general", "General"], ["low", "Needs attention"],
@@ -3645,6 +3735,27 @@ function AdminFeedback({ summary }) {
 
   return (
     <div>
+      {printKey > 0 && (
+        <PrintSheet key={printKey} title="Customer feedback"
+          meta={`${FILTERS.find(f => f[0] === filter)[1]} · ${shown.length} of ${entries.length} entries · generated ${new Date().toLocaleString()}`}>
+          <div className="ps-grid">
+            {[
+              ["Average rating", `${average.toFixed(1)} / 5`], ["Total reviews", count],
+              ["Needs attention (1–2★)", countFor("low")], ["Orders / General", `${countFor("order")} / ${countFor("general")}`],
+            ].map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <h2>Rating breakdown</h2>
+          <PsTable head={["Rating", "Reviews", ""]} numCols={[1]}
+            rows={[5, 4, 3, 2, 1].map(n => [psStars(n), distribution[n] || 0, <div className="ps-bar" style={{ width: `${((distribution[n] || 0) / maxBar) * 100}%` }}></div>])} />
+          <h2>Feedback</h2>
+          <PsTable head={["Date", "From", "About", "Rating", "Comment"]} empty="No feedback matches this filter."
+            rows={shown.map(e => [
+              when(e.created_at), `${e.userName} (${e.userRole})`,
+              e.kind === "order" ? `Order ${e.token}${e.items ? " — " + e.items : ""}` : String(CAT[e.category] || CAT.other).replace(/^\S+\s/, ""),
+              psStars(e.rating), e.comment || "—",
+            ])} />
+        </PrintSheet>
+      )}
       <div className="card p-6 mb-6 grid gap-6 md:grid-cols-[auto_1fr] items-center">
         <div className="flex items-center gap-6 flex-wrap">
           <div>
@@ -3671,7 +3782,12 @@ function AdminFeedback({ summary }) {
       </div>
 
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <div className="font-display font-700" style={{ color: "var(--gold)" }}>Recent Feedback</div>
+        <div className="flex items-center gap-3">
+          <div className="font-display font-700" style={{ color: "var(--gold)" }}>Recent Feedback</div>
+          <button onClick={() => setPrintKey(k => k + 1)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+            <Icon path={I.printer} className="w-3.5 h-3.5" /> Print
+          </button>
+        </div>
         <div className="flex gap-2 flex-wrap">
           {FILTERS.map(([key, label]) => (
             <button key={key} onClick={() => setFilter(key)}
