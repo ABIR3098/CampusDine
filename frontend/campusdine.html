@@ -1028,6 +1028,20 @@ Object.assign(I18N.en, {
   "pw.strong": "Strong password",
   "reset.p": "Enter your ID and the email you signed up with, then choose a new password.",
   "reset.noemail": "Accounts without an email (or admin accounts) can't be reset here — ask the canteen admin.",
+  "otp.sendcode": "Send verification code",
+  "otp.verify": "Verify & create account",
+  "otp.label": "Verification code",
+  "otp.ph": "6-digit code",
+  "otp.sent": "We sent a 6-digit code to {e}. It is valid for 10 minutes.",
+  "otp.err": "Enter the 6-digit code.",
+  "otp.resend": "Resend code",
+  "otp.resendin": "Resend in {s}s",
+  "otp.change": "Wrong email? Edit it above to get a new code.",
+  "otp.devhint": "Not getting an email? If the server has no email set up yet (developer mode), the code is printed in the server console.",
+  "otp.verifylogin": "Verify & log in",
+  "otp.loginnote": "Wrong account? Change the ID above to start again.",
+  "reset.send": "Send reset code",
+  "reset.sent": "If these details match an account, a code has been sent to that email.",
   "qr.title": "Show this QR at the counter",
   "qr.hint": "Your pickup token {t} is inside this code. The counter scans it to hand over your order.",
   "qr.collected": "Collected",
@@ -1065,6 +1079,20 @@ Object.assign(I18N.bn, {
   "pw.strong": "শক্তিশালী পাসওয়ার্ড",
   "reset.p": "আপনার আইডি ও সাইন-আপের ইমেইল দিন, তারপর নতুন পাসওয়ার্ড বেছে নিন।",
   "reset.noemail": "ইমেইল ছাড়া অ্যাকাউন্ট (বা অ্যাডমিন অ্যাকাউন্ট) এখানে রিসেট করা যায় না — ক্যান্টিন অ্যাডমিনকে জানান।",
+  "otp.sendcode": "যাচাই কোড পাঠান",
+  "otp.verify": "যাচাই করে অ্যাকাউন্ট খুলুন",
+  "otp.label": "যাচাই কোড",
+  "otp.ph": "৬ সংখ্যার কোড",
+  "otp.sent": "{e} ঠিকানায় ৬ সংখ্যার কোড পাঠানো হয়েছে। কোডটি ১০ মিনিট বৈধ থাকবে।",
+  "otp.err": "৬ সংখ্যার কোডটি দিন।",
+  "otp.resend": "আবার কোড পাঠান",
+  "otp.resendin": "{s} সেকেন্ড পরে আবার পাঠানো যাবে",
+  "otp.change": "ভুল ইমেইল? উপরে ইমেইল বদলালে নতুন কোড পাবেন।",
+  "otp.devhint": "ইমেইল আসছে না? সার্ভারে ইমেইল সেট করা না থাকলে (ডেভেলপার মোড) কোডটি সার্ভার কনসোলে দেখা যাবে।",
+  "otp.verifylogin": "যাচাই করে লগ ইন করুন",
+  "otp.loginnote": "ভুল অ্যাকাউন্ট? উপরে আইডি বদলে আবার শুরু করুন।",
+  "reset.send": "রিসেট কোড পাঠান",
+  "reset.sent": "তথ্য মিললে ওই ইমেইলে একটি কোড পাঠানো হয়েছে।",
   "qr.title": "কাউন্টারে এই QR দেখান",
   "qr.hint": "আপনার পিকআপ টোকেন {t} এই কোডের ভেতরে আছে। কাউন্টার স্ক্যান করে অর্ডার দেবে।",
   "qr.collected": "নেওয়া হয়েছে",
@@ -1428,6 +1456,32 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const authRef = useRef(null);
 
+  // Email OTP (sign-up verification + password reset). The server says whether it is switched on.
+  const [otpRequired, setOtpRequired] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);     // sign-up: code has been mailed
+  const [resetSent, setResetSent] = useState(false); // forgot password: code has been mailed
+  const [otpDev, setOtpDev] = useState(false);       // server has no SMTP: code is in the server console
+  const [cooldown, setCooldown] = useState(0);       // seconds until "Resend" works again
+  const [loginChallenge, setLoginChallenge] = useState(null); // login 2FA: { challenge, email (masked) } after the password step
+
+  useEffect(() => {
+    let alive = true;
+    api(apiBase, "/api/auth/config").then(c => { if (alive) setOtpRequired(!!c.otpRequired); }).catch(() => {});
+    return () => { alive = false; };
+  }, [apiBase]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  // Changing the email (or switching tab / role) throws away a half-finished OTP step
+  useEffect(() => { setOtpSent(false); setResetSent(false); setOtp(""); setOtpDev(false); }, [email, mode, role]);
+  // Login 2FA step is dropped when the person goes back, switches tab/role or edits the ID
+  useEffect(() => { setLoginChallenge(null); }, [externalId, mode, role]);
+
   const roleOptions = [
     { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
     { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
@@ -1454,6 +1508,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     const id = externalId.trim();
     if (mode === "login") {
       if (!id || !password) { setError(tx("err.fill")); return; }
+      if (loginChallenge && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
     } else {
       if (!name.trim() || !email.trim() || !id || !password || !confirmPassword) { setError(tx("err.fill")); return; }
       if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
@@ -1461,21 +1516,48 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
       if (password.length < 6) { setError(tx("err.pw6")); return; }
       if (password !== confirmPassword) { setError(tx("err.pwmatch")); return; }
       if (accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
+      if (otpRequired && otpSent && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
     }
     setBusy(true);
     try {
+      // Step 1 of sign-up with OTP: mail the code, then wait for the person to type it
+      if (mode === "register" && otpRequired && !otpSent) {
+        const r = await api(apiBase, "/api/auth/otp/send-signup", { method: "POST", body: { email: email.trim(), externalId: id } });
+        setOtpSent(true); setOtp(""); setCooldown(60); setOtpDev(r.emailed === false);
+        return;
+      }
       const data = mode === "login"
-        ? await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } })
+        ? (loginChallenge
+            ? await api(apiBase, "/api/auth/login/verify", { method: "POST", body: { challenge: loginChallenge.challenge, otp: otp.trim() } })
+            : await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } }))
         : await api(apiBase, "/api/auth/register", { method: "POST", body: {
             name: name.trim(), email: email.trim(), externalId: id, role, password,
             accountType, hallName: hallName.trim(), roomNumber: roomNumber.trim(),
+            otp: otpRequired ? otp.trim() : undefined,
           } });
+      // Password was right but this account needs an emailed code: show the code box instead of logging in
+      if (data.otpRequired) {
+        setLoginChallenge({ challenge: data.challenge, email: data.email });
+        setOtp(""); setCooldown(data.resendIn || 60); setOtpDev(data.emailed === false);
+        return;
+      }
       onAuth(data.token, data.user);
     } catch (e) {
+      // Expired login session: go back to the password step
+      if (/expired|again/i.test(e.message) && loginChallenge) { setLoginChallenge(null); setOtp(""); }
       setError(e.message);
     } finally {
       setBusy(false);
     }
+  };
+
+  const resendLoginCode = async () => {
+    if (!loginChallenge) return;
+    setError(null); setBusy(true);
+    try {
+      const r = await api(apiBase, "/api/auth/login/resend", { method: "POST", body: { challenge: loginChallenge.challenge } });
+      setOtp(""); setCooldown(r.resendIn || 60); setOtpDev(r.emailed === false);
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
 
   // Tell the person right away if the ID / email already has an account
@@ -1498,14 +1580,36 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const strengthLabel = pwStrength <= 1 ? tx("pw.weak") : pwStrength === 2 ? tx("pw.ok") : tx("pw.strong");
   const strengthColor = pwStrength <= 1 ? "#DC2626" : pwStrength === 2 ? "#D97706" : "var(--leaf)";
 
+  const resendSignupCode = async () => {
+    setError(null); setBusy(true);
+    try {
+      const r = await api(apiBase, "/api/auth/otp/send-signup", { method: "POST", body: { email: email.trim(), externalId: externalId.trim() } });
+      setOtp(""); setCooldown(60); setOtpDev(r.emailed === false);
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  // Forgot password, step 1: mail a reset code (the server answers the same whether or not the account exists)
+  const sendResetCode = async () => {
+    setError(null); setResetMsg(null);
+    if (!externalId.trim() || !email.trim()) { setError(tx("err.fill")); return; }
+    if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+    setBusy(true);
+    try {
+      await api(apiBase, "/api/auth/forgot-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim() } });
+      setResetSent(true); setOtp(""); setCooldown(60); setResetMsg(tx("reset.sent"));
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
   const submitReset = async () => {
     setError(null); setResetMsg(null);
     if (!externalId.trim() || !email.trim() || !newPassword) { setError(tx("err.fill")); return; }
     if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
     if (newPassword.length < 6) { setError(tx("err.pw6")); return; }
+    if (otpRequired && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
     setBusy(true);
     try {
-      await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim(), newPassword } });
+      await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim(), newPassword, otp: otpRequired ? otp.trim() : undefined } });
+      setOtp(""); setResetSent(false);
       setMode("login");
       setPassword("");
       setNewPassword("");
@@ -1516,6 +1620,24 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
       setBusy(false);
     }
   };
+
+  const otpBox = (onResend, shownEmail, hintText) => (
+    <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: "var(--line)", background: "var(--bg)" }}>
+      <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("otp.sent", { e: shownEmail || email.trim() })}</p>
+      <label className="text-xs uppercase tracking-wide block" style={{ color: "var(--ink-soft)" }}>{tx("otp.label")}</label>
+      <input value={otp} inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder={tx("otp.ph")}
+        onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        className="w-full px-4 py-2.5 rounded-xl border text-center text-xl font-700" style={{ borderColor: "var(--line)", letterSpacing: "0.5em" }} />
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span style={{ color: "var(--ink-soft)" }}>{hintText || tx("otp.change")}</span>
+        <button type="button" disabled={busy || cooldown > 0} onClick={onResend}
+          className="font-600 shrink-0" style={{ color: cooldown > 0 ? "var(--ink-soft)" : "var(--gold)" }}>
+          {cooldown > 0 ? tx("otp.resendin", { s: cooldown }) : tx("otp.resend")}
+        </button>
+      </div>
+      {otpDev && <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("otp.devhint")}</p>}
+    </div>
+  );
 
   const pillTab = (key, label) => (
     <button onClick={() => { setMode(key); setError(null); }}
@@ -1675,15 +1797,20 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
                     <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder={tx("email.ph")}
                       className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                   </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("newpw")}</label>
-                    <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("atleast6")}
-                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                  </div>
+                  {otpRequired && resetSent && otpBox(sendResetCode)}
+                  {(!otpRequired || resetSent) && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("newpw")}</label>
+                      <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("atleast6")}
+                        className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                    </div>
+                  )}
                   <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("reset.noemail")}</p>
+                  {otpRequired && resetSent && <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("otp.devhint")}</p>}
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
-                  <button disabled={busy} onClick={submitReset} className="btn-primary w-full py-2.5 rounded-xl">
-                    {busy ? tx("wait") : tx("reset.h")}
+                  {resetMsg && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
+                  <button disabled={busy} onClick={otpRequired && !resetSent ? sendResetCode : submitReset} className="btn-primary w-full py-2.5 rounded-xl">
+                    {busy ? tx("wait") : (otpRequired && !resetSent ? tx("reset.send") : tx("reset.h"))}
                   </button>
                 </div>
               </>
@@ -1797,10 +1924,13 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
                         style={{ borderColor: confirmPassword && confirmPassword !== password ? "#DC2626" : "var(--line)" }} />
                     </div>
                   )}
+                  {mode === "register" && otpRequired && otpSent && otpBox(resendSignupCode)}
+                  {mode === "login" && loginChallenge && otpBox(resendLoginCode, loginChallenge.email, tx("otp.loginnote"))}
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   {resetMsg && mode === "login" && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
                   <button type="submit" disabled={busy} className="btn-primary w-full py-2.5 rounded-xl">
-                    {busy ? tx("wait") : mode === "login" ? tx("login") : tx("createlogin")}
+                    {busy ? tx("wait") : mode === "login" ? (loginChallenge ? tx("otp.verifylogin") : tx("login"))
+                      : (otpRequired ? (otpSent ? tx("otp.verify") : tx("otp.sendcode")) : tx("createlogin"))}
                   </button>
                 </form>
 
