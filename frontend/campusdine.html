@@ -1199,6 +1199,47 @@ Object.assign(I18N.bn, {
   "pr.nofb": "এখনো কিছু নেই।",
   "pr.fullmeals": "পূর্ণ মিল", "pr.halfmeals": "অর্ধেক মিল"
 });
+// ---- Added: wallet transfer ----
+Object.assign(I18N.en, {
+  "xfer.title": "Send money",
+  "xfer.sub": "Send wallet money to another student or teacher using their ID.",
+  "xfer.id": "Their ID number",
+  "xfer.find": "Find",
+  "xfer.change": "Change",
+  "xfer.amount": "Amount",
+  "xfer.note": "Note (optional)",
+  "xfer.note.ph": "e.g. lunch",
+  "xfer.send": "Send money",
+  "xfer.sending": "Sending…",
+  "xfer.short": "Not enough balance in your wallet.",
+  "xfer.confirm": "Send {a} to {n}?",
+  "xfer.ok": "Sent {a} to {n}.",
+  "xfer.limit": "Up to ৳2,000 per transfer and ৳5,000 per day.",
+  "tx.sent": "Sent to {n}",
+  "tx.received": "Received from {n}",
+  "n.received.t": "Money received",
+  "n.received": "{n} sent you {a}."
+});
+Object.assign(I18N.bn, {
+  "xfer.title": "টাকা পাঠান",
+  "xfer.sub": "আইডি দিয়ে অন্য শিক্ষার্থী বা শিক্ষককে ওয়ালেট থেকে টাকা পাঠান।",
+  "xfer.id": "তার আইডি নম্বর",
+  "xfer.find": "খুঁজুন",
+  "xfer.change": "বদলান",
+  "xfer.amount": "পরিমাণ",
+  "xfer.note": "নোট (ঐচ্ছিক)",
+  "xfer.note.ph": "যেমন লাঞ্চ",
+  "xfer.send": "টাকা পাঠান",
+  "xfer.sending": "পাঠানো হচ্ছে…",
+  "xfer.short": "আপনার ওয়ালেটে যথেষ্ট ব্যালেন্স নেই।",
+  "xfer.confirm": "{n}-কে {a} পাঠাবেন?",
+  "xfer.ok": "{n}-কে {a} পাঠানো হয়েছে।",
+  "xfer.limit": "প্রতি ট্রান্সফারে সর্বোচ্চ ৳২,০০০ এবং দিনে ৳৫,০০০।",
+  "tx.sent": "{n}-কে পাঠানো",
+  "tx.received": "{n}-এর কাছ থেকে পাওয়া",
+  "n.received.t": "টাকা পেয়েছেন",
+  "n.received": "{n} আপনাকে {a} পাঠিয়েছে।"
+});
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
   if (str === undefined) str = I18N.en[key];
@@ -1225,6 +1266,10 @@ const txLabel = (label) => {
   if (m) return tx("tx.refund", { t: m[1] });
   m = /^Wallet top-up via (.+)$/.exec(label);
   if (m) return tx("tx.topup", { m: m[1] });
+  m = /^Sent to (.+)$/.exec(label);
+  if (m) return tx("tx.sent", { n: m[1] });
+  m = /^Received from (.+)$/.exec(label);
+  if (m) return tx("tx.received", { n: m[1] });
   m = /^Meal plan (\d{4}-\d{2}) \((\d+) full, (\d+) half\)$/.exec(label);
   if (m) return tx("tx.mealpay", { m: m[1], f: num(m[2]), h: num(m[3]) });
   m = /^Meal plan refund (\d{4}-\d{2}-\d{2})$/.exec(label);
@@ -3172,7 +3217,7 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
 }
 
 /* ---------------- Wallet tab ---------------- */
-function WalletTab({ balance, topUp, transactions, busy }) {
+function WalletTab({ balance, topUp, transactions, busy, onLookup, onSend }) {
   const [amount, setAmount] = useState(100);
   const [showPay, setShowPay] = useState(false);
 
@@ -3209,6 +3254,7 @@ function WalletTab({ balance, topUp, transactions, busy }) {
             {busy ? tx("adding") : tx("addmoney")}
           </button>
         </div>
+        <SendMoneyCard balance={balance} onLookup={onLookup} onSend={onSend} />
       </div>
       <div className="lg:col-span-2 card p-5">
         <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("txhist")}</div>
@@ -3230,6 +3276,79 @@ function WalletTab({ balance, topUp, transactions, busy }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ---------------- Wallet: send money to another student / teacher ---------------- */
+function SendMoneyCard({ balance, onLookup, onSend }) {
+  const [toId, setToId] = useState("");
+  const [recipient, setRecipient] = useState(null); // { name, externalId } once the ID is confirmed
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // { ok, text }
+
+  const find = async () => {
+    setMsg(null); setRecipient(null);
+    if (!toId.trim()) return;
+    setBusy(true);
+    try { setRecipient(await onLookup(toId.trim())); }
+    catch (e) { setMsg({ ok: false, text: e.message }); }
+    finally { setBusy(false); }
+  };
+
+  const send = async () => {
+    const n = Number(amount);
+    if (!recipient || !(n > 0)) return;
+    if (n > balance) { setMsg({ ok: false, text: tx("xfer.short") }); return; }
+    if (!window.confirm(tx("xfer.confirm", { a: taka(n), n: recipient.name }))) return;
+    setBusy(true); setMsg(null);
+    try {
+      await onSend(recipient.externalId, n, note.trim());
+      setMsg({ ok: true, text: tx("xfer.ok", { a: taka(n), n: recipient.name }) });
+      setToId(""); setRecipient(null); setAmount(""); setNote("");
+    } catch (e) {
+      setMsg({ ok: false, text: e.message });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="card p-5 mt-5">
+      <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>{tx("xfer.title")}</div>
+      <p className="text-xs mb-3" style={{ color: "var(--ink-soft)" }}>{tx("xfer.sub")}</p>
+
+      {!recipient ? (
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); find(); }}>
+          <input value={toId} onChange={e => setToId(e.target.value)} placeholder={tx("xfer.id")}
+            className="flex-1 min-w-0 px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
+          <button type="submit" disabled={busy || !toId.trim()} className="btn-primary px-4 rounded-lg text-sm disabled:opacity-50">{tx("xfer.find")}</button>
+        </form>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+            <div className="text-sm font-700 truncate">{recipient.name} <span className="font-mono font-400 text-xs">({recipient.externalId})</span></div>
+            <button type="button" onClick={() => { setRecipient(null); setMsg(null); }} className="text-xs font-600 underline">{tx("xfer.change")}</button>
+          </div>
+          <div className="flex gap-2">
+            {[50, 100, 200].map(v => (
+              <button key={v} type="button" onClick={() => setAmount(String(v))}
+                className="flex-1 py-1.5 rounded-lg border text-sm font-mono" style={{ borderColor: "var(--line)" }}>{taka(v)}</button>
+            ))}
+          </div>
+          <input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} placeholder={tx("xfer.amount")}
+            className="w-full px-3 py-2 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
+          <input value={note} maxLength={40} onChange={e => setNote(e.target.value)} placeholder={`${tx("xfer.note")} — ${tx("xfer.note.ph")}`}
+            className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <button type="button" onClick={send} disabled={busy || !(Number(amount) > 0)} className="btn-primary w-full py-2.5 rounded-xl disabled:opacity-50">
+            {busy ? tx("xfer.sending") : tx("xfer.send")}
+          </button>
+        </div>
+      )}
+      {msg && (
+        <div className={`${msg.ok ? "success-banner" : "error-banner"} rounded-lg px-3 py-2 mt-3 text-sm`}>{msg.text}</div>
+      )}
+      <p className="text-[11px] mt-3" style={{ color: "var(--ink-soft)" }}>{tx("xfer.limit")}</p>
     </div>
   );
 }
@@ -4783,6 +4902,11 @@ function App() {
       const what = payload.kind === "order" ? `order ${payload.token}` : `the canteen (${payload.category})`;
       pushNotification("feedback", payload.updated ? "Feedback updated" : "New feedback", `${who} rated ${what} ${payload.rating}★`);
     });
+    // Someone sent this user money: update the balance live
+    socket.on("wallet:received", (payload) => {
+      refreshWallet().catch(() => {});
+      pushNotification("wallet", tx("n.received.t"), tx("n.received", { n: payload.from, a: taka(payload.amount) }));
+    });
     socket.on("announcement", (payload) => {
       pushNotification("announcement", tx("n.announce"), payload.message || tx("n.announce.def"));
     });
@@ -4892,6 +5016,13 @@ function App() {
       await call("/api/wallet/topup", { method: "POST", body: { amount, method } });
     } catch (e) { showError(e); throw e; } finally { setBusy(false); }
     // The top-up already succeeded on the server; a refresh hiccup shouldn't look like a failed payment.
+    try { await refreshWallet(); } catch (e) { showError(e); }
+  };
+
+  // Wallet transfer: look the person up first, then send. Errors bubble up so the card can show them.
+  const lookupRecipient = (id) => call(`/api/wallet/recipient?id=${encodeURIComponent(id)}`);
+  const sendMoney = async (toId, amount, note) => {
+    await call("/api/wallet/transfer", { method: "POST", body: { toId, amount, note } });
     try { await refreshWallet(); } catch (e) { showError(e); }
   };
 
@@ -5074,7 +5205,8 @@ function App() {
         )}
         {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} />}
         {session.user.role !== "admin" && tab === "wallet" && (
-          <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} />
+          <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy}
+            onLookup={lookupRecipient} onSend={sendMoney} />
         )}
         {tab === "chat" && (
           <ChatWorkspace role={session.user.role} userId={session.user.id} apiBase={apiBase}
