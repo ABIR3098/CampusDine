@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CampusDine — Smart Campus Canteen</title>
-<link rel="icon" type="image/png" href="/images/landing/logo.png" />
+<link rel="icon" type="image/png" href="/images/landing/logo-green.png" />
 <link rel="stylesheet" href="landing.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -1730,7 +1730,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
         <header className="cdl-nav">
           <a href="#" className="cdl-brand" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
-            <img src="images/landing/logo.png" alt={tx("land.logoAlt")} className="cdl-brand-logo" />
+            <span role="img" aria-label={tx("land.logoAlt")} className="cdl-brand-logo"></span>
             <span className="cdl-brand-text">
               <span className="cdl-brand-name">Campus<b>Dine</b></span>
               <span className="cdl-brand-tag"><i></i><span>{tx("land.tag")}</span><i></i></span>
@@ -1789,9 +1789,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
           <div className="cdl-hero-art">
             <div className="cdl-art-wrap">
-              <img className="cdl-light-img" src="images/landing/hero-food.jpg" alt={tx("land.alt")} />
-              <img className="cdl-dark-img" src="images/landing/hero-food-dark.jpg" alt="" aria-hidden="true" />
-              <div className="cdl-tint" aria-hidden="true"></div>
+              <div className="cdl-art" role="img" aria-label={tx("land.alt")}></div>
             </div>
             <svg className="cdl-wave" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true">
               <path d="M0 160C110 60 250 40 380 52c90 8 150-6 220-40V160Z" fill="var(--cdl-bg)" />
