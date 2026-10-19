@@ -1166,6 +1166,39 @@ Object.assign(I18N.bn, {
   "tx.mealpay": "মিল প্ল্যান {m} ({f} পূর্ণ, {h} অর্ধেক)",
   "tx.mealrefund": "মিল প্ল্যান ফেরত {d}"
 });
+// ---- Added: printable student reports ----
+Object.assign(I18N.en, {
+  "pr.print": "Print",
+  "pr.generated": "Generated {t}",
+  "pr.spending": "Spending summary",
+  "pr.feedback": "My feedback",
+  "pr.bill": "Meal plan bill",
+  "pr.date": "Date", "pr.item": "Item", "pr.items": "Items", "pr.qty": "Qty", "pr.amount": "Amount",
+  "pr.order": "Order", "pr.rating": "Rating", "pr.comment": "Comment", "pr.category": "Category",
+  "pr.day": "Day", "pr.meal": "Meal", "pr.rate": "Rate", "pr.status": "Status", "pr.method": "Method", "pr.orders": "Orders",
+  "pr.orderfb": "Order ratings", "pr.generalfb": "General feedback",
+  "pr.avgrating": "Average rating", "pr.totalrated": "Total ratings",
+  "pr.paid": "Paid", "pr.unpaid": "Unpaid",
+  "pr.nodays": "No meal days are marked this month.",
+  "pr.nofb": "Nothing yet.",
+  "pr.fullmeals": "Full meals", "pr.halfmeals": "Half meals"
+});
+Object.assign(I18N.bn, {
+  "pr.print": "প্রিন্ট",
+  "pr.generated": "তৈরি: {t}",
+  "pr.spending": "খরচের সারসংক্ষেপ",
+  "pr.feedback": "আমার ফিডব্যাক",
+  "pr.bill": "মিল প্ল্যান বিল",
+  "pr.date": "তারিখ", "pr.item": "আইটেম", "pr.items": "আইটেম", "pr.qty": "পরিমাণ", "pr.amount": "টাকা",
+  "pr.order": "অর্ডার", "pr.rating": "রেটিং", "pr.comment": "মন্তব্য", "pr.category": "ধরন",
+  "pr.day": "বার", "pr.meal": "মিল", "pr.rate": "রেট", "pr.status": "অবস্থা", "pr.method": "পদ্ধতি", "pr.orders": "অর্ডার",
+  "pr.orderfb": "অর্ডারের রেটিং", "pr.generalfb": "সাধারণ ফিডব্যাক",
+  "pr.avgrating": "গড় রেটিং", "pr.totalrated": "মোট রেটিং",
+  "pr.paid": "পরিশোধিত", "pr.unpaid": "অপরিশোধিত",
+  "pr.nodays": "এই মাসে কোনো মিল দিন চিহ্নিত নেই।",
+  "pr.nofb": "এখনো কিছু নেই।",
+  "pr.fullmeals": "পূর্ণ মিল", "pr.halfmeals": "অর্ধেক মিল"
+});
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
   if (str === undefined) str = I18N.en[key];
@@ -2400,11 +2433,12 @@ function OrderFeedback({ order, onSubmit, busy }) {
 }
 
 /* ---------------- Feedback tab (student / teacher) ---------------- */
-function FeedbackTab({ orders, onSubmitOrder, orderBusy, general, onSubmitGeneral, generalBusy }) {
+function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmitGeneral, generalBusy }) {
   const [category, setCategory] = useState("food");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [sent, setSent] = useState(false);
+  const [printKey, setPrintKey] = useState(0);
 
   useEffect(() => {
     if (!sent) return;
@@ -2413,6 +2447,9 @@ function FeedbackTab({ orders, onSubmitOrder, orderBusy, general, onSubmitGenera
   }, [sent]);
 
   const rateable = orders.filter(o => o.status === "Ready");
+  const ratedOrders = orders.filter(o => o.feedback);
+  const allRatings = [...ratedOrders.map(o => o.feedback.rating), ...general.map(g => g.rating)];
+  const avgRating = allRatings.length ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length : 0;
 
   const submit = async () => {
     const ok = await onSubmitGeneral(category, rating, comment);
@@ -2421,9 +2458,29 @@ function FeedbackTab({ orders, onSubmitOrder, orderBusy, general, onSubmitGenera
 
   return (
     <div className="max-w-2xl space-y-8">
-      <div>
-        <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>{tx("fb.title")}</div>
-        <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{tx("fb.sub")}</p>
+      {printKey > 0 && (
+        <PrintSheet key={printKey} title={tx("pr.feedback")}
+          meta={`${user.name}${user.externalId ? " (" + user.externalId + ")" : ""} · ${tx("pr.generated", { t: new Date().toLocaleString() })}`}>
+          <div className="ps-grid">
+            {[[tx("pr.totalrated"), num(allRatings.length)], [tx("pr.avgrating"), allRatings.length ? num(avgRating.toFixed(1)) + " / 5" : "—"]]
+              .map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <h2>{tx("pr.orderfb")}</h2>
+          <PsTable head={[tx("pr.order"), tx("pr.date"), tx("pr.items"), tx("pr.rating"), tx("pr.comment")]} empty={tx("pr.nofb")}
+            rows={ratedOrders.map(o => [o.token, new Date(o.created_at).toLocaleDateString(), (o.items || []).map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", "), psStars(o.feedback.rating), o.feedback.comment || "—"])} />
+          <h2>{tx("pr.generalfb")}</h2>
+          <PsTable head={[tx("pr.date"), tx("pr.category"), tx("pr.rating"), tx("pr.comment")]} empty={tx("pr.nofb")}
+            rows={general.map(g => [new Date(g.created_at).toLocaleDateString(), tx("fb.cat." + g.category), psStars(g.rating), g.comment || "—"])} />
+        </PrintSheet>
+      )}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>{tx("fb.title")}</div>
+          <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{tx("fb.sub")}</p>
+        </div>
+        <button onClick={() => setPrintKey(k => k + 1)} disabled={allRatings.length === 0} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600 disabled:opacity-40" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+  <Icon path={I.printer} className="w-3.5 h-3.5" /> {tx("pr.print")}
+</button>
       </div>
 
       <section>
@@ -2671,7 +2728,8 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
 }
 
 /* ---------------- Meal calendar tab ---------------- */
-function MealCalendar({ role, year, month, calendar, paidDays, bill, onToggle, onPay, onRepeat, planBusy, onPrevMonth, onNextMonth, onJumpToday, isCurrentMonth }) {
+function MealCalendar({ user, role, year, month, calendar, paidDays, bill, onToggle, onPay, onRepeat, planBusy, onPrevMonth, onNextMonth, onJumpToday, isCurrentMonth }) {
+  const [printKey, setPrintKey] = useState(0);
   const total = daysInMonth(year, month);
   const monthName = new Date(year, month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "long" });
   const firstWeekday = new Date(year, month - 1, 1).getDay();
@@ -2679,8 +2737,28 @@ function MealCalendar({ role, year, month, calendar, paidDays, bill, onToggle, o
   const todayDay = now.getDate();
   const isThisMonthShown = now.getFullYear() === year && (now.getMonth() + 1) === month;
 
+  const markedDays = Array.from({ length: total }, (_, i) => i + 1).filter(d => calendar[d] === "full" || calendar[d] === "half");
   return (
     <div className="grid lg:grid-cols-3 gap-6">
+      {printKey > 0 && (
+        <PrintSheet key={printKey} title={tx("pr.bill")}
+          meta={`${user.name}${user.externalId ? " (" + user.externalId + ")" : ""} · ${monthName} ${num(year)} · ${tx("pr.generated", { t: new Date().toLocaleString() })}`}>
+          <div className="ps-grid">
+            {[[tx("pr.fullmeals"), num(bill.fullDays)], [tx("pr.halfmeals"), num(bill.halfDays)], [tx("total"), taka(bill.total)], [tx("mp.due"), taka(bill.dueAmount)]]
+              .map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <div className="ps-meta" style={{ marginTop: 6 }}>{tx("mp.paidamt")}: {taka(bill.paidAmount)} ({num(bill.paidDays)})</div>
+          <h2>{monthName} {num(year)}</h2>
+          <PsTable head={[tx("pr.date"), tx("pr.day"), tx("pr.meal"), tx("pr.rate"), tx("pr.status")]} numCols={[3]} empty={tx("pr.nodays")}
+            rows={markedDays.map(d => [
+              `${num(d)} ${monthName}`,
+              new Date(year, month - 1, d).toLocaleDateString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { weekday: "long" }),
+              calendar[d] === "full" ? tx("cal.full") : tx("cal.half"),
+              taka(calendar[d] === "full" ? bill.fullRate : bill.halfRate),
+              paidDays && paidDays[d] ? tx("pr.paid") : tx("pr.unpaid"),
+            ])} />
+        </PrintSheet>
+      )}
       <div className="lg:col-span-2 card p-5">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex items-center gap-2">
@@ -2731,7 +2809,12 @@ function MealCalendar({ role, year, month, calendar, paidDays, bill, onToggle, o
       </div>
 
       <div className="card p-5 h-fit">
-        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("cal.bill")}</div>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="font-display font-700" style={{ color: "var(--gold)" }}>{tx("cal.bill")}</div>
+          <button onClick={() => setPrintKey(k => k + 1)} disabled={markedDays.length === 0} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600 disabled:opacity-40" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+  <Icon path={I.printer} className="w-3.5 h-3.5" /> {tx("pr.print")}
+</button>
+        </div>
         <div className="space-y-2 text-sm mb-4">
           <div className="flex justify-between"><span>{tx("cal.fulldays", { r: taka(bill.fullRate) })}</span><span className="font-mono">{num(bill.fullDays)}</span></div>
           <div className="flex justify-between"><span>{tx("cal.halfdays", { r: taka(bill.halfRate) })}</span><span className="font-mono">{num(bill.halfDays)}</span></div>
@@ -2765,8 +2848,9 @@ function MealCalendar({ role, year, month, calendar, paidDays, bill, onToggle, o
 }
 
 /* ---------------- Spending summary (student / teacher) ---------------- */
-function SpendingTab({ call }) {
+function SpendingTab({ call, user }) {
   const now = new Date();
+  const [printKey, setPrintKey] = useState(0);
   const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 });
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -2818,6 +2902,31 @@ function SpendingTab({ call }) {
     }
     body = (
       <>
+        {printKey > 0 && (
+          <PrintSheet key={printKey} title={tx("pr.spending")}
+            meta={`${user.name}${user.externalId ? " (" + user.externalId + ")" : ""} · ${monthName} ${num(ym.year)} · ${tx("pr.generated", { t: new Date().toLocaleString() })}`}>
+            <div className="ps-grid">
+              {[[tx("sp.spent"), taka(t.spent)], [tx("sp.orders"), num(t.orders)], [tx("sp.avg"), taka(Math.round(t.avgOrder))], [tx("sp.saved"), taka(t.discounts)]]
+                .map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+            </div>
+            <div className="ps-meta" style={{ marginTop: 6 }}>{compare}</div>
+            <h2>{tx("sp.daily")}</h2>
+            <PsTable head={[tx("pr.date"), tx("pr.orders"), tx("pr.amount"), ""]} numCols={[1, 2]}
+              rows={data.byDay.map(d => [`${num(d.day)} ${monthName}`, num(d.orders), taka(d.spent), <div className="ps-bar" style={{ width: `${(d.spent / dayMax) * 100}%` }}></div>])} />
+            <h2>{tx("sp.top")}</h2>
+            <PsTable head={[tx("pr.item"), tx("pr.qty"), tx("pr.amount")]} numCols={[1, 2]}
+              rows={data.topItems.map(i => [dispName(i.name), num(i.qty), taka(i.spent)])} />
+            <h2>{tx("sp.cat")}</h2>
+            <PsTable head={[tx("pr.category"), tx("pr.amount"), "%"]} numCols={[1, 2]}
+              rows={data.byCategory.map(c => [tx("sp.cat." + c.category), taka(c.spent), num(Math.round(c.spent / catTotal * 100)) + "%"])} />
+            <h2>{tx("sp.pay")}</h2>
+            <PsTable head={[tx("pr.method"), tx("pr.orders"), tx("pr.amount")]} numCols={[1, 2]}
+              rows={data.byPayment.map(p => [p.method === "wallet" ? tx("pay.wallet") : tx("pay.cash"), num(p.orders), taka(p.spent)])} />
+            <h2>{tx("sp.wallet")}</h2>
+            <PsTable head={["", tx("pr.amount")]} numCols={[1]}
+              rows={[[tx("sp.topups"), taka(data.wallet.topups)], [tx("wallet.bal"), taka(data.wallet.balance)]]} />
+          </PrintSheet>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Tile label={tx("sp.spent")} value={taka(t.spent)} sub={compare} />
           <Tile label={tx("sp.orders")} value={num(t.orders)} sub={tx("sp.activedays", { d: num(t.activeDays) })} />
@@ -2905,6 +3014,11 @@ function SpendingTab({ call }) {
         </button>
         {!isCurrent && (
           <button onClick={() => setYm({ year: now.getFullYear(), month: now.getMonth() + 1 })} className="text-[11px] font-600 rounded-lg px-2 py-1 ml-1 border" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>{tx("today")}</button>
+        )}
+        {data && data.totals.orders > 0 && (
+          <div className="ml-auto"><button onClick={() => setPrintKey(k => k + 1)}  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600 disabled:opacity-40" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+  <Icon path={I.printer} className="w-3.5 h-3.5" /> {tx("pr.print")}
+</button></div>
         )}
       </div>
       {body}
@@ -4950,15 +5064,15 @@ function App() {
           <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} />
         )}
         {session.user.role !== "admin" && tab === "feedback" && (
-          <FeedbackTab orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
+          <FeedbackTab user={session.user} orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
             general={myGeneralFeedback} onSubmitGeneral={submitGeneralFeedback} generalBusy={generalBusy} />
         )}
         {session.user.role !== "admin" && tab === "calendar" && (
-          <MealCalendar role={session.user.role} year={year} month={month} calendar={calendar} paidDays={calendarPaid} bill={bill} onToggle={toggleDay}
+          <MealCalendar user={session.user} role={session.user.role} year={year} month={month} calendar={calendar} paidDays={calendarPaid} bill={bill} onToggle={toggleDay}
                         onPay={payMealPlan} onRepeat={repeatLastMonth} planBusy={planBusy}
                         onPrevMonth={goPrevMonth} onNextMonth={goNextMonth} onJumpToday={goToday} isCurrentMonth={isCurrentMonth} />
         )}
-        {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} />}
+        {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} />}
         {session.user.role !== "admin" && tab === "wallet" && (
           <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} />
         )}
