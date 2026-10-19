@@ -28,6 +28,7 @@ const chatRoutes = require("./src/routes/chat");
 const feedbackRoutes = require("./src/routes/feedback");
 const summaryRoutes = require("./src/routes/summary");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
+const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -436,6 +437,8 @@ async function runStartupCheck() {
   await ensureProfilePictureAndMenuImages(db);
   await ensureAccountAndQrSchema(db);
   await ensureMealPlanSchema(db);
+  await ensureOtpSchema(db);
+  await purgeOldOtps(db);
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
