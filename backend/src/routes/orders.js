@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { buildPayload, parseCode } = require("../utils/tokenQr");
 const { restaurantOf, isRestaurantId } = require("../catalog");
 const { loadItemRestaurants } = require("../restaurants");
 
@@ -26,6 +27,7 @@ async function attachItems(orders) {
       ...o,
       restaurant: restaurantOf(own[0] && own[0].name, own[0] && own[0].menu_item_id, extra),
       items: own.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
+      qr: buildPayload(o.token), // signed text shown as a QR code on the ticket
     };
   });
 }
@@ -223,13 +225,15 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       await conn.query("UPDATE menu_items SET stock = stock - ? WHERE id = ?", [item.qty, item.id]);
     }
 
-    const [[{ maxId }]] = await conn.query("SELECT COALESCE(MAX(id), 0) AS maxId FROM orders");
-    const token = `C-${String(100 + maxId + 1).padStart(3, "0")}`;
-
+    // Token: the row is inserted with a temporary unique token and then renamed to C-<100 + order id>.
+    // (The old "MAX(id) + 1" way could hand two simultaneous orders the same token and one would fail.)
+    const tempToken = `T-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.toUpperCase().slice(0, 20);
     const [orderResult] = await conn.query(
       "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, payment_method, pickup_time, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
-      [token, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, paymentMethod, pickupTime, orderNote]
+      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, paymentMethod, pickupTime, orderNote]
     );
+    const token = `C-${String(100 + orderResult.insertId).padStart(3, "0")}`;
+    await conn.query("UPDATE orders SET token = ? WHERE id = ?", [token, orderResult.insertId]);
     for (const item of snapshot) {
       await conn.query(
         "INSERT INTO order_items (order_id, menu_item_id, name, price, qty) VALUES (?, ?, ?, ?, ?)",
@@ -250,7 +254,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 
     await conn.commit();
 
-    const order = { id: orderResult.insertId, token, total, discount_amount: discountAmount, status: "Received", pickup_time: pickupTime, note: orderNote, items: snapshot };
+    const order = { id: orderResult.insertId, token, qr: buildPayload(token), total, discount_amount: discountAmount, status: "Received", pickup_time: pickupTime, note: orderNote, items: snapshot };
     req.app.get("io").to("admins").emit("order:new", order);
     req.app.get("io").emit("queue:changed");
     res.status(201).json(order);
@@ -330,6 +334,50 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
   } finally {
     conn.release();
   }
+}));
+
+// POST /api/orders/verify  (admin) — check a scanned QR (or a hand-typed token) at the counter.
+// body: { code, collect?: true }
+//   without collect: just look the order up and say whether it can be handed over
+//   with collect:    also mark it as collected, so the same QR can't be used twice
+router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const { code, collect } = req.body || {};
+  const parsed = parseCode(code);
+  if (!parsed.token) return res.status(400).json({ error: "Scan a QR code or type a token" });
+  if (parsed.signed && !parsed.valid) {
+    return res.status(400).json({ error: "This QR code is not a genuine CampusDine token", code: "BAD_SIGNATURE" });
+  }
+
+  const [[order]] = await pool.query(
+    `SELECT o.id, o.user_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.created_at, o.picked_up_at,
+            u.name AS customer_name, u.external_id AS customer_id, u.role AS customer_role,
+            u.account_type, u.hall_name, u.room_number, u.hall_id
+     FROM orders o JOIN users u ON u.id = o.user_id
+     WHERE o.token = ?`,
+    [parsed.token]
+  );
+  if (!order) return res.status(404).json({ error: `No order found for token ${parsed.token}`, code: "NOT_FOUND" });
+
+  const [items] = await pool.query("SELECT name, price, qty FROM order_items WHERE order_id = ?", [order.id]);
+
+  let problem = null;
+  if (order.status === "Cancelled") problem = { code: "CANCELLED", message: "This order was cancelled" };
+  else if (order.picked_up_at) problem = { code: "ALREADY_COLLECTED", message: "This order was already collected" };
+  else if (order.status !== "Ready") problem = { code: "NOT_READY", message: `Not ready yet — status is ${order.status}` };
+
+  if (collect) {
+    if (problem) return res.status(409).json({ error: problem.message, code: problem.code, order: { ...order, items } });
+    const [upd] = await pool.query("UPDATE orders SET picked_up_at = NOW() WHERE id = ? AND picked_up_at IS NULL", [order.id]);
+    if (upd.affectedRows === 0) {
+      return res.status(409).json({ error: "This order was already collected", code: "ALREADY_COLLECTED", order: { ...order, items } });
+    }
+    const [[fresh]] = await pool.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
+    const done = { ...order, picked_up_at: fresh.picked_up_at, items };
+    req.app.get("io").to(`user:${order.user_id}`).emit("order:update", { id: order.id, token: order.token, status: order.status, picked_up_at: fresh.picked_up_at });
+    return res.json({ ok: true, collected: true, order: done });
+  }
+
+  res.json({ ok: !problem, problem, order: { ...order, items } });
 }));
 
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
