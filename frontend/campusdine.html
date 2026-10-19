@@ -323,6 +323,9 @@
     border-radius: 10px;
   }
 
+  .role-option{ background:var(--panel); transition:border-color .15s ease, background-color .15s ease; }
+  .role-option:hover{ border-color:var(--gold) !important; background:var(--panel-soft); }
+
   .divider-flourish{ display:flex; align-items:center; justify-content:center; gap:14px; color: var(--gold); }
   .divider-flourish::before, .divider-flourish::after{
     content:""; flex:1; max-width:80px; border-bottom:1px solid var(--line);
@@ -1642,7 +1645,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
               <div className="space-y-3">
                 {roleOptions.map((r) => (
                   <button key={r.key} onClick={() => { setRole(r.key); if (r.key === "admin") setMode("login"); }}
-                    className="w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:-translate-y-0.5"
+                    className="role-option w-full flex items-center gap-4 p-4 rounded-lg border text-left"
                     style={{ borderColor: "var(--line)" }}>
                     <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0" style={{ background: "var(--gold-soft)" }}>
                       <Icon path={r.icon} className="w-5 h-5" style={{ color: "var(--teal-deep)" }} />
