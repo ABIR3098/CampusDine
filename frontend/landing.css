@@ -23,12 +23,14 @@ html[data-theme="dark"] .cdl{
 :where(.cdl) *{box-sizing:border-box;margin:0;padding:0}
 :where(.cdl) a{color:inherit;text-decoration:none}
 :where(.cdl) ul{list-style:none}
-html[lang="bn"] .cdl .cdl-brand-name,html[lang="bn"] .cdl .cdl-btn,html[lang="bn"] .cdl h1,html[lang="bn"] .cdl .cdl-hero{font-family:'Hind Siliguri','Outfit',sans-serif}
+.cdl[data-lang="bn"] .cdl-brand-name,.cdl[data-lang="bn"] .cdl-btn,.cdl[data-lang="bn"] h1,.cdl[data-lang="bn"] .cdl-hero{font-family:'Hind Siliguri','Outfit',sans-serif}
 .cdl .cdl-nav,.cdl .cdl-hero{transition:background .3s,color .3s}
 .cdl .cdl-nav,.cdl .cdl-hero,.cdl .cdl-announce{font-family:var(--cdl-ff-body);color:var(--cdl-ink)}
 .cdl .cdl-announce{color:#fff}
 .cdl .cdl-nav button.cdl-icon-btn,.cdl .cdl-nav button.cdl-lang-btn,.cdl .cdl-nav button.cdl-burger{background:none;border:0;cursor:pointer;font:inherit;color:inherit}
 .cdl .cdl-lang-btn{border:1px solid var(--cdl-line);background:var(--cdl-card)}
+.cdl button.cdl-btn{border:0}
+.cdl button.cdl-btn.cdl-outline{border:1.5px solid var(--cdl-accent)}
 .cdl .cdl-theme-slot{display:grid;place-items:center}
 .cdl .cdl-theme-slot button{color:var(--cdl-accent)}
 .cdl .cdl-ic{width:calc(1.25 * var(--cdl-r));height:calc(1.25 * var(--cdl-r));flex:none;display:inline-block}
@@ -139,3 +141,43 @@ html[data-theme="dark"] .cdl .cdl-art-wrap{-webkit-mask-image:linear-gradient(to
   html[data-theme="dark"] .cdl .cdl-art-wrap{-webkit-mask-image:none;mask-image:none}
 }
 html[data-theme="dark"] .cdl{--cdl-accent-fg:color-mix(in srgb,var(--cdl-accent) 62%,#fff)}
+
+/* small-screen fixes: keep the header on one line and the headline readable */
+@media (max-width:1024px){
+  .cdl .cdl-nav{padding:0 clamp(12px,4vw,48px);gap:8px}
+  .cdl .cdl-brand-logo{width:calc(4.5 * var(--cdl-r));height:calc(4.5 * var(--cdl-r))}
+  .cdl .cdl-brand-name{font-size:calc(1.9 * var(--cdl-r))}
+  .cdl h1{font-size:clamp(34px,8.2vw,70px);letter-spacing:-0.02em}
+  .cdl .cdl-hero-copy{padding-bottom:8px}
+}
+@media (max-width:640px){
+  .cdl .cdl-nav{height:calc(4.75 * var(--cdl-r))}
+  .cdl .cdl-brand{gap:8px;min-width:0}
+  .cdl .cdl-brand-tag{display:none}
+  .cdl .cdl-brand-logo{width:calc(3.25 * var(--cdl-r));height:calc(3.25 * var(--cdl-r))}
+  .cdl .cdl-brand-name{font-size:calc(1.35 * var(--cdl-r))}
+  .cdl .cdl-lang-btn .cdl-ic:first-child{display:none}
+  .cdl .cdl-lang-btn{padding:0 10px}
+  .cdl .cdl-icon-btn{width:calc(2.25 * var(--cdl-r));height:calc(2.25 * var(--cdl-r))}
+  .cdl .cdl-actions{gap:2px}
+  .cdl .cdl-pill{font-size:calc(0.8 * var(--cdl-r))}
+}
+.cdl .cdl-theme-slot svg{width:20px;height:20px;flex:none}
+@media (max-width:640px){
+  .cdl .cdl-features{white-space:normal}
+  .cdl .cdl-features li{padding-right:8px}
+  .cdl .cdl-f-ic{width:calc(2.5 * var(--cdl-r));height:calc(2.5 * var(--cdl-r))}
+}
+@media (max-width:640px){
+  .cdl .cdl-brand{flex:1 1 auto;min-width:0}
+  .cdl .cdl-brand-text{min-width:0}
+  .cdl .cdl-brand-name{font-size:calc(1.2 * var(--cdl-r));white-space:nowrap}
+  .cdl .cdl-actions{flex:none}
+  .cdl .cdl-nav > .cdl-actions > .cdl-icon-btn{display:none}
+}
+@media (max-width:420px){
+  .cdl .cdl-brand-logo{width:calc(2.75 * var(--cdl-r));height:calc(2.75 * var(--cdl-r))}
+  .cdl .cdl-brand-name{font-size:calc(1.05 * var(--cdl-r))}
+  .cdl .cdl-signin{width:calc(2.4 * var(--cdl-r));height:calc(2.4 * var(--cdl-r))}
+  .cdl .cdl-nav{padding:0 10px}
+}

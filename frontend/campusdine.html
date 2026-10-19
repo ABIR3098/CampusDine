@@ -22,7 +22,7 @@
       var t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
       var dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
       document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-      document.documentElement.setAttribute("data-accent", t.accent || "green");
+      document.documentElement.setAttribute("data-accent", t.accent || "orange");
     } catch (e) {}
   })();
 </script>
@@ -1360,9 +1360,9 @@ function readTheme() {
     const t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
     return {
       mode: ["light", "dark", "auto"].includes(t.mode) ? t.mode : "light",
-      accent: THEME_ACCENTS.some(a => a.key === t.accent) ? t.accent : "green",
+      accent: THEME_ACCENTS.some(a => a.key === t.accent) ? t.accent : "orange",
     };
-  } catch (e) { return { mode: "light", accent: "green" }; }
+  } catch (e) { return { mode: "light", accent: "orange" }; }
 }
 function applyTheme(t) {
   const dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -1491,6 +1491,26 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [resetMsg, setResetMsg] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const authRef = useRef(null);
+  // new landing header: mobile menu, language dropdown, dark-mode button
+  const [navOpen, setNavOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [themeKey, setThemeKey] = useState(0);
+  const [isDark, setIsDark] = useState(() => document.documentElement.getAttribute("data-theme") === "dark");
+  useEffect(() => {
+    const sync = () => setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
+    const mo = new MutationObserver(sync);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    const closeLang = () => setLangOpen(false);
+    document.addEventListener("click", closeLang);
+    return () => { mo.disconnect(); document.removeEventListener("click", closeLang); };
+  }, []);
+  const toggleDark = () => {
+    const t = readTheme();
+    const next = { ...t, mode: document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark" };
+    applyTheme(next);
+    try { localStorage.setItem("cd_theme", JSON.stringify(next)); } catch (e) {}
+    setThemeKey(k => k + 1); // re-read the saved theme in the colour picker
+  };
 
   // Email OTP (sign-up verification + password reset). The server says whether it is switched on.
   const [otpRequired, setOtpRequired] = useState(false);
@@ -1522,13 +1542,6 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
     { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
     { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
-  ];
-
-  const features = [
-    { title: tx("f1.t"), desc: tx("f1.d") },
-    { title: tx("f2.t"), desc: tx("f2.d") },
-    { title: tx("f3.t"), desc: tx("f3.d") },
-    { title: tx("f4.t"), desc: tx("f4.d") },
   ];
 
   const sampleMenu = [
@@ -1687,68 +1700,105 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
   return (
     <div className="min-h-screen">
-      {/* Announcement bar */}
-      <div className="text-center py-2 px-4 text-xs font-500"
-        style={{ background: "var(--gold-soft)", color: "var(--teal-deep)", borderBottom: "1px solid var(--line)" }}>
-        {tx("ann")}
-      </div>
+      {/* New CampusDine front: announcement bar, header and hero (styles live in landing.css, all scoped under .cdl) */}
+      <div className="cdl" data-lang={CURRENT_LANG}>
+        <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+          <defs>
+          <symbol id="cdl-i-mega" viewBox="0 0 24 24"><path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1Zm13-2.5a5 5 0 0 1 0 9M19 4a9 9 0 0 1 0 16" fill="currentColor" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></symbol>
+          <symbol id="cdl-i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.600-2.400H17a4 4 0 0 0 4-4c0-5-4-9.500-9-9.500Z" fill="none" stroke="currentColor" strokeWidth="1.800" strokeLinejoin="round"/><circle cx="7.500" cy="11" r="1.300" fill="currentColor"/><circle cx="10.500" cy="7" r="1.300" fill="currentColor"/><circle cx="15" cy="7.500" r="1.300" fill="currentColor"/></symbol>
+          <symbol id="cdl-i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+          <symbol id="cdl-i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></g></symbol>
+          <symbol id="cdl-i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" fill="currentColor"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7Z" fill="currentColor"/></symbol>
+          <symbol id="cdl-i-fork" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 2 2v9M5 3v5M9 3v5M5 8a2 2 0 0 0 2 2M9 8a2 2 0 0 1-2 2M16 21V3c-2.2 1.2-3.5 4-3.5 7.5 0 2 1 3.2 3.5 3.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-list" viewBox="0 0 24 24"><path d="M3 6h2.5M3 12h2.5M3 18h2.5M9 6h12M9 12h12M9 18h12" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></symbol>
+          <symbol id="cdl-i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-bolt" viewBox="0 0 24 24"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.2Z" fill="currentColor"/></symbol>
+          <symbol id="cdl-i-shield" viewBox="0 0 24 24"><path d="M12 2.5 4.5 5.5v5.5c0 5 3.2 8.7 7.5 10 4.3-1.3 7.5-5 7.5-10V5.5Z" fill="currentColor"/><path d="M12 8v6M9 11h6" stroke="var(--cdl-icon-bg)" strokeWidth="2.2" strokeLinecap="round"/></symbol>
+          <symbol id="cdl-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.2"/><circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 9.5V12l2 1.5" stroke="var(--cdl-icon-bg)" strokeWidth="1.6" strokeLinecap="round" fill="none"/></symbol>
+          <symbol id="cdl-i-bank" viewBox="0 0 24 24"><path d="M12 2 3 7v2h18V7Zm-7 9v7H3v2h18v-2h-2v-7h-2v7h-3v-7h-2v7h-2v-7H9v7H7v-7Z" fill="currentColor"/></symbol>
+          </defs>
+        </svg>
 
-      {/* Sticky nav */}
-      <header className="sticky top-0 z-30 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
-        <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="logo-badge w-10 h-10 rounded-full grid place-items-center">
-              <Icon path={I.ticket} className="w-5 h-5" style={{ color: "var(--gold)" }} />
-            </div>
-            <div>
-              <span className="font-display gold-text text-lg font-800 block leading-none">CampusDine</span>
-              <span className="text-[10px] block mt-0.5" style={{ color: "var(--ink-soft)" }}>{tx("canteen")}</span>
-            </div>
-          </div>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-500" style={{ color: "var(--ink-soft)" }}>
-            <a href="#menu" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.menu")}</a>
-            <a href="#about" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.about")}</a>
-            <a href="#contact" style={{ color: "inherit" }} onMouseOver={e => e.currentTarget.style.color = "var(--gold)"} onMouseOut={e => e.currentTarget.style.color = "var(--ink-soft)"}>{tx("nav.contact")}</a>
+        <div className="cdl-announce">
+          <svg className="cdl-ic"><use href="#cdl-i-mega" /></svg>
+          <span>{tx("ann")}</span>
+          <svg className="cdl-ic cdl-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11Z" fill="currentColor" /></svg>
+        </div>
+
+        <header className="cdl-nav">
+          <a href="#" className="cdl-brand" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+            <img src="images/landing/logo.png" alt={tx("land.logoAlt")} className="cdl-brand-logo" />
+            <span className="cdl-brand-text">
+              <span className="cdl-brand-name">Campus<b>Dine</b></span>
+              <span className="cdl-brand-tag"><i></i><span>{tx("land.tag")}</span><i></i></span>
+            </span>
+          </a>
+
+          <nav className={"cdl-links" + (navOpen ? " cdl-open" : "")} onClick={() => setNavOpen(false)}>
+            <a href="#" className="cdl-active" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{tx("nav.home")}</a>
+            <a href="#menu">{tx("nav.menu")}</a>
+            <a href="#about">{tx("nav.about")}</a>
+            <a href="#contact">{tx("nav.contact")}</a>
           </nav>
-          <div className="flex items-center gap-2">
-            <ThemeMenu />
-            <LangToggle onToggle={onToggleLang} />
-            <button onClick={scrollToAuth} className="btn-primary px-5 py-2 rounded-lg text-xs">{tx("signin")}</button>
-          </div>
-        </div>
-      </header>
 
-      {/* Hero */}
-      <section className="relative py-24 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(22,163,74,0.10), transparent)" }}></div>
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div className="inline-block px-4 py-1.5 rounded-full text-xs font-600" style={{ border: "1px solid var(--line)", color: "var(--gold)" }}>
-            {tx("hero.badge")}
-          </div>
-          <h1 className="font-display text-4xl sm:text-5xl font-800 leading-tight" style={{ color: "var(--ink)" }}>
-            {tx("hero.h1a")}<br /><span className="gold-text">{tx("hero.h1b")}</span>
-          </h1>
-          <p className="max-w-xl mx-auto text-[15px] leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-            {tx("hero.p")}
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 pt-2">
-            <button onClick={scrollToAuth} className="btn-primary px-8 py-3 rounded-lg">{tx("hero.start")}</button>
-            <a href="#menu" className="btn-gold px-8 py-3 rounded-lg inline-block">{tx("hero.explore")}</a>
-          </div>
-        </div>
-      </section>
-
-      {/* Features banner */}
-      <section className="border-y py-10" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {features.map(f => (
-            <div key={f.title} className="space-y-1.5">
-              <h4 className="font-display font-700 text-sm" style={{ color: "var(--gold)" }}>{f.title}</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>{f.desc}</p>
+          <div className="cdl-actions">
+            <div className="cdl-theme-slot"><ThemeMenu key={themeKey} /></div>
+            <button type="button" className="cdl-icon-btn" onClick={toggleDark} aria-label={tx("land.dark")} title={tx("land.dark")}>
+              <svg className="cdl-ic"><use href={isDark ? "#cdl-i-sun" : "#cdl-i-moon"} /></svg>
+            </button>
+            <div className="cdl-lang">
+              <button type="button" className="cdl-lang-btn" aria-haspopup="true" aria-expanded={langOpen} aria-label={tx("land.langBtn")}
+                onClick={e => { e.stopPropagation(); setLangOpen(o => !o); }}>
+                <svg className="cdl-ic"><use href="#cdl-i-globe" /></svg><span>{CURRENT_LANG.toUpperCase()}</span><svg className="cdl-ic cdl-sm"><use href="#cdl-i-chev" /></svg>
+              </button>
+              <ul className={"cdl-lang-menu" + (langOpen ? " cdl-open" : "")}>
+                <li><button type="button" onClick={() => { setLangOpen(false); if (CURRENT_LANG !== "en") onToggleLang(); }}>English</button></li>
+                <li><button type="button" onClick={() => { setLangOpen(false); if (CURRENT_LANG !== "bn") onToggleLang(); }}>বাংলা</button></li>
+              </ul>
             </div>
-          ))}
-        </div>
-      </section>
+            <button type="button" onClick={scrollToAuth} className="cdl-btn cdl-signin"><svg className="cdl-ic"><use href="#cdl-i-user" /></svg><span>{tx("signin")}</span></button>
+            <button type="button" className="cdl-burger" aria-label={tx("land.menuBtn")} aria-expanded={navOpen} onClick={() => setNavOpen(o => !o)}><span></span><span></span><span></span></button>
+          </div>
+        </header>
+
+        <main className="cdl-hero">
+          <div className="cdl-hero-copy">
+            <div className="cdl-pill">
+              <span className="cdl-pill-ic"><svg className="cdl-ic"><use href="#cdl-i-fork" /></svg></span>
+              <span>{tx("land.pill")}</span>
+            </div>
+            <h1>
+              <span>{tx("hero.h1a")}</span>
+              <span className="cdl-accent">{tx("hero.h1b")}</span>
+            </h1>
+            <p className="cdl-lead">{tx("land.lead")}</p>
+            <div className="cdl-cta">
+              <button type="button" onClick={scrollToAuth} className="cdl-btn cdl-primary"><svg className="cdl-ic"><use href="#cdl-i-fork" /></svg><span>{tx("hero.start")}</span><svg className="cdl-ic"><use href="#cdl-i-arrow" /></svg></button>
+              <a href="#menu" className="cdl-btn cdl-outline"><svg className="cdl-ic"><use href="#cdl-i-list" /></svg><span>{tx("hero.explore")}</span></a>
+            </div>
+            <ul className="cdl-features">
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-bolt" /></svg></span><div><strong>{tx("land.f1t")}</strong><small>{tx("land.f1s")}</small></div></li>
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-shield" /></svg></span><div><strong>{tx("land.f2t")}</strong><small>{tx("land.f2s")}</small></div></li>
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-clock" /></svg></span><div><strong>{tx("land.f3t")}</strong><small>{tx("land.f3s")}</small></div></li>
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-bank" /></svg></span><div><strong>{tx("land.f4t")}</strong><small>{tx("land.f4s")}</small></div></li>
+            </ul>
+          </div>
+
+          <div className="cdl-hero-art">
+            <div className="cdl-art-wrap">
+              <img className="cdl-light-img" src="images/landing/hero-food.jpg" alt={tx("land.alt")} />
+              <img className="cdl-dark-img" src="images/landing/hero-food-dark.jpg" alt="" aria-hidden="true" />
+              <div className="cdl-tint" aria-hidden="true"></div>
+            </div>
+            <svg className="cdl-wave" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 160C110 60 250 40 380 52c90 8 150-6 220-40V160Z" fill="var(--cdl-bg)" />
+              <path d="M0 160C110 60 250 40 380 52c90 8 150-6 220-40" fill="none" stroke="var(--cdl-accent)" strokeWidth="3" />
+            </svg>
+          </div>
+        </main>
+      </div>
 
       {/* Menu preview */}
       <section id="menu" className="max-w-6xl mx-auto px-6 py-20">
