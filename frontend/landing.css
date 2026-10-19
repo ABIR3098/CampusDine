@@ -7,7 +7,7 @@
   --cdl-accent-fg:var(--cdl-accent);
   --cdl-bg:#fbf5ea; --cdl-nav-bg:#fdf9f2; --cdl-ink:#3b1a0c; --cdl-muted:#5d6675;
   --cdl-accent-soft:color-mix(in srgb,var(--cdl-accent) 16%,#fff); --cdl-pill-bg:#f3ebdd;
-  --cdl-top:color-mix(in srgb,var(--cdl-accent) 26%,#000); --cdl-line:#ece3d4;
+  --cdl-top:color-mix(in srgb,var(--cdl-accent) 90%,#000); --cdl-line:#ece3d4;
   --cdl-icon-bg:color-mix(in srgb,var(--cdl-accent) 16%,#fff); --cdl-card:#fffaf2;
   --cdl-ff-head:'Outfit','Poppins','Segoe UI',sans-serif;
   --cdl-ff-body:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;
@@ -181,3 +181,15 @@ html[data-theme="dark"] .cdl{--cdl-accent-fg:color-mix(in srgb,var(--cdl-accent)
   .cdl .cdl-signin{width:calc(2.4 * var(--cdl-r));height:calc(2.4 * var(--cdl-r))}
   .cdl .cdl-nav{padding:0 10px}
 }
+
+/* ---- Accent palettes: page, header and text tints follow the chosen accent (Sage Green is the default; Warm Orange keeps the base values above) ---- */
+html:not([data-accent]) .cdl,
+html[data-accent="green"] .cdl{--cdl-bg:#eef6f0;--cdl-nav-bg:#f4faf6;--cdl-ink:#2f4a38;--cdl-pill-bg:#e2ede5;--cdl-line:#d9e5dc;--cdl-card:#f5fbf6}
+html[data-accent="blue"] .cdl{--cdl-bg:#eff4fd;--cdl-nav-bg:#f5f8fe;--cdl-ink:#2a4a70;--cdl-pill-bg:#e4eaf6;--cdl-line:#dbe2ef;--cdl-card:#f6f9ff}
+html[data-accent="purple"] .cdl{--cdl-bg:#f6f2fb;--cdl-nav-bg:#faf7fd;--cdl-ink:#3a2d55;--cdl-pill-bg:#ece7f2;--cdl-line:#e4deeb;--cdl-card:#fbf8fe}
+html[data-accent="rose"] .cdl{--cdl-bg:#fff2f4;--cdl-nav-bg:#fff7f9;--cdl-ink:#4a2230;--cdl-pill-bg:#f8e7ea;--cdl-line:#f1dfe2;--cdl-card:#fff8fa}
+html[data-theme="dark"]:not([data-accent]) .cdl,
+html[data-theme="dark"][data-accent="green"] .cdl{--cdl-bg:#111612;--cdl-nav-bg:#161c18;--cdl-ink:#e6f1e9;--cdl-muted:#adb7b0;--cdl-pill-bg:#202922;--cdl-line:#263029;--cdl-card:#1a221c;--cdl-top:#090e0a}
+html[data-theme="dark"][data-accent="blue"] .cdl{--cdl-bg:#12151a;--cdl-nav-bg:#161b22;--cdl-ink:#e8eefa;--cdl-muted:#aeb5c0;--cdl-pill-bg:#212731;--cdl-line:#272e39;--cdl-card:#1b2028;--cdl-top:#0a0d11}
+html[data-theme="dark"][data-accent="purple"] .cdl{--cdl-bg:#161319;--cdl-nav-bg:#1c1920;--cdl-ink:#f0ebf7;--cdl-muted:#b7b1bd;--cdl-pill-bg:#29242e;--cdl-line:#302b36;--cdl-card:#211d26;--cdl-top:#0d0b10}
+html[data-theme="dark"][data-accent="rose"] .cdl{--cdl-bg:#1b1315;--cdl-nav-bg:#23191b;--cdl-ink:#fcebee;--cdl-muted:#c3b1b5;--cdl-pill-bg:#332427;--cdl-line:#3a2b2e;--cdl-card:#2a1d20;--cdl-top:#120b0d}
