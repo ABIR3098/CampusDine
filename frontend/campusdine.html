@@ -1522,9 +1522,26 @@ const MENU_BOOK = [
 function FullMenuCard({ onLogin }) {
   const [open, setOpen] = useState(false); // the card shows its two buttons
   const [page, setPage] = useState(null); // null | "special" | "book"
+  // Menu Book is its own page with its own address (#menu-book), so the browser back button works too
+  const closePage = () => {
+    if (window.location.hash === "#menu-book") {
+      try { window.history.replaceState(null, "", window.location.pathname + window.location.search); } catch (e) { window.location.hash = ""; }
+    }
+    setPage(null);
+  };
+  const openBook = () => { window.location.hash = "menu-book"; setPage("book"); };
+  useEffect(() => {
+    const sync = () => {
+      if (window.location.hash === "#menu-book") setPage("book");
+      else setPage(p => (p === "book" ? null : p));
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
   useEffect(() => {
     if (!page) return;
-    const onKey = (e) => { if (e.key === "Escape") setPage(null); };
+    const onKey = (e) => { if (e.key === "Escape") closePage(); };
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
@@ -1547,27 +1564,11 @@ function FullMenuCard({ onLogin }) {
   } else if (page === "book") {
     overlay = ReactDOM.createPortal(
       <div className="cdl-fm-page cdl-fm-book" role="dialog" aria-modal="true" aria-label={tx("more.mb")}>
-        {closeX}
+        <div className="cdl-fm-bar">
+          <button type="button" className="cdl-fm-backbtn" onClick={closePage}>&larr; {tx("more.back")}</button>
+        </div>
         <div className="cdl-fm-book-in">
-          <h2 className="font-display">{tx("more.mb")}</h2>
-          <p className="sub">{tx("mb.sub")}</p>
-          {["heavy", "snacks", "drinks"].map(cat => (
-            <div key={cat}>
-              <h3 className="font-display">{tx("cat." + cat)}</h3>
-              <div className="cdl-fm-grid">
-                {MENU_BOOK.filter(it => it[2] === cat).map(it => (
-                  <div key={it[0]} className="cdl-fm-item">
-                    <div className="im"><img src={"/images/food/" + it[5] + ".svg"} alt={it[0]} loading="lazy" /></div>
-                    <div className="bd">
-                      <div className="nm">{CURRENT_LANG === "bn" ? it[1] : it[0]}</div>
-                      <div className="pr">{"৳ " + num(it[3])}{it[4] ? <span className="tg">{lookup("tag", it[4])}</span> : null}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          <button type="button" className="cdl-fm-login" onClick={() => { setPage(null); if (onLogin) setTimeout(onLogin, 60); }}>{tx("mb.login")}</button>
+          {/* Menu Book page content goes here (empty for now, only the Back button above) */}
         </div>
       </div>, document.body);
   }
@@ -1582,7 +1583,7 @@ function FullMenuCard({ onLogin }) {
       {open ? (
         <div className="cdl-fm-actions">
           <button type="button" className="cdl-fm-btn primary" onClick={() => setPage("special")}>{tx("more.sp")}</button>
-          <button type="button" className="cdl-fm-btn ghost" onClick={() => setPage("book")}>{tx("more.mb")}</button>
+          <button type="button" className="cdl-fm-btn ghost" onClick={openBook}>{tx("more.mb")}</button>
           <button type="button" className="cdl-fm-back" onClick={(e) => { e.stopPropagation(); setOpen(false); }}>&larr; {tx("more.back")}</button>
         </div>
       ) : (

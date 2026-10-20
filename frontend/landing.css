@@ -212,8 +212,8 @@ html[data-theme="dark"][data-accent="orange"] .cdl .cdl-art{background-image:url
 html[data-accent="orange"] .cdl .cdl-brand-logo{background-image:url(images/landing/logo.png)}
 
 /* ===== Promotional popup (special offer) with dark backdrop ===== */
-.cdl-promo-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.72);animation:cdl-promo-fade .3s ease both}
-.cdl-promo-modal{position:relative;width:min(600px,100%,calc((100vh - 120px)*1.2427));line-height:0;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:cdl-promo-pop .35s cubic-bezier(.2,.9,.3,1.2) both}
+.cdl-promo-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.8);animation:cdl-promo-fade .3s ease both}
+.cdl-promo-modal{position:relative;width:min(680px,100%,calc((100vh - 96px)*1.2427));line-height:0;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:cdl-promo-pop .35s cubic-bezier(.2,.9,.3,1.2) both}
 .cdl-promo-img{display:block;width:100%;height:auto;border-radius:14px}
 .cdl-promo-close{position:absolute;top:0;right:0;z-index:2;width:28px;height:28px;padding:0;border:0;border-radius:0;background:transparent;color:#000;font-size:30px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;text-shadow:0 0 5px rgba(255,255,255,.85);transition:transform .15s ease,color .15s ease}
 .cdl-promo-close:hover{background:transparent;color:#d62828;transform:scale(1.15)}
@@ -243,7 +243,11 @@ html[data-accent="orange"] .cdl .cdl-brand-logo{background-image:url(images/land
 .cdl-fm-x{position:fixed;top:0;right:0;z-index:2;width:44px;height:44px;padding:0;border:0;background:transparent;color:#000;font-size:36px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-shadow:0 0 5px rgba(255,255,255,.85);transition:transform .15s ease,color .15s ease}
 .cdl-fm-x:hover{color:#d62828;transform:scale(1.15)}
 .cdl-fm-x:focus-visible{outline:2px solid #1f6b3a;outline-offset:-2px}
-.cdl-fm-book{background:var(--panel);overflow-y:auto}
+.cdl-fm-book{--ink:#14301f;--ink-soft:#3d5f48;--line:rgba(20,48,31,.2);--gold:#2f7d4a;--gold-soft:#e6f3e2;--panel:#fff;background:#cae9b8;overflow-y:auto}
+.cdl-fm-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;padding:12px 16px;background:#cae9b8;border-bottom:1px solid rgba(20,48,31,.15)}
+.cdl-fm-backbtn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border:2px solid #2f7d4a;border-radius:999px;background:#fff;color:#1f5c36;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s ease,color .15s ease,transform .15s ease}
+.cdl-fm-backbtn:hover{background:#2f7d4a;color:#fff;transform:translateX(-2px)}
+.cdl-fm-backbtn:focus-visible{outline:3px solid #14301f;outline-offset:2px}
 .cdl-fm-book-in{max-width:1100px;margin:0 auto;padding:36px 20px 56px}
 .cdl-fm-book h2{font-size:30px;font-weight:800;color:var(--ink);text-align:center;margin:0}
 .cdl-fm-book .sub{text-align:center;color:var(--ink-soft);font-size:13px;margin:6px 0 26px}
