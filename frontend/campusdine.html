@@ -1473,6 +1473,32 @@ function QrCode({ value, size = 120, dim = false }) {
 }
 
 /* ---------------- Login / Register screen ---------------- */
+// Promotional popup: appears 1 second after the front page loads, dark backdrop, cross button to close
+function PromoPopup() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setOpen(true), 1000);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open]);
+  if (!open) return null;
+  return (
+    <div className="cdl-promo-backdrop" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Today's special offer">
+      <div className="cdl-promo-modal" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="cdl-promo-close" onClick={() => setOpen(false)} aria-label="Close offer">&times;</button>
+        <img className="cdl-promo-img" src="images/promo/special-offer.png" alt="CampusDine today's special offer discount" />
+      </div>
+    </div>
+  );
+}
+
 function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
   const [role, setRole] = useState(null);
@@ -1701,6 +1727,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
   return (
     <div className="min-h-screen">
+      <PromoPopup />
       {/* New CampusDine front: announcement bar, header and hero (styles live in landing.css, all scoped under .cdl) */}
       <div className="cdl" data-lang={CURRENT_LANG}>
         <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
