@@ -466,6 +466,12 @@ const I18N = {
     "pop.h": "A Taste of Our Menu",
     "more": "More on the full menu",
     "more.d": "Log in to see live prices, stock & order instantly.",
+    "more.sp": "Today's Special",
+    "more.mb": "Menu Book",
+    "more.back": "Back",
+    "more.close": "Close",
+    "mb.sub": "Everything our campus canteens serve",
+    "mb.login": "Log in to order",
     "about.k": "About Us",
     "about.h": "Why CampusDine",
     "about.p": "Long canteen queues, paper tokens, and hand-calculated subscription bills — CampusDine exists to remove exactly these frustrations. With digital tokens, real-time order tracking, automatic billing, and a cashless wallet, we've built a refined, hassle-free dining experience built around campus life.",
@@ -775,6 +781,12 @@ const I18N = {
     "pop.h": "আমাদের মেনুর এক ঝলক",
     "more": "পূর্ণ মেনুতে আরও আছে",
     "more.d": "লাইভ দাম ও স্টক দেখতে এবং সাথে সাথে অর্ডার করতে লগ ইন করুন।",
+    "more.sp": "আজকের স্পেশাল",
+    "more.mb": "মেনু বুক",
+    "more.back": "ফিরে যান",
+    "more.close": "বন্ধ করুন",
+    "mb.sub": "ক্যাম্পাস ক্যান্টিনে যা যা পাওয়া যায়",
+    "mb.login": "অর্ডার করতে লগ ইন করুন",
     "about.k": "আমাদের সম্পর্কে",
     "about.h": "কেন CampusDine",
     "about.p": "ক্যান্টিনের লম্বা লাইন, কাগজের টোকেন আর হাতে হিসাব করা সাবস্ক্রিপশন বিল — ঠিক এই বিরক্তিগুলো দূর করতেই CampusDine। ডিজিটাল টোকেন, রিয়েল-টাইম অর্ডার ট্র্যাকিং, স্বয়ংক্রিয় বিল আর ক্যাশলেস ওয়ালেট দিয়ে আমরা ক্যাম্পাস জীবনের সাথে মানানসই একটি ঝামেলাহীন খাওয়ার অভিজ্ঞতা তৈরি করেছি।",
@@ -1473,6 +1485,114 @@ function QrCode({ value, size = 120, dim = false }) {
 }
 
 /* ---------------- Login / Register screen ---------------- */
+// "More on the full menu" card: click it to get two buttons - Today's Special (offer popup) and Menu Book
+const MENU_BOOK = [
+  // [name, name_bn, category, price, tag, image slug]
+  ["Khichuri", "খিচুড়ি", "heavy", 60, "Popular", "khichuri"],
+  ["Tehari", "তেহারি", "heavy", 80, "Popular", "tehari"],
+  ["Porota-Vaji", "পরোটা-ভাজি", "heavy", 40, null, "porota-vaji"],
+  ["Plain Rice & Dal", "ভাত-ডাল", "heavy", 45, null, "rice-dal"],
+  ["Chicken Biryani", "চিকেন বিরিয়ানি", "heavy", 120, "Popular", "chicken-biryani"],
+  ["Beef Bhuna & Rice", "গরুর ভুনা-ভাত", "heavy", 130, null, "beef-bhuna"],
+  ["Egg Curry & Rice", "ডিম ভুনা-ভাত", "heavy", 70, null, "egg-curry"],
+  ["Fish Curry & Rice", "মাছ-ভাত", "heavy", 90, null, "fish-curry"],
+  ["Mixed Veg & Rice", "সবজি-ভাত", "heavy", 55, null, "mixed-veg-rice"],
+  ["Fried Rice", "ফ্রাইড রাইস", "heavy", 80, null, "fried-rice"],
+  ["Chowmein", "চাউমিন", "heavy", 70, "New", "chowmein"],
+  ["Singara", "সিঙ্গারা", "snacks", 10, "New", "singara"],
+  ["Fuchka", "ফুচকা", "snacks", 30, "Popular", "fuchka"],
+  ["Chicken Roll", "চিকেন রোল", "snacks", 50, null, "chicken-roll"],
+  ["Chotpoti", "চটপটি", "snacks", 30, "Popular", "chotpoti"],
+  ["Jhalmuri", "ঝালমুড়ি", "snacks", 20, null, "jhalmuri"],
+  ["French Fries", "ফ্রেঞ্চ ফ্রাই", "snacks", 40, null, "french-fries"],
+  ["Chicken Burger", "চিকেন বার্গার", "snacks", 90, "New", "chicken-burger"],
+  ["Egg Sandwich", "ডিম স্যান্ডউইচ", "snacks", 35, null, "egg-sandwich"],
+  ["Veg Pakora", "সবজি পাকোড়া", "snacks", 20, null, "veg-pakora"],
+  ["Cha (Tea)", "চা", "drinks", 8, null, "cha"],
+  ["Lassi", "লাচ্ছি", "drinks", 35, "New", "lassi"],
+  ["Mineral Water", "পানি", "drinks", 15, null, "mineral-water"],
+  ["Cold Coffee", "কোল্ড কফি", "drinks", 50, "Popular", "cold-coffee"],
+  ["Mango Juice", "আমের জুস", "drinks", 40, null, "mango-juice"],
+  ["Lemon Soda", "লেবু সোডা", "drinks", 25, null, "lemon-soda"],
+  ["Borhani", "বোরহানি", "drinks", 30, null, "borhani"],
+  ["Falooda", "ফালুদা", "drinks", 60, "New", "falooda"],
+  ["Coconut Water", "ডাবের পানি", "drinks", 40, null, "coconut-water"],
+];
+
+function FullMenuCard({ onLogin }) {
+  const [open, setOpen] = useState(false); // the card shows its two buttons
+  const [page, setPage] = useState(null); // null | "special" | "book"
+  useEffect(() => {
+    if (!page) return;
+    const onKey = (e) => { if (e.key === "Escape") setPage(null); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [page]);
+
+  const closeX = (
+    <button type="button" className="cdl-fm-x" onClick={() => setPage(null)} aria-label={tx("more.close")}>&times;</button>
+  );
+
+  let overlay = null;
+  if (page === "special") {
+    overlay = ReactDOM.createPortal(
+      <div className="cdl-promo-backdrop darker" onClick={() => setPage(null)} role="dialog" aria-modal="true" aria-label={tx("more.sp")}>
+        <div className="cdl-promo-modal cdl-promo-wide" onClick={(e) => e.stopPropagation()}>
+          <button type="button" className="cdl-promo-close" onClick={() => setPage(null)} aria-label={tx("more.close")}>&times;</button>
+          <img className="cdl-promo-img" src="images/promo/special-offer-today.png" alt="CampusDine today's special offer discount" />
+        </div>
+      </div>, document.body);
+  } else if (page === "book") {
+    overlay = ReactDOM.createPortal(
+      <div className="cdl-fm-page cdl-fm-book" role="dialog" aria-modal="true" aria-label={tx("more.mb")}>
+        {closeX}
+        <div className="cdl-fm-book-in">
+          <h2 className="font-display">{tx("more.mb")}</h2>
+          <p className="sub">{tx("mb.sub")}</p>
+          {["heavy", "snacks", "drinks"].map(cat => (
+            <div key={cat}>
+              <h3 className="font-display">{tx("cat." + cat)}</h3>
+              <div className="cdl-fm-grid">
+                {MENU_BOOK.filter(it => it[2] === cat).map(it => (
+                  <div key={it[0]} className="cdl-fm-item">
+                    <div className="im"><img src={"/images/food/" + it[5] + ".svg"} alt={it[0]} loading="lazy" /></div>
+                    <div className="bd">
+                      <div className="nm">{CURRENT_LANG === "bn" ? it[1] : it[0]}</div>
+                      <div className="pr">{"৳ " + num(it[3])}{it[4] ? <span className="tg">{lookup("tag", it[4])}</span> : null}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button type="button" className="cdl-fm-login" onClick={() => { setPage(null); if (onLogin) setTimeout(onLogin, 60); }}>{tx("mb.login")}</button>
+        </div>
+      </div>, document.body);
+  }
+
+  return (
+    <div className="card cdl-fm-card flex flex-col items-center justify-center text-center p-6 gap-3"
+      role={open ? undefined : "button"} tabIndex={open ? undefined : 0}
+      onClick={() => { if (!open) setOpen(true); }}
+      onKeyDown={(e) => { if (!open && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setOpen(true); } }}>
+      <Icon path={I.menu} className="w-7 h-7" style={{ color: "var(--gold)" }} />
+      <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{tx("more")}</div>
+      {open ? (
+        <div className="cdl-fm-actions">
+          <button type="button" className="cdl-fm-btn primary" onClick={() => setPage("special")}>{tx("more.sp")}</button>
+          <button type="button" className="cdl-fm-btn ghost" onClick={() => setPage("book")}>{tx("more.mb")}</button>
+          <button type="button" className="cdl-fm-back" onClick={(e) => { e.stopPropagation(); setOpen(false); }}>&larr; {tx("more.back")}</button>
+        </div>
+      ) : (
+        <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("more.d")}</p>
+      )}
+      {overlay}
+    </div>
+  );
+}
+
 // Promotional popup: appears 1 second after the front page loads, dark backdrop, cross button to close
 function PromoPopup() {
   const [open, setOpen] = useState(false);
@@ -1846,11 +1966,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
               </div>
             </div>
           ))}
-          <div className="card flex flex-col items-center justify-center text-center p-6 gap-3">
-            <Icon path={I.menu} className="w-7 h-7" style={{ color: "var(--gold)" }} />
-            <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{tx("more")}</div>
-            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("more.d")}</p>
-          </div>
+          <FullMenuCard onLogin={scrollToAuth} />
         </div>
       </section>
 
