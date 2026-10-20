@@ -210,3 +210,18 @@ html[data-accent="rose"] .cdl .cdl-brand-logo{background-image:url(images/landin
 html[data-accent="orange"] .cdl .cdl-art{background-image:url(images/landing/hero-food.jpg)}
 html[data-theme="dark"][data-accent="orange"] .cdl .cdl-art{background-image:url(images/landing/hero-food-dark.jpg)}
 html[data-accent="orange"] .cdl .cdl-brand-logo{background-image:url(images/landing/logo.png)}
+
+/* ===== Promotional popup (special offer) with dark backdrop ===== */
+.cdl-promo-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.72);animation:cdl-promo-fade .3s ease both}
+.cdl-promo-modal{position:relative;width:min(600px,100%,calc((100vh - 120px)*1.2427));line-height:0;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:cdl-promo-pop .35s cubic-bezier(.2,.9,.3,1.2) both}
+.cdl-promo-img{display:block;width:100%;height:auto;border-radius:14px}
+.cdl-promo-close{position:absolute;top:0;right:0;z-index:2;width:28px;height:28px;padding:0;border:0;border-radius:0;background:transparent;color:#000;font-size:30px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;text-shadow:0 0 5px rgba(255,255,255,.85);transition:transform .15s ease,color .15s ease}
+.cdl-promo-close:hover{background:transparent;color:#d62828;transform:scale(1.15)}
+.cdl-promo-close:focus-visible{outline:2px solid #1f6b3a;outline-offset:2px}
+@media (max-width:600px){
+  .cdl-promo-backdrop{padding:12px}
+  .cdl-promo-close{top:0;right:0;width:26px;height:26px;font-size:26px}
+}
+@keyframes cdl-promo-fade{from{opacity:0}to{opacity:1}}
+@keyframes cdl-promo-pop{from{opacity:0;transform:scale(.9) translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.cdl-promo-backdrop,.cdl-promo-modal{animation:none}}
