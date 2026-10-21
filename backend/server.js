@@ -27,6 +27,8 @@ const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
 const feedbackRoutes = require("./src/routes/feedback");
 const summaryRoutes = require("./src/routes/summary");
+const { pricingRouter, loyaltyRouter, offersRouter } = require("./src/routes/offers");
+const { ensureOffersSchema } = require("./src/offersSchema");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
 
@@ -439,6 +441,7 @@ async function runStartupCheck() {
   await ensureMealPlanSchema(db);
   await ensureOtpSchema(db);
   await purgeOldOtps(db);
+  await ensureOffersSchema(db); // loyalty points / streak, combo deals, happy hours
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
@@ -497,6 +500,9 @@ app.use("/api/coupon", couponRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/summary", summaryRoutes);
+app.use("/api/pricing", pricingRouter);
+app.use("/api/loyalty", loyaltyRouter);
+app.use("/api/offers", offersRouter);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
