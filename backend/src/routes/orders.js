@@ -5,12 +5,12 @@ const catchAsync = require("../utils/catchAsync");
 const { buildPayload, parseCode } = require("../utils/tokenQr");
 const { restaurantOf, isRestaurantId } = require("../catalog");
 const { loadItemRestaurants } = require("../restaurants");
+const { resolvePickupTime } = require("../utils/pickup");
+const pricing = require("../pricing");
+const loyalty = require("../loyalty");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
-// Feature: pre-order / scheduled pickup — how far ahead a student may schedule
-const PICKUP_MIN_LEAD_MINUTES = 10;
-const PICKUP_MAX_LEAD_HOURS = 4;
 
 async function attachItems(orders) {
   if (orders.length === 0) return orders;
@@ -70,6 +70,7 @@ async function attachFeedback(orders) {
 // body: { items: [{ id, qty }], paymentMethod: 'wallet' | 'cash' }
 router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { items, paymentMethod, couponCode, couponId } = req.body;
+  const rewardId = Number(req.body.rewardId) > 0 ? Number(req.body.rewardId) : null; // loyalty reward to spend points on
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "items array is required" });
   }
@@ -87,39 +88,11 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
   const couponRequested = Boolean(couponId || couponCode);
   const normalizedCode = String(couponCode || "").trim().toUpperCase();
 
-  // Optional pre-order: body.pickupTime is a "HH:MM" (24h) string for a slot today
-  // (or tomorrow, if the window crosses midnight). Omitted/falsy means ASAP.
+  // Optional pre-order: body.pickupTime is a "HH:MM" (24h) string for a slot today (or tomorrow, if the
+  // window crosses midnight). Omitted/falsy means ASAP. Happy hours are judged at the pickup moment.
   let pickupTime = null;
-  if (req.body.pickupTime) {
-    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(req.body.pickupTime);
-    if (!match) return res.status(400).json({ error: "pickupTime must be in HH:MM 24-hour format" });
-
-    // Truncate seconds so the allowed window matches exactly what a minute-precision
-    // <input type="time"> can express — otherwise picking the exact displayed min/max
-    // minute could still fail by a few leftover seconds.
-    const now = new Date();
-    now.setSeconds(0, 0);
-    const minAllowed = new Date(now.getTime() + PICKUP_MIN_LEAD_MINUTES * 60000);
-    const maxAllowed = new Date(now.getTime() + PICKUP_MAX_LEAD_HOURS * 3600000);
-
-    // "14:05" could mean today or, once the window crosses midnight, tomorrow —
-    // try both and accept whichever actually falls inside the allowed window,
-    // instead of always assuming "today" (which broke post-midnight slots).
-    const buildCandidate = (dayOffset) => {
-      const d = new Date(now);
-      d.setDate(d.getDate() + dayOffset);
-      d.setHours(Number(match[1]), Number(match[2]), 0, 0);
-      return d;
-    };
-    const candidate = [0, 1].map(buildCandidate).find((d) => d >= minAllowed && d <= maxAllowed);
-
-    if (!candidate) {
-      return res.status(400).json({
-        error: `Pickup time must be at least ${PICKUP_MIN_LEAD_MINUTES} minutes and at most ${PICKUP_MAX_LEAD_HOURS} hours from now`,
-      });
-    }
-    pickupTime = candidate;
-  }
+  try { pickupTime = resolvePickupTime(req.body.pickupTime); }
+  catch (e) { return res.status(e.status || 400).json({ error: e.message }); }
 
   const conn = await pool.getConnection();
   try {
@@ -132,7 +105,6 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       ids
     );
 
-    let subtotal = 0;
     const snapshot = [];
     for (const reqItem of requestedItems) {
       const menuItem = menuRows.find((m) => m.id === reqItem.id);
@@ -141,8 +113,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       if (menuItem.availability === "sold_out") throw { status: 409, message: `${menuItem.name} is sold out` };
       if (menuItem.availability === "hidden") throw { status: 409, message: `${menuItem.name} is not available right now` };
       if (menuItem.stock < reqItem.qty) throw { status: 409, message: `${menuItem.name} is out of stock` };
-      subtotal += menuItem.price * reqItem.qty;
-      snapshot.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: reqItem.qty });
+      snapshot.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: reqItem.qty, category: menuItem.category });
     }
 
     // Feature: restaurants — one order can only contain items from a single restaurant
@@ -152,63 +123,16 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       throw { status: 400, message: "One order can only contain items from a single restaurant" };
     }
 
-    let appliedCoupon = null;
-    let eligibleSubtotal = subtotal;
-    if (couponRequested) {
-      const [couponRows] = await conn.query(
-        `SELECT id, code, discount_type, discount_value, min_order_amount, max_discount,
-                usage_limit, used_count, expiry_date, is_active, applies_to_all_items
-         FROM coupons WHERE ${couponId ? "id = ?" : "code = ?"} FOR UPDATE`,
-        couponId ? [couponId] : [normalizedCode]
-      );
-      if (couponRows.length === 0) throw { status: 404, message: "Coupon not found" };
-      appliedCoupon = couponRows[0];
-      if (normalizedCode && appliedCoupon.code !== normalizedCode) {
-        throw { status: 400, message: "Coupon code does not match" };
-      }
-      if (!appliedCoupon.is_active) throw { status: 400, message: "This coupon is no longer active" };
-      if (appliedCoupon.expiry_date && new Date(appliedCoupon.expiry_date) < new Date()) {
-        throw { status: 400, message: "This coupon has expired" };
-      }
-      if (appliedCoupon.usage_limit && appliedCoupon.used_count >= appliedCoupon.usage_limit) {
-        throw { status: 400, message: "This coupon usage limit has been reached" };
-      }
-      if (subtotal < Number(appliedCoupon.min_order_amount || 0)) {
-        throw { status: 400, message: `Minimum order amount required: ৳${appliedCoupon.min_order_amount || 0}` };
-      }
-      const [userUsage] = await conn.query(
-        "SELECT id FROM coupon_usage WHERE user_id = ? AND coupon_id = ?",
-        [req.user.id, appliedCoupon.id]
-      );
-      if (userUsage.length > 0) throw { status: 400, message: "You have already used this coupon" };
-
-      if (!appliedCoupon.applies_to_all_items) {
-        const [eligibleRows] = await conn.query(
-          "SELECT item_id FROM coupon_items WHERE coupon_id = ?",
-          [appliedCoupon.id]
-        );
-        const eligibleIds = new Set(eligibleRows.map((row) => Number(row.item_id)));
-        eligibleSubtotal = snapshot.reduce((sum, item) =>
-          eligibleIds.has(Number(item.id)) ? sum + item.price * item.qty : sum, 0);
-        if (eligibleSubtotal <= 0) {
-          throw { status: 400, message: "This coupon is valid only for selected menu items" };
-        }
-      }
-    }
-
-    let discountAmount = 0;
-    if (appliedCoupon) {
-      if (appliedCoupon.discount_type === "PERCENTAGE") {
-        discountAmount = Math.round(eligibleSubtotal * (Number(appliedCoupon.discount_value) / 100));
-      } else {
-        discountAmount = Math.min(Number(appliedCoupon.discount_value), eligibleSubtotal);
-      }
-      if (appliedCoupon.max_discount && discountAmount > Number(appliedCoupon.max_discount)) {
-        discountAmount = Number(appliedCoupon.max_discount);
-      }
-      discountAmount = Math.min(discountAmount, eligibleSubtotal);
-    }
-    const total = Math.max(0, subtotal - discountAmount);
+    // Feature: offers — combos → happy hour → coupon → loyalty reward (see src/pricing.js).
+    // The same function backs the cart preview, so the price shown is the price charged.
+    const priced = await pricing.priceOrder(conn, {
+      userId: req.user.id, snapshot, couponId, couponCode, rewardId,
+      when: pickupTime || new Date(), lock: true,
+    });
+    const appliedCoupon = priced.coupon;
+    const discountAmount = priced.couponDiscount;
+    const total = priced.total;
+    const pointsUsed = priced.reward ? Number(priced.reward.points_cost) : 0;
 
     if (paymentMethod === "wallet") {
       const [[user]] = await conn.query("SELECT wallet_balance FROM users WHERE id = ? FOR UPDATE", [req.user.id]);
@@ -229,8 +153,8 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     // (The old "MAX(id) + 1" way could hand two simultaneous orders the same token and one would fail.)
     const tempToken = `T-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.toUpperCase().slice(0, 20);
     const [orderResult] = await conn.query(
-      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, payment_method, pickup_time, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
-      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, paymentMethod, pickupTime, orderNote]
+      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
+      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote]
     );
     const token = `C-${String(100 + orderResult.insertId).padStart(3, "0")}`;
     await conn.query("UPDATE orders SET token = ? WHERE id = ?", [token, orderResult.insertId]);
@@ -252,9 +176,21 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       );
     }
 
+    // Spend the loyalty points (account row is already locked by priceOrder)
+    let pointsBalance = null;
+    if (priced.reward) {
+      pointsBalance = await loyalty.redeemForOrder(conn, { userId: req.user.id, reward: priced.reward, orderId: orderResult.insertId, token });
+    }
+
     await conn.commit();
 
-    const order = { id: orderResult.insertId, token, qr: buildPayload(token), total, discount_amount: discountAmount, status: "Received", pickup_time: pickupTime, note: orderNote, items: snapshot };
+    const order = {
+      id: orderResult.insertId, token, qr: buildPayload(token), total, discount_amount: discountAmount,
+      promo_discount: priced.promoDiscount, reward_discount: priced.rewardDiscount, points_used: pointsUsed,
+      promo_label: priced.promoLabel, subtotal: priced.subtotal, points_earnable: priced.pointsEarnable, points_balance: pointsBalance,
+      status: "Received", pickup_time: pickupTime, note: orderNote,
+      items: snapshot.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+    };
     req.app.get("io").to("admins").emit("order:new", order);
     req.app.get("io").emit("queue:changed");
     res.status(201).json(order);
@@ -315,6 +251,8 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
         order.total,
       ]);
     }
+
+    await loyalty.refundForOrder(conn, order); // points spent on this order go back to the customer
 
     await conn.query("UPDATE orders SET status = 'Cancelled' WHERE id = ?", [order.id]);
     await conn.commit();
@@ -394,6 +332,19 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async
   io.to("admins").emit("order:update", updated);
   io.to(`user:${order.user_id}`).emit("order:update", updated);
   io.emit("queue:changed");
+
+  // Feature: loyalty — points + streak are earned when the order becomes Ready
+  if (nextStatus === "Ready") {
+    try {
+      const award = await loyalty.awardForOrder(pool, order.id);
+      if (award) {
+        io.to(`user:${order.user_id}`).emit("loyalty:update", award);
+        updated.loyalty = { points: award.points, bonus: award.bonus, streak: award.streak, balance: award.balance };
+      }
+    } catch (err) {
+      console.error("Loyalty award failed:", err); // never block the kitchen over points
+    }
+  }
 
   res.json(updated);
 }));
