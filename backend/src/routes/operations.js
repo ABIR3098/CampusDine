@@ -83,6 +83,76 @@ router.get("/riders/shifts", verifyToken, requireRole("teacher", "admin"), catch
   res.json(shifts);
 }));
 
+router.get("/riders/assignable-orders", verifyToken, requireRole("teacher", "admin"), catchAsync(async (_req, res) => {
+  const [orders] = await pool.query(`
+    SELECT id, token, status, created_at, rider_id, rider_assignment_status
+    FROM orders
+    WHERE status IN ('Received', 'Cooking', 'Ready')
+      AND (rider_id IS NULL OR rider_assignment_status = 'Assigned')
+    ORDER BY created_at ASC LIMIT 200
+  `);
+  res.json(orders);
+}));
+
+router.post("/orders/:id/assign-rider", verifyToken, requireRole("teacher", "admin"), catchAsync(async (req, res) => {
+  const orderId = Number(req.params.id);
+  const riderId = Number(req.body && req.body.riderId);
+  if (!Number.isInteger(orderId) || orderId < 1 || !Number.isInteger(riderId) || riderId < 1) {
+    return res.status(400).json({ error: "Valid order and rider IDs are required" });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [[order]] = await connection.query(
+      "SELECT id, status, rider_id, rider_assignment_status FROM orders WHERE id = ? FOR UPDATE",
+      [orderId]
+    );
+    if (!order) {
+      await connection.rollback();
+      return res.status(404).json({ error: "Order not found" });
+    }
+    if (!["Received", "Cooking", "Ready"].includes(order.status)
+      || (order.rider_id != null && order.rider_assignment_status !== "Assigned")) {
+      await connection.rollback();
+      return res.status(409).json({ error: "Order is no longer available for assignment" });
+    }
+
+    const [[shift]] = await connection.query(`
+      SELECT id, max_orders FROM rider_shifts
+      WHERE rider_id = ? AND status = 'ON_DUTY' FOR UPDATE
+    `, [riderId]);
+    if (!shift) {
+      await connection.rollback();
+      return res.status(409).json({ error: "Rider is not on duty" });
+    }
+    const [[load]] = await connection.query(`
+      SELECT COUNT(*) AS active_orders FROM orders
+      WHERE rider_id = ? AND id <> ?
+        AND rider_assignment_status IN ('Assigned', 'Accepted') AND status <> 'Cancelled'
+    `, [riderId, orderId]);
+    if (Number(load.active_orders) >= Number(shift.max_orders)) {
+      await connection.rollback();
+      return res.status(409).json({ error: "Rider has reached their active-order capacity" });
+    }
+
+    await connection.query(`
+      UPDATE orders SET rider_id = ?, rider_assignment_status = 'Assigned'
+      WHERE id = ? AND status IN ('Received', 'Cooking', 'Ready')
+        AND (rider_id IS NULL OR rider_assignment_status = 'Assigned')
+    `, [riderId, orderId]);
+    await recordAuditEvent(connection, req, "MANUAL_RIDER_ASSIGN", "order", orderId, { riderId });
+    await connection.commit();
+    req.app.get("io").to(`rider:${riderId}`).emit("rider:order-assigned", { orderId });
+    res.json({ ok: true, orderId, riderId, status: "Assigned" });
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}));
+
 router.get("/analytics", verifyToken, requireRole("admin"), catchAsync(async (_req, res) => {
   const [[today]] = await pool.query(`
     SELECT COUNT(*) AS order_count,
