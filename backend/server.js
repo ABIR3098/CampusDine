@@ -190,6 +190,22 @@ async function ensureGroupOrderSchema(db) {
   )`);
 }
 
+async function ensureOrderChatSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS direct_order_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    recipient_id INT NOT NULL,
+    message VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read_at DATETIME NULL,
+    KEY idx_direct_chat_order (order_id, id),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+}
+
 async function ensureTrackingSchema(db) {
   await db.query(`CREATE TABLE IF NOT EXISTS order_status_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -538,6 +554,7 @@ async function runStartupCheck() {
   await ensureFraudSchema(db);
   await ensureAuditSchema(db);
   await ensureGroupOrderSchema(db);
+  await ensureOrderChatSchema(db);
 
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },

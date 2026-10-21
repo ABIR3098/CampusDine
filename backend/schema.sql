@@ -179,6 +179,20 @@ CREATE TABLE IF NOT EXISTS group_order_items (
   FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
 );
 
+CREATE TABLE IF NOT EXISTS direct_order_messages (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  sender_id INT NOT NULL,
+  recipient_id INT NOT NULL,
+  message VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  read_at DATETIME NULL,
+  KEY idx_direct_chat_order (order_id, id),
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Feature: order cancel + refund. If you created the database before this
 -- change, run this once against an existing 'campusdine' DB — CREATE TABLE
 -- IF NOT EXISTS above won't retrofit an existing orders table:

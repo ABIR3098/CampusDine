@@ -341,3 +341,15 @@ Riders can use the existing OTP-based Forgot Password flow: request a code with
 the rider ID and registered email, then submit the code and a new password.
 The reset endpoints allow non-admin accounts, including riders. Configure SMTP
 and keep `EMAIL_OTP_REQUIRED=true` to send verification and reset codes by email.
+
+## Rider delivery operations
+
+- **Automatic assignment:** new orders are offered to the least-loaded rider who is on duty, has a recent active GPS location, and has capacity. Admins can retry unassigned orders from the order queue.
+- **Shifts and availability:** riders start or end a shift and set a maximum of 1–10 active orders. Assignment requests enforce the shift capacity.
+- **Manual assignment:** teachers and admins can select an on-duty rider with available capacity from the rider tracking panel.
+- **Route optimization:** a rider can request a nearest-neighbour delivery sequence. It uses checkout coordinates only when the customer grants browser geolocation permission and estimates straight-line distance, not road travel time.
+- **Analytics, abuse alerts, and audit history:** admin Reports includes daily order/revenue totals, popular food, busy hours, delivery counts, fraud signals, and recent auditable actions.
+- **Group orders:** students and teachers can create a time-limited group, join by code, add food, and let the host load the combined cart into normal checkout. Stock is checked again at checkout.
+- **Rider/customer chat:** the order customer and assigned rider can message each other from order tracking or the rider dashboard. Messages are scoped to that order and limited to 1,000 characters.
+
+The server creates or upgrades the operations tables on startup. The matching definitions are also included in `schema.sql` for new installations. Operations endpoints are mounted under `/api/operations`; group orders use `/api/group-orders`, and order chat uses `/api/chat/order/:orderId/messages`.

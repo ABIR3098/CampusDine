@@ -3293,7 +3293,7 @@ function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmit
   );
 }
 
-function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder })  {
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
   const [printOrder, setPrintOrder] = useState(null);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
@@ -3424,6 +3424,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   {tx("note.show")}: {o.note}
                 </div>
               )}
+              {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => onReorder(o)}
                   className="text-xs px-3 py-1.5 rounded-lg font-600 btn-primary flex items-center gap-1.5">
@@ -4226,7 +4227,7 @@ function AdminOrders({ orders, advance, call }) {
               background: o.status === "Ready" ? "var(--leaf)" : o.status === "Cooking" ? "var(--gold)" : o.status === "Cancelled" ? "var(--brick)" : "var(--line)",
               color: o.status === "Received" ? "var(--ink)" : "#fff"
             }}>{o.status}</span>
-          </div></div>
+          </div>
           {o.pickup_time && (
             <div className="text-xs mb-2 font-600" style={{ color: "var(--teal)" }}>
               Pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -4255,6 +4256,7 @@ function AdminOrders({ orders, advance, call }) {
           </div>
         </div>
       ))}
+    </div>
     </div>
   );
 }
@@ -4330,7 +4332,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
-    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}</td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
+    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
   </div></div>;
 }
 
@@ -4481,6 +4483,65 @@ function GroupOrderPanel({ menu, cart, setCart, apiBase, token, userId }) {
       <div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-800 text-lg">{detail.group.title}</h3><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share code: <strong>{detail.group.joinCode}</strong> · {detail.members.length} members · closes {new Date(detail.group.closesAt).toLocaleString()}</p></div><div className="flex gap-2">{detail.group.status === "OPEN" && Number(detail.group.hostUserId) === Number(userId) && <button onClick={closeGroup} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Close group</button>}<button onClick={loadCombinedCart} className="btn-primary rounded-lg px-3 py-2 text-sm">Load combined cart</button></div></div>
       {detail.group.status === "OPEN" && <div className="grid sm:grid-cols-[1fr_auto_auto] gap-2"><select value={menuItemId} onChange={e => setMenuItemId(e.target.value)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}><option value="">Choose food</option>{menu.filter(item => item.stock > 0 && item.availability === "available").map(item => <option key={item.id} value={item.id}>{item.name} — ৳{item.price}</option>)}</select><input type="number" min="1" max="20" value={quantity} onChange={e => setQuantity(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="w-20 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} /><button disabled={busy || !menuItemId} onClick={addItem} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Add food</button></div>}
       {detail.items.length ? <div className="space-y-2">{detail.items.map(item => <div key={item.id} className="flex justify-between border-b pb-2 text-sm" style={{ borderColor: "var(--line)" }}><span>{item.itemName} × {item.qty} <span style={{ color: "var(--ink-soft)" }}>by {item.addedBy}</span></span><strong>৳{(Number(item.price) * Number(item.qty)).toFixed(2)}</strong></div>)}</div> : <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No items added yet.</p>}
+    </div>}
+  </div>;
+}
+
+function RiderOrderChat({ apiBase, token, orderId }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let active = true;
+    const load = async () => {
+      try {
+        const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, { token });
+        if (active) setMessages(result.messages || []);
+      } catch (e) {
+        if (active) setError(e.message || "Could not load order chat.");
+      }
+    };
+    const socket = io(apiBase, { auth: { token } });
+    socket.on("order-chat:message", message => {
+      if (Number(message.orderId) !== Number(orderId)) return;
+      setMessages(current => current.some(item => item.id === message.id)
+        ? current
+        : [...current, message].sort((a, b) => Number(a.id) - Number(b.id)));
+    });
+    load();
+    return () => { active = false; socket.disconnect(); };
+  }, [open, apiBase, token, orderId]);
+
+  const send = async () => {
+    const message = draft.trim();
+    if (!message || sending) return;
+    setSending(true);
+    try {
+      const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, {
+        method: "POST", token, body: { message },
+      });
+      setMessages(current => current.some(item => item.id === result.message.id)
+        ? current
+        : [...current, result.message].sort((a, b) => Number(a.id) - Number(b.id)));
+      setDraft("");
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not send message.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return <div className="mt-3 rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
+    <button onClick={() => setOpen(value => !value)} className="text-sm font-700">{open ? "Hide rider chat" : "Message your rider"}</button>
+    {open && <div className="mt-3 space-y-2">
+      {error && <p className="text-xs" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="max-h-48 overflow-y-auto space-y-2">{messages.map(message => <div key={message.id} className="rounded-lg p-2 text-sm" style={{ background: "var(--panel-soft)" }}><div className="flex justify-between gap-2"><strong>{message.sender_name}</strong><span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(message.created_at).toLocaleTimeString()}</span></div><p>{message.message}</p></div>)}</div>
+      <div className="flex gap-2"><input value={draft} maxLength={1000} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } }} placeholder="Write a message" className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} /><button disabled={sending || !draft.trim()} onClick={send} className="btn-primary rounded-lg px-3 py-2 text-sm disabled:opacity-50">{sending ? "Sending…" : "Send"}</button></div>
     </div>}
   </div>;
 }
@@ -6582,7 +6643,7 @@ function App() {
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
         {session.user.role !== "admin" && tab === "track" && (
-          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} onRefresh={refreshMyOrders} />
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} onRefresh={refreshMyOrders} apiBase={apiBase} token={session.token} />
         )}
         {session.user.role !== "admin" && tab === "feedback" && (
           <FeedbackTab user={session.user} orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
