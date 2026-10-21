@@ -1825,6 +1825,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
     { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
     { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
+    { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
   ];
 
   const sampleMenu = [
@@ -1847,7 +1848,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
       if (!ID_RE.test(id)) { setError(tx("err.id")); return; }
       if (password.length < 6) { setError(tx("err.pw6")); return; }
       if (password !== confirmPassword) { setError(tx("err.pwmatch")); return; }
-      if (accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
+      if (role !== "rider" && accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
       if (otpRequired && otpSent && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
     }
     setBusy(true);
@@ -1864,7 +1865,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             : await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } }))
         : await api(apiBase, "/api/auth/register", { method: "POST", body: {
             name: name.trim(), email: email.trim(), externalId: id, role, password,
-            accountType, hallName: hallName.trim(), roomNumber: roomNumber.trim(),
+            accountType: role === "rider" ? "regular" : accountType, hallName: role === "rider" ? "" : hallName.trim(), roomNumber: role === "rider" ? "" : roomNumber.trim(),
             otp: otpRequired ? otp.trim() : undefined,
           } });
       // Password was right but this account needs an emailed code: show the code box instead of logging in
@@ -2189,7 +2190,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
                 <div className="flex p-1 rounded-full mb-6" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
                   {pillTab("login", tx("login"))}
-                  {role !== "admin" && pillTab("register", tx("create"))}
+                  {["student", "teacher", "rider"].includes(role) && pillTab("register", tx("create"))}
                 </div>
 
                 <form className="space-y-3" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>

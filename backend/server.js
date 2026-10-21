@@ -20,6 +20,7 @@ const mysql = require("mysql2/promise");
 const authRoutes = require("./src/routes/auth");
 const menuRoutes = require("./src/routes/menu");
 const orderRoutes = require("./src/routes/orders");
+const riderRoutes = require("./src/routes/riders");
 const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
@@ -86,6 +87,41 @@ async function seedDefaultMenuAndRates(db) {
   } catch (e) {
     console.warn("⚠️ Failed to seed menu defaults:", e.message);
   }
+}
+
+async function ensureRiderSchema(db) {
+  // Add the internal rider role without changing existing student/teacher/admin accounts.
+  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider') NOT NULL");
+  await db.query(`CREATE TABLE IF NOT EXISTS rider_locations (
+    rider_id INT PRIMARY KEY, latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL, accuracy_m DECIMAL(8,2) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 0, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rider_location_user FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+}
+
+async function ensureTrackingSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS order_status_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    status VARCHAR(40) NOT NULL,
+    note VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_tracking_history_order (order_id, created_at),
+    CONSTRAINT fk_tracking_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS order_gps_locations (
+    order_id INT PRIMARY KEY,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    accuracy_m DECIMAL(8,2) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_gps_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  )`);
+  // Seed history for orders created before this feature was installed.
+  await db.query(`INSERT INTO order_status_history (order_id, status, note, created_at)
+    SELECT o.id, o.status, 'Tracking enabled for existing order', o.created_at FROM orders o
+    LEFT JOIN order_status_history h ON h.order_id = o.id WHERE h.id IS NULL`);
 }
 
 async function ensureFeedbackSchema(db) {
@@ -407,10 +443,13 @@ async function runStartupCheck() {
     process.exit(1);
   }
 
+  await ensureRiderSchema(db);
+
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },
     { name: "Demo Student", externalId: "student1", role: "student", password: "student123", bonus: SIGNUP_BONUS },
     { name: "Demo Teacher", externalId: "teacher1", role: "teacher", password: "teacher123", bonus: SIGNUP_BONUS },
+    { name: "Demo Rider", externalId: "rider1", role: "rider", password: "rider123", bonus: 0 },
   ];
 
   for (const acc of demoAccounts) {
@@ -434,6 +473,7 @@ async function runStartupCheck() {
   await seedDefaultMenuAndRates(db);
   await ensureCouponSchema(db);
   await ensureFeedbackSchema(db);
+  await ensureTrackingSchema(db);
   await ensureChatSchema(db);
   await ensureNoteAndAvailabilitySchema(db);
   await ensureProfilePictureAndMenuImages(db);
@@ -448,6 +488,7 @@ async function runStartupCheck() {
   console.log("   Admin   → ID: admin      Password: admin123");
   console.log("   Student → ID: student1   Password: student123");
   console.log("   Teacher → ID: teacher1   Password: teacher123");
+  console.log("   Rider   → ID: rider1     Password: rider123");
   console.log("════════════════════════════════════════\n");
 
   await db.end();
@@ -487,12 +528,14 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
+  if (socket.user.role === "teacher") socket.join("teachers");
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/riders", riderRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);
