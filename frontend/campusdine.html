@@ -4345,11 +4345,15 @@ function TeacherRiderTracking({ apiBase, token }) {
 /* ---------------- Admin: Reports ---------------- */
 function AdminOperationsAnalytics({ apiBase, token }) {
   const [data, setData] = useState(null);
+  const [fraudEvents, setFraudEvents] = useState([]);
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    api(apiBase, "/api/operations/analytics", { token })
-      .then(result => { if (active) { setData(result); setError(""); } })
+    Promise.all([
+      api(apiBase, "/api/operations/analytics", { token }),
+      api(apiBase, "/api/operations/fraud-events", { token }),
+    ])
+      .then(([result, events]) => { if (active) { setData(result); setFraudEvents(events); setError(""); } })
       .catch(e => { if (active) setError(e.message || "Could not load analytics."); });
     return () => { active = false; };
   }, [apiBase, token]);
@@ -4380,6 +4384,10 @@ function AdminOperationsAnalytics({ apiBase, token }) {
       {table("Busiest hours · last 30 days", data.busyHours, [row => `${String(row.hour).padStart(2, "0")}:00`, row => `${row.order_count} orders`])}
       {table("Completed deliveries", data.riders, [row => row.name, row => row.delivered])}
     </div>
+    {table("Fraud and abuse alerts", fraudEvents.slice(0, 20), [
+      row => `${row.event_type} · ${row.user_name || "Unknown / OTP email"}`,
+      row => `${row.severity} · ${new Date(row.created_at).toLocaleString()}`,
+    ])}
   </section>;
 }
 

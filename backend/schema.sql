@@ -118,6 +118,19 @@ CREATE TABLE IF NOT EXISTS rider_shifts (
   FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS fraud_events (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  event_type VARCHAR(80) NOT NULL,
+  severity ENUM('LOW','MEDIUM','HIGH') NOT NULL DEFAULT 'MEDIUM',
+  details_json JSON NULL,
+  ip_address VARCHAR(64) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_fraud_created (created_at),
+  KEY idx_fraud_user (user_id, created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- Feature: order cancel + refund. If you created the database before this
 -- change, run this once against an existing 'campusdine' DB — CREATE TABLE
 -- IF NOT EXISTS above won't retrofit an existing orders table:

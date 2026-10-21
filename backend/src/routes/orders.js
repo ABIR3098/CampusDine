@@ -9,6 +9,7 @@ const { resolvePickupTime } = require("../utils/pickup");
 const pricing = require("../pricing");
 const loyalty = require("../loyalty");
 const { assignOrderToBestRider } = require("../utils/riderAssignment");
+const { recordFraudEvent } = require("../utils/fraud");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
@@ -377,7 +378,16 @@ router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), cat
   const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
   if (!order) return res.status(404).json({ error: "Order not found" });
   if (order.user_id !== req.user.id) return res.status(403).json({ error: "This isn't your order" });
-  if (order.status !== "Ready") return res.status(400).json({ error: "You can only rate an order once it's Ready" });
+  if (order.status !== "Ready") {
+    await recordFraudEvent(pool, {
+      userId: req.user.id,
+      eventType: "PREMATURE_REVIEW_ATTEMPT",
+      severity: "LOW",
+      details: { orderId: Number(order.id), status: order.status },
+      ipAddress: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").slice(0, 64),
+    });
+    return res.status(400).json({ error: "You can only rate an order once it's Ready" });
+  }
 
   const [[existing]] = await pool.query("SELECT id FROM order_feedback WHERE order_id = ?", [order.id]);
 

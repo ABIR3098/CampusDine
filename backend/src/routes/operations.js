@@ -43,6 +43,16 @@ router.get("/analytics", verifyToken, requireRole("admin"), catchAsync(async (_r
   });
 }));
 
+router.get("/fraud-events", verifyToken, requireRole("admin"), catchAsync(async (_req, res) => {
+  const [events] = await pool.query(`
+    SELECT f.id, f.event_type, f.severity, f.details_json, f.ip_address, f.created_at,
+      u.name AS user_name, u.external_id
+    FROM fraud_events f LEFT JOIN users u ON u.id = f.user_id
+    ORDER BY f.id DESC LIMIT 200
+  `);
+  res.json(events);
+}));
+
 router.get("/riders/route", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const [[origin]] = await pool.query(
     "SELECT latitude, longitude FROM rider_locations WHERE rider_id = ? AND active = 1 AND updated_at >= NOW() - INTERVAL 90 SECOND",
