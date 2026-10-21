@@ -22,6 +22,7 @@ const menuRoutes = require("./src/routes/menu");
 const orderRoutes = require("./src/routes/orders");
 const riderRoutes = require("./src/routes/riders");
 const operationsRoutes = require("./src/routes/operations");
+const groupOrderRoutes = require("./src/routes/groupOrders");
 const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
@@ -153,6 +154,39 @@ async function ensureAuditSchema(db) {
     KEY idx_audit_created (created_at),
     KEY idx_audit_entity (entity_type, entity_id),
     FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
+  )`);
+}
+
+async function ensureGroupOrderSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS group_orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    host_user_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    join_code VARCHAR(12) NOT NULL UNIQUE,
+    closes_at DATETIME NOT NULL,
+    status ENUM('OPEN','CLOSED','CHECKED_OUT') NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (host_user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS group_order_members (
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (group_id, user_id),
+    FOREIGN KEY (group_id) REFERENCES group_orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS group_order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    menu_item_id INT NOT NULL,
+    qty INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_group_member_item (group_id, user_id, menu_item_id),
+    FOREIGN KEY (group_id) REFERENCES group_orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
   )`);
 }
 
@@ -503,6 +537,7 @@ async function runStartupCheck() {
   await ensureRiderSchema(db);
   await ensureFraudSchema(db);
   await ensureAuditSchema(db);
+  await ensureGroupOrderSchema(db);
 
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },
@@ -597,6 +632,7 @@ app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/riders", riderRoutes);
 app.use("/api/operations", operationsRoutes);
+app.use("/api/group-orders", groupOrderRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);
