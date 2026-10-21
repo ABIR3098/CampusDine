@@ -1,0 +1,79 @@
+-- CampusDine: 25 more menu items, spread over the four restaurants.
+-- Safe to run more than once: an item is only inserted if no item with that name exists yet.
+-- Run it against the campusdine database AFTER schema.sql (see the steps in the chat).
+--   mysql --default-character-set=utf8mb4 -u root -p campusdine < more_menu_items.sql
+-- or, inside the mysql shell:   USE campusdine;   SOURCE C:/path/to/backend/more_menu_items.sql;
+
+SET NAMES utf8mb4;
+
+-- Same definition the server uses; it remembers which restaurant each item belongs to.
+CREATE TABLE IF NOT EXISTS app_meta (meta_key VARCHAR(60) PRIMARY KEY, meta_value VARCHAR(255));
+
+-- 1) the items (format: name, name_bn, category heavy|snacks|drinks, price in Taka, stock, tag, is_veg, image)
+INSERT INTO menu_items (name, name_bn, category, price, stock, tag, is_veg, image)
+SELECT v.name, v.name_bn, v.category, v.price, v.stock, v.tag, v.is_veg, v.image FROM (
+  SELECT 'Club Sandwich' AS name, 'ক্লাব স্যান্ডউইচ' AS name_bn, 'snacks' AS category, 80 AS price, 25 AS stock, 'New' AS tag, 0 AS is_veg, '/images/food/egg-sandwich.svg' AS image
+  UNION ALL SELECT 'Grilled Chicken Sandwich', 'গ্রিলড চিকেন স্যান্ডউইচ', 'snacks', 95, 20, NULL, 0, '/images/food/egg-sandwich.svg'
+  UNION ALL SELECT 'Cheese Fries', 'চিজ ফ্রাই', 'snacks', 70, 25, NULL, 1, '/images/food/french-fries.svg'
+  UNION ALL SELECT 'Cappuccino', 'ক্যাপুচিনো', 'drinks', 70, 30, NULL, 1, '/images/food/cold-coffee.svg'
+  UNION ALL SELECT 'Hot Chocolate', 'হট চকলেট', 'drinks', 65, 30, 'New', 1, '/images/food/default.svg'
+  UNION ALL SELECT 'Chocolate Milkshake', 'চকলেট মিল্কশেক', 'drinks', 85, 25, 'Popular', 1, '/images/food/lassi.svg'
+  UNION ALL SELECT 'Beguni', 'বেগুনি', 'snacks', 8, 80, NULL, 1, '/images/food/veg-pakora.svg'
+  UNION ALL SELECT 'Piyaju', 'পেঁয়াজু', 'snacks', 8, 80, NULL, 1, '/images/food/veg-pakora.svg'
+  UNION ALL SELECT 'Alur Chop', 'আলুর চপ', 'snacks', 12, 70, NULL, 1, '/images/food/veg-pakora.svg'
+  UNION ALL SELECT 'Egg Chop', 'ডিমের চপ', 'snacks', 20, 50, NULL, 0, '/images/food/egg-curry.svg'
+  UNION ALL SELECT 'Haleem', 'হালিম', 'snacks', 60, 30, 'Popular', 0, '/images/food/default.svg'
+  UNION ALL SELECT 'Sugarcane Juice', 'আখের রস', 'drinks', 25, 40, NULL, 1, '/images/food/lemon-soda.svg'
+  UNION ALL SELECT 'Chicken Fried Rice', 'চিকেন ফ্রাইড রাইস', 'heavy', 110, 30, NULL, 0, '/images/food/fried-rice.svg'
+  UNION ALL SELECT 'Beef Tehari', 'বিফ তেহারি', 'heavy', 110, 25, 'Popular', 0, '/images/food/tehari.svg'
+  UNION ALL SELECT 'Chicken Pasta', 'চিকেন পাস্তা', 'heavy', 120, 20, 'New', 0, '/images/food/chowmein.svg'
+  UNION ALL SELECT 'Thai Soup', 'থাই স্যুপ', 'snacks', 90, 25, NULL, 0, '/images/food/default.svg'
+  UNION ALL SELECT 'Orange Juice', 'কমলার জুস', 'drinks', 45, 30, NULL, 1, '/images/food/mango-juice.svg'
+  UNION ALL SELECT 'Watermelon Juice', 'তরমুজের জুস', 'drinks', 40, 30, NULL, 1, '/images/food/mango-juice.svg'
+  UNION ALL SELECT 'Chicken Curry & Rice', 'মুরগির ঝোল-ভাত', 'heavy', 100, 30, 'Popular', 0, '/images/food/egg-curry.svg'
+  UNION ALL SELECT 'Dal Sobji & Rice', 'ডাল-সবজি-ভাত', 'heavy', 50, 40, NULL, 1, '/images/food/rice-dal.svg'
+  UNION ALL SELECT 'Ilish Bhat', 'ইলিশ-ভাত', 'heavy', 180, 15, 'New', 0, '/images/food/fish-curry.svg'
+  UNION ALL SELECT 'Egg Khichuri', 'ডিম খিচুড়ি', 'heavy', 75, 30, NULL, 0, '/images/food/khichuri.svg'
+  UNION ALL SELECT 'Luchi & Alur Dom', 'লুচি-আলুর দম', 'heavy', 45, 30, NULL, 1, '/images/food/porota-vaji.svg'
+  UNION ALL SELECT 'Mishti Doi', 'মিষ্টি দই', 'snacks', 40, 40, 'Popular', 1, '/images/food/lassi.svg'
+  UNION ALL SELECT 'Payesh', 'পায়েস', 'snacks', 35, 30, NULL, 1, '/images/food/default.svg'
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM menu_items m WHERE m.name = v.name);
+
+-- 2) which restaurant each new item appears in (amitie | vista | thirdplace | staff)
+INSERT INTO app_meta (meta_key, meta_value)
+SELECT CONCAT('item_restaurant_', m.id), r.restaurant
+FROM menu_items m
+JOIN (
+  SELECT 'Club Sandwich' AS name, 'amitie' AS restaurant
+  UNION ALL SELECT 'Grilled Chicken Sandwich', 'amitie'
+  UNION ALL SELECT 'Cheese Fries', 'amitie'
+  UNION ALL SELECT 'Cappuccino', 'amitie'
+  UNION ALL SELECT 'Hot Chocolate', 'amitie'
+  UNION ALL SELECT 'Chocolate Milkshake', 'amitie'
+  UNION ALL SELECT 'Beguni', 'vista'
+  UNION ALL SELECT 'Piyaju', 'vista'
+  UNION ALL SELECT 'Alur Chop', 'vista'
+  UNION ALL SELECT 'Egg Chop', 'vista'
+  UNION ALL SELECT 'Haleem', 'vista'
+  UNION ALL SELECT 'Sugarcane Juice', 'vista'
+  UNION ALL SELECT 'Chicken Fried Rice', 'thirdplace'
+  UNION ALL SELECT 'Beef Tehari', 'thirdplace'
+  UNION ALL SELECT 'Chicken Pasta', 'thirdplace'
+  UNION ALL SELECT 'Thai Soup', 'thirdplace'
+  UNION ALL SELECT 'Orange Juice', 'thirdplace'
+  UNION ALL SELECT 'Watermelon Juice', 'thirdplace'
+  UNION ALL SELECT 'Chicken Curry & Rice', 'staff'
+  UNION ALL SELECT 'Dal Sobji & Rice', 'staff'
+  UNION ALL SELECT 'Ilish Bhat', 'staff'
+  UNION ALL SELECT 'Egg Khichuri', 'staff'
+  UNION ALL SELECT 'Luchi & Alur Dom', 'staff'
+  UNION ALL SELECT 'Mishti Doi', 'staff'
+  UNION ALL SELECT 'Payesh', 'staff'
+) AS r ON r.name = m.name
+ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value);
+
+-- check: how many items each restaurant has now
+SELECT COALESCE(a.meta_value, 'by name (built-in)') AS restaurant, COUNT(*) AS items
+FROM menu_items m LEFT JOIN app_meta a ON a.meta_key = CONCAT('item_restaurant_', m.id)
+GROUP BY restaurant;
