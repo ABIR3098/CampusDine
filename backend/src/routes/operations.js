@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { recordAuditEvent } = require("../utils/audit");
 
 const router = express.Router();
 
@@ -36,6 +37,7 @@ router.post("/riders/shift/start", verifyToken, requireRole("rider"), catchAsync
       "INSERT INTO rider_shifts (rider_id, status, max_orders, started_at) VALUES (?, 'ON_DUTY', ?, NOW())",
       [Number(req.user.id), maxOrders]
     );
+    await recordAuditEvent(connection, req, "RIDER_SHIFT_START", "rider", req.user.id, { maxOrders });
     await connection.commit();
     res.status(201).json({ ok: true, shiftId: result.insertId, status: "ON_DUTY", maxOrders });
   } catch (error) {
@@ -55,6 +57,9 @@ router.post("/riders/shift/end", verifyToken, requireRole("rider"), catchAsync(a
       [Number(req.user.id)]
     );
     await connection.query("UPDATE rider_locations SET active = 0 WHERE rider_id = ?", [Number(req.user.id)]);
+    if (result.affectedRows) {
+      await recordAuditEvent(connection, req, "RIDER_SHIFT_END", "rider", req.user.id);
+    }
     await connection.commit();
     res.json({ ok: true, ended: result.affectedRows });
   } catch (error) {
@@ -123,6 +128,18 @@ router.get("/fraud-events", verifyToken, requireRole("admin"), catchAsync(async 
     FROM fraud_events f LEFT JOIN users u ON u.id = f.user_id
     ORDER BY f.id DESC LIMIT 200
   `);
+  res.json(events);
+}));
+
+router.get("/audit", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const requestedLimit = Number(req.query.limit || 100);
+  const limit = Number.isInteger(requestedLimit) ? Math.max(1, Math.min(300, requestedLimit)) : 100;
+  const [events] = await pool.query(`
+    SELECT a.id, a.actor_role, a.action, a.entity_type, a.entity_id, a.details_json,
+      a.ip_address, a.created_at, u.name AS actor_name
+    FROM audit_logs a LEFT JOIN users u ON u.id = a.actor_user_id
+    ORDER BY a.id DESC LIMIT ?
+  `, [limit]);
   res.json(events);
 }));
 

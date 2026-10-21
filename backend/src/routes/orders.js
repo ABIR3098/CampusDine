@@ -10,6 +10,7 @@ const pricing = require("../pricing");
 const loyalty = require("../loyalty");
 const { assignOrderToBestRider } = require("../utils/riderAssignment");
 const { recordFraudEvent } = require("../utils/fraud");
+const { recordAuditEvent } = require("../utils/audit");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
@@ -190,6 +191,9 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     }
 
     const assignedRiderId = await assignOrderToBestRider(conn, orderResult.insertId);
+    if (assignedRiderId) {
+      await recordAuditEvent(conn, req, "AUTO_RIDER_ASSIGN", "order", orderResult.insertId, { riderId: assignedRiderId });
+    }
     await conn.commit();
 
     const order = {
@@ -268,6 +272,10 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
     await loyalty.refundForOrder(conn, order); // points spent on this order go back to the customer
 
     await conn.query("UPDATE orders SET status = 'Cancelled' WHERE id = ?", [order.id]);
+    await recordAuditEvent(conn, req, "ORDER_CANCEL_AND_REFUND", "order", order.id, {
+      walletRefund: order.payment_method === "wallet",
+      amount: Number(order.total),
+    });
     await conn.commit();
 
     const updated = { ...order, status: "Cancelled" };
@@ -300,7 +308,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
   }
 
   const [[order]] = await pool.query(
-    `SELECT o.id, o.user_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.created_at, o.picked_up_at,
+    `SELECT o.id, o.user_id, o.rider_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.created_at, o.picked_up_at,
             u.name AS customer_name, u.external_id AS customer_id, u.role AS customer_role,
             u.account_type, u.hall_name, u.room_number, u.hall_id
      FROM orders o JOIN users u ON u.id = o.user_id
@@ -318,13 +326,30 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
 
   if (collect) {
     if (problem) return res.status(409).json({ error: problem.message, code: problem.code, order: { ...order, items } });
-    const [upd] = await pool.query("UPDATE orders SET picked_up_at = NOW() WHERE id = ? AND picked_up_at IS NULL", [order.id]);
-    if (upd.affectedRows === 0) {
-      return res.status(409).json({ error: "This order was already collected", code: "ALREADY_COLLECTED", order: { ...order, items } });
+    const connection = await pool.getConnection();
+    let pickedUpAt;
+    try {
+      await connection.beginTransaction();
+      const [updated] = await connection.query(
+        "UPDATE orders SET picked_up_at = NOW(), rider_assignment_status = CASE WHEN rider_id IS NULL THEN rider_assignment_status ELSE 'Completed' END WHERE id = ? AND status = 'Ready' AND picked_up_at IS NULL",
+        [order.id]
+      );
+      if (!updated.affectedRows) {
+        await connection.rollback();
+        return res.status(409).json({ error: "This order is not ready or was already collected", code: "ALREADY_COLLECTED", order: { ...order, items } });
+      }
+      await recordAuditEvent(connection, req, "ORDER_PICKUP_VERIFIED", "order", order.id, { riderId: order.rider_id });
+      const [[fresh]] = await connection.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
+      pickedUpAt = fresh.picked_up_at;
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-    const [[fresh]] = await pool.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
-    const done = { ...order, picked_up_at: fresh.picked_up_at, items };
-    req.app.get("io").to(`user:${order.user_id}`).emit("order:update", { id: order.id, token: order.token, status: order.status, picked_up_at: fresh.picked_up_at });
+    const done = { ...order, picked_up_at: pickedUpAt, items };
+    req.app.get("io").to(`user:${order.user_id}`).emit("order:update", { id: order.id, token: order.token, status: order.status, picked_up_at: pickedUpAt });
     return res.json({ ok: true, collected: true, order: done });
   }
 
@@ -333,12 +358,31 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
 
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
 router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
-  if (!order) return res.status(404).json({ error: "Order not found" });
-
-  const nextIndex = Math.min(STATUSES.indexOf(order.status) + 1, STATUSES.length - 1);
-  const nextStatus = STATUSES[nextIndex];
-  await pool.query("UPDATE orders SET status = ? WHERE id = ?", [nextStatus, order.id]);
+  const connection = await pool.getConnection();
+  let order;
+  let nextStatus;
+  try {
+    await connection.beginTransaction();
+    [[order]] = await connection.query("SELECT * FROM orders WHERE id = ? FOR UPDATE", [req.params.id]);
+    if (!order) {
+      await connection.rollback();
+      return res.status(404).json({ error: "Order not found" });
+    }
+    const statusIndex = STATUSES.indexOf(order.status);
+    if (statusIndex < 0 || statusIndex >= STATUSES.length - 1) {
+      await connection.rollback();
+      return res.status(409).json({ error: "This order cannot be advanced" });
+    }
+    nextStatus = STATUSES[statusIndex + 1];
+    await connection.query("UPDATE orders SET status = ? WHERE id = ?", [nextStatus, order.id]);
+    await recordAuditEvent(connection, req, "ORDER_STATUS_CHANGE", "order", order.id, { from: order.status, to: nextStatus });
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 
   const updated = { ...order, status: nextStatus };
   const io = req.app.get("io");

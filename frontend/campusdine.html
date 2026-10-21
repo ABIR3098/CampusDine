@@ -4372,14 +4372,16 @@ function TeacherRiderTracking({ apiBase, token }) {
 function AdminOperationsAnalytics({ apiBase, token }) {
   const [data, setData] = useState(null);
   const [fraudEvents, setFraudEvents] = useState([]);
+  const [auditEvents, setAuditEvents] = useState([]);
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
     Promise.all([
       api(apiBase, "/api/operations/analytics", { token }),
       api(apiBase, "/api/operations/fraud-events", { token }),
+      api(apiBase, "/api/operations/audit?limit=30", { token }),
     ])
-      .then(([result, events]) => { if (active) { setData(result); setFraudEvents(events); setError(""); } })
+      .then(([result, events, audit]) => { if (active) { setData(result); setFraudEvents(events); setAuditEvents(audit); setError(""); } })
       .catch(e => { if (active) setError(e.message || "Could not load analytics."); });
     return () => { active = false; };
   }, [apiBase, token]);
@@ -4413,6 +4415,10 @@ function AdminOperationsAnalytics({ apiBase, token }) {
     {table("Fraud and abuse alerts", fraudEvents.slice(0, 20), [
       row => `${row.event_type} · ${row.user_name || "Unknown / OTP email"}`,
       row => `${row.severity} · ${new Date(row.created_at).toLocaleString()}`,
+    ])}
+    {table("Recent admin audit log", auditEvents, [
+      row => `${row.action} · ${row.actor_name || "System"} · ${row.entity_type} #${row.entity_id || "—"}`,
+      row => new Date(row.created_at).toLocaleString(),
     ])}
   </section>;
 }

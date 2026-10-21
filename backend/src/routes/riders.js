@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { recordAuditEvent } = require("../utils/audit");
 const router = express.Router();
 
 router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
@@ -19,6 +20,9 @@ router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAs
       await connection.beginTransaction();
       try {
         const riderId = await assignOrderToBestRider(connection, Number(order.id));
+        if (riderId) {
+          await recordAuditEvent(connection, req, "AUTO_RIDER_ASSIGN", "order", order.id, { riderId });
+        }
         await connection.commit();
         if (riderId) {
           assigned.push({ orderId: Number(order.id), riderId });

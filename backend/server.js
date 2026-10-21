@@ -139,6 +139,23 @@ async function ensureFraudSchema(db) {
   )`);
 }
 
+async function ensureAuditSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS audit_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    actor_user_id INT NULL,
+    actor_role VARCHAR(20) NOT NULL,
+    action VARCHAR(80) NOT NULL,
+    entity_type VARCHAR(40) NOT NULL,
+    entity_id VARCHAR(80) NULL,
+    details_json JSON NULL,
+    ip_address VARCHAR(64) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_audit_created (created_at),
+    KEY idx_audit_entity (entity_type, entity_id),
+    FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
+  )`);
+}
+
 async function ensureTrackingSchema(db) {
   await db.query(`CREATE TABLE IF NOT EXISTS order_status_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -485,6 +502,7 @@ async function runStartupCheck() {
 
   await ensureRiderSchema(db);
   await ensureFraudSchema(db);
+  await ensureAuditSchema(db);
 
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },
