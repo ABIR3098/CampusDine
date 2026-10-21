@@ -2220,7 +2220,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
                     {mode === "register" && taken.externalId && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.id")}</p>}
                   </div>
 
-                  {mode === "register" && (
+                  {mode === "register" && role !== "rider" && (
                     <div>
                       <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("acct.type")}</label>
                       <div className="grid grid-cols-2 gap-2">
@@ -6221,6 +6221,7 @@ function App() {
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
+  const teacherTabs = [...userTabs, { key: "riderTracking", label: "Rider Tracking", icon: I.ticket }];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "adminMenu", label: "Menu", icon: I.box },
@@ -6239,7 +6240,7 @@ function App() {
   return (
     <div className="min-h-screen">
       <TopBar role={session.user.role} name={session.user.name} avatar={session.user.avatar}
-        tabs={session.user.role === "admin" ? adminTabs : userTabs}
+        tabs={session.user.role === "admin" ? adminTabs : session.user.role === "teacher" ? teacherTabs : userTabs}
         active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang}
         notifications={notifications} notificationCount={unreadNotifications}
         notificationOpen={notificationCenterOpen}
@@ -6294,13 +6295,14 @@ function App() {
           </div>
         )}
 
+        {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
             onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} />
         )}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
         {session.user.role !== "admin" && tab === "track" && (
-          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} />
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} onRefresh={refreshMyOrders} />
         )}
         {session.user.role !== "admin" && tab === "feedback" && (
           <FeedbackTab user={session.user} orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
