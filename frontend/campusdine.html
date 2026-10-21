@@ -4266,6 +4266,8 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [] });
   const [routePlan, setRoutePlan] = useState(null);
+  const [shift, setShift] = useState(false);
+  const [maxOrders, setMaxOrders] = useState(3);
   const [orderError, setOrderError] = useState("");
   const refreshOrders = async () => { try { setSummary(await api(apiBase, "/api/riders/orders/summary", { token })); setOrderError(""); } catch (e) { setOrderError(e.message || "Could not load orders."); } };
   const acceptOrder = async (orderId) => {
@@ -4284,6 +4286,29 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       setOrderError(e.message || "Could not optimize the route.");
     }
   };
+  useEffect(() => {
+    api(apiBase, "/api/operations/riders/shift/me", { token })
+      .then(current => {
+        setShift(current.status === "ON_DUTY");
+        if (current.maxOrders) setMaxOrders(Number(current.maxOrders));
+      })
+      .catch(e => setOrderError(e.message || "Could not load shift status."));
+  }, [apiBase, token]);
+  const updateShift = async () => {
+    try {
+      if (shift) {
+        await api(apiBase, "/api/operations/riders/shift/end", { method: "POST", token });
+        setShift(false);
+        setMessage("Shift ended. New assignments are paused.");
+      } else {
+        await api(apiBase, "/api/operations/riders/shift/start", { method: "POST", token, body: { maxOrders } });
+        setShift(true);
+        setMessage("Shift started. You can receive new assignments.");
+      }
+    } catch (e) {
+      setOrderError(e.message || "Could not update your shift.");
+    }
+  };
   useEffect(() => { refreshOrders(); const t = setInterval(refreshOrders, 12000); return () => clearInterval(t); }, [apiBase, token]);
   const start = () => {
     if (!navigator.geolocation) { setMessage("This browser does not support GPS."); return; }
@@ -4300,6 +4325,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   return <div className="min-h-screen p-5" style={{ background: "var(--bg)", color: "var(--ink)" }}><div className="max-w-5xl mx-auto mt-8 space-y-5">
     <div className="card p-6"><div className="flex flex-wrap justify-between gap-3 items-start"><div><div className="text-2xl font-display font-800 mb-2">CampusDine Rider Dashboard</div><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Welcome, {user && user.name ? user.name : "Rider"}. Check active campus orders and share your GPS with teachers.</p></div><button onClick={onLogout} className="rounded-xl px-4 py-2 border" style={{ borderColor: "var(--line)" }}>Log out</button></div>
       <div className="rounded-xl p-4 mt-5" style={{ background: "var(--panel-soft)", border: "1px solid var(--line)" }}><div className="font-700">{sharing ? "● Location sharing enabled" : "○ Location sharing stopped"}</div><div className="text-sm mt-1">{message}</div></div>
+      <div className="flex flex-wrap items-center gap-3 mt-4"><label className="text-sm">Maximum active orders <select disabled={shift} value={maxOrders} onChange={e => setMaxOrders(Number(e.target.value))} className="ml-2 rounded-lg border px-3 py-2" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}>{[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}</select></label><button onClick={updateShift} className={shift ? "rounded-xl px-4 py-2 border" : "btn-primary rounded-xl px-4 py-2"} style={shift ? { borderColor: "var(--line)" } : undefined}>{shift ? "End duty shift" : "Start duty shift"}</button><span className="text-sm">{shift ? "On duty" : "Off duty"}</span></div>
       <div className="flex flex-wrap gap-3 mt-4">{!sharing ? <button onClick={start} className="btn-primary rounded-xl px-5 py-3">Start GPS sharing</button> : <button onClick={stop} className="rounded-xl px-5 py-3 border font-700" style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>Stop GPS sharing</button>}<button onClick={refreshOrders} className="rounded-xl px-5 py-3 border" style={{ borderColor: "var(--line)" }}>Refresh orders</button></div>
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
