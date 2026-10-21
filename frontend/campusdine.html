@@ -4195,9 +4195,18 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
 }
 
 /* ---------------- Admin: Orders queue ---------------- */
-function AdminOrders({ orders, advance }) {
+function AdminOrders({ orders, advance, call }) {
+  const [assignmentMessage, setAssignmentMessage] = useState("");
+  const retryAssignments = async () => {
+    try {
+      const result = await call("/api/riders/orders/assign-pending", { method: "POST" });
+      setAssignmentMessage(`${result.count} pending order(s) assigned.`);
+    } catch (error) {
+      setAssignmentMessage(error.message || "Could not assign pending orders.");
+    }
+  };
   if (orders.length === 0) {
-    return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div>;
+    return <div className="space-y-3"><button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>{assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}<div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div></div>;
   }
   // Feature: pre-order — ASAP orders (no pickup_time) need attention first,
   // then scheduled ones soonest-first, so the kitchen sees what's coming up next.
@@ -4208,7 +4217,7 @@ function AdminOrders({ orders, advance }) {
     return new Date(a.pickup_time) - new Date(b.pickup_time);
   });
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-3"><div className="flex flex-wrap items-center gap-3"><button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>{assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}</div><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {sorted.map(o => (
         <div key={o.token} className="card p-4">
           <div className="flex justify-between items-start mb-2">
@@ -4217,7 +4226,7 @@ function AdminOrders({ orders, advance }) {
               background: o.status === "Ready" ? "var(--leaf)" : o.status === "Cooking" ? "var(--gold)" : o.status === "Cancelled" ? "var(--brick)" : "var(--line)",
               color: o.status === "Received" ? "var(--ink)" : "#fff"
             }}>{o.status}</span>
-          </div>
+          </div></div>
           {o.pickup_time && (
             <div className="text-xs mb-2 font-600" style={{ color: "var(--teal)" }}>
               Pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -4258,6 +4267,14 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [] });
   const [orderError, setOrderError] = useState("");
   const refreshOrders = async () => { try { setSummary(await api(apiBase, "/api/riders/orders/summary", { token })); setOrderError(""); } catch (e) { setOrderError(e.message || "Could not load orders."); } };
+  const acceptOrder = async (orderId) => {
+    try {
+      await api(apiBase, `/api/riders/orders/${orderId}/accept`, { method: "POST", token });
+      await refreshOrders();
+    } catch (e) {
+      setOrderError(e.message || "Could not accept this order.");
+    }
+  };
   useEffect(() => { refreshOrders(); const t = setInterval(refreshOrders, 12000); return () => clearInterval(t); }, [apiBase, token]);
   const start = () => {
     if (!navigator.geolocation) { setMessage("This browser does not support GPS."); return; }
@@ -4278,7 +4295,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
-    <div className="card p-5"><div className="text-lg font-display font-800 mb-3">Current Campus Orders</div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active orders right now.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td></tr>)}</tbody></table></div>}</div>
+    <div className="card p-5"><div className="text-lg font-display font-800 mb-3">Assigned Deliveries</div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}</td></tr>)}</tbody></table></div>}</div>
   </div></div>;
 }
 
@@ -6327,7 +6344,7 @@ function App() {
         {session.user.role === "admin" && tab === "adminMenu" && (
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
-        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} />}
+        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "offers" && (
           <AdminOffers call={call} menu={restaurantMenu} notify={(m, isErr) => { if (isErr) showError(m); else showSuccess(m); setLoyaltyKey(k => k + 1); }} />

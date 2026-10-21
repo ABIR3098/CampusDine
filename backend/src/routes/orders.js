@@ -8,6 +8,7 @@ const { loadItemRestaurants } = require("../restaurants");
 const { resolvePickupTime } = require("../utils/pickup");
 const pricing = require("../pricing");
 const loyalty = require("../loyalty");
+const { assignOrderToBestRider } = require("../utils/riderAssignment");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
@@ -182,6 +183,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       pointsBalance = await loyalty.redeemForOrder(conn, { userId: req.user.id, reward: priced.reward, orderId: orderResult.insertId, token });
     }
 
+    const assignedRiderId = await assignOrderToBestRider(conn, orderResult.insertId);
     await conn.commit();
 
     const order = {
@@ -189,9 +191,14 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       promo_discount: priced.promoDiscount, reward_discount: priced.rewardDiscount, points_used: pointsUsed,
       promo_label: priced.promoLabel, subtotal: priced.subtotal, points_earnable: priced.pointsEarnable, points_balance: pointsBalance,
       status: "Received", pickup_time: pickupTime, note: orderNote,
+      rider_id: assignedRiderId,
+      rider_assignment_status: assignedRiderId ? "Assigned" : "Unassigned",
       items: snapshot.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
     };
     req.app.get("io").to("admins").emit("order:new", order);
+    if (assignedRiderId) {
+      req.app.get("io").to(`rider:${assignedRiderId}`).emit("rider:order-assigned", { orderId: order.id });
+    }
     req.app.get("io").emit("queue:changed");
     res.status(201).json(order);
   } catch (err) {

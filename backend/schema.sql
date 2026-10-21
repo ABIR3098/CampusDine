@@ -95,9 +95,25 @@ CREATE TABLE IF NOT EXISTS orders (
   pickup_time DATETIME NULL,  -- NULL = ASAP; otherwise a scheduled pickup time (feature: pre-order)
   note VARCHAR(255) NULL,     -- optional note for the kitchen, e.g. "less spicy"
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
+  rider_id INT NULL,
+  rider_assignment_status ENUM('Unassigned','Assigned','Accepted','Declined','Completed') NOT NULL DEFAULT 'Unassigned',
   picked_up_at DATETIME NULL, -- set when the counter scans the QR and hands the order over
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_orders_rider_status (rider_id, rider_assignment_status),
   FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS rider_shifts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  rider_id INT NOT NULL,
+  status ENUM('ON_DUTY','OFF_DUTY') NOT NULL DEFAULT 'OFF_DUTY',
+  max_orders INT NOT NULL DEFAULT 3,
+  started_at DATETIME NOT NULL,
+  ended_at DATETIME NULL,
+  active_key TINYINT GENERATED ALWAYS AS (CASE WHEN status = 'ON_DUTY' THEN 1 ELSE NULL END) STORED,
+  UNIQUE KEY uq_rider_one_active_shift (rider_id, active_key),
+  KEY idx_rider_shift_status (rider_id, status),
+  FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Feature: order cancel + refund. If you created the database before this

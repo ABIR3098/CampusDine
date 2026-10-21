@@ -97,6 +97,26 @@ async function ensureRiderSchema(db) {
     active TINYINT(1) NOT NULL DEFAULT 0, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_rider_location_user FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
   )`);
+  const [riderIdColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'rider_id'");
+  if (!riderIdColumn.length) await db.query("ALTER TABLE orders ADD COLUMN rider_id INT NULL");
+  const [assignmentColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'rider_assignment_status'");
+  if (!assignmentColumn.length) {
+    await db.query("ALTER TABLE orders ADD COLUMN rider_assignment_status ENUM('Unassigned','Assigned','Accepted','Declined','Completed') NOT NULL DEFAULT 'Unassigned' AFTER rider_id");
+  }
+  const [riderIndex] = await db.query("SHOW INDEX FROM orders WHERE Key_name = 'idx_orders_rider_status'");
+  if (!riderIndex.length) await db.query("ALTER TABLE orders ADD KEY idx_orders_rider_status (rider_id, rider_assignment_status)");
+  await db.query(`CREATE TABLE IF NOT EXISTS rider_shifts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    rider_id INT NOT NULL,
+    status ENUM('ON_DUTY','OFF_DUTY') NOT NULL DEFAULT 'OFF_DUTY',
+    max_orders INT NOT NULL DEFAULT 3,
+    started_at DATETIME NOT NULL,
+    ended_at DATETIME NULL,
+    active_key TINYINT GENERATED ALWAYS AS (CASE WHEN status = 'ON_DUTY' THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_rider_one_active_shift (rider_id, active_key),
+    KEY idx_rider_shift_status (rider_id, status),
+    FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
 }
 
 async function ensureTrackingSchema(db) {
@@ -529,6 +549,7 @@ io.on("connection", (socket) => {
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
   if (socket.user.role === "teacher") socket.join("teachers");
+  if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
