@@ -5931,7 +5931,7 @@ function App() {
 
   // Initial data load after login
   useEffect(() => {
-    if (!session) return;
+    if (!session || session.user.role === "rider") return;
     (async () => {
       try {
         if (session.user.role === "admin") {
@@ -5952,7 +5952,7 @@ function App() {
 
   // Refetch the meal calendar & bill whenever the visible month changes
   useEffect(() => {
-    if (!session || session.user.role === "admin") return;
+    if (!session || session.user.role === "admin" || session.user.role === "rider") return;
     refreshCalendar().catch(showError);
   }, [session, year, month]);
 
@@ -5961,7 +5961,10 @@ function App() {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
     socketRef.current = socket;
-    socket.on("connect", () => setConnected(true));
+    socket.on("connect", () => {
+      setConnected(true);
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+    });
     socket.on("disconnect", () => setConnected(false));
     socket.on("order:new", (order) => {
       if (session.user.role === "admin") {
@@ -5972,6 +5975,7 @@ function App() {
     socket.on("order:update", (order) => {
       setOrders(prev => prev.map(o => o.id === order.id
         ? { ...o, status: order.status, ...(order.picked_up_at !== undefined ? { picked_up_at: order.picked_up_at } : {}) } : o));
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
       if (order.picked_up_at && session.user.role !== "admin") {
         pushNotification("order", tx("n.collected.t"), tx("n.collected", { o: order.token || "#" + order.id }));
         return;
@@ -6015,8 +6019,9 @@ function App() {
     // Admin changed an item (sold out / hidden / price): refresh the menu live
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("queue:changed", () => {
-      if (session.user.role !== "admin") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
     });
+
     return () => socket.disconnect();
   }, [session, apiBase]);
 
@@ -6184,11 +6189,13 @@ function App() {
     try { localStorage.setItem("cd_lang", next); } catch (e) {}
   };
 
-  if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} />;
+  if (!session) return <><RiderGpsBackground /><Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} /></>;
+
+  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} /></>;
 
   if (!restaurant) {
-    return <RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
-      onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} />;
+    return <><RiderGpsBackground /><RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
+      onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} /></>;
   }
 
   // Each restaurant sells its own items; admin orders are also limited to the chosen restaurant
