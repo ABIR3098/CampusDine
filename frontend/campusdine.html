@@ -4250,6 +4250,72 @@ function AdminOrders({ orders, advance }) {
   );
 }
 
+/* ---------------- Rider-only GPS sharing ---------------- */
+function RiderDashboard({ apiBase, token, user, onLogout }) {
+  const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
+  const [message, setMessage] = useState(sharing ? "GPS sharing is enabled and continues after logout while this page remains open." : "Location sharing is off.");
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [] });
+  const [orderError, setOrderError] = useState("");
+  const refreshOrders = async () => { try { setSummary(await api(apiBase, "/api/riders/orders/summary", { token })); setOrderError(""); } catch (e) { setOrderError(e.message || "Could not load orders."); } };
+  useEffect(() => { refreshOrders(); const t = setInterval(refreshOrders, 12000); return () => clearInterval(t); }, [apiBase, token]);
+  const start = () => {
+    if (!navigator.geolocation) { setMessage("This browser does not support GPS."); return; }
+    navigator.geolocation.getCurrentPosition(() => {
+      try { localStorage.setItem("cd_rider_gps", JSON.stringify({ token, apiBase, riderId: Date.now() })); } catch (_) {}
+      setSharing(true); setMessage("GPS sharing is active. It will continue if you log out, as long as this page stays open.");
+    }, err => setMessage(err.message || "Location permission denied."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+  };
+  const stop = async () => {
+    try { localStorage.removeItem("cd_rider_gps"); } catch (_) {}
+    try { await api(apiBase, "/api/riders/location", { method: "POST", token, body: { active: false } }); } catch (_) {}
+    setSharing(false); setMessage("Location sharing stopped.");
+  };
+  return <div className="min-h-screen p-5" style={{ background: "var(--bg)", color: "var(--ink)" }}><div className="max-w-5xl mx-auto mt-8 space-y-5">
+    <div className="card p-6"><div className="flex flex-wrap justify-between gap-3 items-start"><div><div className="text-2xl font-display font-800 mb-2">CampusDine Rider Dashboard</div><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Welcome, {user && user.name ? user.name : "Rider"}. Check active campus orders and share your GPS with teachers.</p></div><button onClick={onLogout} className="rounded-xl px-4 py-2 border" style={{ borderColor: "var(--line)" }}>Log out</button></div>
+      <div className="rounded-xl p-4 mt-5" style={{ background: "var(--panel-soft)", border: "1px solid var(--line)" }}><div className="font-700">{sharing ? "● Location sharing enabled" : "○ Location sharing stopped"}</div><div className="text-sm mt-1">{message}</div></div>
+      <div className="flex flex-wrap gap-3 mt-4">{!sharing ? <button onClick={start} className="btn-primary rounded-xl px-5 py-3">Start GPS sharing</button> : <button onClick={stop} className="rounded-xl px-5 py-3 border font-700" style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>Stop GPS sharing</button>}<button onClick={refreshOrders} className="rounded-xl px-5 py-3 border" style={{ borderColor: "var(--line)" }}>Refresh orders</button></div>
+      <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
+    </div>
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
+    <div className="card p-5"><div className="text-lg font-display font-800 mb-3">Current Campus Orders</div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active orders right now.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td></tr>)}</tbody></table></div>}</div>
+  </div></div>;
+}
+
+function RiderGpsBackground() {
+  useEffect(() => {
+    let busy = false;
+    const tick = () => {
+      if (busy || !navigator.geolocation) return;
+      let saved;
+      try { saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); } catch (_) { saved = null; }
+      if (!saved || !saved.token || !saved.apiBase) return;
+      busy = true;
+      navigator.geolocation.getCurrentPosition(async pos => {
+        try { await api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy } }); }
+        catch (_) {}
+        finally { busy = false; }
+      }, () => { busy = false; }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+    };
+    tick(); const timer = setInterval(tick, 8000);
+    return () => clearInterval(timer);
+  }, []);
+  return null;
+}
+
+/* ---------------- Teacher-only rider map ---------------- */
+function TeacherRiderTracking({ apiBase, token }) {
+  const [riders, setRiders] = useState([]); const [error, setError] = useState(""); const [updatedAt, setUpdatedAt] = useState(null);
+  const refresh = async () => { try { setRiders(await api(apiBase, "/api/riders/locations", { token })); setError(""); setUpdatedAt(new Date()); } catch (e) { setError(e.message || "Could not load rider locations."); } };
+  useEffect(() => { refresh(); const timer = setInterval(refresh, 10000); const socket = io(apiBase, { auth: { token } }); socket.on("rider:location", refresh); socket.on("connect", refresh); return () => { clearInterval(timer); socket.disconnect(); }; }, [apiBase, token]);
+  const active = riders.filter(r => r.active && r.latitude != null && r.longitude != null);
+  return <div className="space-y-4"><div className="flex items-center justify-between gap-3"><div><h2 className="font-display font-800 text-xl">Rider Live Locations</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Teacher-only location view. Live events and automatic refresh every 10 seconds.</p></div><button onClick={refresh} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>↻ Refresh</button></div>
+    {updatedAt && <div className="text-xs" style={{ color: "var(--ink-soft)" }}>Last refreshed {updatedAt.toLocaleTimeString()}</div>}{error && <div className="card p-3" style={{ color: "var(--brick)" }}>{error}</div>}
+    {riders.length === 0 && !error && <div className="card p-6 text-center">No rider accounts found yet.</div>}{riders.length > 0 && active.length === 0 && <div className="card p-5">No riders are sharing their location right now.</div>}
+    <div className="grid md:grid-cols-2 gap-4">{active.map(r => <div className="card overflow-hidden" key={r.riderId}><div className="p-4"><div className="font-700">{r.name}</div><div className="text-xs" style={{ color: "var(--ink-soft)" }}>Rider ID: {r.external_id} · Updated {r.updated_at ? new Date(r.updated_at).toLocaleTimeString() : "just now"}</div></div><iframe title={`Location of ${r.name}`} width="100%" height="240" loading="lazy" style={{ border: 0 }} src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.longitude-0.003}%2C${r.latitude-0.002}%2C${r.longitude+0.003}%2C${r.latitude+0.002}&layer=mapnik&marker=${r.latitude}%2C${r.longitude}`} /><div className="p-3"><a className="underline text-sm" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${r.latitude}&mlon=${r.longitude}#map=18/${r.latitude}/${r.longitude}`}>Open larger map ↗</a></div></div>)}</div>
+  </div>;
+}
+
 /* ---------------- Admin: Reports ---------------- */
 function AdminReports({ trend, forecast, call, apiBase, token }) {
   const max = Math.max(1, ...trend.map(r => r.revenue));
