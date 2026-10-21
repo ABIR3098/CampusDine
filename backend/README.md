@@ -335,3 +335,9 @@ The wallet system can be extended to support payment gateways such as SSLCommerz
 ---
 
 *Before publishing, verify that the API endpoints, environment variables, demo-account behavior, and deployment instructions match the current codebase.*
+# Rider password reset
+
+Riders can use the existing OTP-based Forgot Password flow: request a code with
+the rider ID and registered email, then submit the code and a new password.
+The reset endpoints allow non-admin accounts, including riders. Configure SMTP
+and keep `EMAIL_OTP_REQUIRED=true` to send verification and reset codes by email.
