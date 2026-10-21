@@ -21,6 +21,7 @@ const authRoutes = require("./src/routes/auth");
 const menuRoutes = require("./src/routes/menu");
 const orderRoutes = require("./src/routes/orders");
 const riderRoutes = require("./src/routes/riders");
+const operationsRoutes = require("./src/routes/operations");
 const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
@@ -105,6 +106,10 @@ async function ensureRiderSchema(db) {
   }
   const [riderIndex] = await db.query("SHOW INDEX FROM orders WHERE Key_name = 'idx_orders_rider_status'");
   if (!riderIndex.length) await db.query("ALTER TABLE orders ADD KEY idx_orders_rider_status (rider_id, rider_assignment_status)");
+  const [latitudeColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'delivery_lat'");
+  if (!latitudeColumn.length) await db.query("ALTER TABLE orders ADD COLUMN delivery_lat DECIMAL(10,7) NULL");
+  const [longitudeColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'delivery_lng'");
+  if (!longitudeColumn.length) await db.query("ALTER TABLE orders ADD COLUMN delivery_lng DECIMAL(10,7) NULL");
   await db.query(`CREATE TABLE IF NOT EXISTS rider_shifts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     rider_id INT NOT NULL,
@@ -557,6 +562,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/riders", riderRoutes);
+app.use("/api/operations", operationsRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);

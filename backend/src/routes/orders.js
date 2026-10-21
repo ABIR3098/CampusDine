@@ -153,9 +153,14 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     // Token: the row is inserted with a temporary unique token and then renamed to C-<100 + order id>.
     // (The old "MAX(id) + 1" way could hand two simultaneous orders the same token and one would fail.)
     const tempToken = `T-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.toUpperCase().slice(0, 20);
+    const deliveryLocation = req.body.deliveryLocation || {};
+    const deliveryLat = Number(deliveryLocation.latitude);
+    const deliveryLng = Number(deliveryLocation.longitude);
+    const hasValidDeliveryLocation = Number.isFinite(deliveryLat) && deliveryLat >= -90 && deliveryLat <= 90
+      && Number.isFinite(deliveryLng) && deliveryLng >= -180 && deliveryLng <= 180;
     const [orderResult] = await conn.query(
-      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
-      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote]
+      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, delivery_lat, delivery_lng, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
+      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote, hasValidDeliveryLocation ? deliveryLat : null, hasValidDeliveryLocation ? deliveryLng : null]
     );
     const token = `C-${String(100 + orderResult.insertId).padStart(3, "0")}`;
     await conn.query("UPDATE orders SET token = ? WHERE id = ?", [token, orderResult.insertId]);

@@ -97,6 +97,8 @@ CREATE TABLE IF NOT EXISTS orders (
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
   rider_id INT NULL,
   rider_assignment_status ENUM('Unassigned','Assigned','Accepted','Declined','Completed') NOT NULL DEFAULT 'Unassigned',
+  delivery_lat DECIMAL(10,7) NULL,
+  delivery_lng DECIMAL(10,7) NULL,
   picked_up_at DATETIME NULL, -- set when the counter scans the QR and hands the order over
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   KEY idx_orders_rider_status (rider_id, rider_assignment_status),

@@ -4265,6 +4265,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [message, setMessage] = useState(sharing ? "GPS sharing is enabled and continues after logout while this page remains open." : "Location sharing is off.");
   const [lastUpdate, setLastUpdate] = useState(null);
   const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [] });
+  const [routePlan, setRoutePlan] = useState(null);
   const [orderError, setOrderError] = useState("");
   const refreshOrders = async () => { try { setSummary(await api(apiBase, "/api/riders/orders/summary", { token })); setOrderError(""); } catch (e) { setOrderError(e.message || "Could not load orders."); } };
   const acceptOrder = async (orderId) => {
@@ -4273,6 +4274,14 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       await refreshOrders();
     } catch (e) {
       setOrderError(e.message || "Could not accept this order.");
+    }
+  };
+  const optimizeRoute = async () => {
+    try {
+      setRoutePlan(await api(apiBase, "/api/operations/riders/route", { token }));
+      setOrderError("");
+    } catch (e) {
+      setOrderError(e.message || "Could not optimize the route.");
     }
   };
   useEffect(() => { refreshOrders(); const t = setInterval(refreshOrders, 12000); return () => clearInterval(t); }, [apiBase, token]);
@@ -4295,7 +4304,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
-    <div className="card p-5"><div className="text-lg font-display font-800 mb-3">Assigned Deliveries</div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}</td></tr>)}</tbody></table></div>}</div>
+    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}</td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
   </div></div>;
 }
 
@@ -6045,6 +6054,14 @@ function App() {
   const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId) => {
     setBusy(true); setError(null);
     try {
+      const deliveryLocation = await new Promise(resolve => {
+        if (!navigator.geolocation) return resolve(undefined);
+        navigator.geolocation.getCurrentPosition(
+          position => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+          () => resolve(undefined),
+          { enableHighAccuracy: false, maximumAge: 60000, timeout: 1800 }
+        );
+      });
       await call("/api/orders", {
         method: "POST",
         body: {
@@ -6055,6 +6072,7 @@ function App() {
           couponCode: coupon ? coupon.code : undefined,
           note: note && note.trim() ? note.trim() : undefined,
           rewardId: rewardId || undefined,
+          deliveryLocation,
         },
       });
       setCart([]);
