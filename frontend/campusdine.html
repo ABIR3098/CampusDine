@@ -338,6 +338,66 @@
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
+/*chat-ui*/
+.chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
+.chat-shell[data-admin="1"]{grid-template-columns:320px minmax(0,1fr)}
+.chat-inbox{display:flex;flex-direction:column;overflow:hidden;padding:0}
+.chat-inbox-head{padding:14px 14px 10px;border-bottom:1px solid var(--line)}
+.chat-search{width:100%;margin-top:10px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:13px;outline:none}
+.chat-search:focus{border-color:var(--gold)}
+.chat-inbox-list{flex:1;overflow-y:auto;padding:6px}
+.chat-item{display:flex;gap:12px;width:100%;text-align:left;padding:10px;border-radius:12px;transition:background .15s}
+.chat-item:hover{background:var(--hover)}
+.chat-item.active{background:var(--gold-soft)}
+.chat-item-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chat-item-top,.chat-item-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chat-item-name{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-item-time{font-size:11px;color:var(--ink-soft);flex-shrink:0}
+.chat-item-last{font-size:12.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-item-role{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+.chat-badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+.chat-panel{display:flex;flex-direction:column;overflow:hidden;padding:0;min-height:0}
+.chat-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.chat-back{display:none;width:34px;height:34px;border-radius:999px;place-items:center;color:var(--ink)}
+.chat-pill{font-size:11px;padding:4px 10px;border-radius:999px;background:var(--gold-soft);color:var(--gold);font-weight:600;white-space:nowrap}
+.chat-error{padding:8px 16px;font-size:13px;color:var(--brick)}
+.chat-scroll{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:2px;background:var(--bg)}
+.chat-day{display:flex;justify-content:center;margin:14px 0 8px}
+.chat-day span{font-size:11px;padding:3px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--ink-soft)}
+.chat-row{display:flex;align-items:flex-end;gap:8px;justify-content:flex-start}
+.chat-row.mine{justify-content:flex-end}
+.chat-bubble{max-width:min(78%,520px);padding:8px 12px 6px;font-size:14px;line-height:1.45;animation:chatIn .18s ease;border-radius:18px}
+.chat-bubble p{white-space:pre-wrap;word-break:break-word;margin:0}
+.chat-bubble.first{margin-top:8px}
+.chat-bubble.theirs{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:6px}
+.chat-bubble.theirs.last{border-bottom-left-radius:18px;border-bottom-left-radius:4px}
+.chat-bubble.mine{background:linear-gradient(135deg,var(--gold),var(--gold-hover));color:#fff;border-bottom-right-radius:6px}
+.chat-bubble.mine.last{border-bottom-right-radius:4px}
+.chat-bubble.pending{opacity:.6}
+.chat-name{font-size:11px;font-weight:700;color:var(--gold);margin-bottom:2px}
+.chat-meta{display:block;text-align:right;font-size:10px;margin-top:2px;opacity:.7}
+.chat-empty{margin:auto;text-align:center;max-width:320px;color:var(--ink-soft);font-size:14px}
+.chat-empty-icon{width:64px;height:64px;margin:0 auto 12px;border-radius:999px;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold)}
+.chat-quick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.chat-quick button{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;transition:all .15s}
+.chat-quick button:hover{border-color:var(--gold);color:var(--gold)}
+.chat-composer{display:flex;align-items:flex-end;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:var(--panel)}
+.chat-input-wrap{flex:1;position:relative}
+.chat-input-wrap textarea{width:100%;resize:none;max-height:120px;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:14px;line-height:1.4;outline:none;display:block}
+.chat-input-wrap textarea:focus{border-color:var(--gold)}
+.chat-count{position:absolute;right:14px;bottom:-16px;font-size:10px;color:var(--ink-soft)}
+.chat-send{width:42px;height:42px;border-radius:999px;display:grid;place-items:center;background:var(--gold);color:#fff;flex-shrink:0;transition:transform .1s,opacity .15s}
+.chat-send:hover:not(:disabled){transform:scale(1.06)}
+.chat-send:disabled{background:var(--disabled-bg);color:var(--disabled-fg);cursor:not-allowed}
+@keyframes chatIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:900px){
+  .chat-shell[data-admin="1"]{grid-template-columns:1fr}
+  .chat-shell[data-admin="1"][data-mobile-chat="0"] .chat-panel{display:none}
+  .chat-shell[data-admin="1"][data-mobile-chat="1"] .chat-inbox{display:none}
+  .chat-shell[data-admin="1"] .chat-back{display:grid}
+  .chat-pill{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -4568,141 +4628,176 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [mobileChat, setMobileChat] = useState(false);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
   const isAdmin = role === "admin";
-  const selectedConversation = conversations.find(item => Number(item.user_id) === Number(selectedUserId));
-
+  const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
   const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+
   const refreshConversations = async () => {
     const data = await chatCall("/api/chat/conversations");
     setConversations(data.conversations || []);
   };
-  const refreshMessages = async (targetUserId = selectedUserId) => {
-    if (isAdmin) {
-      if (!targetUserId) {
-        setMessages([]);
-        return;
-      }
-      const data = await chatCall(`/api/chat/${targetUserId}/messages`);
-      setMessages(data.messages || []);
-      return;
-    }
-    const data = await chatCall("/api/chat/messages");
+  const refreshMessages = async (target = selectedUserId) => {
+    if (isAdmin && !target) { setMessages([]); return; }
+    const data = await chatCall(isAdmin ? `/api/chat/${target}/messages` : "/api/chat/messages");
     setMessages(data.messages || []);
   };
 
   useEffect(() => {
-    if (isAdmin) {
-      refreshConversations().catch(e => setError(e.message));
-    } else {
-      refreshMessages().catch(e => setError(e.message));
-    }
+    (isAdmin ? refreshConversations() : refreshMessages()).catch(e => setError(e.message));
   }, [isAdmin, apiBase, sessionToken, refreshKey]);
-
   useEffect(() => {
     if (!isAdmin || selectedUserId || conversations.length === 0) return;
     setSelectedUserId(conversations[0].user_id);
   }, [isAdmin, selectedUserId, conversations]);
-
   useEffect(() => {
     if (!isAdmin || !selectedUserId) return;
     refreshMessages(selectedUserId).catch(e => setError(e.message));
   }, [isAdmin, apiBase, sessionToken, selectedUserId, refreshKey]);
+  // Fallback auto-refresh every 10s (live socket updates still work instantly)
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (document.hidden) return;
+      (isAdmin ? Promise.all([refreshConversations(), refreshMessages()]) : refreshMessages()).catch(() => {});
+    }, 10000);
+    return () => clearInterval(t);
+  }, [isAdmin, apiBase, sessionToken, selectedUserId]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId]);
 
-  const sendMessage = async (event) => {
-    event.preventDefault();
-    const message = draft.trim();
-    if (!message || busy) return;
-    setBusy(true);
-    setError("");
+  const send = async (text) => {
+    const message = (text ?? draft).trim();
+    if (!message || busy || (isAdmin && !selectedUserId)) return;
+    setBusy(true); setError("");
+    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
+    setMessages(m => [...m, temp]);
+    setDraft("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
     try {
-      await chatCall("/api/chat/messages", {
-        method: "POST",
-        body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) },
-      });
-      setDraft("");
-      await Promise.all([
-        refreshMessages(selectedUserId),
-        isAdmin ? refreshConversations() : Promise.resolve(),
-      ]);
+      await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
+      await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
     } catch (e) {
+      setMessages(m => m.filter(x => x.id !== temp.id));
+      setDraft(message);
       setError(e.message || tx("chat.sendfail"));
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
+  };
+  const onKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  const onInput = (e) => {
+    setDraft(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
   };
 
-  const heading = isAdmin
-    ? selectedConversation?.name || "Choose a conversation"
-    : tx("chat.admin");
+  const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const dayLabel = (d) => {
+    const x = new Date(d), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
+    if (x.toDateString() === now.toDateString()) return "Today";
+    if (x.toDateString() === y.toDateString()) return "Yesterday";
+    return x.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  };
+  const listTime = (d) => {
+    if (!d) return "";
+    const x = new Date(d);
+    return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
+  };
+
+  const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+
+  const rows = [];
+  messages.forEach((m, i) => {
+    const prev = messages[i - 1], next = messages[i + 1];
+    const mine = Number(m.sender_id) === Number(userId);
+    if (!prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString())
+      rows.push(<div key={`d${m.id}`} className="chat-day"><span>{dayLabel(m.created_at)}</span></div>);
+    const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
+    const last = !next || Number(next.sender_id) !== Number(m.sender_id);
+    rows.push(
+      <div key={m.id} className={`chat-row ${mine ? "mine" : ""}`}>
+        {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
+        <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
+          {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
+          <p>{m.message}</p>
+          <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
+        </div>
+      </div>
+    );
+  });
 
   return (
-    <section className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-4 min-h-[min(70vh,680px)]">
+    <section className="chat-shell" data-admin={isAdmin ? "1" : "0"} data-mobile-chat={mobileChat ? "1" : "0"}>
       {isAdmin && (
-        <aside className="card p-3">
-          <h2 className="font-display font-700 px-2 py-2" style={{ color: "var(--gold)" }}>Inbox</h2>
-          {conversations.length === 0 ? (
-            <p className="px-2 py-3 text-sm" style={{ color: "var(--ink-soft)" }}>No messages yet.</p>
-          ) : (
-            <div className="space-y-1">
-              {conversations.map(item => (
-                <button key={item.user_id} onClick={() => setSelectedUserId(item.user_id)}
-                  className="w-full text-left p-3 rounded-lg transition-colors"
-                  style={{ background: Number(selectedUserId) === Number(item.user_id) ? "var(--gold-soft)" : "transparent" }}>
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="font-600 text-sm truncate">{item.name}</span>
-                    {Number(item.unread_count) > 0 && (
-                      <span className="min-w-5 h-5 px-1 rounded-full grid place-items-center text-[10px] text-white" style={{ background: "var(--brick)" }}>
-                        {item.unread_count}
-                      </span>
-                    )}
+        <aside className="card chat-inbox">
+          <div className="chat-inbox-head">
+            <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search students & teachers…" className="chat-search" />
+          </div>
+          <div className="chat-inbox-list">
+            {filtered.length === 0 ? (
+              <p className="p-4 text-sm text-center" style={{ color: "var(--ink-soft)" }}>{conversations.length ? "No match found." : "No messages yet."}</p>
+            ) : filtered.map(c => {
+              const active = Number(selectedUserId) === Number(c.user_id), unread = Number(c.unread_count) > 0;
+              return (
+                <button key={c.user_id} className={`chat-item ${active ? "active" : ""}`}
+                  onClick={() => { setSelectedUserId(c.user_id); setMobileChat(true); }}>
+                  <Avatar name={c.name} size={42} />
+                  <span className="chat-item-body">
+                    <span className="chat-item-top">
+                      <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
+                      <span className="chat-item-time">{listTime(c.last_at || c.last_message_at)}</span>
+                    </span>
+                    <span className="chat-item-bottom">
+                      <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
+                      {unread && <span className="chat-badge">{c.unread_count}</span>}
+                    </span>
+                    <span className="chat-item-role">{c.role}</span>
                   </span>
-                  <span className="block text-[11px] capitalize mt-0.5" style={{ color: "var(--ink-soft)" }}>{item.role}</span>
-                  <span className="block text-xs mt-1 truncate" style={{ color: "var(--ink-soft)" }}>{item.last_message || "No messages"}</span>
                 </button>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </aside>
       )}
-      <div className="card flex flex-col min-h-[min(70vh,680px)] overflow-hidden">
-        <header className="px-4 py-3 border-b flex items-center justify-between gap-3" style={{ borderColor: "var(--line)" }}>
-          <div>
-            <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>{heading}</h2>
+      <div className="card chat-panel">
+        <header className="chat-head">
+          {isAdmin && <button className="chat-back" onClick={() => setMobileChat(false)} aria-label="Back"><Icon path="M15 18l-6-6 6-6" /></button>}
+          <Avatar name={heading} size={40} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
-              {isAdmin ? selectedConversation?.role || "Admin inbox" : tx("chat.private")}
+              {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
             </p>
           </div>
-          {selectedConversation && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("chat.support")}</span>}
+          <span className="chat-pill">{tx("chat.support")}</span>
         </header>
-        {error && <p className="px-4 pt-3 text-sm" style={{ color: "var(--brick)" }}>{error}</p>}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3" aria-live="polite">
+        {error && <p className="chat-error">{error}</p>}
+        <div className="chat-scroll" aria-live="polite">
           {messages.length === 0 ? (
-            <div className="h-full min-h-48 grid place-items-center text-center text-sm" style={{ color: "var(--ink-soft)" }}>
-              {isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}
-            </div>
-          ) : messages.map(message => {
-            const mine = Number(message.sender_id) === Number(userId);
-            return (
-              <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[85%] rounded-xl px-3 py-2" style={{ background: mine ? "var(--gold-soft)" : "var(--bg)", color: "var(--ink)" }}>
-                  <div className="text-[10px] font-700 mb-1" style={{ color: "var(--ink-soft)" }}>{mine ? tx("chat.you") : message.sender_name}</div>
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
-                  <time className="block text-[10px] mt-1 text-right" style={{ color: "var(--ink-soft)" }}>
-                    {new Date(message.created_at).toLocaleString()}
-                  </time>
+            <div className="chat-empty">
+              <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
+              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}</p>
+              {!isAdmin && (
+                <div className="chat-quick">
+                  {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </div>
+          ) : rows}
+          <div ref={bottomRef} />
         </div>
-        <form onSubmit={sendMessage} className="p-3 border-t flex items-end gap-2" style={{ borderColor: "var(--line)" }}>
-          <textarea value={draft} onChange={e => setDraft(e.target.value)} maxLength={4000} rows={2}
-            disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")}
-            className="flex-1 resize-y px-3 py-2 rounded-lg border text-sm disabled:opacity-50"
-            style={{ borderColor: "var(--line)" }} />
-          <button type="submit" disabled={busy || !draft.trim() || (isAdmin && !selectedUserId)}
-            className="btn-primary px-4 py-2 rounded-lg text-sm disabled:opacity-50">
-            {busy ? tx("chat.sending") : tx("chat.send")}
+        <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+          <div className="chat-input-wrap">
+            <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
+              disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />
+            {draft.length > 3500 && <span className="chat-count">{draft.length}/4000</span>}
+          </div>
+          <button type="submit" className="chat-send" aria-label={tx("chat.send")}
+            disabled={busy || !draft.trim() || (isAdmin && !selectedUserId)}>
+            <Icon path="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" className="w-5 h-5" />
           </button>
         </form>
       </div>
