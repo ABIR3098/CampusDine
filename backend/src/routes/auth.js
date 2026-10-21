@@ -4,9 +4,32 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db");
 const { verifyToken } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { createOtp, verifyOtp } = require("../utils/otp");
+const { sendOtpEmail } = require("../utils/mailer");
 
 const router = express.Router();
 const SIGNUP_BONUS = 250;
+// Email OTP is on by default. Set EMAIL_OTP_REQUIRED=false in .env to go back to the old
+// no-code sign-up / reset flow (e.g. while the OTP screens are not in the frontend yet).
+const otpRequired = () => String(process.env.EMAIL_OTP_REQUIRED || "true").toLowerCase() !== "false";
+// Login 2FA: after the password is right, a code is emailed and must be typed to finish logging in.
+//   LOGIN_OTP=all (default) | admin | off      (only works while EMAIL_OTP_REQUIRED is not false)
+// An account with no email on file (e.g. the demo accounts) skips the code, because there is nowhere to send it.
+const loginOtpApplies = (user) => {
+  if (!otpRequired() || !user.email) return false;
+  const mode = String(process.env.LOGIN_OTP || "all").toLowerCase();
+  if (mode === "off") return false;
+  if (mode === "admin") return user.role === "admin";
+  return true;
+};
+const maskEmail = (e) => String(e).replace(/^(.).*?(@.*)$/, (_, a, b) => `${a}***${b}`);
+const signChallenge = (userId) => jwt.sign({ uid: userId, purpose: "login2fa" }, process.env.JWT_SECRET, { expiresIn: "10m" });
+function readChallenge(raw) {
+  try {
+    const c = jwt.verify(String(raw || ""), process.env.JWT_SECRET);
+    return c.purpose === "login2fa" ? c : null;
+  } catch (e) { return null; }
+}
 const PUBLIC_ROLES = ["student", "teacher"]; // admin accounts can NOT be created from the public sign-up form
 
 // ───────────── helpers ─────────────
@@ -78,6 +101,59 @@ router.get("/availability", catchAsync(async (req, res) => {
   res.json(out);
 }));
 
+// ───────────── GET /api/auth/config ─────────────
+// Lets the frontend know whether it must show the OTP step.
+router.get("/config", (req, res) => res.json({ otpRequired: otpRequired() }));
+
+// ───────────── POST /api/auth/otp/send-signup ─────────────
+// body: { email, externalId }  → emails a 6-digit code (purpose "signup").
+// Refuses if the email or ID already has an account, so no code is wasted.
+router.post("/otp/send-signup", catchAsync(async (req, res) => {
+  const email = clean(req.body.email).toLowerCase();
+  const externalId = clean(req.body.externalId);
+  if (!EMAIL_RE.test(email) || email.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
+  if (externalId && !ID_RE.test(externalId)) {
+    return res.status(400).json({ error: "ID must be 3–50 characters: letters, numbers, dot, dash or underscore" });
+  }
+  if (externalId) {
+    const [idRows] = await pool.query("SELECT id FROM users WHERE external_id = ?", [externalId]);
+    if (idRows.length > 0) return res.status(409).json({ error: "An account with this ID already exists" });
+  }
+  const [mailRows] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
+  if (mailRows.length > 0) return res.status(409).json({ error: "An account with this email already exists" });
+
+  const otp = await createOtp(pool, email, "signup");
+  if (!otp.ok) return res.status(otp.status).json({ error: otp.error, retryAfter: otp.retryAfter });
+  try {
+    const mail = await sendOtpEmail(email, otp.code, "signup", otp.expiresInMin);
+    res.json({ ok: true, expiresInMin: otp.expiresInMin, emailed: mail.sent });
+  } catch (err) {
+    console.error("OTP email failed:", err.message);
+    res.status(502).json({ error: "Could not send the email. Check the address and try again." });
+  }
+}));
+
+// ───────────── POST /api/auth/forgot-password ─────────────
+// body: { externalId, email }  → if they match a real account, emails a reset code.
+// The answer is always the same, so nobody can use this to find out which IDs / emails exist.
+router.post("/forgot-password", catchAsync(async (req, res) => {
+  const externalId = clean(req.body.externalId);
+  const email = clean(req.body.email).toLowerCase();
+  const generic = { ok: true, message: "If these details match an account, a code has been sent to that email." };
+  if (!externalId || !EMAIL_RE.test(email)) return res.status(400).json({ error: "Enter your ID and the email on your account" });
+
+  const [rows] = await pool.query("SELECT id, email, role FROM users WHERE external_id = ?", [externalId]);
+  const user = rows[0];
+  if (user && user.role !== "admin" && user.email && user.email.toLowerCase() === email) {
+    const otp = await createOtp(pool, email, "reset");
+    if (otp.ok) {
+      try { await sendOtpEmail(email, otp.code, "reset", otp.expiresInMin); }
+      catch (err) { console.error("OTP email failed:", err.message); }
+    } // on cooldown / hourly limit: stay silent, same generic answer
+  }
+  res.json(generic);
+}));
+
 // ───────────── POST /api/auth/register ─────────────
 // body: { name, email, externalId, role: 'student'|'teacher', password,
 //         accountType: 'regular'|'hall', hallName?, roomNumber? }
@@ -122,6 +198,12 @@ router.post("/register", catchAsync(async (req, res) => {
   if (idRows.length > 0) return res.status(409).json({ error: "An account with this ID already exists" });
   const [mailRows] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
   if (mailRows.length > 0) return res.status(409).json({ error: "An account with this email already exists" });
+
+  // Email must be proven with the 6-digit code that /otp/send-signup mailed (body.otp)
+  if (otpRequired()) {
+    const check = await verifyOtp(pool, email, "signup", req.body.otp);
+    if (!check.ok) return res.status(check.status).json({ error: check.error, code: "OTP_INVALID" });
+  }
 
   const passwordHash = await bcrypt.hash(password, 10);
   const startingBalance = SIGNUP_BONUS;
@@ -205,8 +287,71 @@ router.post("/login", catchAsync(async (req, res) => {
     return res.status(403).json({ error: `This account is a ${user.role} account — go back and choose the ${user.role} portal.` });
   }
 
+  // 2FA: password was right, now ask for the emailed code. The signed "challenge" proves the password step
+  // was passed, so the code alone (without the password) can never log anyone in.
+  if (loginOtpApplies(user)) {
+    const otp = await createOtp(pool, user.email, "login2fa");
+    const challenge = signChallenge(user.id);
+    if (!otp.ok) {
+      // A code was sent a moment ago: let them type that one instead of failing
+      if (otp.retryAfter) return res.json({ otpRequired: true, challenge, email: maskEmail(user.email), resendIn: otp.retryAfter, emailed: true });
+      return res.status(otp.status).json({ error: otp.error });
+    }
+    try {
+      const mail = await sendOtpEmail(user.email, otp.code, "login2fa", otp.expiresInMin);
+      return res.json({ otpRequired: true, challenge, email: maskEmail(user.email), resendIn: 60, emailed: mail.sent });
+    } catch (err) {
+      console.error("OTP email failed:", err.message);
+      return res.status(502).json({ error: "Could not send the login code email. Try again." });
+    }
+  }
+
   const token = signToken({ id: user.id, name: user.name, role: user.role });
   res.json({ token, user: publicUser(user) });
+}));
+
+// ───────────── POST /api/auth/login/verify ─────────────
+// body: { challenge, otp }  → finishes a 2FA login and returns the same { token, user } as a normal login.
+router.post("/login/verify", catchAsync(async (req, res) => {
+  const c = readChallenge(req.body.challenge);
+  if (!c) return res.status(401).json({ error: "Login session expired. Enter your password again.", code: "CHALLENGE_EXPIRED" });
+
+  const key = failKey(req, "2fa:" + c.uid);
+  const wait = lockedFor(key);
+  if (wait > 0) return res.status(429).json({ error: `Too many wrong codes. Try again in ${Math.ceil(wait / 60000)} minute(s).` });
+
+  const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [c.uid]);
+  const user = rows[0];
+  if (!user || !user.email) return res.status(401).json({ error: "Login session expired. Enter your password again.", code: "CHALLENGE_EXPIRED" });
+
+  const check = await verifyOtp(pool, user.email, "login2fa", req.body.otp);
+  if (!check.ok) {
+    noteFail(key);
+    return res.status(check.status).json({ error: check.error, code: "OTP_INVALID" });
+  }
+  fails.delete(key);
+  const token = signToken({ id: user.id, name: user.name, role: user.role });
+  res.json({ token, user: publicUser(user) });
+}));
+
+// ───────────── POST /api/auth/login/resend ─────────────
+// body: { challenge }  → emails a fresh login code (same 60-second wait as every other OTP).
+router.post("/login/resend", catchAsync(async (req, res) => {
+  const c = readChallenge(req.body.challenge);
+  if (!c) return res.status(401).json({ error: "Login session expired. Enter your password again.", code: "CHALLENGE_EXPIRED" });
+  const [rows] = await pool.query("SELECT id, email FROM users WHERE id = ?", [c.uid]);
+  const user = rows[0];
+  if (!user || !user.email) return res.status(401).json({ error: "Login session expired. Enter your password again.", code: "CHALLENGE_EXPIRED" });
+
+  const otp = await createOtp(pool, user.email, "login2fa");
+  if (!otp.ok) return res.status(otp.status).json({ error: otp.error, retryAfter: otp.retryAfter });
+  try {
+    const mail = await sendOtpEmail(user.email, otp.code, "login2fa", otp.expiresInMin);
+    res.json({ ok: true, resendIn: 60, emailed: mail.sent });
+  } catch (err) {
+    console.error("OTP email failed:", err.message);
+    res.status(502).json({ error: "Could not send the email. Try again." });
+  }
 }));
 
 // ───────────── GET /api/auth/me ─────────────
@@ -298,16 +443,16 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // ───────────── POST /api/auth/reset-password ─────────────
-// body: { externalId, email, newPassword }
-// The email on the account must match, so a stranger who only knows someone's ID can't take the
-// account over. (A production system should email a one-time link/code instead — this build has no
-// mail server configured.) Admin accounts and accounts with no email on file can't be reset here.
+// body: { externalId, email, otp, newPassword }
+// Step 1 is POST /forgot-password (mails the code). Here the code + the matching ID/email are checked,
+// so knowing someone's ID and email is no longer enough to take their account over.
+// Admin accounts and accounts with no email on file can't be reset here.
 router.post("/reset-password", catchAsync(async (req, res) => {
   const externalId = clean(req.body.externalId);
   const email = clean(req.body.email).toLowerCase();
   const newPassword = typeof req.body.newPassword === "string" ? req.body.newPassword : "";
-  if (!externalId || !email || !newPassword) {
-    return res.status(400).json({ error: "ID, email and new password are required" });
+  if (!externalId || !email || !newPassword || (otpRequired() && !clean(req.body.otp))) {
+    return res.status(400).json({ error: otpRequired() ? "ID, email, code and new password are required" : "ID, email and new password are required" });
   }
   if (newPassword.length < 6) {
     return res.status(400).json({ error: "Password must be at least 6 characters" });
@@ -324,6 +469,14 @@ router.post("/reset-password", catchAsync(async (req, res) => {
   if (!user || user.role === "admin" || !user.email || user.email.toLowerCase() !== email) {
     noteFail(key);
     return res.status(400).json({ error: "We couldn't verify this ID and email together. Check them, or ask the canteen admin for help." });
+  }
+
+  if (otpRequired()) {
+    const check = await verifyOtp(pool, email, "reset", req.body.otp);
+    if (!check.ok) {
+      noteFail(key);
+      return res.status(check.status).json({ error: check.error, code: "OTP_INVALID" });
+    }
   }
   fails.delete(key);
 
