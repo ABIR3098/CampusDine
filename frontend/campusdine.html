@@ -7,7 +7,12 @@
 <link rel="icon" type="image/png" href="/images/landing/logo-green.png" />
 <link rel="stylesheet" href="landing.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<<<<<<< HEAD
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+=======
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"> 
+<link rel="stylesheet" href="landing.css">
+>>>>>>> f25bb4c (wip(offers): offers and loyalty screens in the frontend)
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
@@ -410,6 +415,7 @@ const I = {
   printer: "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6Z",
   edit: "M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z",
   droplet: "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z",
+  gift: "M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7ZM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z",
 };
 
 /* ---------------- Helpers ---------------- */
@@ -675,6 +681,42 @@ const I18N = {
     "coupon.invalid": "Coupon is not valid",
     "coupon.applied": "Discount applied: {d} off",
     "coupon.line": "Coupon ({c})",
+    "nav.rewards": "Rewards",
+    "hero.off": "off", "hero.combo": "Combo deal", "hero.coupon": "Coupon", "hero.new": "New on the menu",
+    "hero.min": "Min order {a}", "hero.till": "Valid till {d}", "hero.usecode": "Use this code",
+    "offers.h": "Today's offers",
+    "offers.hh.now": "Happy hour on now",
+    "offers.hh.at": "Happy hour",
+    "offers.combo.add": "Add combo",
+    "offers.combo.save": "Save {a}",
+    "offers.combo.na": "Unavailable now",
+    "q.combo": "Combo: {n}",
+    "q.hh": "Happy hour: {n}",
+    "q.reward": "Reward ({n})",
+    "q.save": "You save {a}",
+    "q.earn": "You'll earn {p} points when your order is ready",
+    "q.points": "points",
+    "q.need": "{n} more needed",
+    "q.needitem": "Add {i} to your cart first",
+    "q.use": "Use points",
+    "q.noreward": "Don't use points",
+    "q.balance": "You have {p} points",
+    "rw.balance": "Your points",
+    "rw.how": "Earn 1 point for every ৳{n} you spend, once your order is ready. Spend points at checkout.",
+    "rw.pending": "{n} order(s) in progress — points arrive when they're ready.",
+    "rw.streak": "Daily streak",
+    "rw.days": "{n}-day streak",
+    "rw.bonus": "Order {n} more day(s) in a row for +{b} bonus points.",
+    "rw.today.done": "You've ordered today ✓",
+    "rw.today.todo": "Order today to keep your streak going",
+    "rw.best": "Best: {n}",
+    "rw.history": "Points history",
+    "rw.empty": "No points yet — place your first order!",
+    "rw.rewards": "Rewards you can claim",
+    "rw.use": "Order & redeem",
+    "n.points.t": "Points earned",
+    "n.points": "+{p} points for order {o}. Balance: {b}.",
+    "n.bonus": "🔥 {s}-day streak! +{b} bonus points.",
     "subtotal": "Subtotal",
     "cal.note2": "Calculated live by the server — same meal-plan logic applied for students and teachers.",
     "tab.chat": "Chat with Canteen Admin",
@@ -990,6 +1032,42 @@ const I18N = {
     "coupon.invalid": "কুপনটি বৈধ নয়",
     "coupon.applied": "{d} ছাড় প্রয়োগ হয়েছে",
     "coupon.line": "কুপন ({c})",
+    "nav.rewards": "পুরস্কার",
+    "hero.off": "ছাড়", "hero.combo": "কম্বো অফার", "hero.coupon": "কুপন", "hero.new": "মেনুতে নতুন",
+    "hero.min": "ন্যূনতম অর্ডার {a}", "hero.till": "মেয়াদ {d} পর্যন্ত", "hero.usecode": "কোডটি ব্যবহার করুন",
+    "offers.h": "আজকের অফার",
+    "offers.hh.now": "হ্যাপি আওয়ার চলছে",
+    "offers.hh.at": "হ্যাপি আওয়ার",
+    "offers.combo.add": "কম্বো যোগ করুন",
+    "offers.combo.save": "সাশ্রয় {a}",
+    "offers.combo.na": "এখন পাওয়া যাচ্ছে না",
+    "q.combo": "কম্বো: {n}",
+    "q.hh": "হ্যাপি আওয়ার: {n}",
+    "q.reward": "পুরস্কার ({n})",
+    "q.save": "আপনি বাঁচালেন {a}",
+    "q.earn": "অর্ডার রেডি হলে {p} পয়েন্ট পাবেন",
+    "q.points": "পয়েন্ট",
+    "q.need": "আরও {n} দরকার",
+    "q.needitem": "আগে কার্টে {i} যোগ করুন",
+    "q.use": "পয়েন্ট ব্যবহার করুন",
+    "q.noreward": "পয়েন্ট ব্যবহার করব না",
+    "q.balance": "আপনার {p} পয়েন্ট আছে",
+    "rw.balance": "আপনার পয়েন্ট",
+    "rw.how": "অর্ডার রেডি হলে প্রতি ৳{n} খরচে ১ পয়েন্ট পাবেন। চেকআউটে পয়েন্ট খরচ করুন।",
+    "rw.pending": "{n}টি অর্ডার চলছে — রেডি হলে পয়েন্ট পাবেন।",
+    "rw.streak": "দৈনিক স্ট্রিক",
+    "rw.days": "{n} দিনের স্ট্রিক",
+    "rw.bonus": "আরও {n} দিন টানা অর্ডার করলে +{b} বোনাস পয়েন্ট।",
+    "rw.today.done": "আজ অর্ডার করেছেন ✓",
+    "rw.today.todo": "স্ট্রিক ধরে রাখতে আজ অর্ডার করুন",
+    "rw.best": "সর্বোচ্চ: {n}",
+    "rw.history": "পয়েন্টের হিসাব",
+    "rw.empty": "এখনও কোনো পয়েন্ট নেই — প্রথম অর্ডারটি করুন!",
+    "rw.rewards": "যে পুরস্কার নিতে পারবেন",
+    "rw.use": "অর্ডার করে ভাঙান",
+    "n.points.t": "পয়েন্ট পেয়েছেন",
+    "n.points": "অর্ডার {o}-এর জন্য +{p} পয়েন্ট। ব্যালেন্স: {b}।",
+    "n.bonus": "🔥 {s} দিনের স্ট্রিক! +{b} বোনাস পয়েন্ট।",
     "subtotal": "উপমোট",
     "cal.note2": "সার্ভার লাইভ হিসাব করেছে — শিক্ষার্থী ও শিক্ষক উভয়ের জন্য একই মিল-প্ল্যান নিয়ম প্রযোজ্য।",
     "tab.chat": "অ্যাডমিনের সাথে চ্যাট",
@@ -2486,7 +2564,61 @@ function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavor
   );
 }
 
-function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken }) {
+/* ---------------- Promo slider: today's offers, new items, coupons, points ---------------- */
+// slides: [{ key, tag, title, text, cta?, onCta?, img?, tone? }]
+function PromoSlider({ slides }) {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchX = useRef(null);
+  const n = slides.length;
+  useEffect(() => { if (i >= n) setI(0); }, [n]);
+  useEffect(() => {
+    if (n < 2 || paused) return;
+    const t = setInterval(() => setI(x => (x + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [n, paused]);
+  if (n === 0) return null;
+  const go = (d) => setI(x => (x + d + n) % n);
+  const tones = {
+    green: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)",
+    warm: "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)",
+    rose: "linear-gradient(135deg, #E11D48 0%, #881337 100%)",
+    blue: "linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)",
+    violet: "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
+  };
+  return (
+    <div className="mb-5 relative overflow-hidden rounded-2xl select-none" style={{ height: 160 }}
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => { if (touchX.current == null) return; const dx = e.changedTouches[0].clientX - touchX.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); touchX.current = null; }}>
+      <div className="flex h-full" style={{ width: `${n * 100}%`, transform: `translateX(-${(i * 100) / n}%)`, transition: "transform .5s ease" }}>
+        {slides.map(sl => (
+          <div key={sl.key} className="h-full flex items-center justify-between gap-4 px-6 text-white" style={{ width: `${100 / n}%`, background: tones[sl.tone] || tones.green }}>
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase tracking-widest font-700 px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>{sl.tag}</span>
+              <div className="font-display font-800 text-xl sm:text-2xl mt-2 leading-tight">{sl.title}</div>
+              <div className="text-sm opacity-90 mt-1 line-clamp-2">{sl.text}</div>
+              {sl.cta && <button onClick={sl.onCta} className="mt-3 px-3 py-1.5 rounded-lg text-xs font-700" style={{ background: "#fff", color: "#111" }}>{sl.cta}</button>}
+            </div>
+            {sl.img && <img src={sl.img} alt="" className="hidden sm:block rounded-xl object-cover shrink-0" style={{ width: 110, height: 110, background: "rgba(255,255,255,0.15)" }}
+              onError={e => { e.target.style.display = "none"; }} />}
+          </div>
+        ))}
+      </div>
+      {n > 1 && (
+        <>
+          <button aria-label="Previous" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronLeft} className="w-4 h-4" /></button>
+          <button aria-label="Next" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronRight} className="w-4 h-4" /></button>
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+            {slides.map((sl, k) => <button key={sl.key} aria-label={"Slide " + (k + 1)} onClick={() => setI(k)} className="rounded-full" style={{ width: k === i ? 18 : 6, height: 6, background: "#fff", opacity: k === i ? 1 : 0.5, transition: "all .3s" }} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -2520,15 +2652,31 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   const [scheduleLater, setScheduleLater] = useState(false);
   const [pickupTime, setPickupTime] = useState("");
   const [couponCode, setCouponCode] = useState("");
-  const [couponApplied, setCouponApplied] = useState(null);
-  const [couponError, setCouponError] = useState("");
+  const [couponActive, setCouponActive] = useState(""); // the code sent to the server with every price quote
   const [couponBusy, setCouponBusy] = useState(false);
   const [orderNote, setOrderNote] = useState("");
+  const [rewardId, setRewardId] = useState(null);
+  const [quote, setQuote] = useState(null);
+  const [offers, setOffers] = useState({ combos: [], happyHours: [] });
+  const [loyalty, setLoyalty] = useState(null);
+  const [availCoupons, setAvailCoupons] = useState([]);
   useEffect(() => {
-    setCouponApplied(null);
-    setCouponError("");
-    if (cart.length === 0) { setCouponCode(""); setOrderNote(""); }
+    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setRewardId(null); setQuote(null); }
   }, [cart]);
+
+  // Today's offers + my points (refetched after every order / points change)
+  useEffect(() => {
+    let dead = false;
+    api(apiBase, "/api/offers", { token: sessionToken }).then(d => { if (!dead) setOffers(d); }).catch(() => {});
+    api(apiBase, "/api/loyalty/me", { token: sessionToken }).then(d => { if (!dead) setLoyalty(d); }).catch(() => {});
+    api(apiBase, "/api/coupon/available", { token: sessionToken }).then(d => { if (!dead) setAvailCoupons(d.coupons || []); }).catch(() => {});
+    return () => { dead = true; };
+  }, [loyaltyKey]);
+  // happy-hour status changes with the clock: re-read the offers every minute
+  useEffect(() => {
+    const t = setInterval(() => api(apiBase, "/api/offers", { token: sessionToken }).then(setOffers).catch(() => {}), 60000);
+    return () => clearInterval(t);
+  }, []);
 
   // Feature: pre-order — a student can pick a slot up to 4h ahead (min 10min from now).
   // These bounds are hints for the native time input; the server enforces the real rule.
@@ -2548,35 +2696,86 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
     .map(p => p.id === item.id ? { ...p, qty: p.qty - 1 } : p)
     .filter(p => p.qty > 0));
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const discountAmount = couponApplied ? Number(couponApplied.discountAmount || 0) : 0;
-  const total = Math.max(0, subtotal - discountAmount);
+  // The server prices the cart (combos → happy hour → coupon → points reward) so the number shown is the number charged.
+  const quoteKey = JSON.stringify([cart.map(c => [c.id, c.qty]), couponActive, rewardId, scheduleLater ? pickupTime : ""]);
+  useEffect(() => {
+    if (cart.length === 0) return;
+    let dead = false;
+    const t = setTimeout(() => {
+      api(apiBase, "/api/pricing/quote", { method: "POST", token: sessionToken, body: {
+        items: cart.map(c => ({ id: c.id, qty: c.qty })), couponCode: couponActive || undefined,
+        rewardId: rewardId || undefined, pickupTime: scheduleLater && pickupTime ? pickupTime : undefined,
+      } }).then(q => { if (!dead) { setQuote(q); if (q.rewardError) setRewardId(null); } })
+        .catch(() => { if (!dead) setQuote(null); });
+    }, 200);
+    return () => { dead = true; clearTimeout(t); };
+  }, [quoteKey, loyaltyKey, offers]);
+  const localSubtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = quote ? quote.subtotal : localSubtotal;
+  const total = quote ? quote.total : localSubtotal;
+  const couponApplied = quote && quote.coupon ? { couponId: quote.coupon.id, code: quote.coupon.code, discountType: quote.coupon.discountType, discountValue: quote.coupon.discountValue, discountAmount: quote.couponDiscount } : null;
+  const couponError = couponActive && quote && quote.couponError ? quote.couponError : "";
+  const lineQuote = (id) => quote && quote.lines.find(l => l.id === id);
+  const addCombo = (combo) => setCart(prev => {
+    let next = [...prev];
+    for (const ci of combo.items) {
+      const m = menu.find(x => x.id === ci.item_id);
+      if (!m) continue;
+      const have = next.find(p => p.id === m.id);
+      if (have) next = next.map(p => p.id === m.id ? { ...p, qty: p.qty + ci.qty } : p);
+      else next.push({ ...m, qty: ci.qty });
+    }
+    return next;
+  });
+  const comboAvailable = (combo) => combo.items.every(ci => { const m = menu.find(x => x.id === ci.item_id); return m && m.stock >= ci.qty && m.availability !== "sold_out" && m.availability !== "hidden"; });
+  const menuIdSet = new Set(menu.map(m => m.id));
+  const shownCombos = offers.combos.filter(c => c.saving > 0 && c.items.every(i => menuIdSet.has(i.item_id)));
+  const shownHappy = offers.happyHours.filter(h => h.itemIds.length === 0 || h.itemIds.some(id => menuIdSet.has(id)));
+  const bnOr = (o) => (CURRENT_LANG === "bn" && o.name_bn ? o.name_bn : o.name);
+  const hhScope = (h) => h.itemIds.length ? "" : h.category ? tx("cat." + h.category) : "";
+  const useCoupon = (c) => { setCouponCode(c.code); if (cart.length > 0) setCouponActive(c.code); };
+  const slides = [];
+  shownHappy.slice().sort((a, b) => Number(b.activeNow) - Number(a.activeNow)).forEach(h => slides.push({
+    key: "h" + h.id, tone: "warm", tag: h.activeNow ? "● " + tx("offers.hh.now") : tx("offers.hh.at"),
+    title: `${bnOr(h)} — ${h.discount_type === "PERCENTAGE" ? num(Number(h.discount_value)) + "% " : taka(h.discount_value) + " "}${tx("hero.off")}`,
+    text: `${String(h.start_time).slice(0, 5)}–${String(h.end_time).slice(0, 5)} ${hhScope(h)}`.trim(),
+  }));
+  shownCombos.forEach(c => slides.push({
+    key: "c" + c.id, tone: "rose", tag: tx("hero.combo"), title: `${bnOr(c)} — ${taka(c.price)}`,
+    text: `${c.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")} · ${tx("offers.combo.save", { a: taka(c.saving) })}`,
+    cta: comboAvailable(c) ? tx("offers.combo.add") : null, onCta: () => addCombo(c),
+    img: (apiBase || "") + (c.items[0].image || "/images/food/default.svg"),
+  }));
+  availCoupons.slice(0, 4).forEach(c => slides.push({
+    key: "k" + c.id, tone: "blue", tag: tx("hero.coupon"),
+    title: `${c.code} — ${c.discount_type === "PERCENTAGE" ? num(Number(c.discount_value)) + "%" : taka(c.discount_value)} ${tx("hero.off")}`,
+    text: [c.description, Number(c.min_order_amount) > 0 ? tx("hero.min", { a: taka(c.min_order_amount) }) : "", c.expiry_date ? tx("hero.till", { d: new Date(c.expiry_date).toLocaleDateString() }) : ""].filter(Boolean).join(" · "),
+    cta: tx("hero.usecode"), onCta: () => useCoupon(c),
+  }));
+  const newItems = menu.filter(m => m.tag === "New" && m.stock > 0 && m.availability !== "sold_out" && m.availability !== "hidden");
+  newItems.slice(0, 4).forEach(m => slides.push({
+    key: "n" + m.id, tone: "green", tag: tx("hero.new"), title: `${itemName(m)} — ${taka(m.price)}`,
+    text: tx("cat." + m.category), cta: tx("add"), onCta: () => add(m), img: (apiBase || "") + (m.image || "/images/food/default.svg"),
+  }));
+  if (loyalty) slides.push({
+    key: "pts", tone: "violet", tag: tx("nav.rewards"),
+    title: tx("q.balance", { p: num(loyalty.points) }),
+    text: tx("rw.bonus", { n: num(loyalty.streak.daysToBonus), b: num(loyalty.streak.bonus) }),
+  });
   const canPay = payMethod === "cash" || walletBalance >= total;
   const canCheckout = canPay && (!scheduleLater || pickupTime);
 
-  const applyCoupon = async () => {
+  const applyCoupon = () => {
     if (!couponCode.trim() || cart.length === 0) return;
     setCouponBusy(true);
-    setCouponError("");
-    try {
-      const data = await api(apiBase, "/api/coupon/validate", {
-        method: "POST",
-        token: sessionToken,
-        body: { couponCode: couponCode.trim(), orderAmount: subtotal, items: cart.map(i => ({ id: i.id, qty: i.qty })) }
-      });
-      setCouponApplied(data);
-      setCouponCode(data.code || couponCode.trim().toUpperCase());
-    } catch (e) {
-      setCouponApplied(null);
-      setCouponError(e.message || tx("coupon.invalid"));
-    } finally {
-      setCouponBusy(false);
-    }
+    setCouponActive(couponCode.trim().toUpperCase());
+    setTimeout(() => setCouponBusy(false), 400);
   };
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
+        <PromoSlider slides={slides} />
         <MenuCategoryTabs category={cat} setCategory={setCat} />
         <div className="flex flex-col sm:flex-row gap-2 mb-5">
           <MenuSearchSortControls search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} />
@@ -2646,12 +2845,19 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("cart.empty")}</p>
           ) : (
             <div className="space-y-2 mb-4">
-              {cart.map(i => (
-                <div key={i.id} className="flex justify-between text-sm">
-                  <span>{itemName(i)} × {num(i.qty)}</span>
-                  <span className="font-mono">{taka(i.price * i.qty)}</span>
-                </div>
-              ))}
+              {cart.map(i => {
+                const lq = lineQuote(i.id);
+                const off = lq ? lq.comboDiscount + lq.hhDiscount : 0;
+                return (
+                  <div key={i.id} className="flex justify-between text-sm">
+                    <span>{itemName(i)} × {num(i.qty)}</span>
+                    <span className="font-mono">
+                      {off > 0 && <s className="mr-1.5" style={{ color: "var(--ink-soft)" }}>{taka(i.price * i.qty)}</s>}
+                      {taka(lq ? lq.net : i.price * i.qty)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
           <div className="border-t pt-3 mb-4" style={{ borderColor: "var(--line)" }}>
@@ -2659,23 +2865,43 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               <span>{tx("subtotal")}</span>
               <span className="font-mono">{taka(subtotal)}</span>
             </div>
+            {quote && quote.appliedCombos.map(c => (
+              <div key={"qc" + c.id} className="flex justify-between text-sm mt-2" style={{ color: "var(--leaf)" }}>
+                <span>{tx("q.combo", { n: (CURRENT_LANG === "bn" && c.name_bn ? c.name_bn : c.name) + (c.sets > 1 ? " ×" + num(c.sets) : "") })}</span>
+                <span className="font-mono">−{taka(c.discount)}</span>
+              </div>
+            ))}
+            {quote && quote.appliedHappyHours.map(h => (
+              <div key={"qh" + h.id} className="flex justify-between text-sm mt-2" style={{ color: "var(--leaf)" }}>
+                <span>{tx("q.hh", { n: CURRENT_LANG === "bn" && h.name_bn ? h.name_bn : h.name })}</span>
+                <span className="font-mono">−{taka(h.discount)}</span>
+              </div>
+            ))}
             {couponApplied && (
               <div className="flex justify-between text-sm mt-2" style={{ color: "var(--leaf)" }}>
                 <span>{tx("coupon.line", { c: couponApplied.code })}</span>
                 <span className="font-mono">−{taka(couponApplied.discountAmount)}</span>
               </div>
             )}
+            {quote && quote.reward && (
+              <div className="flex justify-between text-sm mt-2" style={{ color: "var(--leaf)" }}>
+                <span>{tx("q.reward", { n: CURRENT_LANG === "bn" && quote.reward.name_bn ? quote.reward.name_bn : quote.reward.name })}</span>
+                <span className="font-mono">−{taka(quote.rewardDiscount)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-700 mt-3">
               <span>{tx("total")}</span>
               <span className="font-mono">{taka(total)}</span>
             </div>
+            {quote && quote.totalSavings > 0 && <div className="text-xs mt-1 text-right" style={{ color: "var(--leaf)" }}>{tx("q.save", { a: taka(quote.totalSavings) })}</div>}
+            {quote && quote.pointsEarnable > 0 && <div className="text-xs mt-1 text-right" style={{ color: "var(--ink-soft)" }}>{tx("q.earn", { p: num(quote.pointsEarnable) })}</div>}
           </div>
           {cart.length > 0 && (
             <>
               <div className="mb-4">
                 <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("coupon.label")}</div>
                 <div className="flex gap-2">
-                  <input value={couponCode} onChange={e => { setCouponCode(e.target.value); setCouponApplied(null); if (couponError) setCouponError(""); }}
+                  <input value={couponCode} onChange={e => { setCouponCode(e.target.value); if (couponActive) setCouponActive(""); }}
                     placeholder={tx("coupon.ph")} className="flex-1 px-3 py-2 rounded-lg border text-sm uppercase" style={{ borderColor: "var(--line)" }} />
                   <button disabled={couponBusy || !couponCode.trim()} onClick={applyCoupon} className="btn-primary px-3 py-2 rounded-lg text-xs disabled:opacity-50">
                     {couponBusy ? "..." : tx("apply")}
@@ -2684,6 +2910,32 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 {couponError && <div className="text-xs mt-2" style={{ color: "var(--brick)" }}>{couponError}</div>}
                 {couponApplied && <div className="text-xs mt-2" style={{ color: "var(--leaf)" }}>{tx("coupon.applied", { d: couponApplied.discountType === "PERCENTAGE" ? `${num(couponApplied.discountValue)}%` : taka(couponApplied.discountValue) })}</div>}
               </div>
+              {loyalty && loyalty.rewards.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("q.use")} · {tx("q.balance", { p: num(loyalty.points) })}</div>
+                  <div className="space-y-1.5">
+                    {loyalty.rewards.map(r => {
+                      const needsItem = r.type === "FREE_ITEM" && !cart.some(c => c.id === r.item_id);
+                      const cannot = loyalty.points < r.points_cost || needsItem;
+                      const on = rewardId === r.id;
+                      return (
+                        <button key={r.id} disabled={cannot && !on} onClick={() => setRewardId(on ? null : r.id)}
+                          className={`w-full text-left text-sm rounded-lg border px-3 py-2 flex justify-between items-center gap-2 disabled:opacity-50 ${on ? "text-white" : ""}`}
+                          style={on ? { background: "var(--teal)", borderColor: "var(--teal)" } : { borderColor: "var(--line)" }}>
+                          <span>
+                            {CURRENT_LANG === "bn" && r.name_bn ? r.name_bn : r.name}
+                            {cannot && !on && <span className="block text-[11px]" style={{ color: "var(--ink-soft)" }}>
+                              {loyalty.points < r.points_cost ? tx("q.need", { n: num(r.points_cost - loyalty.points) }) : tx("q.needitem", { i: dispName(r.item_name || "") })}
+                            </span>}
+                          </span>
+                          <span className="font-mono text-xs shrink-0">{num(r.points_cost)} {tx("q.points")}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {quote && quote.rewardError && <div className="text-xs mt-2" style={{ color: "var(--brick)" }}>{quote.rewardError}</div>}
+                </div>
+              )}
               <div className="mb-4">
                 <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("note.label")}</label>
                 <textarea value={orderNote} onChange={e => setOrderNote(e.target.value.slice(0, 200))} rows={2} maxLength={200}
@@ -2722,7 +2974,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               {payMethod === "wallet" && !canPay && (
                 <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
               )}
-              <button disabled={!canCheckout || busy} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote)}
+              <button disabled={!canCheckout || busy || !quote} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? tx("placing") : tx("checkout")}
               </button>
@@ -5055,6 +5307,311 @@ const RESTAURANTS = [
     desc: "Home-style rice meals, curries & porota", descBn: "ঘরোয়া ভাত, তরকারি ও পরোটা" },
 ];
 
+/* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
+function RewardsTab({ call, refreshKey, onGoMenu }) {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let dead = false;
+    call("/api/loyalty/me").then(d => { if (!dead) setData(d); }).catch(e => { if (!dead) setErr(e.message); });
+    return () => { dead = true; };
+  }, [refreshKey]);
+  if (err) return <div className="card p-6 text-sm" style={{ color: "var(--brick)" }}>{err}</div>;
+  if (!data) return <div className="card p-6 text-sm" style={{ color: "var(--ink-soft)" }}>…</div>;
+  const s = data.streak;
+  const dots = Array.from({ length: s.target }, (_, i) => i < s.cycleDays);
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <div className="card p-6">
+          <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("rw.balance")}</div>
+          <div className="font-display font-800 text-4xl mt-1" style={{ color: "var(--gold)" }}>{num(data.points)} <span className="text-base font-600">{tx("q.points")}</span></div>
+          <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("rw.how", { n: num(data.settings.earnPer) })}</p>
+          {s.pendingOrders > 0 && <p className="text-xs mt-1" style={{ color: "var(--teal-deep)" }}>{tx("rw.pending", { n: num(s.pendingOrders) })}</p>}
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-display font-700" style={{ color: "var(--gold)" }}>🔥 {tx("rw.streak")}</div>
+            <div className="text-sm font-600">{tx("rw.days", { n: num(s.current) })}</div>
+          </div>
+          <div className="flex gap-2 mb-3">
+            {dots.map((on, i) => (
+              <div key={i} className="flex-1 h-9 rounded-lg grid place-items-center text-sm font-700"
+                style={{ background: on ? "var(--teal)" : "var(--gold-soft)", color: on ? "#fff" : "var(--ink-soft)" }}>
+                {on ? "✓" : num(i + 1)}
+              </div>
+            ))}
+          </div>
+          <p className="text-sm">{tx("rw.bonus", { n: num(s.daysToBonus), b: num(s.bonus) })}</p>
+          <p className="text-xs mt-1" style={{ color: s.orderedToday ? "var(--leaf)" : "var(--ink-soft)" }}>
+            {s.orderedToday ? tx("rw.today.done") : tx("rw.today.todo")} · {tx("rw.best", { n: num(s.best) })}
+          </p>
+        </div>
+
+        <div className="card p-6">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("rw.history")}</div>
+          {data.ledger.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("rw.empty")}</p>
+          ) : (
+            <div className="divide-y" style={{ borderColor: "var(--line)" }}>
+              {data.ledger.map(l => (
+                <div key={l.id} className="flex justify-between py-2 text-sm" style={{ borderColor: "var(--line)" }}>
+                  <div>
+                    <div>{l.label}</div>
+                    <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(l.created_at).toLocaleString()}</div>
+                  </div>
+                  <div className="font-mono font-600" style={{ color: l.points >= 0 ? "var(--leaf)" : "var(--brick)" }}>
+                    {l.points >= 0 ? "+" : "−"}{num(Math.abs(l.points))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <div className="card p-5 sticky top-20">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("rw.rewards")}</div>
+          <div className="space-y-3">
+            {data.rewards.map(r => (
+              <div key={r.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                <div className="font-600 text-sm">{CURRENT_LANG === "bn" && r.name_bn ? r.name_bn : r.name}</div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="font-mono text-sm">{num(r.points_cost)} {tx("q.points")}</span>
+                  <span className="text-xs" style={{ color: r.affordable ? "var(--leaf)" : "var(--ink-soft)" }}>
+                    {r.affordable ? "✓" : tx("q.need", { n: num(r.points_cost - data.points) })}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full mt-2" style={{ background: "var(--gold-soft)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.round((data.points / r.points_cost) * 100))}%`, background: "var(--teal)" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={onGoMenu} className="btn-primary w-full py-2 rounded-xl mt-4 text-sm">{tx("rw.use")}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: combos, happy hours, loyalty rewards ---------------- */
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const inputCls = "px-3 py-2 rounded-lg border text-sm w-full";
+const lineStyle = { borderColor: "var(--line)" };
+
+function OfferField({ label, children }) {
+  return <label className="block text-xs"><span className="uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</span><div className="mt-1">{children}</div></label>;
+}
+
+function ComboForm({ menu, initial, onSave, onCancel }) {
+  const [d, setD] = useState(initial || { name: "", name_bn: "", price: "", isActive: true, items: [{ itemId: "", qty: 1 }, { itemId: "", qty: 1 }] });
+  const price = (id) => { const m = menu.find(x => x.id === Number(id)); return m ? Number(m.price) : 0; };
+  const full = d.items.reduce((s, i) => s + price(i.itemId) * (Number(i.qty) || 0), 0);
+  const setItem = (idx, patch) => setD({ ...d, items: d.items.map((it, i) => i === idx ? { ...it, ...patch } : it) });
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="Khichuri + Egg + Drink" /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Combo price (৳)"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.price} onChange={e => setD({ ...d, price: e.target.value })} /></OfferField>
+      </div>
+      <div className="space-y-2">
+        {d.items.map((it, idx) => (
+          <div key={idx} className="flex gap-2 items-center">
+            <select className={inputCls} style={lineStyle} value={it.itemId} onChange={e => setItem(idx, { itemId: e.target.value })}>
+              <option value="">Choose item…</option>
+              {menu.map(m => <option key={m.id} value={m.id}>{m.name} — ৳{Number(m.price)}</option>)}
+            </select>
+            <input type="number" min="1" max="20" className="px-3 py-2 rounded-lg border text-sm w-20" style={lineStyle} value={it.qty} onChange={e => setItem(idx, { qty: e.target.value })} />
+            {d.items.length > 2 && <button onClick={() => setD({ ...d, items: d.items.filter((_, i) => i !== idx) })} className="text-xs px-2" style={{ color: "var(--brick)" }}>✕</button>}
+          </div>
+        ))}
+        <button onClick={() => setD({ ...d, items: [...d.items, { itemId: "", qty: 1 }] })} className="text-xs underline">+ Add item</button>
+      </div>
+      <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+        Normal price ৳{full}{Number(d.price) > 0 && full > 0 ? ` → customer saves ৳${full - Number(d.price)}` : ""}{Number(d.price) >= full && full > 0 ? " (combo price must be lower than the normal price to apply)" : ""}
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      <div className="flex gap-2">
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, price: Number(d.price), items: d.items.filter(i => i.itemId).map(i => ({ itemId: Number(i.itemId), qty: Number(i.qty) })) })}>Save combo</button>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function HappyHourForm({ menu, initial, onSave, onCancel }) {
+  const [d, setD] = useState(initial || { name: "", name_bn: "", startTime: "15:00", endTime: "17:00", days: [], category: "snacks", itemIds: [], discountType: "PERCENTAGE", discountValue: "15", isActive: true });
+  const toggleDay = (i) => setD({ ...d, days: d.days.includes(i) ? d.days.filter(x => x !== i) : [...d.days, i] });
+  const toggleItem = (id) => setD({ ...d, itemIds: d.itemIds.includes(id) ? d.itemIds.filter(x => x !== id) : [...d.itemIds, id] });
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="Snacks happy hour" /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Applies to">
+          <select className={inputCls} style={lineStyle} value={d.category || ""} onChange={e => setD({ ...d, category: e.target.value || null })}>
+            <option value="">Everything</option><option value="heavy">Meals</option><option value="snacks">Snacks</option><option value="drinks">Drinks</option>
+          </select>
+        </OfferField>
+      </div>
+      <div className="grid sm:grid-cols-4 gap-3">
+        <OfferField label="From"><input type="time" className={inputCls} style={lineStyle} value={d.startTime} onChange={e => setD({ ...d, startTime: e.target.value })} /></OfferField>
+        <OfferField label="Until"><input type="time" className={inputCls} style={lineStyle} value={d.endTime} onChange={e => setD({ ...d, endTime: e.target.value })} /></OfferField>
+        <OfferField label="Discount type">
+          <select className={inputCls} style={lineStyle} value={d.discountType} onChange={e => setD({ ...d, discountType: e.target.value })}>
+            <option value="PERCENTAGE">Percent off</option><option value="FIXED">৳ off each item</option>
+          </select>
+        </OfferField>
+        <OfferField label={d.discountType === "PERCENTAGE" ? "Percent" : "Taka"}><input type="number" min="1" className={inputCls} style={lineStyle} value={d.discountValue} onChange={e => setD({ ...d, discountValue: e.target.value })} /></OfferField>
+      </div>
+      <div>
+        <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Days (none selected = every day)</div>
+        <div className="flex gap-1.5 flex-wrap">
+          {DAY_LABELS.map((l, i) => (
+            <button key={i} onClick={() => toggleDay(i)} className={`px-2.5 py-1 rounded-lg border text-xs ${d.days.includes(i) ? "text-white" : ""}`}
+              style={d.days.includes(i) ? { background: "var(--teal)", borderColor: "var(--teal)" } : lineStyle}>{l}</button>
+          ))}
+        </div>
+      </div>
+      <details>
+        <summary className="text-xs cursor-pointer" style={{ color: "var(--ink-soft)" }}>Only specific items ({d.itemIds.length} chosen — overrides “Applies to”)</summary>
+        <div className="grid sm:grid-cols-3 gap-1 mt-2 max-h-40 overflow-auto">
+          {menu.map(m => <label key={m.id} className="text-xs flex items-center gap-1.5"><input type="checkbox" checked={d.itemIds.includes(m.id)} onChange={() => toggleItem(m.id)} />{m.name}</label>)}
+        </div>
+      </details>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      <div className="flex gap-2">
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, discountValue: Number(d.discountValue) })}>Save happy hour</button>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function RewardForm({ menu, initial, onSave, onCancel }) {
+  const [d, setD] = useState(initial || { name: "", name_bn: "", type: "DISCOUNT", pointsCost: "100", discountValue: "20", itemId: "", isActive: true });
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="grid sm:grid-cols-4 gap-3">
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="৳20 off" /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Points needed"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.pointsCost} onChange={e => setD({ ...d, pointsCost: e.target.value })} /></OfferField>
+        <OfferField label="Reward">
+          <select className={inputCls} style={lineStyle} value={d.type} onChange={e => setD({ ...d, type: e.target.value })}>
+            <option value="DISCOUNT">Discount (৳)</option><option value="FREE_ITEM">Free item</option>
+          </select>
+        </OfferField>
+      </div>
+      {d.type === "DISCOUNT"
+        ? <OfferField label="Taka off"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.discountValue} onChange={e => setD({ ...d, discountValue: e.target.value })} /></OfferField>
+        : <OfferField label="Free item (one unit)">
+            <select className={inputCls} style={lineStyle} value={d.itemId} onChange={e => setD({ ...d, itemId: e.target.value })}>
+              <option value="">Choose item…</option>{menu.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </OfferField>}
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      <div className="flex gap-2">
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, pointsCost: Number(d.pointsCost), discountValue: Number(d.discountValue), itemId: d.itemId ? Number(d.itemId) : null })}>Save reward</button>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function AdminOffers({ call, menu, notify }) {
+  const [data, setData] = useState(null);
+  const [form, setForm] = useState(null); // { kind: "combos"|"happy-hours"|"rewards", row? }
+  const [settings, setSettings] = useState(null);
+  const menuIds = new Set(menu.map(m => m.id));
+  const load = async () => { const d = await call("/api/offers/admin"); setData(d); setSettings(d.settings); };
+  useEffect(() => { load().catch(e => notify(e, true)); }, []);
+  if (!data) return <div className="card p-6 text-sm">…</div>;
+
+  const save = async (kind, id, body) => {
+    try {
+      await call(`/api/offers/admin/${kind}${id ? "/" + id : ""}`, { method: id ? "PUT" : "POST", body });
+      setForm(null); await load(); notify("Saved.");
+    } catch (e) { notify(e, true); }
+  };
+  const remove = async (kind, id, name) => {
+    if (!window.confirm(`Delete “${name}”?`)) return;
+    try { await call(`/api/offers/admin/${kind}/${id}`, { method: "DELETE" }); await load(); } catch (e) { notify(e, true); }
+  };
+  const saveSettings = async () => {
+    try {
+      const s = await call("/api/loyalty/settings", { method: "PUT", body: { earnPer: Number(settings.earnPer), streakDays: Number(settings.streakDays), streakBonus: Number(settings.streakBonus) } });
+      setSettings(s); notify("Loyalty settings saved.");
+    } catch (e) { notify(e, true); }
+  };
+  // Combos belong to one restaurant: show the ones made of this restaurant's items
+  const combos = data.combos.filter(c => c.items.every(i => menuIds.has(i.item_id)));
+  const rewardItemOk = (r) => !r.item_id || menuIds.has(r.item_id);
+  const Row = ({ kind, row, title, sub, on }) => (
+    <div className="card p-3 flex items-center justify-between gap-3" style={{ opacity: row.is_active ? 1 : 0.55 }}>
+      <div className="min-w-0">
+        <div className="font-600 text-sm">{title} {!row.is_active && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>(off)</span>} {on && <span className="text-[10px] px-2 py-0.5 rounded-full ml-1" style={{ background: "var(--teal)", color: "#fff" }}>running now</span>}</div>
+        <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{sub}</div>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setForm({ kind, row })}>Edit</button>
+        <button className="px-3 py-1.5 rounded-lg text-xs border" style={{ borderColor: "var(--brick)", color: "var(--brick)" }} onClick={() => remove(kind, row.id, row.name)}>Delete</button>
+      </div>
+    </div>
+  );
+  const hhSub = (h) => `${String(h.start_time).slice(0, 5)}–${String(h.end_time).slice(0, 5)} · ${h.days.length ? h.days.map(d => DAY_LABELS[d]).join(", ") : "every day"} · ${h.itemIds.length ? h.itemIds.length + " items" : h.category || "everything"} · ${h.discount_type === "PERCENTAGE" ? Number(h.discount_value) + "% off" : "৳" + Number(h.discount_value) + " off each"}`;
+  const Section = ({ title, kind, children }) => (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{title}</h3>
+        <button className="btn-primary px-3 py-1.5 rounded-lg text-xs" onClick={() => setForm({ kind })}>+ New</button>
+      </div>
+      {form && form.kind === kind && (
+        kind === "combos" ? <ComboForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, price: String(Number(form.row.price)), isActive: !!form.row.is_active, items: form.row.items.map(i => ({ itemId: String(i.item_id), qty: i.qty })) }} /> :
+        kind === "happy-hours" ? <HappyHourForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, startTime: String(form.row.start_time).slice(0, 5), endTime: String(form.row.end_time).slice(0, 5), days: form.row.days, category: form.row.category, itemIds: form.row.itemIds, discountType: form.row.discount_type, discountValue: String(Number(form.row.discount_value)), isActive: !!form.row.is_active }} /> :
+        <RewardForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, type: form.row.type, pointsCost: String(form.row.points_cost), discountValue: String(Number(form.row.discount_value || 0)), itemId: form.row.item_id ? String(form.row.item_id) : "", isActive: !!form.row.is_active }} />
+      )}
+      <div className="space-y-2 mt-2">{children}</div>
+    </section>
+  );
+
+  return (
+    <div className="space-y-8 max-w-3xl">
+      <h2 className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Offers & loyalty</h2>
+
+      <section className="card p-4">
+        <h3 className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Points & streak rules</h3>
+        <div className="grid sm:grid-cols-3 gap-3">
+          <OfferField label="Taka per 1 point"><input type="number" min="1" className={inputCls} style={lineStyle} value={settings.earnPer} onChange={e => setSettings({ ...settings, earnPer: e.target.value })} /></OfferField>
+          <OfferField label="Streak length (days)"><input type="number" min="2" className={inputCls} style={lineStyle} value={settings.streakDays} onChange={e => setSettings({ ...settings, streakDays: e.target.value })} /></OfferField>
+          <OfferField label="Streak bonus (points)"><input type="number" min="0" className={inputCls} style={lineStyle} value={settings.streakBonus} onChange={e => setSettings({ ...settings, streakBonus: e.target.value })} /></OfferField>
+        </div>
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm mt-3" onClick={saveSettings}>Save rules</button>
+      </section>
+
+      <Section title="Happy hours" kind="happy-hours">
+        {data.happyHours.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No happy hours yet.</p>}
+        {data.happyHours.map(h => <Row key={h.id} kind="happy-hours" row={h} title={h.name} sub={hhSub(h)} on={h.activeNow} />)}
+      </Section>
+
+      <Section title="Combo deals" kind="combos">
+        {combos.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No combos for this restaurant yet.</p>}
+        {combos.map(c => <Row key={c.id} kind="combos" row={c} title={`${c.name} — ৳${Number(c.price)}`} sub={`${c.items.map(i => `${i.name}${i.qty > 1 ? " ×" + i.qty : ""}`).join(" + ")} · normal ৳${c.fullPrice}${c.saving > 0 ? ` · saves ৳${c.saving}` : " · not cheaper than normal, won't apply"}`} />)}
+      </Section>
+
+      <Section title="Point rewards" kind="rewards">
+        {data.rewards.filter(rewardItemOk).map(r => <Row key={r.id} kind="rewards" row={r} title={r.name} sub={`${r.points_cost} points · ${r.type === "DISCOUNT" ? "৳" + Number(r.discount_value) + " off" : "free " + (r.item_name || "item")}`} />)}
+      </Section>
+    </div>
+  );
+}
+
 function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
   const bn = lang === "bn" && role !== "admin";
   return (
@@ -5123,6 +5680,7 @@ function App() {
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [chatRefreshKey, setChatRefreshKey] = useState(0);
+  const [loyaltyKey, setLoyaltyKey] = useState(0); // bumped whenever points / offers may have changed
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -5279,6 +5837,12 @@ function App() {
       refreshWallet().catch(() => {});
       pushNotification("wallet", tx("n.received.t"), tx("n.received", { n: payload.from, a: taka(payload.amount) }));
     });
+    // Order became Ready: points (and maybe a streak bonus) landed
+    socket.on("loyalty:update", (p) => {
+      setLoyaltyKey(k => k + 1);
+      if (p.points > 0) pushNotification("loyalty", tx("n.points.t"), tx("n.points", { p: num(p.points + (p.bonus || 0)), o: p.token, b: num(p.balance) }));
+      if (p.bonus > 0) pushNotification("loyalty", tx("n.points.t"), tx("n.bonus", { s: num(p.streak), b: num(p.bonus) }));
+    });
     socket.on("announcement", (payload) => {
       pushNotification("announcement", tx("n.announce"), payload.message || tx("n.announce.def"));
     });
@@ -5297,7 +5861,7 @@ function App() {
     return () => socket.disconnect();
   }, [session, apiBase]);
 
-  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note) => {
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId) => {
     setBusy(true); setError(null);
     try {
       await call("/api/orders", {
@@ -5309,9 +5873,11 @@ function App() {
           couponId: coupon ? coupon.couponId : undefined,
           couponCode: coupon ? coupon.code : undefined,
           note: note && note.trim() ? note.trim() : undefined,
+          rewardId: rewardId || undefined,
         },
       });
       setCart([]);
+      setLoyaltyKey(k => k + 1);
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");
     } catch (e) { showError(e); } finally { setBusy(false); }
@@ -5349,6 +5915,7 @@ function App() {
     try {
       const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
       await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
+      setLoyaltyKey(k => k + 1); // spent points come back on cancel
       showSuccess(
         cancelled.payment_method === "wallet"
           ? tx("msg.cancel.w", { t: cancelled.token, a: taka(cancelled.total) })
@@ -5482,6 +6049,7 @@ function App() {
     { key: "track", label: tx("nav.track"), icon: I.clock },
     { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
+    { key: "rewards", label: tx("nav.rewards"), icon: I.gift },
     { key: "spending", label: tx("nav.spending"), icon: I.chart },
     { key: "chat", label: tx("nav.chat"), icon: I.chat },
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
@@ -5493,6 +6061,7 @@ function App() {
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
+    { key: "offers", label: "Offers", icon: I.gift },
     { key: "chat", label: "Messages", icon: I.chat },
     { key: "reports", label: "Reports", icon: I.chart },
     { key: "feedback", label: "Feedback", icon: I.star, badge: newFeedbackCount },
@@ -5561,8 +6130,9 @@ function App() {
 
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} />
         )}
+        {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
         {session.user.role !== "admin" && tab === "track" && (
           <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} />
         )}
@@ -5591,6 +6161,9 @@ function App() {
         )}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
+        {session.user.role === "admin" && tab === "offers" && (
+          <AdminOffers call={call} menu={restaurantMenu} notify={(m, isErr) => { if (isErr) showError(m); else showSuccess(m); setLoyaltyKey(k => k + 1); }} />
+        )}
         {session.user.role === "admin" && tab === "verify" && (
           <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
         )}
