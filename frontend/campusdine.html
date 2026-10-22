@@ -1355,6 +1355,7 @@ Object.assign(I18N.en, {
   "sp.same": "Same as last month",
   "sp.noprev": "No orders last month to compare",
   "sp.daily": "Spending by day",
+  "sp.months": "Last 6 months (tap a bar to open that month)",
   "sp.top": "Most ordered",
   "sp.cat": "Where it went",
   "sp.cat.heavy": "Main meals",
@@ -1382,6 +1383,7 @@ Object.assign(I18N.bn, {
   "sp.same": "গত মাসের সমান",
   "sp.noprev": "তুলনার জন্য গত মাসে অর্ডার নেই",
   "sp.daily": "দিন অনুযায়ী খরচ",
+  "sp.months": "গত ৬ মাস (বারে চাপ দিলে সেই মাস খুলবে)",
   "sp.top": "সবচেয়ে বেশি অর্ডার",
   "sp.cat": "কোথায় খরচ হলো",
   "sp.cat.heavy": "মূল খাবার",
@@ -3816,6 +3818,32 @@ function SpendingTab({ call, user }) {
             </div>
           </div>
         </div>
+
+        {/* Feature: spending last 6 months */}
+        {data.months && (
+          <div className="card p-5">
+            <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("sp.months")}</div>
+            {(() => {
+              const mMax = Math.max(1, ...data.months.map(m => m.spent));
+              return (
+                <div className="flex items-end gap-2 h-40">
+                  {data.months.map(m => {
+                    const sel = m.year === ym.year && m.month === ym.month;
+                    const label = new Date(m.year, m.month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "short" });
+                    return (
+                      <button key={m.year + "-" + m.month} type="button" onClick={() => setYm({ year: m.year, month: m.month })}
+                        className="flex-1 flex flex-col items-center justify-end" title={label + " " + m.year + ": " + taka(m.spent) + " · " + m.orders}>
+                        <div className="text-[10px] font-mono mb-1" style={{ color: "var(--ink-soft)" }}>{m.spent ? taka(Math.round(m.spent)) : ""}</div>
+                        <div className="w-full rounded-t" style={{ height: m.spent ? Math.max(4, (m.spent / mMax) * 110) + "px" : "2px", background: m.spent ? "var(--gold)" : "var(--line)", opacity: sel || !m.spent ? 1 : 0.5 }}></div>
+                        <div className="text-[11px] mt-1" style={{ color: sel ? "var(--gold)" : "var(--ink-soft)", fontWeight: sel ? 700 : 400 }}>{label}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-5">
           <div className="card p-5">
