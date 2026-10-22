@@ -458,6 +458,7 @@ const DEFAULT_API_BASE = (window.location.origin && window.location.origin !== "
   ? window.location.origin
   : "http://localhost:5000";
 const LOW_STOCK_THRESHOLD = 10;
+const STUDENT_LOW_STOCK = 5; /* Feature: stock badges */ // students see "Only N left" at or below this
 const LOW_BALANCE_THRESHOLD = 50; // wallet balance (৳) below which students/teachers get a top-up reminder
 const CATEGORIES = [
   { id: "heavy", label: "Heavy meals" },
@@ -878,7 +879,8 @@ const I18N = {
     "dnote.label": "Delivery instructions (optional)",
     "dnote.ph": "e.g. leave it at the gate, call when you arrive",
     "dnote.show": "Delivery",
-    "soldout": "Sold out"
+    "soldout": "Sold out",
+    "onlyleft": "Only {n} left"
   },
   bn: {
     "ann": "CampusDine-এ স্বাগতম — আপনার ক্যাম্পাস ক্যান্টিন থেকে খাবার অর্ডার করুন",
@@ -1232,7 +1234,8 @@ const I18N = {
     "dnote.label": "ডেলিভারি নির্দেশনা (ঐচ্ছিক)",
     "dnote.ph": "যেমন গেটে দিবেন, এসে ফোন করবেন",
     "dnote.show": "ডেলিভারি",
-    "soldout": "বিক্রি শেষ"
+    "soldout": "বিক্রি শেষ",
+    "onlyleft": "মাত্র {n}টি বাকি"
   }
 };
 // ---- Added: sign-up with email / hall residents, QR pickup token, forgot-password check ----
@@ -2927,7 +2930,13 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             const inCart = cart.find(c => c.id === item.id);
             return (
               <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-50" : ""}`}>
-                <div className="overflow-hidden mb-3" style={{ margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
+                <div className="overflow-hidden mb-3" style={{ position: "relative", margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
+                  {(out || (Number(item.stock) > 0 && Number(item.stock) <= STUDENT_LOW_STOCK)) && (
+                    <span className="absolute top-2 left-2 text-[11px] font-700 px-2.5 py-1 rounded-full"
+                      style={{ background: out ? "#B91C1C" : "#F59E0B", color: "#FFFFFF", zIndex: 1 }}>
+                      {out ? tx("soldout") : tx("onlyleft", { n: num(item.stock) })}
+                    </span>
+                  )}
                   <img src={(apiBase || "") + (item.image || "/images/food/default.svg")} alt={item.name} loading="lazy"
                     onError={(e) => { if (!e.target.dataset.fb) { e.target.dataset.fb = "1"; e.target.src = (apiBase || "") + "/images/food/default.svg"; } }}
                     className="w-full h-full object-cover" />
@@ -4328,12 +4337,17 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                 <td className="p-3">
                   {(() => {
                     const a = item.availability || "available";
-                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : "Available";
-                    const pillStyle = a === "available"
-                      ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
-                      : a === "sold_out"
+                    const stockNum = Number(item.stock);
+                    const autoOut = a === "available" && stockNum <= 0;
+                    const lowStock = a === "available" && stockNum > 0 && stockNum <= LOW_STOCK_THRESHOLD;
+                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : autoOut ? "Sold out (stock 0)" : lowStock ? "Low stock · " + stockNum + " left" : "Available";
+                    const pillStyle = autoOut
+                      ? { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" }
+                      : lowStock || a === "sold_out"
                         ? { background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }
-                        : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
+                        : a === "available"
+                          ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
+                          : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[11px] font-700 px-2 py-0.5 rounded-full" style={pillStyle}>{pill}</span>
