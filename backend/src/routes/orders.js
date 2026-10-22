@@ -80,7 +80,13 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
   if (items.some((item) => !item || !Number.isInteger(Number(item.id)) || Number(item.id) <= 0 || !Number.isInteger(Number(item.qty)) || Number(item.qty) <= 0)) {
     return res.status(400).json({ error: "Each item must have a valid ID and positive quantity" });
   }
-  const requestedItems = items.map((item) => ({ id: Number(item.id), qty: Number(item.qty) }));
+  /* Fix: merge duplicate cart lines */
+  const mergedItems = new Map();
+  for (const item of items) {
+    const id = Number(item.id);
+    mergedItems.set(id, (mergedItems.get(id) || 0) + Number(item.qty));
+  }
+  const requestedItems = [...mergedItems].map(([id, qty]) => ({ id, qty }));
   if (!["wallet", "cash"].includes(paymentMethod)) {
     return res.status(400).json({ error: "paymentMethod must be wallet or cash" });
   }
@@ -270,6 +276,13 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
     }
 
     await loyalty.refundForOrder(conn, order); // points spent on this order go back to the customer
+
+    /* Fix: give the coupon back when the order is cancelled */
+    const [usedCoupons] = await conn.query("SELECT coupon_id FROM coupon_usage WHERE order_id = ?", [order.id]);
+    for (const row of usedCoupons) {
+      await conn.query("UPDATE coupons SET used_count = GREATEST(used_count - 1, 0) WHERE id = ?", [row.coupon_id]);
+    }
+    if (usedCoupons.length) await conn.query("DELETE FROM coupon_usage WHERE order_id = ?", [order.id]);
 
     await conn.query("UPDATE orders SET status = 'Cancelled' WHERE id = ?", [order.id]);
     await recordAuditEvent(conn, req, "ORDER_CANCEL_AND_REFUND", "order", order.id, {
