@@ -412,6 +412,19 @@
 .chat-templates button{flex-shrink:0;padding:6px 12px;border-radius:999px;border:1px dashed var(--line);background:transparent;color:var(--ink-soft);font-size:12px;white-space:nowrap;transition:all .15s}
 .chat-templates button:hover{border-color:var(--gold);color:var(--gold);border-style:solid}
 
+/*chat-ui3*/
+.chat-order{min-width:210px;border-radius:12px;padding:8px 10px;background:rgba(127,127,127,.14);border:1px solid rgba(127,127,127,.28)}
+.chat-order-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chat-order-token{font-family:ui-monospace,monospace;font-weight:700}
+.chat-order-status{font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(127,127,127,.28)}
+.chat-order-items{font-size:12.5px;margin-top:4px;opacity:.92}
+.chat-order-total{font-weight:700;margin-top:2px}
+.chat-order-panel{position:absolute;left:12px;right:12px;bottom:calc(100% + 6px);max-height:260px;overflow-y:auto;padding:6px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:5;animation:chatIn .15s ease}
+.chat-order-pick{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:10px 12px;border-radius:10px;font-size:13px;color:var(--ink);transition:background .12s}
+.chat-order-pick:hover{background:var(--gold-soft)}
+.chat-order-pick small{color:var(--ink-soft);font-size:12px}
+.chat-order-note{padding:12px;text-align:center;font-size:13px;color:var(--ink-soft)}
+
 </style>
 </head>
 <body>
@@ -5308,6 +5321,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [search, setSearch] = useState("");
   const [mobileChat, setMobileChat] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [myOrders, setMyOrders] = useState(null);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isAdmin = role === "admin";
@@ -5351,7 +5366,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     setBusy(true); setError("");
     const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
     setMessages(m => [...m, temp]);
-    setDraft(""); setEmojiOpen(false);
+    setDraft(""); setEmojiOpen(false); setOrderOpen(false);
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
       await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
@@ -5388,6 +5403,25 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const parseOrder = (text) => {
+    const mt = /^🧾 Order (\S+) \| ([^|]+) \| ([^|]+) \| ([\s\S]*)$/.exec(text || "");
+    return mt ? { token: mt[1], status: mt[2].trim(), total: mt[3].trim(), items: mt[4].trim() } : null;
+  };
+  const openOrders = async () => {
+    setEmojiOpen(false);
+    const next = !orderOpen;
+    setOrderOpen(next);
+    if (next && myOrders === null) {
+      try {
+        const list = await chatCall("/api/orders/mine");
+        setMyOrders(Array.isArray(list) ? list.slice(0, 6) : []);
+      } catch (e) { setMyOrders([]); setError(e.message); }
+    }
+  };
+  const shareOrder = (o) => {
+    const items = (o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 200) || "-";
+    send(`🧾 Order ${o.token} | ${o.status} | ${taka(o.total)} | ${items}`);
+  };
   useEffect(() => {
     const el = inputRef.current;
     if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; }
@@ -5406,7 +5440,16 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
         {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
         <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
-          <p>{m.message}</p>
+          {(() => {
+            const oc = parseOrder(m.message);
+            return oc ? (
+              <div className="chat-order">
+                <div className="chat-order-top"><span className="chat-order-token">🧾 {oc.token}</span><span className="chat-order-status">{oc.status}</span></div>
+                <div className="chat-order-items">{oc.items}</div>
+                <div className="chat-order-total">{oc.total}</div>
+              </div>
+            ) : <p>{m.message}</p>;
+          })()}
           <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
         </div>
       </div>
@@ -5480,7 +5523,22 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           </div>
         )}
         <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
-          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => setEmojiOpen(o => !o)}
+          {!isAdmin && (
+            <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
+          )}
+          {orderOpen && !isAdmin && (
+            <div className="chat-order-panel">
+              {myOrders === null ? <p className="chat-order-note">Loading…</p>
+                : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
+                : myOrders.map(o => (
+                  <button key={o.token} type="button" className="chat-order-pick" onClick={() => shareOrder(o)}>
+                    <b>{o.token} · {o.status} · {taka(o.total)}</b>
+                    <small>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 70)}</small>
+                  </button>
+                ))}
+            </div>
+          )}
+          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => { setOrderOpen(false); setEmojiOpen(o => !o); }}
             disabled={isAdmin && !selectedUserId}>😊</button>
           {emojiOpen && (
             <div className="chat-emoji-panel">
