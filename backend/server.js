@@ -639,6 +639,19 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
+  // Chat "typing..." indicator: students/teachers can only reach admins; admins can reach one user.
+  socket.on("chat:typing", (data) => {
+    const now = Date.now();
+    if (data && data.typing && now - (socket.lastTyping || 0) < 800) return;
+    socket.lastTyping = now;
+    const typing = !!(data && data.typing);
+    if (socket.user.role === "admin") {
+      const to = Number(data && data.to);
+      if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing });
+    } else {
+      io.to("admins").emit("chat:typing", { from: socket.user.id, typing });
+    }
+  });
   if (socket.user.role === "teacher") socket.join("teachers");
   if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
 });

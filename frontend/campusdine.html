@@ -425,6 +425,14 @@
 .chat-order-pick small{color:var(--ink-soft);font-size:12px}
 .chat-order-note{padding:12px;text-align:center;font-size:13px;color:var(--ink-soft)}
 
+/*chat-ui4*/
+.chat-typing{display:flex;align-items:center;gap:4px;padding:13px 14px}
+.chat-typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-soft);animation:chatDot 1.2s infinite}
+.chat-typing i:nth-child(2){animation-delay:.15s}
+.chat-typing i:nth-child(3){animation-delay:.3s}
+.chat-typing-text{color:var(--gold);font-weight:600}
+@keyframes chatDot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+
 </style>
 </head>
 <body>
@@ -5369,6 +5377,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [myOrders, setMyOrders] = useState(null);
+  const [typing, setTyping] = useState(false);
+  const typingTimer = useRef(null);
+  const lastTypingSent = useRef(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isAdmin = role === "admin";
@@ -5404,7 +5415,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     }, 10000);
     return () => clearInterval(t);
   }, [isAdmin, apiBase, sessionToken, selectedUserId]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId, typing]);
 
   const send = async (text) => {
     const message = (text ?? draft).trim();
@@ -5413,6 +5424,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
     setMessages(m => [...m, temp]);
     setDraft(""); setEmojiOpen(false); setOrderOpen(false);
+    lastTypingSent.current = 0; emitTyping(false);
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
       await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
@@ -5426,6 +5438,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const onKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
   const onInput = (e) => {
     setDraft(e.target.value);
+    const nowTs = Date.now();
+    if (e.target.value && nowTs - lastTypingSent.current > 2000) { lastTypingSent.current = nowTs; emitTyping(true); }
+    if (!e.target.value) { lastTypingSent.current = 0; emitTyping(false); }
     e.target.style.height = "auto";
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
   };
@@ -5449,6 +5464,23 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const emitTyping = (on) => {
+    const sock = window.__campusSocket;
+    if (!sock || (isAdmin && !selectedUserId)) return;
+    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
+  };
+  useEffect(() => {
+    const onTyping = (e) => {
+      const d = e.detail || {};
+      if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
+      clearTimeout(typingTimer.current);
+      setTyping(!!d.typing);
+      if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
+    };
+    window.addEventListener("chat-typing", onTyping);
+    return () => { window.removeEventListener("chat-typing", onTyping); clearTimeout(typingTimer.current); };
+  }, [isAdmin, selectedUserId]);
+  useEffect(() => { setTyping(false); }, [selectedUserId, messages.length]);
   const parseOrder = (text) => {
     const mt = /^🧾 Order (\S+) \| ([^|]+) \| ([^|]+) \| ([\s\S]*)$/.exec(text || "");
     return mt ? { token: mt[1], status: mt[2].trim(), total: mt[3].trim(), items: mt[4].trim() } : null;
@@ -5543,7 +5575,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           <div style={{ minWidth: 0, flex: 1 }}>
             <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
-              {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+              {typing ? <span className="chat-typing-text">typing…</span> : (isAdmin ? selected?.role || "Admin inbox" : tx("chat.private"))}
             </p>
           </div>
           <span className="chat-pill">{tx("chat.support")}</span>
@@ -5561,6 +5593,12 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               )}
             </div>
           ) : rows}
+          {typing && (
+            <div className="chat-row">
+              <div style={{ width: 30 }}><Avatar name={heading} size={30} /></div>
+              <div className="chat-bubble theirs first last chat-typing"><i /><i /><i /></div>
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
         {isAdmin && selectedUserId && (
@@ -6450,6 +6488,7 @@ function App() {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
     socketRef.current = socket;
+    window.__campusSocket = socket;
     socket.on("connect", () => {
       setConnected(true);
       if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
@@ -6508,6 +6547,7 @@ function App() {
     });
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
     // Admin changed an item (sold out / hidden / price): refresh the menu live
+    socket.on("chat:typing", (p) => window.dispatchEvent(new CustomEvent("chat-typing", { detail: p })));
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("queue:changed", () => {
       if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
