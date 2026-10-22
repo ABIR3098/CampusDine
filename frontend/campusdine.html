@@ -433,6 +433,18 @@
 .chat-typing-text{color:var(--gold);font-weight:600}
 @keyframes chatDot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
 
+/*chat-ui5*/
+.chat-more-wrap{position:relative;align-self:center;opacity:0;transition:opacity .12s}
+.chat-row.mine:hover .chat-more-wrap,.chat-more-wrap:focus-within{opacity:1}
+@media (hover:none){.chat-more-wrap{opacity:.6}}
+.chat-more{width:26px;height:26px;border-radius:999px;color:var(--ink-soft);font-weight:700;line-height:1}
+.chat-more:hover{background:var(--hover)}
+.chat-menu{position:absolute;right:0;top:calc(100% + 2px);min-width:130px;padding:4px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:6;animation:chatIn .12s ease}
+.chat-menu button{display:block;width:100%;text-align:left;padding:8px 12px;border-radius:8px;font-size:13px;color:var(--ink)}
+.chat-menu button:hover{background:var(--hover)}
+.chat-menu .danger{color:var(--brick)}
+.chat-deleted{font-style:italic;opacity:.7;font-size:13px}
+
 </style>
 </head>
 <body>
@@ -5378,6 +5390,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [orderOpen, setOrderOpen] = useState(false);
   const [myOrders, setMyOrders] = useState(null);
   const [typing, setTyping] = useState(false);
+  const [menuFor, setMenuFor] = useState(null);
   const typingTimer = useRef(null);
   const lastTypingSent = useRef(0);
   const bottomRef = useRef(null);
@@ -5464,6 +5477,22 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const deleteMsg = async (m) => {
+    setMenuFor(null);
+    if (!window.confirm("Delete this message for everyone?")) return;
+    try {
+      await chatCall(`/api/chat/messages/${m.id}`, { method: "DELETE" });
+      setMessages(list => list.map(x => x.id === m.id ? { ...x, message: "", deleted_at: new Date().toISOString() } : x));
+      if (isAdmin) refreshConversations().catch(() => {});
+    } catch (e) { setError(e.message); }
+  };
+  const copyMsg = (m) => { setMenuFor(null); try { navigator.clipboard.writeText(m.message); } catch (e) {} };
+  useEffect(() => {
+    if (menuFor === null) return;
+    const close = () => setMenuFor(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuFor]);
   const emitTyping = (on) => {
     const sock = window.__campusSocket;
     if (!sock || (isAdmin && !selectedUserId)) return;
@@ -5516,9 +5545,21 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     rows.push(
       <div key={m.id} className={`chat-row ${mine ? "mine" : ""}`}>
         {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
+        {mine && !m.pending && !m.deleted_at && (
+          <div className="chat-more-wrap">
+            <button type="button" className="chat-more" aria-label="Message options"
+              onClick={e => { e.stopPropagation(); setMenuFor(menuFor === m.id ? null : m.id); }}>⋯</button>
+            {menuFor === m.id && (
+              <div className="chat-menu" onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={() => copyMsg(m)}>Copy</button>
+                <button type="button" className="danger" onClick={() => deleteMsg(m)}>Delete</button>
+              </div>
+            )}
+          </div>
+        )}
         <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
-          {(() => {
+          {m.deleted_at ? <p className="chat-deleted">🚫 This message was deleted</p> : (() => {
             const oc = parseOrder(m.message);
             return oc ? (
               <div className="chat-order">
@@ -5554,7 +5595,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                   <span className="chat-item-body">
                     <span className="chat-item-top">
                       <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
-                      <span className="chat-item-time">{listTime(c.last_at || c.last_message_at)}</span>
+                      <span className="chat-item-time">{listTime(c.updated_at || c.last_at)}</span>
                     </span>
                     <span className="chat-item-bottom">
                       <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
@@ -5695,12 +5736,14 @@ function ProfileInput({ label, value, onChange, placeholder }) {
     </div>
   );
 }
-function ProfileTab({ user, call, onUpdated }) {
+function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
     name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
   });
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
+  /* Fix: profile balance = live wallet balance */
+  const shownBalance = liveBalance != null ? liveBalance : walletBalance;
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -5932,7 +5975,7 @@ function ProfileTab({ user, call, onUpdated }) {
             <div className="ticket p-4">
               <div className="perf pl-4">
                 <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
-                <div className="font-mono text-xl font-700">{taka(walletBalance)}</div>
+                <div className="font-mono text-xl font-700">{taka(shownBalance)}</div>
               </div>
             </div>
           )}
@@ -6548,6 +6591,7 @@ function App() {
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
     // Admin changed an item (sold out / hidden / price): refresh the menu live
     socket.on("chat:typing", (p) => window.dispatchEvent(new CustomEvent("chat-typing", { detail: p })));
+    socket.on("chat:deleted", () => setChatRefreshKey(value => value + 1));
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("queue:changed", () => {
       if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
@@ -6555,6 +6599,10 @@ function App() {
 
     return () => socket.disconnect();
   }, [session, apiBase]);
+
+  useEffect(() => {
+    if (session && session.user.role !== "admin" && (tab === "wallet" || tab === "profile")) refreshWallet().catch(() => {});
+  }, [tab]);
 
   const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId) => {
     setBusy(true); setError(null);
@@ -6881,7 +6929,7 @@ function App() {
         {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
 
         {tab === "profile" && (
-          <ProfileTab user={session.user} call={call}
+          <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
         )}
       </div>
