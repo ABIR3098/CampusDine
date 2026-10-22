@@ -6615,6 +6615,8 @@ function App() {
     setBusy(true); setError(null);
     try {
       const deliveryLocation = await new Promise(resolve => {
+        /* Fix: order feedback */
+        setTimeout(() => resolve(undefined), 2500); // give up on the location after 2.5s
         if (!navigator.geolocation) return resolve(undefined);
         navigator.geolocation.getCurrentPosition(
           position => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
@@ -6622,7 +6624,7 @@ function App() {
           { enableHighAccuracy: false, maximumAge: 60000, timeout: 1800 }
         );
       });
-      await call("/api/orders", {
+      const placed = await call("/api/orders", {
         method: "POST",
         body: {
           items: cartItems.map(c => ({ id: c.id, qty: c.qty })),
@@ -6639,7 +6641,9 @@ function App() {
       setLoyaltyKey(k => k + 1);
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");
-    } catch (e) { showError(e); } finally { setBusy(false); }
+      showSuccess("✅ Order placed! Your token is " + placed.token + " — you can see it here in the Orders tab.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) { showError(e); window.scrollTo({ top: 0, behavior: "smooth" }); } finally { setBusy(false); }
   }; 
     // Order again: put the items of a past order back into the cart (current prices, capped by stock).
   const reorder = (order) => {
