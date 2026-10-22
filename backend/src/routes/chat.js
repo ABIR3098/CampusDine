@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
+const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
 const MAX_MESSAGE_LENGTH = 4000;
@@ -166,5 +167,70 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "admin")
     if (connection) connection.release();
   }
 });
+
+router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teacher", "rider"), catchAsync(async (req, res) => {
+  const orderId = Number(req.params.orderId);
+  if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
+  const [[order]] = await pool.query("SELECT id, user_id, rider_id FROM orders WHERE id = ?", [orderId]);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  if (Number(req.user.id) !== Number(order.user_id) && Number(req.user.id) !== Number(order.rider_id)) {
+    return res.status(403).json({ error: "Only the order customer and assigned rider can access this chat" });
+  }
+
+  await pool.query(`
+    UPDATE direct_order_messages SET read_at = NOW()
+    WHERE order_id = ? AND recipient_id = ? AND read_at IS NULL
+  `, [orderId, req.user.id]);
+  const [messages] = await pool.query(`
+    SELECT m.id, m.sender_id, m.recipient_id, m.message, m.created_at,
+      u.name AS sender_name, u.role AS sender_role
+    FROM (
+      SELECT id, sender_id, recipient_id, message, created_at
+      FROM direct_order_messages WHERE order_id = ? ORDER BY id DESC LIMIT 200
+    ) m JOIN users u ON u.id = m.sender_id
+    ORDER BY m.id ASC
+  `, [orderId]);
+  res.json({ orderId, messages });
+}));
+
+router.post("/order/:orderId/messages", verifyToken, requireRole("student", "teacher", "rider"), catchAsync(async (req, res) => {
+  const orderId = Number(req.params.orderId);
+  const message = String((req.body && req.body.message) || "").trim();
+  if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
+  if (!message || message.length > 1000) {
+    return res.status(400).json({ error: "Message must contain 1-1000 characters" });
+  }
+  const [[order]] = await pool.query("SELECT id, user_id, rider_id FROM orders WHERE id = ?", [orderId]);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+
+  let recipientId;
+  if (Number(req.user.id) === Number(order.user_id) && order.rider_id != null) {
+    recipientId = Number(order.rider_id);
+  } else if (Number(req.user.id) === Number(order.rider_id)) {
+    recipientId = Number(order.user_id);
+  } else {
+    return res.status(403).json({ error: "Only the order customer and assigned rider can message each other" });
+  }
+  if (!recipientId) return res.status(409).json({ error: "A rider has not been assigned to this order yet" });
+
+  const [result] = await pool.query(`
+    INSERT INTO direct_order_messages (order_id, sender_id, recipient_id, message)
+    VALUES (?, ?, ?, ?)
+  `, [orderId, req.user.id, recipientId, message]);
+  const payload = {
+    id: result.insertId,
+    orderId,
+    sender_id: Number(req.user.id),
+    recipient_id: recipientId,
+    message,
+    sender_name: req.user.name,
+    sender_role: req.user.role,
+    created_at: new Date().toISOString(),
+  };
+  const io = req.app.get("io");
+  io.to(`user:${recipientId}`).emit("order-chat:message", payload);
+  io.to(`user:${req.user.id}`).emit("order-chat:message", payload);
+  res.status(201).json({ message: payload });
+}));
 
 module.exports = router;

@@ -8,6 +8,9 @@ const { loadItemRestaurants } = require("../restaurants");
 const { resolvePickupTime } = require("../utils/pickup");
 const pricing = require("../pricing");
 const loyalty = require("../loyalty");
+const { assignOrderToBestRider } = require("../utils/riderAssignment");
+const { recordFraudEvent } = require("../utils/fraud");
+const { recordAuditEvent } = require("../utils/audit");
 
 const router = express.Router();
 const STATUSES = ["Received", "Cooking", "Ready"];
@@ -152,9 +155,14 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     // Token: the row is inserted with a temporary unique token and then renamed to C-<100 + order id>.
     // (The old "MAX(id) + 1" way could hand two simultaneous orders the same token and one would fail.)
     const tempToken = `T-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.toUpperCase().slice(0, 20);
+    const deliveryLocation = req.body.deliveryLocation || {};
+    const deliveryLat = Number(deliveryLocation.latitude);
+    const deliveryLng = Number(deliveryLocation.longitude);
+    const hasValidDeliveryLocation = Number.isFinite(deliveryLat) && deliveryLat >= -90 && deliveryLat <= 90
+      && Number.isFinite(deliveryLng) && deliveryLng >= -180 && deliveryLng <= 180;
     const [orderResult] = await conn.query(
-      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
-      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote]
+      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, delivery_lat, delivery_lng, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
+      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote, hasValidDeliveryLocation ? deliveryLat : null, hasValidDeliveryLocation ? deliveryLng : null]
     );
     const token = `C-${String(100 + orderResult.insertId).padStart(3, "0")}`;
     await conn.query("UPDATE orders SET token = ? WHERE id = ?", [token, orderResult.insertId]);
@@ -182,6 +190,10 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       pointsBalance = await loyalty.redeemForOrder(conn, { userId: req.user.id, reward: priced.reward, orderId: orderResult.insertId, token });
     }
 
+    const assignedRiderId = await assignOrderToBestRider(conn, orderResult.insertId);
+    if (assignedRiderId) {
+      await recordAuditEvent(conn, req, "AUTO_RIDER_ASSIGN", "order", orderResult.insertId, { riderId: assignedRiderId });
+    }
     await conn.commit();
 
     const order = {
@@ -189,9 +201,14 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       promo_discount: priced.promoDiscount, reward_discount: priced.rewardDiscount, points_used: pointsUsed,
       promo_label: priced.promoLabel, subtotal: priced.subtotal, points_earnable: priced.pointsEarnable, points_balance: pointsBalance,
       status: "Received", pickup_time: pickupTime, note: orderNote,
+      rider_id: assignedRiderId,
+      rider_assignment_status: assignedRiderId ? "Assigned" : "Unassigned",
       items: snapshot.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
     };
     req.app.get("io").to("admins").emit("order:new", order);
+    if (assignedRiderId) {
+      req.app.get("io").to(`rider:${assignedRiderId}`).emit("rider:order-assigned", { orderId: order.id });
+    }
     req.app.get("io").emit("queue:changed");
     res.status(201).json(order);
   } catch (err) {
@@ -255,6 +272,10 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
     await loyalty.refundForOrder(conn, order); // points spent on this order go back to the customer
 
     await conn.query("UPDATE orders SET status = 'Cancelled' WHERE id = ?", [order.id]);
+    await recordAuditEvent(conn, req, "ORDER_CANCEL_AND_REFUND", "order", order.id, {
+      walletRefund: order.payment_method === "wallet",
+      amount: Number(order.total),
+    });
     await conn.commit();
 
     const updated = { ...order, status: "Cancelled" };
@@ -287,7 +308,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
   }
 
   const [[order]] = await pool.query(
-    `SELECT o.id, o.user_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.created_at, o.picked_up_at,
+    `SELECT o.id, o.user_id, o.rider_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.created_at, o.picked_up_at,
             u.name AS customer_name, u.external_id AS customer_id, u.role AS customer_role,
             u.account_type, u.hall_name, u.room_number, u.hall_id
      FROM orders o JOIN users u ON u.id = o.user_id
@@ -305,13 +326,30 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
 
   if (collect) {
     if (problem) return res.status(409).json({ error: problem.message, code: problem.code, order: { ...order, items } });
-    const [upd] = await pool.query("UPDATE orders SET picked_up_at = NOW() WHERE id = ? AND picked_up_at IS NULL", [order.id]);
-    if (upd.affectedRows === 0) {
-      return res.status(409).json({ error: "This order was already collected", code: "ALREADY_COLLECTED", order: { ...order, items } });
+    const connection = await pool.getConnection();
+    let pickedUpAt;
+    try {
+      await connection.beginTransaction();
+      const [updated] = await connection.query(
+        "UPDATE orders SET picked_up_at = NOW(), rider_assignment_status = CASE WHEN rider_id IS NULL THEN rider_assignment_status ELSE 'Completed' END WHERE id = ? AND status = 'Ready' AND picked_up_at IS NULL",
+        [order.id]
+      );
+      if (!updated.affectedRows) {
+        await connection.rollback();
+        return res.status(409).json({ error: "This order is not ready or was already collected", code: "ALREADY_COLLECTED", order: { ...order, items } });
+      }
+      await recordAuditEvent(connection, req, "ORDER_PICKUP_VERIFIED", "order", order.id, { riderId: order.rider_id });
+      const [[fresh]] = await connection.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
+      pickedUpAt = fresh.picked_up_at;
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-    const [[fresh]] = await pool.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
-    const done = { ...order, picked_up_at: fresh.picked_up_at, items };
-    req.app.get("io").to(`user:${order.user_id}`).emit("order:update", { id: order.id, token: order.token, status: order.status, picked_up_at: fresh.picked_up_at });
+    const done = { ...order, picked_up_at: pickedUpAt, items };
+    req.app.get("io").to(`user:${order.user_id}`).emit("order:update", { id: order.id, token: order.token, status: order.status, picked_up_at: pickedUpAt });
     return res.json({ ok: true, collected: true, order: done });
   }
 
@@ -320,12 +358,31 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
 
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
 router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
-  if (!order) return res.status(404).json({ error: "Order not found" });
-
-  const nextIndex = Math.min(STATUSES.indexOf(order.status) + 1, STATUSES.length - 1);
-  const nextStatus = STATUSES[nextIndex];
-  await pool.query("UPDATE orders SET status = ? WHERE id = ?", [nextStatus, order.id]);
+  const connection = await pool.getConnection();
+  let order;
+  let nextStatus;
+  try {
+    await connection.beginTransaction();
+    [[order]] = await connection.query("SELECT * FROM orders WHERE id = ? FOR UPDATE", [req.params.id]);
+    if (!order) {
+      await connection.rollback();
+      return res.status(404).json({ error: "Order not found" });
+    }
+    const statusIndex = STATUSES.indexOf(order.status);
+    if (statusIndex < 0 || statusIndex >= STATUSES.length - 1) {
+      await connection.rollback();
+      return res.status(409).json({ error: "This order cannot be advanced" });
+    }
+    nextStatus = STATUSES[statusIndex + 1];
+    await connection.query("UPDATE orders SET status = ? WHERE id = ?", [nextStatus, order.id]);
+    await recordAuditEvent(connection, req, "ORDER_STATUS_CHANGE", "order", order.id, { from: order.status, to: nextStatus });
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 
   const updated = { ...order, status: nextStatus };
   const io = req.app.get("io");
@@ -365,7 +422,16 @@ router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), cat
   const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
   if (!order) return res.status(404).json({ error: "Order not found" });
   if (order.user_id !== req.user.id) return res.status(403).json({ error: "This isn't your order" });
-  if (order.status !== "Ready") return res.status(400).json({ error: "You can only rate an order once it's Ready" });
+  if (order.status !== "Ready") {
+    await recordFraudEvent(pool, {
+      userId: req.user.id,
+      eventType: "PREMATURE_REVIEW_ATTEMPT",
+      severity: "LOW",
+      details: { orderId: Number(order.id), status: order.status },
+      ipAddress: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").slice(0, 64),
+    });
+    return res.status(400).json({ error: "You can only rate an order once it's Ready" });
+  }
 
   const [[existing]] = await pool.query("SELECT id FROM order_feedback WHERE order_id = ?", [order.id]);
 

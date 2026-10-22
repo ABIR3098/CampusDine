@@ -20,6 +20,9 @@ const mysql = require("mysql2/promise");
 const authRoutes = require("./src/routes/auth");
 const menuRoutes = require("./src/routes/menu");
 const orderRoutes = require("./src/routes/orders");
+const riderRoutes = require("./src/routes/riders");
+const operationsRoutes = require("./src/routes/operations");
+const groupOrderRoutes = require("./src/routes/groupOrders");
 const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
 const adminRoutes = require("./src/routes/admin");
@@ -86,6 +89,146 @@ async function seedDefaultMenuAndRates(db) {
   } catch (e) {
     console.warn("⚠️ Failed to seed menu defaults:", e.message);
   }
+}
+
+async function ensureRiderSchema(db) {
+  // Add the internal rider role without changing existing student/teacher/admin accounts.
+  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider') NOT NULL");
+  await db.query(`CREATE TABLE IF NOT EXISTS rider_locations (
+    rider_id INT PRIMARY KEY, latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL, accuracy_m DECIMAL(8,2) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 0, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rider_location_user FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+  const [riderIdColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'rider_id'");
+  if (!riderIdColumn.length) await db.query("ALTER TABLE orders ADD COLUMN rider_id INT NULL");
+  const [assignmentColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'rider_assignment_status'");
+  if (!assignmentColumn.length) {
+    await db.query("ALTER TABLE orders ADD COLUMN rider_assignment_status ENUM('Unassigned','Assigned','Accepted','Declined','Completed') NOT NULL DEFAULT 'Unassigned' AFTER rider_id");
+  }
+  const [riderIndex] = await db.query("SHOW INDEX FROM orders WHERE Key_name = 'idx_orders_rider_status'");
+  if (!riderIndex.length) await db.query("ALTER TABLE orders ADD KEY idx_orders_rider_status (rider_id, rider_assignment_status)");
+  const [latitudeColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'delivery_lat'");
+  if (!latitudeColumn.length) await db.query("ALTER TABLE orders ADD COLUMN delivery_lat DECIMAL(10,7) NULL");
+  const [longitudeColumn] = await db.query("SHOW COLUMNS FROM orders LIKE 'delivery_lng'");
+  if (!longitudeColumn.length) await db.query("ALTER TABLE orders ADD COLUMN delivery_lng DECIMAL(10,7) NULL");
+  await db.query(`CREATE TABLE IF NOT EXISTS rider_shifts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    rider_id INT NOT NULL,
+    status ENUM('ON_DUTY','OFF_DUTY') NOT NULL DEFAULT 'OFF_DUTY',
+    max_orders INT NOT NULL DEFAULT 3,
+    started_at DATETIME NOT NULL,
+    ended_at DATETIME NULL,
+    active_key TINYINT GENERATED ALWAYS AS (CASE WHEN status = 'ON_DUTY' THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_rider_one_active_shift (rider_id, active_key),
+    KEY idx_rider_shift_status (rider_id, status),
+    FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+}
+
+async function ensureFraudSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS fraud_events (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    event_type VARCHAR(80) NOT NULL,
+    severity ENUM('LOW','MEDIUM','HIGH') NOT NULL DEFAULT 'MEDIUM',
+    details_json JSON NULL,
+    ip_address VARCHAR(64) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_fraud_created (created_at),
+    KEY idx_fraud_user (user_id, created_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+  )`);
+}
+
+async function ensureAuditSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS audit_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    actor_user_id INT NULL,
+    actor_role VARCHAR(20) NOT NULL,
+    action VARCHAR(80) NOT NULL,
+    entity_type VARCHAR(40) NOT NULL,
+    entity_id VARCHAR(80) NULL,
+    details_json JSON NULL,
+    ip_address VARCHAR(64) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_audit_created (created_at),
+    KEY idx_audit_entity (entity_type, entity_id),
+    FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
+  )`);
+}
+
+async function ensureGroupOrderSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS group_orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    host_user_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    join_code VARCHAR(12) NOT NULL UNIQUE,
+    closes_at DATETIME NOT NULL,
+    status ENUM('OPEN','CLOSED','CHECKED_OUT') NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (host_user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS group_order_members (
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (group_id, user_id),
+    FOREIGN KEY (group_id) REFERENCES group_orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS group_order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    menu_item_id INT NOT NULL,
+    qty INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_group_member_item (group_id, user_id, menu_item_id),
+    FOREIGN KEY (group_id) REFERENCES group_orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+  )`);
+}
+
+async function ensureOrderChatSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS direct_order_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    recipient_id INT NOT NULL,
+    message VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read_at DATETIME NULL,
+    KEY idx_direct_chat_order (order_id, id),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+}
+
+async function ensureTrackingSchema(db) {
+  await db.query(`CREATE TABLE IF NOT EXISTS order_status_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    status VARCHAR(40) NOT NULL,
+    note VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_tracking_history_order (order_id, created_at),
+    CONSTRAINT fk_tracking_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS order_gps_locations (
+    order_id INT PRIMARY KEY,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    accuracy_m DECIMAL(8,2) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_gps_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  )`);
+  // Seed history for orders created before this feature was installed.
+  await db.query(`INSERT INTO order_status_history (order_id, status, note, created_at)
+    SELECT o.id, o.status, 'Tracking enabled for existing order', o.created_at FROM orders o
+    LEFT JOIN order_status_history h ON h.order_id = o.id WHERE h.id IS NULL`);
 }
 
 async function ensureFeedbackSchema(db) {
@@ -407,10 +550,17 @@ async function runStartupCheck() {
     process.exit(1);
   }
 
+  await ensureRiderSchema(db);
+  await ensureFraudSchema(db);
+  await ensureAuditSchema(db);
+  await ensureGroupOrderSchema(db);
+  await ensureOrderChatSchema(db);
+
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },
     { name: "Demo Student", externalId: "student1", role: "student", password: "student123", bonus: SIGNUP_BONUS },
     { name: "Demo Teacher", externalId: "teacher1", role: "teacher", password: "teacher123", bonus: SIGNUP_BONUS },
+    { name: "Demo Rider", externalId: "rider1", role: "rider", password: "rider123", bonus: 0 },
   ];
 
   for (const acc of demoAccounts) {
@@ -434,6 +584,7 @@ async function runStartupCheck() {
   await seedDefaultMenuAndRates(db);
   await ensureCouponSchema(db);
   await ensureFeedbackSchema(db);
+  await ensureTrackingSchema(db);
   await ensureChatSchema(db);
   await ensureNoteAndAvailabilitySchema(db);
   await ensureProfilePictureAndMenuImages(db);
@@ -448,6 +599,7 @@ async function runStartupCheck() {
   console.log("   Admin   → ID: admin      Password: admin123");
   console.log("   Student → ID: student1   Password: student123");
   console.log("   Teacher → ID: teacher1   Password: teacher123");
+  console.log("   Rider   → ID: rider1     Password: rider123");
   console.log("════════════════════════════════════════\n");
 
   await db.end();
@@ -487,12 +639,17 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
+  if (socket.user.role === "teacher") socket.join("teachers");
+  if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/riders", riderRoutes);
+app.use("/api/operations", operationsRoutes);
+app.use("/api/group-orders", groupOrderRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/admin", adminRoutes);

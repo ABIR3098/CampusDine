@@ -5,6 +5,7 @@
 //   and at most MAX_PER_HOUR codes per email+purpose per hour.
 // All time checks run inside MySQL (NOW()), so server/DB timezone differences can't break expiry.
 const crypto = require("crypto");
+const { recordFraudEvent } = require("./fraud");
 
 const OTP_TTL_MIN = 10;
 const MAX_ATTEMPTS = 5;
@@ -97,6 +98,15 @@ async function verifyOtp(db, emailRaw, purpose, codeRaw) {
 
   if (!match) {
     await db.query("UPDATE email_otps SET attempts = attempts + 1 WHERE id = ?", [row.id]);
+    await recordFraudEvent(db, {
+      eventType: "OTP_REPEATED_FAILURE",
+      severity: row.attempts + 1 >= MAX_ATTEMPTS ? "HIGH" : "MEDIUM",
+      details: {
+        emailHash: crypto.createHash("sha256").update(email).digest("hex"),
+        purpose,
+        attempts: row.attempts + 1,
+      },
+    });
     const left = MAX_ATTEMPTS - row.attempts - 1;
     return { ok: false, status: 400, error: left > 0 ? `Wrong code. ${left} attempt(s) left.` : "Wrong code. Request a new one." };
   }

@@ -30,7 +30,7 @@ function readChallenge(raw) {
     return c.purpose === "login2fa" ? c : null;
   } catch (e) { return null; }
 }
-const PUBLIC_ROLES = ["student", "teacher"]; // admin accounts can NOT be created from the public sign-up form
+const PUBLIC_ROLES = ["student", "teacher", "rider"]; // admin accounts can NOT be created from the public sign-up form
 
 // ───────────── helpers ─────────────
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -175,7 +175,7 @@ router.post("/register", catchAsync(async (req, res) => {
     return res.status(403).json({ error: "Admin accounts can't be created from the sign-up page" });
   }
   if (!PUBLIC_ROLES.includes(role)) {
-    return res.status(400).json({ error: "Role must be student or teacher" });
+    return res.status(400).json({ error: "Role must be student, teacher, or rider" });
   }
   if (name.length < 2 || name.length > 100) {
     return res.status(400).json({ error: "Name must be 2–100 characters" });
@@ -206,7 +206,7 @@ router.post("/register", catchAsync(async (req, res) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const startingBalance = SIGNUP_BONUS;
+  const startingBalance = role === "rider" ? 0 : SIGNUP_BONUS;
 
   const conn = await pool.getConnection();
   try {
@@ -224,10 +224,12 @@ router.post("/register", catchAsync(async (req, res) => {
       hallId = hallIdFor(userId);
       await conn.query("UPDATE users SET hall_id = ? WHERE id = ?", [hallId, userId]);
     }
-    await conn.query(
-      "INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, 'Welcome bonus', ?)",
-      [userId, startingBalance]
-    );
+    if (startingBalance > 0) {
+      await conn.query(
+        "INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, 'Welcome bonus', ?)",
+        [userId, startingBalance]
+      );
+    }
     await conn.commit();
 
     const token = signToken({ id: userId, name, role });
@@ -283,7 +285,7 @@ router.post("/login", catchAsync(async (req, res) => {
   }
   fails.delete(key);
 
-  if (["student", "teacher", "admin"].includes(portal) && portal !== user.role) {
+  if (["student", "teacher", "admin", "rider"].includes(portal) && portal !== user.role) {
     return res.status(403).json({ error: `This account is a ${user.role} account — go back and choose the ${user.role} portal.` });
   }
 

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(120) NULL UNIQUE,            -- collected at sign-up; also usable to log in and to reset a password
   external_id VARCHAR(50) NOT NULL UNIQUE,   -- student/teacher/admin ID used to log in
-  role ENUM('student','teacher','admin') NOT NULL,
+  role ENUM('student','teacher','admin','rider') NOT NULL,
   account_type ENUM('regular','hall') NOT NULL DEFAULT 'regular',  -- 'hall' = lives in a hall (has hall_name, room_number, hall_id)
   password_hash VARCHAR(255) NOT NULL,
   wallet_balance DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -95,9 +95,102 @@ CREATE TABLE IF NOT EXISTS orders (
   pickup_time DATETIME NULL,  -- NULL = ASAP; otherwise a scheduled pickup time (feature: pre-order)
   note VARCHAR(255) NULL,     -- optional note for the kitchen, e.g. "less spicy"
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
+  rider_id INT NULL,
+  rider_assignment_status ENUM('Unassigned','Assigned','Accepted','Declined','Completed') NOT NULL DEFAULT 'Unassigned',
+  delivery_lat DECIMAL(10,7) NULL,
+  delivery_lng DECIMAL(10,7) NULL,
   picked_up_at DATETIME NULL, -- set when the counter scans the QR and hands the order over
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_orders_rider_status (rider_id, rider_assignment_status),
   FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS rider_shifts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  rider_id INT NOT NULL,
+  status ENUM('ON_DUTY','OFF_DUTY') NOT NULL DEFAULT 'OFF_DUTY',
+  max_orders INT NOT NULL DEFAULT 3,
+  started_at DATETIME NOT NULL,
+  ended_at DATETIME NULL,
+  active_key TINYINT GENERATED ALWAYS AS (CASE WHEN status = 'ON_DUTY' THEN 1 ELSE NULL END) STORED,
+  UNIQUE KEY uq_rider_one_active_shift (rider_id, active_key),
+  KEY idx_rider_shift_status (rider_id, status),
+  FOREIGN KEY (rider_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS fraud_events (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  event_type VARCHAR(80) NOT NULL,
+  severity ENUM('LOW','MEDIUM','HIGH') NOT NULL DEFAULT 'MEDIUM',
+  details_json JSON NULL,
+  ip_address VARCHAR(64) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_fraud_created (created_at),
+  KEY idx_fraud_user (user_id, created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  actor_user_id INT NULL,
+  actor_role VARCHAR(20) NOT NULL,
+  action VARCHAR(80) NOT NULL,
+  entity_type VARCHAR(40) NOT NULL,
+  entity_id VARCHAR(80) NULL,
+  details_json JSON NULL,
+  ip_address VARCHAR(64) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_audit_created (created_at),
+  KEY idx_audit_entity (entity_type, entity_id),
+  FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS group_orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  host_user_id INT NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  join_code VARCHAR(12) NOT NULL UNIQUE,
+  closes_at DATETIME NOT NULL,
+  status ENUM('OPEN','CLOSED','CHECKED_OUT') NOT NULL DEFAULT 'OPEN',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (host_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS group_order_members (
+  group_id INT NOT NULL,
+  user_id INT NOT NULL,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (group_id, user_id),
+  FOREIGN KEY (group_id) REFERENCES group_orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS group_order_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  group_id INT NOT NULL,
+  user_id INT NOT NULL,
+  menu_item_id INT NOT NULL,
+  qty INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_group_member_item (group_id, user_id, menu_item_id),
+  FOREIGN KEY (group_id) REFERENCES group_orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+);
+
+CREATE TABLE IF NOT EXISTS direct_order_messages (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  sender_id INT NOT NULL,
+  recipient_id INT NOT NULL,
+  message VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  read_at DATETIME NULL,
+  KEY idx_direct_chat_order (order_id, id),
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Feature: order cancel + refund. If you created the database before this

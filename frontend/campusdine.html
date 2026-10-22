@@ -340,6 +340,66 @@
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
+/*chat-ui*/
+.chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
+.chat-shell[data-admin="1"]{grid-template-columns:320px minmax(0,1fr)}
+.chat-inbox{display:flex;flex-direction:column;overflow:hidden;padding:0}
+.chat-inbox-head{padding:14px 14px 10px;border-bottom:1px solid var(--line)}
+.chat-search{width:100%;margin-top:10px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:13px;outline:none}
+.chat-search:focus{border-color:var(--gold)}
+.chat-inbox-list{flex:1;overflow-y:auto;padding:6px}
+.chat-item{display:flex;gap:12px;width:100%;text-align:left;padding:10px;border-radius:12px;transition:background .15s}
+.chat-item:hover{background:var(--hover)}
+.chat-item.active{background:var(--gold-soft)}
+.chat-item-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chat-item-top,.chat-item-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chat-item-name{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-item-time{font-size:11px;color:var(--ink-soft);flex-shrink:0}
+.chat-item-last{font-size:12.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-item-role{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+.chat-badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+.chat-panel{display:flex;flex-direction:column;overflow:hidden;padding:0;min-height:0}
+.chat-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.chat-back{display:none;width:34px;height:34px;border-radius:999px;place-items:center;color:var(--ink)}
+.chat-pill{font-size:11px;padding:4px 10px;border-radius:999px;background:var(--gold-soft);color:var(--gold);font-weight:600;white-space:nowrap}
+.chat-error{padding:8px 16px;font-size:13px;color:var(--brick)}
+.chat-scroll{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:2px;background:var(--bg)}
+.chat-day{display:flex;justify-content:center;margin:14px 0 8px}
+.chat-day span{font-size:11px;padding:3px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--ink-soft)}
+.chat-row{display:flex;align-items:flex-end;gap:8px;justify-content:flex-start}
+.chat-row.mine{justify-content:flex-end}
+.chat-bubble{max-width:min(78%,520px);padding:8px 12px 6px;font-size:14px;line-height:1.45;animation:chatIn .18s ease;border-radius:18px}
+.chat-bubble p{white-space:pre-wrap;word-break:break-word;margin:0}
+.chat-bubble.first{margin-top:8px}
+.chat-bubble.theirs{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:6px}
+.chat-bubble.theirs.last{border-bottom-left-radius:18px;border-bottom-left-radius:4px}
+.chat-bubble.mine{background:linear-gradient(135deg,var(--gold),var(--gold-hover));color:#fff;border-bottom-right-radius:6px}
+.chat-bubble.mine.last{border-bottom-right-radius:4px}
+.chat-bubble.pending{opacity:.6}
+.chat-name{font-size:11px;font-weight:700;color:var(--gold);margin-bottom:2px}
+.chat-meta{display:block;text-align:right;font-size:10px;margin-top:2px;opacity:.7}
+.chat-empty{margin:auto;text-align:center;max-width:320px;color:var(--ink-soft);font-size:14px}
+.chat-empty-icon{width:64px;height:64px;margin:0 auto 12px;border-radius:999px;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold)}
+.chat-quick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.chat-quick button{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;transition:all .15s}
+.chat-quick button:hover{border-color:var(--gold);color:var(--gold)}
+.chat-composer{display:flex;align-items:flex-end;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:var(--panel)}
+.chat-input-wrap{flex:1;position:relative}
+.chat-input-wrap textarea{width:100%;resize:none;max-height:120px;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:14px;line-height:1.4;outline:none;display:block}
+.chat-input-wrap textarea:focus{border-color:var(--gold)}
+.chat-count{position:absolute;right:14px;bottom:-16px;font-size:10px;color:var(--ink-soft)}
+.chat-send{width:42px;height:42px;border-radius:999px;display:grid;place-items:center;background:var(--gold);color:#fff;flex-shrink:0;transition:transform .1s,opacity .15s}
+.chat-send:hover:not(:disabled){transform:scale(1.06)}
+.chat-send:disabled{background:var(--disabled-bg);color:var(--disabled-fg);cursor:not-allowed}
+@keyframes chatIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:900px){
+  .chat-shell[data-admin="1"]{grid-template-columns:1fr}
+  .chat-shell[data-admin="1"][data-mobile-chat="0"] .chat-panel{display:none}
+  .chat-shell[data-admin="1"][data-mobile-chat="1"] .chat-inbox{display:none}
+  .chat-shell[data-admin="1"] .chat-back{display:grid}
+  .chat-pill{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -1765,6 +1825,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
     { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
     { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
+    { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
   ];
 
   const sampleMenu = [
@@ -1787,7 +1848,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
       if (!ID_RE.test(id)) { setError(tx("err.id")); return; }
       if (password.length < 6) { setError(tx("err.pw6")); return; }
       if (password !== confirmPassword) { setError(tx("err.pwmatch")); return; }
-      if (accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
+      if (role !== "rider" && accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
       if (otpRequired && otpSent && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
     }
     setBusy(true);
@@ -1804,7 +1865,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             : await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } }))
         : await api(apiBase, "/api/auth/register", { method: "POST", body: {
             name: name.trim(), email: email.trim(), externalId: id, role, password,
-            accountType, hallName: hallName.trim(), roomNumber: roomNumber.trim(),
+            accountType: role === "rider" ? "regular" : accountType, hallName: role === "rider" ? "" : hallName.trim(), roomNumber: role === "rider" ? "" : roomNumber.trim(),
             otp: otpRequired ? otp.trim() : undefined,
           } });
       // Password was right but this account needs an emailed code: show the code box instead of logging in
@@ -2129,7 +2190,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
 
                 <div className="flex p-1 rounded-full mb-6" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
                   {pillTab("login", tx("login"))}
-                  {role !== "admin" && pillTab("register", tx("create"))}
+                  {["student", "teacher", "rider"].includes(role) && pillTab("register", tx("create"))}
                 </div>
 
                 <form className="space-y-3" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
@@ -2159,7 +2220,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
                     {mode === "register" && taken.externalId && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.id")}</p>}
                   </div>
 
-                  {mode === "register" && (
+                  {mode === "register" && role !== "rider" && (
                     <div>
                       <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("acct.type")}</label>
                       <div className="grid grid-cols-2 gap-2">
@@ -3232,7 +3293,7 @@ function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmit
   );
 }
 
-function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder })  {
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
   const [printOrder, setPrintOrder] = useState(null);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
@@ -3363,6 +3424,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   {tx("note.show")}: {o.note}
                 </div>
               )}
+              {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => onReorder(o)}
                   className="text-xs px-3 py-1.5 rounded-lg font-600 btn-primary flex items-center gap-1.5">
@@ -4134,9 +4196,18 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
 }
 
 /* ---------------- Admin: Orders queue ---------------- */
-function AdminOrders({ orders, advance }) {
+function AdminOrders({ orders, advance, call }) {
+  const [assignmentMessage, setAssignmentMessage] = useState("");
+  const retryAssignments = async () => {
+    try {
+      const result = await call("/api/riders/orders/assign-pending", { method: "POST" });
+      setAssignmentMessage(`${result.count} pending order(s) assigned.`);
+    } catch (error) {
+      setAssignmentMessage(error.message || "Could not assign pending orders.");
+    }
+  };
   if (orders.length === 0) {
-    return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div>;
+    return <div className="space-y-3"><button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>{assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}<div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div></div>;
   }
   // Feature: pre-order — ASAP orders (no pickup_time) need attention first,
   // then scheduled ones soonest-first, so the kitchen sees what's coming up next.
@@ -4147,7 +4218,7 @@ function AdminOrders({ orders, advance }) {
     return new Date(a.pickup_time) - new Date(b.pickup_time);
   });
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-3"><div className="flex flex-wrap items-center gap-3"><button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>{assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}</div><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {sorted.map(o => (
         <div key={o.token} className="card p-4">
           <div className="flex justify-between items-start mb-2">
@@ -4186,10 +4257,395 @@ function AdminOrders({ orders, advance }) {
         </div>
       ))}
     </div>
+    </div>
   );
 }
 
+/* ---------------- Rider-only GPS sharing ---------------- */
+function RiderDashboard({ apiBase, token, user, onLogout }) {
+  const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
+  const [message, setMessage] = useState(sharing ? "GPS sharing is enabled and continues after logout while this page remains open." : "Location sharing is off.");
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [] });
+  const [routePlan, setRoutePlan] = useState(null);
+  const [shift, setShift] = useState(false);
+  const [maxOrders, setMaxOrders] = useState(3);
+  const [orderError, setOrderError] = useState("");
+  const refreshOrders = async () => { try { setSummary(await api(apiBase, "/api/riders/orders/summary", { token })); setOrderError(""); } catch (e) { setOrderError(e.message || "Could not load orders."); } };
+  const acceptOrder = async (orderId) => {
+    try {
+      await api(apiBase, `/api/riders/orders/${orderId}/accept`, { method: "POST", token });
+      await refreshOrders();
+    } catch (e) {
+      setOrderError(e.message || "Could not accept this order.");
+    }
+  };
+  const optimizeRoute = async () => {
+    try {
+      setRoutePlan(await api(apiBase, "/api/operations/riders/route", { token }));
+      setOrderError("");
+    } catch (e) {
+      setOrderError(e.message || "Could not optimize the route.");
+    }
+  };
+  useEffect(() => {
+    api(apiBase, "/api/operations/riders/shift/me", { token })
+      .then(current => {
+        setShift(current.status === "ON_DUTY");
+        if (current.maxOrders) setMaxOrders(Number(current.maxOrders));
+      })
+      .catch(e => setOrderError(e.message || "Could not load shift status."));
+  }, [apiBase, token]);
+  const updateShift = async () => {
+    try {
+      if (shift) {
+        await api(apiBase, "/api/operations/riders/shift/end", { method: "POST", token });
+        setShift(false);
+        setMessage("Shift ended. New assignments are paused.");
+      } else {
+        await api(apiBase, "/api/operations/riders/shift/start", { method: "POST", token, body: { maxOrders } });
+        setShift(true);
+        setMessage("Shift started. You can receive new assignments.");
+      }
+    } catch (e) {
+      setOrderError(e.message || "Could not update your shift.");
+    }
+  };
+  useEffect(() => { refreshOrders(); const t = setInterval(refreshOrders, 12000); return () => clearInterval(t); }, [apiBase, token]);
+  const start = () => {
+    if (!navigator.geolocation) { setMessage("This browser does not support GPS."); return; }
+    navigator.geolocation.getCurrentPosition(() => {
+      try { localStorage.setItem("cd_rider_gps", JSON.stringify({ token, apiBase, riderId: Date.now() })); } catch (_) {}
+      setSharing(true); setMessage("GPS sharing is active. It will continue if you log out, as long as this page stays open.");
+    }, err => setMessage(err.message || "Location permission denied."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+  };
+  const stop = async () => {
+    try { localStorage.removeItem("cd_rider_gps"); } catch (_) {}
+    try { await api(apiBase, "/api/riders/location", { method: "POST", token, body: { active: false } }); } catch (_) {}
+    setSharing(false); setMessage("Location sharing stopped.");
+  };
+  return <div className="min-h-screen p-5" style={{ background: "var(--bg)", color: "var(--ink)" }}><div className="max-w-5xl mx-auto mt-8 space-y-5">
+    <div className="card p-6"><div className="flex flex-wrap justify-between gap-3 items-start"><div><div className="text-2xl font-display font-800 mb-2">CampusDine Rider Dashboard</div><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Welcome, {user && user.name ? user.name : "Rider"}. Check active campus orders and share your GPS with teachers.</p></div><button onClick={onLogout} className="rounded-xl px-4 py-2 border" style={{ borderColor: "var(--line)" }}>Log out</button></div>
+      <div className="rounded-xl p-4 mt-5" style={{ background: "var(--panel-soft)", border: "1px solid var(--line)" }}><div className="font-700">{sharing ? "● Location sharing enabled" : "○ Location sharing stopped"}</div><div className="text-sm mt-1">{message}</div></div>
+      <div className="flex flex-wrap items-center gap-3 mt-4"><label className="text-sm">Maximum active orders <select disabled={shift} value={maxOrders} onChange={e => setMaxOrders(Number(e.target.value))} className="ml-2 rounded-lg border px-3 py-2" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}>{[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}</select></label><button onClick={updateShift} className={shift ? "rounded-xl px-4 py-2 border" : "btn-primary rounded-xl px-4 py-2"} style={shift ? { borderColor: "var(--line)" } : undefined}>{shift ? "End duty shift" : "Start duty shift"}</button><span className="text-sm">{shift ? "On duty" : "Off duty"}</span></div>
+      <div className="flex flex-wrap gap-3 mt-4">{!sharing ? <button onClick={start} className="btn-primary rounded-xl px-5 py-3">Start GPS sharing</button> : <button onClick={stop} className="rounded-xl px-5 py-3 border font-700" style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>Stop GPS sharing</button>}<button onClick={refreshOrders} className="rounded-xl px-5 py-3 border" style={{ borderColor: "var(--line)" }}>Refresh orders</button></div>
+      <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
+    </div>
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
+    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
+  </div></div>;
+}
+
+function RiderGpsBackground() {
+  useEffect(() => {
+    let busy = false;
+    const tick = () => {
+      if (busy || !navigator.geolocation) return;
+      let saved;
+      try { saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); } catch (_) { saved = null; }
+      if (!saved || !saved.token || !saved.apiBase) return;
+      busy = true;
+      navigator.geolocation.getCurrentPosition(async pos => {
+        try { await api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy } }); }
+        catch (_) {}
+        finally { busy = false; }
+      }, () => { busy = false; }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+    };
+    tick(); const timer = setInterval(tick, 8000);
+    return () => clearInterval(timer);
+  }, []);
+  return null;
+}
+
+function GroupOrderPanel({ menu, cart, setCart, apiBase, token, userId }) {
+  const [groups, setGroups] = useState([]);
+  const [activeGroupId, setActiveGroupId] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [title, setTitle] = useState("Study group order");
+  const [joinCode, setJoinCode] = useState("");
+  const [menuItemId, setMenuItemId] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const loadGroups = async () => {
+    try {
+      setGroups(await api(apiBase, "/api/group-orders", { token }));
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not load group orders.");
+    }
+  };
+  const openGroup = async (id) => {
+    try {
+      setDetail(await api(apiBase, `/api/group-orders/${id}`, { token }));
+      setActiveGroupId(id);
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not open this group.");
+    }
+  };
+  useEffect(() => { loadGroups(); }, [apiBase, token]);
+
+  const createGroup = async () => {
+    setBusy(true);
+    try {
+      const group = await api(apiBase, "/api/group-orders", { method: "POST", token, body: { title } });
+      await loadGroups();
+      await openGroup(group.id);
+    } catch (e) {
+      setError(e.message || "Could not create group.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const joinGroup = async () => {
+    setBusy(true);
+    try {
+      const group = await api(apiBase, "/api/group-orders/join", { method: "POST", token, body: { joinCode } });
+      await loadGroups();
+      await openGroup(group.groupId);
+    } catch (e) {
+      setError(e.message || "Could not join group.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const addItem = async () => {
+    if (!activeGroupId || !menuItemId) return;
+    setBusy(true);
+    try {
+      await api(apiBase, `/api/group-orders/${activeGroupId}/items`, {
+        method: "POST", token, body: { menuItemId: Number(menuItemId), qty: quantity },
+      });
+      await openGroup(activeGroupId);
+    } catch (e) {
+      setError(e.message || "Could not add this item.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const closeGroup = async () => {
+    try {
+      await api(apiBase, `/api/group-orders/${activeGroupId}/close`, { method: "POST", token });
+      await openGroup(activeGroupId);
+      await loadGroups();
+    } catch (e) {
+      setError(e.message || "Could not close this group.");
+    }
+  };
+  const loadCombinedCart = () => {
+    if (!detail || Number(detail.group.hostUserId) !== Number(userId)) {
+      setError("Only the group host can load and check out the combined cart.");
+      return;
+    }
+    if (cart.length && !window.confirm("Replace your current cart with the group order?")) return;
+    const combined = new Map();
+    for (const item of detail.items) {
+      const menuItem = menu.find(entry => Number(entry.id) === Number(item.menuItemId));
+      if (!menuItem || menuItem.availability !== "available" || Number(menuItem.stock) < Number(item.qty)) {
+        setError(`${item.itemName} is no longer available in the requested quantity.`);
+        return;
+      }
+      const current = combined.get(menuItem.id);
+      const combinedQuantity = Number(item.qty) + (current ? current.qty : 0);
+      if (combinedQuantity > Number(menuItem.stock)) {
+        setError(`${item.itemName} exceeds the remaining stock for the combined order.`);
+        return;
+      }
+      combined.set(menuItem.id, { ...menuItem, qty: combinedQuantity });
+    }
+    if (!combined.size) {
+      setError("Add available menu items before loading the group cart.");
+      return;
+    }
+    setCart([...combined.values()]);
+    setError("Group items loaded. Review the cart and place one order to pay.");
+  };
+
+  return <div className="card p-5 space-y-4">
+    <div><h2 className="font-display font-800 text-xl">Group orders</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share a join code, collect menu choices, and let the host place one combined order.</p></div>
+    {error && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--gold-soft)" }}>{error}</div>}
+    <div className="grid md:grid-cols-2 gap-3">
+      <div className="rounded-xl p-3" style={{ background: "var(--panel-soft)" }}>
+        <label className="text-sm font-700 block mb-2">Create a group</label>
+        <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+        <button disabled={busy || !title.trim()} onClick={createGroup} className="btn-primary rounded-lg px-3 py-2 mt-2 text-sm">Create group</button>
+      </div>
+      <div className="rounded-xl p-3" style={{ background: "var(--panel-soft)" }}>
+        <label className="text-sm font-700 block mb-2">Join a group</label>
+        <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={12} placeholder="Join code" className="w-full rounded-lg border px-3 py-2 text-sm uppercase" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+        <button disabled={busy || !joinCode.trim()} onClick={joinGroup} className="rounded-lg border px-3 py-2 mt-2 text-sm" style={{ borderColor: "var(--line)" }}>Join group</button>
+      </div>
+    </div>
+    {groups.length > 0 && <div><h3 className="font-700 mb-2">Your open groups</h3><div className="flex flex-wrap gap-2">{groups.map(group => <button key={group.id} onClick={() => openGroup(group.id)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: activeGroupId === group.id ? "var(--gold)" : "var(--line)" }}>{group.title} · {group.members} members · {group.joinCode}</button>)}</div></div>}
+    {detail && <div className="rounded-xl border p-4 space-y-3" style={{ borderColor: "var(--line)" }}>
+      <div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-800 text-lg">{detail.group.title}</h3><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share code: <strong>{detail.group.joinCode}</strong> · {detail.members.length} members · closes {new Date(detail.group.closesAt).toLocaleString()}</p></div><div className="flex gap-2">{detail.group.status === "OPEN" && Number(detail.group.hostUserId) === Number(userId) && <button onClick={closeGroup} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Close group</button>}<button onClick={loadCombinedCart} className="btn-primary rounded-lg px-3 py-2 text-sm">Load combined cart</button></div></div>
+      {detail.group.status === "OPEN" && <div className="grid sm:grid-cols-[1fr_auto_auto] gap-2"><select value={menuItemId} onChange={e => setMenuItemId(e.target.value)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}><option value="">Choose food</option>{menu.filter(item => item.stock > 0 && item.availability === "available").map(item => <option key={item.id} value={item.id}>{item.name} — ৳{item.price}</option>)}</select><input type="number" min="1" max="20" value={quantity} onChange={e => setQuantity(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="w-20 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} /><button disabled={busy || !menuItemId} onClick={addItem} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Add food</button></div>}
+      {detail.items.length ? <div className="space-y-2">{detail.items.map(item => <div key={item.id} className="flex justify-between border-b pb-2 text-sm" style={{ borderColor: "var(--line)" }}><span>{item.itemName} × {item.qty} <span style={{ color: "var(--ink-soft)" }}>by {item.addedBy}</span></span><strong>৳{(Number(item.price) * Number(item.qty)).toFixed(2)}</strong></div>)}</div> : <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No items added yet.</p>}
+    </div>}
+  </div>;
+}
+
+function RiderOrderChat({ apiBase, token, orderId }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let active = true;
+    const load = async () => {
+      try {
+        const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, { token });
+        if (active) setMessages(result.messages || []);
+      } catch (e) {
+        if (active) setError(e.message || "Could not load order chat.");
+      }
+    };
+    const socket = io(apiBase, { auth: { token } });
+    socket.on("order-chat:message", message => {
+      if (Number(message.orderId) !== Number(orderId)) return;
+      setMessages(current => current.some(item => item.id === message.id)
+        ? current
+        : [...current, message].sort((a, b) => Number(a.id) - Number(b.id)));
+    });
+    load();
+    return () => { active = false; socket.disconnect(); };
+  }, [open, apiBase, token, orderId]);
+
+  const send = async () => {
+    const message = draft.trim();
+    if (!message || sending) return;
+    setSending(true);
+    try {
+      const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, {
+        method: "POST", token, body: { message },
+      });
+      setMessages(current => current.some(item => item.id === result.message.id)
+        ? current
+        : [...current, result.message].sort((a, b) => Number(a.id) - Number(b.id)));
+      setDraft("");
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not send message.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return <div className="mt-3 rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
+    <button onClick={() => setOpen(value => !value)} className="text-sm font-700">{open ? "Hide rider chat" : "Message your rider"}</button>
+    {open && <div className="mt-3 space-y-2">
+      {error && <p className="text-xs" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="max-h-48 overflow-y-auto space-y-2">{messages.map(message => <div key={message.id} className="rounded-lg p-2 text-sm" style={{ background: "var(--panel-soft)" }}><div className="flex justify-between gap-2"><strong>{message.sender_name}</strong><span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(message.created_at).toLocaleTimeString()}</span></div><p>{message.message}</p></div>)}</div>
+      <div className="flex gap-2"><input value={draft} maxLength={1000} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } }} placeholder="Write a message" className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} /><button disabled={sending || !draft.trim()} onClick={send} className="btn-primary rounded-lg px-3 py-2 text-sm disabled:opacity-50">{sending ? "Sending…" : "Send"}</button></div>
+    </div>}
+  </div>;
+}
+
+/* ---------------- Teacher-only rider map ---------------- */
+function TeacherRiderTracking({ apiBase, token }) {
+  const [riders, setRiders] = useState([]); const [error, setError] = useState(""); const [updatedAt, setUpdatedAt] = useState(null);
+  const [shifts, setShifts] = useState([]); const [assignOrders, setAssignOrders] = useState([]); const [selectedRiders, setSelectedRiders] = useState({});
+  const [assignmentMessage, setAssignmentMessage] = useState("");
+  const refresh = async () => { try { setRiders(await api(apiBase, "/api/riders/locations", { token })); setError(""); setUpdatedAt(new Date()); } catch (e) { setError(e.message || "Could not load rider locations."); } };
+  const refreshAssignments = async () => {
+    try {
+      const [activeShifts, orders] = await Promise.all([
+        api(apiBase, "/api/operations/riders/shifts", { token }),
+        api(apiBase, "/api/operations/riders/assignable-orders", { token }),
+      ]);
+      setShifts(activeShifts);
+      setAssignOrders(orders);
+    } catch (e) {
+      setError(e.message || "Could not load rider assignment data.");
+    }
+  };
+  const assignRider = async (orderId) => {
+    const riderId = Number(selectedRiders[orderId]);
+    if (!riderId) { setAssignmentMessage("Select an on-duty rider first."); return; }
+    try {
+      await api(apiBase, `/api/operations/orders/${orderId}/assign-rider`, { method: "POST", token, body: { riderId } });
+      setAssignmentMessage(`Order #${orderId} assigned.`);
+      await refreshAssignments();
+    } catch (e) {
+      setAssignmentMessage(e.message || "Could not assign this rider.");
+    }
+  };
+  useEffect(() => {
+    refresh(); refreshAssignments();
+    const timer = setInterval(() => { refresh(); refreshAssignments(); }, 10000);
+    const socket = io(apiBase, { auth: { token } });
+    socket.on("rider:location", refresh); socket.on("connect", refresh);
+    return () => { clearInterval(timer); socket.disconnect(); };
+  }, [apiBase, token]);
+  const active = riders.filter(r => r.active && r.latitude != null && r.longitude != null);
+  return <div className="space-y-4"><div className="flex items-center justify-between gap-3"><div><h2 className="font-display font-800 text-xl">Rider Live Locations</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Teacher-only location view. Live events and automatic refresh every 10 seconds.</p></div><button onClick={refresh} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>↻ Refresh</button></div>
+    {updatedAt && <div className="text-xs" style={{ color: "var(--ink-soft)" }}>Last refreshed {updatedAt.toLocaleTimeString()}</div>}{error && <div className="card p-3" style={{ color: "var(--brick)" }}>{error}</div>}
+    {riders.length === 0 && !error && <div className="card p-6 text-center">No rider accounts found yet.</div>}{riders.length > 0 && active.length === 0 && <div className="card p-5">No riders are sharing their location right now.</div>}
+    <div className="grid md:grid-cols-2 gap-4">{active.map(r => <div className="card overflow-hidden" key={r.riderId}><div className="p-4"><div className="font-700">{r.name}</div><div className="text-xs" style={{ color: "var(--ink-soft)" }}>Rider ID: {r.external_id} · Updated {r.updated_at ? new Date(r.updated_at).toLocaleTimeString() : "just now"}</div></div><iframe title={`Location of ${r.name}`} width="100%" height="240" loading="lazy" style={{ border: 0 }} src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.longitude-0.003}%2C${r.latitude-0.002}%2C${r.longitude+0.003}%2C${r.latitude+0.002}&layer=mapnik&marker=${r.latitude}%2C${r.longitude}`} /><div className="p-3"><a className="underline text-sm" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${r.latitude}&mlon=${r.longitude}#map=18/${r.latitude}/${r.longitude}`}>Open larger map ↗</a></div></div>)}</div>
+    <div className="card p-4"><h3 className="font-display font-800 text-lg">Assign order to a rider</h3><p className="text-sm mt-1 mb-3" style={{ color: "var(--ink-soft)" }}>Choose an on-duty rider with spare capacity. Accepted deliveries cannot be reassigned.</p>{assignmentMessage && <p className="text-sm mb-2">{assignmentMessage}</p>}{assignOrders.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No assignable orders.</p> : <div className="space-y-2">{assignOrders.map(order => <div key={order.id} className="grid sm:grid-cols-[1fr_1fr_auto] gap-2 items-center border-b pb-2" style={{ borderColor: "var(--line)" }}><div className="text-sm"><strong>Order #{order.id}</strong> · {order.status}<div className="text-xs" style={{ color: "var(--ink-soft)" }}>{order.rider_id ? `Current rider #${order.rider_id}` : "Unassigned"}</div></div><select value={selectedRiders[order.id] || ""} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}><option value="">Select on-duty rider</option>{shifts.filter(rider => Number(rider.activeOrders) < Number(rider.maxOrders)).map(rider => <option key={rider.riderId} value={rider.riderId}>{rider.name} · {rider.activeOrders}/{rider.maxOrders} orders</option>)}</select><button onClick={() => assignRider(order.id)} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign</button></div>)}</div>}</div>
+  </div>;
+}
+
 /* ---------------- Admin: Reports ---------------- */
+function AdminOperationsAnalytics({ apiBase, token }) {
+  const [data, setData] = useState(null);
+  const [fraudEvents, setFraudEvents] = useState([]);
+  const [auditEvents, setAuditEvents] = useState([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      api(apiBase, "/api/operations/analytics", { token }),
+      api(apiBase, "/api/operations/fraud-events", { token }),
+      api(apiBase, "/api/operations/audit?limit=30", { token }),
+    ])
+      .then(([result, events, audit]) => { if (active) { setData(result); setFraudEvents(events); setAuditEvents(audit); setError(""); } })
+      .catch(e => { if (active) setError(e.message || "Could not load analytics."); });
+    return () => { active = false; };
+  }, [apiBase, token]);
+
+  if (error) return <div className="card p-4" style={{ color: "var(--brick)" }}>{error}</div>;
+  if (!data) return <div className="card p-4">Loading operations analytics…</div>;
+  const table = (title, rows, columns) => (
+    <div className="card p-4">
+      <h3 className="font-display font-700 mb-3">{title}</h3>
+      {rows.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No data yet.</p> : (
+        <div className="space-y-2">{rows.map((row, index) => (
+          <div key={index} className="flex justify-between gap-3 border-b pb-2 text-sm" style={{ borderColor: "var(--line)" }}>
+            <span>{columns[0](row)}</span><strong>{columns[1](row)}</strong>
+          </div>
+        ))}</div>
+      )}
+    </div>
+  );
+  return <section className="space-y-4">
+    <div><h2 className="font-display font-800 text-xl">Operations analytics</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Today’s performance and recent campus demand.</p></div>
+    <div className="grid sm:grid-cols-3 gap-3">
+      {[["Orders today", data.today.orders], ["Revenue today", taka(data.today.revenue)], ["Cancelled today", data.today.cancelled]].map(([label, value]) =>
+        <div key={label} className="card p-4"><div className="text-sm" style={{ color: "var(--ink-soft)" }}>{label}</div><div className="font-display font-800 text-2xl mt-2">{value}</div></div>
+      )}
+    </div>
+    <div className="grid md:grid-cols-2 gap-4">
+      {table("Popular food · last 30 days", data.popular, [row => row.name, row => row.quantity])}
+      {table("Busiest hours · last 30 days", data.busyHours, [row => `${String(row.hour).padStart(2, "0")}:00`, row => `${row.order_count} orders`])}
+      {table("Completed deliveries", data.riders, [row => row.name, row => row.delivered])}
+    </div>
+    {table("Fraud and abuse alerts", fraudEvents.slice(0, 20), [
+      row => `${row.event_type} · ${row.user_name || "Unknown / OTP email"}`,
+      row => `${row.severity} · ${new Date(row.created_at).toLocaleString()}`,
+    ])}
+    {table("Recent admin audit log", auditEvents, [
+      row => `${row.action} · ${row.actor_name || "System"} · ${row.entity_type} #${row.entity_id || "—"}`,
+      row => new Date(row.created_at).toLocaleString(),
+    ])}
+  </section>;
+}
+
 function AdminReports({ trend, forecast, call, apiBase, token }) {
   const max = Math.max(1, ...trend.map(r => r.revenue));
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -4258,6 +4714,7 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
 
   return (
     <div className="space-y-6">
+      <AdminOperationsAnalytics apiBase={apiBase} token={token} />
       {printKey > 0 && report && (
         <PrintSheet key={printKey} title="Sales report"
           meta={`${report.range.from} to ${report.range.to} (${report.range.days} day${report.range.days === 1 ? "" : "s"}) · generated ${new Date(report.generatedAt).toLocaleString()}`}>
@@ -4817,141 +5274,176 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [mobileChat, setMobileChat] = useState(false);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
   const isAdmin = role === "admin";
-  const selectedConversation = conversations.find(item => Number(item.user_id) === Number(selectedUserId));
-
+  const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
   const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+
   const refreshConversations = async () => {
     const data = await chatCall("/api/chat/conversations");
     setConversations(data.conversations || []);
   };
-  const refreshMessages = async (targetUserId = selectedUserId) => {
-    if (isAdmin) {
-      if (!targetUserId) {
-        setMessages([]);
-        return;
-      }
-      const data = await chatCall(`/api/chat/${targetUserId}/messages`);
-      setMessages(data.messages || []);
-      return;
-    }
-    const data = await chatCall("/api/chat/messages");
+  const refreshMessages = async (target = selectedUserId) => {
+    if (isAdmin && !target) { setMessages([]); return; }
+    const data = await chatCall(isAdmin ? `/api/chat/${target}/messages` : "/api/chat/messages");
     setMessages(data.messages || []);
   };
 
   useEffect(() => {
-    if (isAdmin) {
-      refreshConversations().catch(e => setError(e.message));
-    } else {
-      refreshMessages().catch(e => setError(e.message));
-    }
+    (isAdmin ? refreshConversations() : refreshMessages()).catch(e => setError(e.message));
   }, [isAdmin, apiBase, sessionToken, refreshKey]);
-
   useEffect(() => {
     if (!isAdmin || selectedUserId || conversations.length === 0) return;
     setSelectedUserId(conversations[0].user_id);
   }, [isAdmin, selectedUserId, conversations]);
-
   useEffect(() => {
     if (!isAdmin || !selectedUserId) return;
     refreshMessages(selectedUserId).catch(e => setError(e.message));
   }, [isAdmin, apiBase, sessionToken, selectedUserId, refreshKey]);
+  // Fallback auto-refresh every 10s (live socket updates still work instantly)
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (document.hidden) return;
+      (isAdmin ? Promise.all([refreshConversations(), refreshMessages()]) : refreshMessages()).catch(() => {});
+    }, 10000);
+    return () => clearInterval(t);
+  }, [isAdmin, apiBase, sessionToken, selectedUserId]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId]);
 
-  const sendMessage = async (event) => {
-    event.preventDefault();
-    const message = draft.trim();
-    if (!message || busy) return;
-    setBusy(true);
-    setError("");
+  const send = async (text) => {
+    const message = (text ?? draft).trim();
+    if (!message || busy || (isAdmin && !selectedUserId)) return;
+    setBusy(true); setError("");
+    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
+    setMessages(m => [...m, temp]);
+    setDraft("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
     try {
-      await chatCall("/api/chat/messages", {
-        method: "POST",
-        body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) },
-      });
-      setDraft("");
-      await Promise.all([
-        refreshMessages(selectedUserId),
-        isAdmin ? refreshConversations() : Promise.resolve(),
-      ]);
+      await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
+      await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
     } catch (e) {
+      setMessages(m => m.filter(x => x.id !== temp.id));
+      setDraft(message);
       setError(e.message || tx("chat.sendfail"));
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
+  };
+  const onKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  const onInput = (e) => {
+    setDraft(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
   };
 
-  const heading = isAdmin
-    ? selectedConversation?.name || "Choose a conversation"
-    : tx("chat.admin");
+  const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const dayLabel = (d) => {
+    const x = new Date(d), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
+    if (x.toDateString() === now.toDateString()) return "Today";
+    if (x.toDateString() === y.toDateString()) return "Yesterday";
+    return x.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  };
+  const listTime = (d) => {
+    if (!d) return "";
+    const x = new Date(d);
+    return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
+  };
+
+  const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+
+  const rows = [];
+  messages.forEach((m, i) => {
+    const prev = messages[i - 1], next = messages[i + 1];
+    const mine = Number(m.sender_id) === Number(userId);
+    if (!prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString())
+      rows.push(<div key={`d${m.id}`} className="chat-day"><span>{dayLabel(m.created_at)}</span></div>);
+    const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
+    const last = !next || Number(next.sender_id) !== Number(m.sender_id);
+    rows.push(
+      <div key={m.id} className={`chat-row ${mine ? "mine" : ""}`}>
+        {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
+        <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
+          {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
+          <p>{m.message}</p>
+          <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
+        </div>
+      </div>
+    );
+  });
 
   return (
-    <section className="grid lg:grid-cols-[280px_minmax(0,1fr)] gap-4 min-h-[min(70vh,680px)]">
+    <section className="chat-shell" data-admin={isAdmin ? "1" : "0"} data-mobile-chat={mobileChat ? "1" : "0"}>
       {isAdmin && (
-        <aside className="card p-3">
-          <h2 className="font-display font-700 px-2 py-2" style={{ color: "var(--gold)" }}>Inbox</h2>
-          {conversations.length === 0 ? (
-            <p className="px-2 py-3 text-sm" style={{ color: "var(--ink-soft)" }}>No messages yet.</p>
-          ) : (
-            <div className="space-y-1">
-              {conversations.map(item => (
-                <button key={item.user_id} onClick={() => setSelectedUserId(item.user_id)}
-                  className="w-full text-left p-3 rounded-lg transition-colors"
-                  style={{ background: Number(selectedUserId) === Number(item.user_id) ? "var(--gold-soft)" : "transparent" }}>
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="font-600 text-sm truncate">{item.name}</span>
-                    {Number(item.unread_count) > 0 && (
-                      <span className="min-w-5 h-5 px-1 rounded-full grid place-items-center text-[10px] text-white" style={{ background: "var(--brick)" }}>
-                        {item.unread_count}
-                      </span>
-                    )}
+        <aside className="card chat-inbox">
+          <div className="chat-inbox-head">
+            <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search students & teachers…" className="chat-search" />
+          </div>
+          <div className="chat-inbox-list">
+            {filtered.length === 0 ? (
+              <p className="p-4 text-sm text-center" style={{ color: "var(--ink-soft)" }}>{conversations.length ? "No match found." : "No messages yet."}</p>
+            ) : filtered.map(c => {
+              const active = Number(selectedUserId) === Number(c.user_id), unread = Number(c.unread_count) > 0;
+              return (
+                <button key={c.user_id} className={`chat-item ${active ? "active" : ""}`}
+                  onClick={() => { setSelectedUserId(c.user_id); setMobileChat(true); }}>
+                  <Avatar name={c.name} size={42} />
+                  <span className="chat-item-body">
+                    <span className="chat-item-top">
+                      <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
+                      <span className="chat-item-time">{listTime(c.last_at || c.last_message_at)}</span>
+                    </span>
+                    <span className="chat-item-bottom">
+                      <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
+                      {unread && <span className="chat-badge">{c.unread_count}</span>}
+                    </span>
+                    <span className="chat-item-role">{c.role}</span>
                   </span>
-                  <span className="block text-[11px] capitalize mt-0.5" style={{ color: "var(--ink-soft)" }}>{item.role}</span>
-                  <span className="block text-xs mt-1 truncate" style={{ color: "var(--ink-soft)" }}>{item.last_message || "No messages"}</span>
                 </button>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </aside>
       )}
-      <div className="card flex flex-col min-h-[min(70vh,680px)] overflow-hidden">
-        <header className="px-4 py-3 border-b flex items-center justify-between gap-3" style={{ borderColor: "var(--line)" }}>
-          <div>
-            <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>{heading}</h2>
+      <div className="card chat-panel">
+        <header className="chat-head">
+          {isAdmin && <button className="chat-back" onClick={() => setMobileChat(false)} aria-label="Back"><Icon path="M15 18l-6-6 6-6" /></button>}
+          <Avatar name={heading} size={40} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
-              {isAdmin ? selectedConversation?.role || "Admin inbox" : tx("chat.private")}
+              {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
             </p>
           </div>
-          {selectedConversation && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("chat.support")}</span>}
+          <span className="chat-pill">{tx("chat.support")}</span>
         </header>
-        {error && <p className="px-4 pt-3 text-sm" style={{ color: "var(--brick)" }}>{error}</p>}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3" aria-live="polite">
+        {error && <p className="chat-error">{error}</p>}
+        <div className="chat-scroll" aria-live="polite">
           {messages.length === 0 ? (
-            <div className="h-full min-h-48 grid place-items-center text-center text-sm" style={{ color: "var(--ink-soft)" }}>
-              {isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}
-            </div>
-          ) : messages.map(message => {
-            const mine = Number(message.sender_id) === Number(userId);
-            return (
-              <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[85%] rounded-xl px-3 py-2" style={{ background: mine ? "var(--gold-soft)" : "var(--bg)", color: "var(--ink)" }}>
-                  <div className="text-[10px] font-700 mb-1" style={{ color: "var(--ink-soft)" }}>{mine ? tx("chat.you") : message.sender_name}</div>
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
-                  <time className="block text-[10px] mt-1 text-right" style={{ color: "var(--ink-soft)" }}>
-                    {new Date(message.created_at).toLocaleString()}
-                  </time>
+            <div className="chat-empty">
+              <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
+              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}</p>
+              {!isAdmin && (
+                <div className="chat-quick">
+                  {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </div>
+          ) : rows}
+          <div ref={bottomRef} />
         </div>
-        <form onSubmit={sendMessage} className="p-3 border-t flex items-end gap-2" style={{ borderColor: "var(--line)" }}>
-          <textarea value={draft} onChange={e => setDraft(e.target.value)} maxLength={4000} rows={2}
-            disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")}
-            className="flex-1 resize-y px-3 py-2 rounded-lg border text-sm disabled:opacity-50"
-            style={{ borderColor: "var(--line)" }} />
-          <button type="submit" disabled={busy || !draft.trim() || (isAdmin && !selectedUserId)}
-            className="btn-primary px-4 py-2 rounded-lg text-sm disabled:opacity-50">
-            {busy ? tx("chat.sending") : tx("chat.send")}
+        <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+          <div className="chat-input-wrap">
+            <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
+              disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />
+            {draft.length > 3500 && <span className="chat-count">{draft.length}/4000</span>}
+          </div>
+          <button type="submit" className="chat-send" aria-label={tx("chat.send")}
+            disabled={busy || !draft.trim() || (isAdmin && !selectedUserId)}>
+            <Icon path="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" className="w-5 h-5" />
           </button>
         </form>
       </div>
@@ -5769,7 +6261,7 @@ function App() {
 
   // Initial data load after login
   useEffect(() => {
-    if (!session) return;
+    if (!session || session.user.role === "rider") return;
     (async () => {
       try {
         if (session.user.role === "admin") {
@@ -5790,7 +6282,7 @@ function App() {
 
   // Refetch the meal calendar & bill whenever the visible month changes
   useEffect(() => {
-    if (!session || session.user.role === "admin") return;
+    if (!session || session.user.role === "admin" || session.user.role === "rider") return;
     refreshCalendar().catch(showError);
   }, [session, year, month]);
 
@@ -5799,7 +6291,10 @@ function App() {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
     socketRef.current = socket;
-    socket.on("connect", () => setConnected(true));
+    socket.on("connect", () => {
+      setConnected(true);
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+    });
     socket.on("disconnect", () => setConnected(false));
     socket.on("order:new", (order) => {
       if (session.user.role === "admin") {
@@ -5810,6 +6305,7 @@ function App() {
     socket.on("order:update", (order) => {
       setOrders(prev => prev.map(o => o.id === order.id
         ? { ...o, status: order.status, ...(order.picked_up_at !== undefined ? { picked_up_at: order.picked_up_at } : {}) } : o));
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
       if (order.picked_up_at && session.user.role !== "admin") {
         pushNotification("order", tx("n.collected.t"), tx("n.collected", { o: order.token || "#" + order.id }));
         return;
@@ -5853,14 +6349,23 @@ function App() {
     // Admin changed an item (sold out / hidden / price): refresh the menu live
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("queue:changed", () => {
-      if (session.user.role !== "admin") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
     });
+
     return () => socket.disconnect();
   }, [session, apiBase]);
 
   const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId) => {
     setBusy(true); setError(null);
     try {
+      const deliveryLocation = await new Promise(resolve => {
+        if (!navigator.geolocation) return resolve(undefined);
+        navigator.geolocation.getCurrentPosition(
+          position => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+          () => resolve(undefined),
+          { enableHighAccuracy: false, maximumAge: 60000, timeout: 1800 }
+        );
+      });
       await call("/api/orders", {
         method: "POST",
         body: {
@@ -5871,6 +6376,7 @@ function App() {
           couponCode: coupon ? coupon.code : undefined,
           note: note && note.trim() ? note.trim() : undefined,
           rewardId: rewardId || undefined,
+          deliveryLocation,
         },
       });
       setCart([]);
@@ -6022,11 +6528,13 @@ function App() {
     try { localStorage.setItem("cd_lang", next); } catch (e) {}
   };
 
-  if (!session) return <Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} />;
+  if (!session) return <><RiderGpsBackground /><Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} /></>;
+
+  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} /></>;
 
   if (!restaurant) {
-    return <RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
-      onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} />;
+    return <><RiderGpsBackground /><RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
+      onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} /></>;
   }
 
   // Each restaurant sells its own items; admin orders are also limited to the chosen restaurant
@@ -6043,6 +6551,7 @@ function App() {
   const toRate = orders.filter(o => o.status === "Ready" && !o.feedback).length;
   const userTabs = [
     { key: "menu", label: tx("nav.menu"), icon: I.menu },
+    { key: "groupOrders", label: "Group orders", icon: I.ticket },
     { key: "track", label: tx("nav.track"), icon: I.clock },
     { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
@@ -6052,6 +6561,7 @@ function App() {
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
+  const teacherTabs = [...userTabs, { key: "riderTracking", label: "Rider Tracking", icon: I.ticket }];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "adminMenu", label: "Menu", icon: I.box },
@@ -6070,7 +6580,7 @@ function App() {
   return (
     <div className="min-h-screen">
       <TopBar role={session.user.role} name={session.user.name} avatar={session.user.avatar}
-        tabs={session.user.role === "admin" ? adminTabs : userTabs}
+        tabs={session.user.role === "admin" ? adminTabs : session.user.role === "teacher" ? teacherTabs : userTabs}
         active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang}
         notifications={notifications} notificationCount={unreadNotifications}
         notificationOpen={notificationCenterOpen}
@@ -6125,13 +6635,15 @@ function App() {
           </div>
         )}
 
+        {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
             onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} />
         )}
+        {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
         {session.user.role !== "admin" && tab === "track" && (
-          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} />
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} onRefresh={refreshMyOrders} apiBase={apiBase} token={session.token} />
         )}
         {session.user.role !== "admin" && tab === "feedback" && (
           <FeedbackTab user={session.user} orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
@@ -6156,7 +6668,7 @@ function App() {
         {session.user.role === "admin" && tab === "adminMenu" && (
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
-        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} />}
+        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "offers" && (
           <AdminOffers call={call} menu={restaurantMenu} notify={(m, isErr) => { if (isErr) showError(m); else showSuccess(m); setLoyaltyKey(k => k + 1); }} />

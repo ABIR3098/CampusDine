@@ -148,3 +148,7 @@ Leave this terminal running the whole time you're using the app.
 - **Payments:** swap the wallet top-up flow for the SSLCommerz or bKash
   sandbox API — `wallet_transactions` already has everything needed to
   log gateway callbacks.
+
+## Live tracking update
+
+The updated project includes Smart Order Tracking (Received → Cooking → Ready), estimated ready time, status history timestamps, notifications, and Socket.IO refresh/reconnect handling. GPS is restricted to the dedicated Rider role: riders choose when to share their device location, and only authenticated teachers can see active riders on the Rider Tracking tab. Student order pages and customer tracking APIs do not expose GPS coordinates. See [`LIVE_TRACKING_SETUP.md`](LIVE_TRACKING_SETUP.md) and [`RIDER_TRACKING_SETUP.md`](RIDER_TRACKING_SETUP.md) for setup and test instructions. The backend adds the rider role and location table automatically at startup.

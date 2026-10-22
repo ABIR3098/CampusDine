@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const { verifyToken } = require("../middleware/auth");
+const { recordFraudEvent } = require("../utils/fraud");
 
 const router = express.Router();
 
@@ -70,6 +71,13 @@ router.post("/validate", verifyToken, async (req, res) => {
     );
 
     if (userUsage.length > 0) {
+      await recordFraudEvent(db, {
+        userId: req.user.id,
+        eventType: "REPEATED_COUPON_USE",
+        severity: "LOW",
+        details: { couponId: Number(couponData.id) },
+        ipAddress: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").slice(0, 64),
+      });
       return res.status(400).json({ error: "You have already used this coupon" });
     }
 
