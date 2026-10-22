@@ -400,6 +400,18 @@
   .chat-pill{display:none}
 }
 
+/*chat-ui2*/
+.chat-composer{position:relative}
+.chat-emoji-btn{width:38px;height:38px;border-radius:999px;font-size:20px;display:grid;place-items:center;flex-shrink:0;transition:background .15s}
+.chat-emoji-btn:hover:not(:disabled){background:var(--hover)}
+.chat-emoji-btn:disabled{opacity:.4;cursor:not-allowed}
+.chat-emoji-panel{position:absolute;left:12px;bottom:calc(100% + 6px);display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:8px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:5;animation:chatIn .15s ease}
+.chat-emoji-panel button{width:38px;height:38px;border-radius:10px;font-size:20px;transition:background .12s,transform .12s}
+.chat-emoji-panel button:hover{background:var(--gold-soft);transform:scale(1.15)}
+.chat-templates{display:flex;gap:8px;overflow-x:auto;padding:8px 14px 0;background:var(--panel);scrollbar-width:thin}
+.chat-templates button{flex-shrink:0;padding:6px 12px;border-radius:999px;border:1px dashed var(--line);background:transparent;color:var(--ink-soft);font-size:12px;white-space:nowrap;transition:all .15s}
+.chat-templates button:hover{border-color:var(--gold);color:var(--gold);border-style:solid}
+
 </style>
 </head>
 <body>
@@ -5295,6 +5307,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [mobileChat, setMobileChat] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isAdmin = role === "admin";
@@ -5338,7 +5351,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     setBusy(true); setError("");
     const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
     setMessages(m => [...m, temp]);
-    setDraft("");
+    setDraft(""); setEmojiOpen(false);
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
       await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
@@ -5372,6 +5385,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
   const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
   const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+  const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
+  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+  const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; }
+  }, [draft]);
 
   const rows = [];
   messages.forEach((m, i) => {
@@ -5454,7 +5474,19 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           ) : rows}
           <div ref={bottomRef} />
         </div>
+        {isAdmin && selectedUserId && (
+          <div className="chat-templates">
+            {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
+          </div>
+        )}
         <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => setEmojiOpen(o => !o)}
+            disabled={isAdmin && !selectedUserId}>😊</button>
+          {emojiOpen && (
+            <div className="chat-emoji-panel">
+              {emojis.map(em => <button key={em} type="button" onClick={() => addEmoji(em)}>{em}</button>)}
+            </div>
+          )}
           <div className="chat-input-wrap">
             <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
               disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />
