@@ -41,7 +41,7 @@ router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAs
 
 router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const [orders] = await pool.query(`
-    SELECT o.id, o.token, o.total, o.status, o.pickup_time, o.note,
+    SELECT o.id, o.token, o.total, o.status, o.pickup_time, o.note, o.delivery_note,
       o.rider_assignment_status, o.created_at,
       u.name AS customer_name, u.phone AS customer_phone, u.address AS customer_address
     FROM orders o JOIN users u ON u.id = o.user_id

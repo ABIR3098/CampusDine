@@ -875,6 +875,9 @@ const I18N = {
     "note.label": "Note for the kitchen (optional)",
     "note.ph": "e.g. less spicy, no onion",
     "note.show": "Note",
+    "dnote.label": "Delivery instructions (optional)",
+    "dnote.ph": "e.g. leave it at the gate, call when you arrive",
+    "dnote.show": "Delivery",
     "soldout": "Sold out"
   },
   bn: {
@@ -1226,6 +1229,9 @@ const I18N = {
     "note.label": "রান্নাঘরের জন্য নোট (ঐচ্ছিক)",
     "note.ph": "যেমন ঝাল কম, পেঁয়াজ ছাড়া",
     "note.show": "নোট",
+    "dnote.label": "ডেলিভারি নির্দেশনা (ঐচ্ছিক)",
+    "dnote.ph": "যেমন গেটে দিবেন, এসে ফোন করবেন",
+    "dnote.show": "ডেলিভারি",
     "soldout": "বিক্রি শেষ"
   }
 };
@@ -2777,6 +2783,8 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   const [couponActive, setCouponActive] = useState(""); // the code sent to the server with every price quote
   const [couponBusy, setCouponBusy] = useState(false);
   const [orderNote, setOrderNote] = useState("");
+  /* Feature: delivery instructions */
+  const [deliveryNote, setDeliveryNote] = useState("");
   const [rewardId, setRewardId] = useState(null);
   const [quote, setQuote] = useState(null);
   /* Fix: checkout works even if price preview fails */
@@ -2785,7 +2793,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   const [loyalty, setLoyalty] = useState(null);
   const [availCoupons, setAvailCoupons] = useState([]);
   useEffect(() => {
-    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setRewardId(null); setQuote(null); }
+    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setDeliveryNote(""); setRewardId(null); setQuote(null); }
   }, [cart]);
 
   // Today's offers + my points (refetched after every order / points change)
@@ -3067,6 +3075,11 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 <div className="text-[10px] text-right mt-0.5" style={{ color: "var(--ink-soft)" }}>{num(orderNote.length)}/{num(200)}</div>
               </div>
               <div className="mb-4">
+                <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("dnote.label")}</label>
+                <input type="text" value={deliveryNote} onChange={e => setDeliveryNote(e.target.value.slice(0, 200))} maxLength={200}
+                  placeholder={tx("dnote.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+              </div>
+              <div className="mb-4">
                 <label className="flex items-center gap-2 text-sm mb-2">
                   <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
                   {tx("schedule")}
@@ -3103,7 +3116,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                   Price preview unavailable ({quoteError}). The final price is calculated when you place the order.
                 </p>
               )}
-              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId)}
+              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId, deliveryNote)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? tx("placing") : tx("checkout")}
               </button>
@@ -3422,6 +3435,9 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
             {printOrder.note && (
               <div className="receipt-row"><span>{tx("note.show")}</span><span>{printOrder.note}</span></div>
             )}
+            {printOrder.delivery_note && (
+              <div className="receipt-row"><span>{tx("dnote.show")}</span><span>{printOrder.delivery_note}</span></div>
+            )}
             {printOrder.pickup_time && (
               <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
             )}
@@ -3539,6 +3555,11 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               {o.note && (
                 <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
                   {tx("note.show")}: {o.note}
+                </div>
+              )}
+              {o.delivery_note && (
+                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                  🚪 {tx("dnote.show")}: {o.delivery_note}
                 </div>
               )}
               {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
@@ -4359,6 +4380,12 @@ function AdminOrders({ orders, advance, call }) {
               📝 Note: {o.note}
             </div>
           )}
+          {o.delivery_note && (
+            <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
+              style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
+              🚪 Delivery: {o.delivery_note}
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="font-mono text-sm">{taka(o.total)}</span>
             {o.status === "Cancelled" ? (
@@ -4449,7 +4476,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
-    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
+    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}{o.delivery_note && <div className="text-xs mt-1" style={{color:"var(--ink-soft)"}}>🚪 {o.delivery_note}</div>}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
   </div></div>;
 }
 
@@ -5129,6 +5156,7 @@ function AdminVerify({ call, onCollected }) {
             </div>
             <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
             {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
+            {o.delivery_note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>🚪 {o.delivery_note}</div>}
             <div className="flex gap-2">
               {okToHandOver && (
                 <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
@@ -6611,7 +6639,7 @@ function App() {
     if (session && session.user.role !== "admin" && (tab === "wallet" || tab === "profile")) refreshWallet().catch(() => {});
   }, [tab]);
 
-  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId) => {
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, deliveryNote) => {
     setBusy(true); setError(null);
     try {
       const deliveryLocation = await new Promise(resolve => {
@@ -6634,6 +6662,7 @@ function App() {
           couponCode: coupon ? coupon.code : undefined,
           note: note && note.trim() ? note.trim() : undefined,
           rewardId: rewardId || undefined,
+          deliveryNote: deliveryNote && deliveryNote.trim() ? deliveryNote.trim() : undefined,
           deliveryLocation,
         },
       });

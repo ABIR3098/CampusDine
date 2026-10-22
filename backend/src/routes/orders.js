@@ -93,6 +93,8 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 
   // Feature: optional note for the kitchen (e.g. "less spicy") — trimmed, at most 200 characters
   const orderNote = typeof req.body.note === "string" ? (req.body.note.trim().slice(0, 200) || null) : null;
+  // Feature: delivery instructions (e.g. "gate-e dibe") — trimmed, at most 200 characters
+  const deliveryNote = typeof req.body.deliveryNote === "string" ? (req.body.deliveryNote.trim().slice(0, 200) || null) : null;
 
   const couponRequested = Boolean(couponId || couponCode);
   const normalizedCode = String(couponCode || "").trim().toUpperCase();
@@ -167,8 +169,8 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     const hasValidDeliveryLocation = Number.isFinite(deliveryLat) && deliveryLat >= -90 && deliveryLat <= 90
       && Number.isFinite(deliveryLng) && deliveryLng >= -180 && deliveryLng <= 180;
     const [orderResult] = await conn.query(
-      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, delivery_lat, delivery_lng, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
-      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote, hasValidDeliveryLocation ? deliveryLat : null, hasValidDeliveryLocation ? deliveryLng : null]
+      "INSERT INTO orders (token, user_id, total, discount_amount, discount_applied, promo_discount, reward_discount, points_used, promo_label, payment_method, pickup_time, note, delivery_note, delivery_lat, delivery_lng, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')",
+      [tempToken, req.user.id, total, discountAmount, appliedCoupon ? 1 : 0, priced.promoDiscount, priced.rewardDiscount, pointsUsed, priced.promoLabel, paymentMethod, pickupTime, orderNote, deliveryNote, hasValidDeliveryLocation ? deliveryLat : null, hasValidDeliveryLocation ? deliveryLng : null]
     );
     const token = `C-${String(100 + orderResult.insertId).padStart(3, "0")}`;
     await conn.query("UPDATE orders SET token = ? WHERE id = ?", [token, orderResult.insertId]);
@@ -206,7 +208,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       id: orderResult.insertId, token, qr: buildPayload(token), total, discount_amount: discountAmount,
       promo_discount: priced.promoDiscount, reward_discount: priced.rewardDiscount, points_used: pointsUsed,
       promo_label: priced.promoLabel, subtotal: priced.subtotal, points_earnable: priced.pointsEarnable, points_balance: pointsBalance,
-      status: "Received", pickup_time: pickupTime, note: orderNote,
+      status: "Received", pickup_time: pickupTime, note: orderNote, delivery_note: deliveryNote,
       rider_id: assignedRiderId,
       rider_assignment_status: assignedRiderId ? "Assigned" : "Unassigned",
       items: snapshot.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
@@ -321,7 +323,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
   }
 
   const [[order]] = await pool.query(
-    `SELECT o.id, o.user_id, o.rider_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.created_at, o.picked_up_at,
+    `SELECT o.id, o.user_id, o.rider_id, o.token, o.total, o.status, o.payment_method, o.pickup_time, o.note, o.delivery_note, o.created_at, o.picked_up_at,
             u.name AS customer_name, u.external_id AS customer_id, u.role AS customer_role,
             u.account_type, u.hall_name, u.room_number, u.hall_id
      FROM orders o JOIN users u ON u.id = o.user_id
