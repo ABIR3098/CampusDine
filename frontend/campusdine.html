@@ -1455,6 +1455,25 @@ Object.assign(I18N.bn, {
   "n.received.t": "টাকা পেয়েছেন",
   "n.received": "{n} আপনাকে {a} পাঠিয়েছে।"
 });
+function playChatPing() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    window.__chatAudio = window.__chatAudio || new AC();
+    const ctx = window.__chatAudio;
+    if (ctx.state === "suspended") ctx.resume();
+    const t = ctx.currentTime;
+    [[880, 0], [1320, 0.12]].forEach(([f, d]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + d);
+      g.gain.exponentialRampToValueAtTime(0.18, t + d + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.28);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t + d); o.stop(t + d + 0.3);
+    });
+  } catch (e) {}
+}
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
   if (str === undefined) str = I18N.en[key];
@@ -6169,6 +6188,10 @@ function App() {
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [chatRefreshKey, setChatRefreshKey] = useState(0);
+  const [chatUnread, setChatUnread] = useState(0);
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+  useEffect(() => { if (tab === "chat") setChatUnread(0); }, [tab]);
   const [loyaltyKey, setLoyaltyKey] = useState(0); // bumped whenever points / offers may have changed
 
   const now = new Date();
@@ -6342,6 +6365,8 @@ function App() {
     socket.on("chat:message", (payload) => {
       setChatRefreshKey(value => value + 1);
       if (Number(payload.senderId) !== Number(session.user.id)) {
+        playChatPing();
+        if (tabRef.current !== "chat") setChatUnread(n => n + 1);
         pushNotification("chat", tx("n.chat"), `${payload.senderName}: ${payload.message}`);
       }
     });
@@ -6557,7 +6582,7 @@ function App() {
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
     { key: "rewards", label: tx("nav.rewards"), icon: I.gift },
     { key: "spending", label: tx("nav.spending"), icon: I.chart },
-    { key: "chat", label: tx("nav.chat"), icon: I.chat },
+    { key: "chat", label: tx("nav.chat"), icon: I.chat, badge: chatUnread },
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
@@ -6569,7 +6594,7 @@ function App() {
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "offers", label: "Offers", icon: I.gift },
-    { key: "chat", label: "Messages", icon: I.chat },
+    { key: "chat", label: "Messages", icon: I.chat, badge: chatUnread },
     { key: "reports", label: "Reports", icon: I.chart },
     { key: "feedback", label: "Feedback", icon: I.star, badge: newFeedbackCount },
     { key: "profile", label: "Profile", icon: I.user },
