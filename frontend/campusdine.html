@@ -2779,6 +2779,8 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   const [orderNote, setOrderNote] = useState("");
   const [rewardId, setRewardId] = useState(null);
   const [quote, setQuote] = useState(null);
+  /* Fix: checkout works even if price preview fails */
+  const [quoteError, setQuoteError] = useState("");
   const [offers, setOffers] = useState({ combos: [], happyHours: [] });
   const [loyalty, setLoyalty] = useState(null);
   const [availCoupons, setAvailCoupons] = useState([]);
@@ -2827,8 +2829,8 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
       api(apiBase, "/api/pricing/quote", { method: "POST", token: sessionToken, body: {
         items: cart.map(c => ({ id: c.id, qty: c.qty })), couponCode: couponActive || undefined,
         rewardId: rewardId || undefined, pickupTime: scheduleLater && pickupTime ? pickupTime : undefined,
-      } }).then(q => { if (!dead) { setQuote(q); if (q.rewardError) setRewardId(null); } })
-        .catch(() => { if (!dead) setQuote(null); });
+      } }).then(q => { if (!dead) { setQuote(q); setQuoteError(""); if (q.rewardError) setRewardId(null); } })
+        .catch((e) => { if (!dead) { setQuote(null); setQuoteError((e && e.message) || "Price preview unavailable"); } });
     }, 200);
     return () => { dead = true; clearTimeout(t); };
   }, [quoteKey, loyaltyKey, offers]);
@@ -3096,7 +3098,12 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               {payMethod === "wallet" && !canPay && (
                 <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
               )}
-              <button disabled={!canCheckout || busy || !quote} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId)}
+              {!quote && quoteError && (
+                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>
+                  Price preview unavailable ({quoteError}). The final price is calculated when you place the order.
+                </p>
+              )}
+              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? tx("placing") : tx("checkout")}
               </button>
