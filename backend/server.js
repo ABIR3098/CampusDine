@@ -410,6 +410,7 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await addColumn("orders", "pickup_time", "DATETIME NULL");   // scheduled pickup (older databases don't have it)
 
     const [emailIndex] = await db.query("SHOW INDEX FROM users WHERE Column_name = 'email' AND Non_unique = 0");
     if (emailIndex.length === 0) {
@@ -468,6 +469,8 @@ async function ensureChatSchema(db) {
       FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
+  const [delCol] = await db.query("SHOW COLUMNS FROM chat_messages LIKE 'deleted_at'");
+  if (delCol.length === 0) await db.query("ALTER TABLE chat_messages ADD COLUMN deleted_at DATETIME NULL");
 }
 
 // ════════════════════════════════════════════════
