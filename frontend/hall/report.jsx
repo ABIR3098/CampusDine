@@ -17,47 +17,44 @@ function HallReports({ call, notify }) {
   };
   useEffect(() => { load(); }, []);
 
-  const input = "rounded-lg border px-2 py-1.5 text-sm";
-  const style = { background: "var(--input-bg)", borderColor: "var(--line)", color: "var(--ink)" };
-
   return (
     <>
-      <HallCard title="Meals per day" right={
-        <input type="date" className={input} style={style} value={date} onChange={(e) => { setDate(e.target.value); if (e.target.value) load(e.target.value); }} />
+      <HallCard title="Meals per day" icon="📊" right={
+        <input type="date" className="hl-input" style={{ width: "auto" }} value={date} onChange={(e) => { setDate(e.target.value); if (e.target.value) load(e.target.value); }} />
       }>
-        {!day ? <p className="text-sm opacity-70">Loading…</p> : (
-          <div className="grid gap-3 md:grid-cols-3">
+        {!day ? <div className="hl-empty">Loading…</div> : (
+          <div className="hl-grid3">
             {day.slots.map((s) => (
-              <div key={s.slot} className="rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
-                <div className="flex justify-between items-center">
-                  <div className="font-700">{s.label}</div>
-                  <div className="text-[11px] opacity-70">{s.locked ? "🔒 closed (final)" : "open (can change)"}</div>
+              <div key={s.slot} className="hl-tile">
+                <div className="flex justify-between items-center gap-2">
+                  <div className="font-700">{HALL_SLOT_EMOJI[s.slot]} {s.label}</div>
+                  <span className={`hl-chip ${s.locked ? "plain" : "ok"}`}>{s.locked ? "🔒 final" : "open"}</span>
                 </div>
-                <div className="font-display text-3xl font-800 my-1">{s.plates}</div>
-                <div className="text-xs opacity-80">plates = {s.on} ON + {s.guests} guest · {s.off} OFF of {s.members}</div>
-                {s.feast && <div className="text-xs mt-1">🎉 {s.feast.title}</div>}
+                <div className="hl-big font-display my-2" style={{ color: "var(--gold-deep)" }}>{s.plates}</div>
+                <div className="text-xs hl-muted">plates = {s.on} ON + {s.guests} guest · {s.off} OFF of {s.members}</div>
+                {s.feast && <div className="text-xs mt-1.5 hl-chip warn">🎉 {s.feast.title}</div>}
                 {s.off > 0 && (
-                  <button className="text-xs underline mt-2" onClick={() => setOpen(open === s.slot ? null : s.slot)}>
-                    {open === s.slot ? "Hide" : "Who is off?"}
-                  </button>
+                  <div className="mt-2">
+                    <button className="hl-btn sm ghost" onClick={() => setOpen(open === s.slot ? null : s.slot)}>{open === s.slot ? "Hide" : "Who is off?"}</button>
+                  </div>
                 )}
-                {open === s.slot && <ul className="text-xs mt-1 list-disc pl-4">{s.offList.map((p) => <li key={p.externalId}>{p.name} ({p.externalId})</li>)}</ul>}
+                {open === s.slot && <ul className="text-xs mt-2 list-disc pl-4">{s.offList.map((p) => <li key={p.externalId}>{p.name} ({p.externalId})</li>)}</ul>}
               </div>
             ))}
           </div>
         )}
       </HallCard>
 
-      <HallCard title="Who changed a meal for this date">
-        {changes.length === 0 ? <p className="text-sm opacity-70">No changes recorded for this date.</p> : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead><tr style={{ color: "var(--ink-soft)" }}><th className="py-1">Student</th><th>Meal</th><th>Change</th><th>When</th></tr></thead>
+      <HallCard title="Who changed a meal for this date" icon="📝">
+        {changes.length === 0 ? <div className="hl-empty">No changes recorded for this date.</div> : (
+          <div className="hl-scroll">
+            <table className="hl-table">
+              <thead><tr><th>Student</th><th>Meal</th><th>Change</th><th>When</th></tr></thead>
               <tbody>{changes.map((c, i) => (
-                <tr key={i} className="border-t" style={{ borderColor: "var(--line)" }}>
-                  <td className="py-1">{c.name} <span className="opacity-60">({c.externalId})</span></td>
-                  <td>{HALL_SLOT_LABEL[c.slot]}</td>
-                  <td>{(c.fromStatus || "—").toUpperCase()} → <b>{c.toStatus.toUpperCase()}</b></td>
+                <tr key={i}>
+                  <td>{c.name} <span className="hl-muted">({c.externalId})</span></td>
+                  <td>{HALL_SLOT_EMOJI[c.slot]} {HALL_SLOT_LABEL[c.slot]}</td>
+                  <td><span className="hl-chip plain">{(c.fromStatus || "—").toUpperCase()}</span> → <span className={`hl-chip ${c.toStatus === "on" ? "ok" : "plain"}`}>{c.toStatus.toUpperCase()}</span></td>
                   <td className="whitespace-nowrap">{c.at}</td>
                 </tr>))}</tbody>
             </table>
@@ -65,13 +62,13 @@ function HallReports({ call, notify }) {
         )}
       </HallCard>
 
-      <HallCard title="Next 7 days — plates">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead><tr style={{ color: "var(--ink-soft)" }}><th className="py-1">Day</th>{HALL_SLOTS.map((x) => <th key={x}>{HALL_SLOT_LABEL[x]}</th>)}<th>Total</th></tr></thead>
+      <HallCard title="Next 7 days — plates" icon="📅">
+        <div className="hl-scroll">
+          <table className="hl-table">
+            <thead><tr><th>Day</th>{HALL_SLOTS.map((x) => <th key={x}>{HALL_SLOT_EMOJI[x]} {HALL_SLOT_LABEL[x]}</th>)}<th>Total</th></tr></thead>
             <tbody>{range.map((r) => (
-              <tr key={r.date} className="border-t" style={{ borderColor: "var(--line)" }}>
-                <td className="py-1 whitespace-nowrap">{hallDateLabel(r.date)}</td><td>{r.breakfast}</td><td>{r.lunch}</td><td>{r.dinner}</td><td className="font-600">{r.total}</td>
+              <tr key={r.date}>
+                <td className="whitespace-nowrap">{hallDateLabel(r.date)}</td><td>{r.breakfast}</td><td>{r.lunch}</td><td>{r.dinner}</td><td className="font-700">{r.total}</td>
               </tr>))}</tbody>
           </table>
         </div>
@@ -79,4 +76,4 @@ function HallReports({ call, notify }) {
     </>
   );
 }
-Hall.register({ key: "report", label: "Reports", order: 10, roles: ["admin"], component: HallReports });
+Hall.register({ key: "report", label: "Reports", icon: "📊", order: 10, roles: ["admin"], component: HallReports });

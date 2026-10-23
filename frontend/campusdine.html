@@ -6,6 +6,7 @@
 <title>CampusDine — Smart Campus Canteen</title>
 <link rel="icon" type="image/png" href="/images/landing/logo-green.png" />
 <link rel="stylesheet" href="landing.css" />
+<link rel="stylesheet" href="/hall/hall.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -5958,7 +5959,7 @@ function HallGate(props) {
   if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
   if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
   const Hall = window.HallApp;
-  return <Hall {...props} />;
+  return <Hall {...props} ui={{ ThemeMenu, Avatar }} />;
 }
 
 /* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
@@ -6270,7 +6271,7 @@ function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
   const bn = lang === "bn" && role !== "admin";
   return (
     <div className="min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-4xl fade-in">
+      <div className="w-full max-w-6xl fade-in">
         <div className="text-center mb-6">
           <div className="font-display gold-text text-3xl font-800">🍽 CampusDine</div>
           <h1 className="font-display text-xl font-700 mt-3">{bn ? "স্বাগতম" : "Welcome"}, {userName}</h1>
@@ -6280,9 +6281,9 @@ function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
               : bn ? "কোন রেস্টুরেন্ট থেকে খাবার অর্ডার করতে চান?" : "Which restaurant do you want to order from?"}
           </p>
         </div>
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          {RESTAURANTS.map(r => (
-            <button key={r.id} onClick={() => onPick(r)} className="rounded-2xl border p-4 text-center transition hover:-translate-y-0.5 hover:shadow-lg"
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+          {[...RESTAURANTS, { ...HALL_ENTRY, logo: "/images/restaurants/hall.svg" }].map(r => (
+            <button key={r.id} onClick={() => onPick(r.isHall ? HALL_ENTRY : r)} className={`rounded-2xl border p-4 text-center transition hover:-translate-y-0.5 hover:shadow-lg ${r.isHall ? "col-span-2 lg:col-span-1" : ""}`}
               style={{ background: "var(--card, #fff)", borderColor: "rgba(0,0,0,0.12)", color: "var(--ink)" }}>
               <img src={r.logo} alt={r.name} className="mx-auto" style={{ width: 104, height: 104 }} />
               <div className="font-display font-700 mt-3">{r.name}</div>
@@ -6291,12 +6292,6 @@ function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
             </button>
           ))}
         </div>
-        <button onClick={() => onPick(HALL_ENTRY)} className="mt-4 w-full rounded-2xl border p-4 text-center transition hover:-translate-y-0.5 hover:shadow-lg"
-          style={{ background: "var(--card, #fff)", borderColor: "rgba(0,0,0,0.12)", color: "var(--ink)" }}>
-          <div style={{ fontSize: 40 }}>🍛</div>
-          <div className="font-display font-700 mt-1">Hall</div>
-          <div className="text-xs opacity-70 mt-1">{bn ? HALL_ENTRY.descBn : HALL_ENTRY.desc}</div>
-        </button>
         <div className="text-center mt-6">
           <button className="btn-gold px-4 py-2 rounded-xl text-sm" onClick={onLogout}>{bn ? "লগআউট" : "Log out"}</button>
         </div>

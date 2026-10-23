@@ -14,25 +14,28 @@ function HallToken({ call, notify }) {
   };
 
   return (
-    <HallCard title="Today's meal token">
-      <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
-        Take a number when you come for a meal that is ON for you. Meals are served in token order.
-      </p>
-      {!data ? <p className="text-sm opacity-70">Loading…</p> : (
-        <div className="grid gap-3 md:grid-cols-3">
+    <HallCard title="Today's meal token" icon="🎫"
+      sub="Take a number when you come for a meal that is ON for you. Meals are served in token order.">
+      {!data ? <div className="hl-empty">Loading…</div> : (
+        <div className="hl-grid3">
           {HALL_SLOTS.map((slot) => {
             const t = data.tokens.find((x) => x.slot === slot);
             return (
-              <div key={slot} className="rounded-xl border p-3 text-center" style={{ borderColor: "var(--line)" }}>
-                <div className="font-700">{HALL_SLOT_LABEL[slot]}</div>
+              <div key={slot} className={`hl-ticket ${t ? "has" : ""}`}>
+                <div className="font-display font-700">{HALL_SLOT_EMOJI[slot]} {HALL_SLOT_LABEL[slot]}</div>
                 {!t ? (
-                  <button className="btn-gold px-3 py-2 rounded-lg text-sm mt-3" onClick={() => take(slot)}>Get token</button>
+                  <>
+                    <div className="text-sm hl-muted mt-2 mb-3">No token yet</div>
+                    <button className="hl-btn" onClick={() => take(slot)}>Get token</button>
+                  </>
                 ) : (
                   <>
-                    <div className="font-display text-5xl font-800 my-2">#{t.serial}</div>
-                    <div className="text-xs opacity-80">{t.plates} plate(s)</div>
-                    <div className="text-sm mt-1 font-600">
-                      {t.status === "served" ? "✅ Served" : t.ahead === 0 ? "🔔 You're next!" : `${t.ahead} ahead of you · now serving #${t.nowServing}`}
+                    <div className="hl-ticket-no font-display">#{t.serial}</div>
+                    <div className="text-xs hl-muted">{t.plates} plate(s)</div>
+                    <div className="mt-2">
+                      {t.status === "served" ? <span className="hl-chip ok">✅ Served</span>
+                        : t.ahead === 0 ? <span className="hl-chip warn">🔔 You're next!</span>
+                        : <span className="hl-chip">{t.ahead} ahead · now serving #{t.nowServing}</span>}
                     </div>
                   </>
                 )}
@@ -44,7 +47,7 @@ function HallToken({ call, notify }) {
     </HallCard>
   );
 }
-Hall.register({ key: "token", label: "Token", order: 7, roles: ["student", "teacher"], component: HallToken });
+Hall.register({ key: "token", label: "Token", icon: "🎫", order: 7, roles: ["student", "teacher"], component: HallToken });
 
 function HallServe({ call, notify }) {
   const [slot, setSlot] = useState("lunch");
@@ -60,30 +63,33 @@ function HallServe({ call, notify }) {
   };
 
   return (
-    <HallCard title="Serve tokens — today" right={
-      <div className="flex gap-1">{HALL_SLOTS.map((s) => (
-        <button key={s} onClick={() => setSlot(s)} className="px-2 py-1 rounded-lg text-xs border"
-          style={s === slot ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>{HALL_SLOT_LABEL[s]}</button>
+    <HallCard title="Serve tokens — today" icon="🔔" right={
+      <div className="flex gap-1.5">{HALL_SLOTS.map((s) => (
+        <button key={s} onClick={() => setSlot(s)} className={`hl-btn sm ${s === slot ? "" : "ghost"}`}>{HALL_SLOT_EMOJI[s]} {HALL_SLOT_LABEL[s]}</button>
       ))}</div>
     }>
-      {!q ? <p className="text-sm opacity-70">Loading…</p> : (
+      {!q ? <div className="hl-empty">Loading…</div> : (
         <>
-          <div className="text-sm mb-3">
-            Now serving: <b>{q.nowServing ? `#${q.nowServing}` : "—"}</b> · Waiting: <b>{q.waiting.length}</b> ({q.waitingPlates} plates) · Served: <b>{q.served}</b>
+          <div className="hl-stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+            <HallStat icon="📣" label="Now serving" value={q.nowServing ? `#${q.nowServing}` : "—"} />
+            <HallStat icon="⏳" label="Waiting" value={q.waiting.length} sub={`${q.waitingPlates} plates`} />
+            <HallStat icon="✅" label="Served" value={q.served} />
           </div>
-          {q.waiting.length === 0 ? <p className="text-sm opacity-70">Nobody is waiting.</p> : (
-            <table className="w-full text-sm text-left">
-              <thead><tr style={{ color: "var(--ink-soft)" }}><th className="py-1">#</th><th>Name</th><th>Plates</th><th></th></tr></thead>
-              <tbody>{q.waiting.map((w) => (
-                <tr key={w.serial} className="border-t" style={{ borderColor: "var(--line)" }}>
-                  <td className="py-1.5 font-700">#{w.serial}</td><td>{w.name} <span className="opacity-60">({w.externalId})</span></td><td>{w.plates}</td>
-                  <td className="text-right"><button className="btn-gold px-3 py-1 rounded-lg text-xs" onClick={() => serve(w.serial)}>Serve</button></td>
-                </tr>))}</tbody>
-            </table>
+          {q.waiting.length === 0 ? <div className="hl-empty">Nobody is waiting.</div> : (
+            <div className="hl-scroll">
+              <table className="hl-table">
+                <thead><tr><th>#</th><th>Name</th><th>Plates</th><th></th></tr></thead>
+                <tbody>{q.waiting.map((w) => (
+                  <tr key={w.serial}>
+                    <td className="font-800">#{w.serial}</td><td>{w.name} <span className="hl-muted">({w.externalId})</span></td><td>{w.plates}</td>
+                    <td style={{ textAlign: "right" }}><button className="hl-btn sm" onClick={() => serve(w.serial)}>Serve</button></td>
+                  </tr>))}</tbody>
+              </table>
+            </div>
           )}
         </>
       )}
     </HallCard>
   );
 }
-Hall.register({ key: "serve", label: "Serve", order: 8, roles: ["admin"], component: HallServe });
+Hall.register({ key: "serve", label: "Serve", icon: "🔔", order: 8, roles: ["admin"], component: HallServe });
