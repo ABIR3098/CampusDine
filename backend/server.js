@@ -410,6 +410,13 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await db.query(`CREATE TABLE IF NOT EXISTS stock_alerts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      menu_item_id INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_stock_alert (user_id, menu_item_id)
+    )`);   // "Notify me" requests for sold-out items
     await addColumn("orders", "delivery_note", "VARCHAR(255) NULL");   // delivery instructions, e.g. "gate-e dibe"
     await addColumn("orders", "pickup_time", "DATETIME NULL");   // scheduled pickup (older databases don't have it)
 

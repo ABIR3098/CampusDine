@@ -876,6 +876,11 @@ const I18N = {
     "note.label": "Note for the kitchen (optional)",
     "note.ph": "e.g. less spicy, no onion",
     "note.show": "Note",
+    "notify.me": "Notify me",
+    "notify.on": "We'll notify you",
+    "notify.set": "Done! We'll tell you as soon as it's back in stock.",
+    "notify.back": "Back in stock",
+    "notify.backmsg": "{n} is available again — order now!",
     "dnote.label": "Delivery instructions (optional)",
     "dnote.ph": "e.g. leave it at the gate, call when you arrive",
     "dnote.show": "Delivery",
@@ -1231,6 +1236,11 @@ const I18N = {
     "note.label": "রান্নাঘরের জন্য নোট (ঐচ্ছিক)",
     "note.ph": "যেমন ঝাল কম, পেঁয়াজ ছাড়া",
     "note.show": "নোট",
+    "notify.me": "আমাকে জানান",
+    "notify.on": "জানানো হবে",
+    "notify.set": "ঠিক আছে! আবার পাওয়া গেলেই আপনাকে জানাব।",
+    "notify.back": "আবার পাওয়া যাচ্ছে",
+    "notify.backmsg": "{n} আবার পাওয়া যাচ্ছে — এখনই অর্ডার করুন!",
     "dnote.label": "ডেলিভারি নির্দেশনা (ঐচ্ছিক)",
     "dnote.ph": "যেমন গেটে দিবেন, এসে ফোন করবেন",
     "dnote.show": "ডেলিভারি",
@@ -2751,7 +2761,7 @@ function PromoSlider({ slides }) {
   );
 }
 
-function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey }) {
+function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -2929,7 +2939,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             const out = item.stock <= 0 || item.availability === "sold_out";
             const inCart = cart.find(c => c.id === item.id);
             return (
-              <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-50" : ""}`}>
+              <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-75" : ""}`}>
                 <div className="overflow-hidden mb-3" style={{ position: "relative", margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
                   {(out || (Number(item.stock) > 0 && Number(item.stock) <= STUDENT_LOW_STOCK)) && (
                     <span className="absolute top-2 left-2 text-[11px] font-700 px-2.5 py-1 rounded-full"
@@ -2962,7 +2972,16 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-mono font-600 text-lg">{taka(item.price)}</span>
                   {out ? (
-                    <span className="text-xs font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                      {onToggleNotify && (
+                        <button type="button" onClick={() => onToggleNotify(item.id)}
+                          className="text-xs px-2.5 py-1 rounded-lg border font-600"
+                          style={{ borderColor: "var(--line)", color: watching.includes(item.id) ? "var(--leaf)" : "var(--gold)" }}>
+                          🔔 {watching.includes(item.id) ? tx("notify.on") : tx("notify.me")}
+                        </button>
+                      )}
+                    </div>
                   ) : inCart ? (
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border" style={{ borderColor: "var(--line)" }}><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
@@ -6465,6 +6484,8 @@ function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [wallet, setWallet] = useState({ balance: 0, transactions: [], loaded: false });
+  /* Feature: notify me */
+  const [watching, setWatching] = useState([]);
   const [calendar, setCalendar] = useState({});
   const [bill, setBill] = useState({ fullDays: 0, halfDays: 0, fullRate: 0, halfRate: 0, total: 0, paidDays: 0, paidAmount: 0, dueDays: 0, dueAmount: 0, walletBalance: 0 });
   const [calendarPaid, setCalendarPaid] = useState({});
@@ -6544,6 +6565,24 @@ function App() {
     } catch (e) { showError(e); }
   };
   const refreshWallet = async () => setWallet(mapWallet(await call("/api/wallet")));
+  const refreshAlerts = async () => {
+    const r = await call("/api/menu/alerts");
+    setWatching(r.watching || []);
+    for (const it of (r.ready || [])) pushNotification("stock", tx("notify.back"), tx("notify.backmsg", { n: it.name }));
+    if ((r.ready || []).length) refreshMenu().catch(() => {});
+  };
+  const toggleNotify = async (itemId) => {
+    try {
+      if (watching.includes(itemId)) {
+        await call("/api/menu/" + itemId + "/notify", { method: "DELETE" });
+        setWatching(w => w.filter(id => id !== itemId));
+      } else {
+        await call("/api/menu/" + itemId + "/notify", { method: "POST" });
+        setWatching(w => [...w, itemId]);
+        showSuccess(tx("notify.set"));
+      }
+    } catch (e) { showError(e); refreshMenu().catch(() => {}); }
+  };
   const refreshCalendar = async () => {
     const rows = await call(`/api/calendar?year=${year}&month=${month}`);
     setCalendar(mapCalendar(rows));
@@ -6611,7 +6650,7 @@ function App() {
     window.__campusSocket = socket;
     socket.on("connect", () => {
       setConnected(true);
-      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
     });
     socket.on("disconnect", () => setConnected(false));
     socket.on("order:new", (order) => {
@@ -6670,6 +6709,7 @@ function App() {
     socket.on("chat:typing", (p) => window.dispatchEvent(new CustomEvent("chat-typing", { detail: p })));
     socket.on("chat:deleted", () => setChatRefreshKey(value => value + 1));
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
+    socket.on("menu:restocked", () => { refreshAlerts().catch(() => {}); });
     socket.on("queue:changed", () => {
       if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
     });
@@ -6969,7 +7009,7 @@ function App() {
         {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} watching={watching} onToggleNotify={toggleNotify} />
         )}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
