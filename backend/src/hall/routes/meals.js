@@ -36,6 +36,7 @@ router.get("/meals", catchAsync(async (req, res) => {
     for (const slot of SLOTS) {
       const cell = day.slots[slot];
       cell.guests = (guests.find((g) => g.d === day.date && g.slot === slot) || {}).guest_count || 0; // step 8
+      delete cell.charged; // prices are shown on the bill, not here
       cell.locked = isLocked(slotBy[slot], day.date, now);
       const feast = feasts.find((f) => f.d === day.date && f.slot === slot);
       cell.feast = feast ? { title: feast.title, extraPrice: feast.extra_price } : null; // step 7

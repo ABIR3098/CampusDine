@@ -10,6 +10,7 @@ const MAX_DAYS = 62;
 
 // → [{ date: "YYYY-MM-DD", slots: { breakfast: { status, source }, lunch: {...}, dinner: {...} } }, ...]
 // source: "manual" (clicked), "auto" (filled at cut-off) or "carry" (no row yet — taken from the previous choice)
+// charged: the price fixed at cut-off (null until the meal is locked and the job has run)
 async function loadStates(db, userId, from, to) {
   const dates = [];
   for (let d = from; d <= to && dates.length < MAX_DAYS; d = addDays(d, 1)) dates.push(d);
@@ -26,7 +27,7 @@ async function loadStates(db, userId, from, to) {
   for (const slot of SLOTS) carry[slot] = (before.find((r) => r.slot === slot) || {}).status || DEFAULT_STATE;
 
   const [rows] = await db.query(
-    `SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, status, source FROM hall_meal_state
+    `SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, status, source, charged FROM hall_meal_state
      WHERE user_id = ? AND the_date >= ? AND the_date <= ?`,
     [userId, from, dates[dates.length - 1]]
   );
@@ -37,8 +38,8 @@ async function loadStates(db, userId, from, to) {
     const slots = {};
     for (const slot of SLOTS) {
       const row = byKey[`${date}|${slot}`];
-      if (row) { carry[slot] = row.status; slots[slot] = { status: row.status, source: row.source }; }
-      else slots[slot] = { status: carry[slot], source: "carry" };
+      if (row) { carry[slot] = row.status; slots[slot] = { status: row.status, source: row.source, charged: row.charged }; }
+      else slots[slot] = { status: carry[slot], source: "carry", charged: null };
     }
     return { date, slots };
   });

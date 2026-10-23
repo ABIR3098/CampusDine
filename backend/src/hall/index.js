@@ -14,6 +14,7 @@ router.use("/", require("./routes/jobs")); // step 5
 router.use("/", require("./routes/menu")); // step 6
 router.use("/", require("./routes/feasts")); // step 7
 router.use("/", require("./routes/guests")); // step 8
+router.use("/", require("./routes/bill")); // step 10
 // (each step adds its router here)
 
 // background jobs (started once after the server is listening)
