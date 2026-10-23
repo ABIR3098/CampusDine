@@ -1,85 +1,101 @@
-// Step 2 — "Meal times" tab: when each meal closes for changes, and its price. Admin can edit.
+// Hall core: shared helpers, the page shell (header + tabs) and the Hall home tab.
+// Naming rule: every top-level name in hall/*.jsx is shared, so keep names unique across files.
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-// "21:00" → "9:00 PM"
-function hallClockLabel(hhmm) {
-  const [h, m] = String(hhmm || "00:00").split(":").map(Number);
-  return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
-}
-// slot → "Day before, 9:00 PM" / "Same day, 9:00 AM" / "2 days before, ..."
-function hallCutoffLabel(s) {
-  const d = s.cutoffDaysBefore;
-  const when = d === 0 ? "Same day" : d === 1 ? "Day before" : `${d} days before`;
-  return `${when}, ${hallClockLabel(s.cutoffTime)}`;
-}
+const HALL_SLOTS = ["breakfast", "lunch", "dinner"];
+const HALL_SLOT_LABEL = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
+const hallTaka = (n) => "৳" + Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
-function HallSlotRow({ slot, isAdmin, onSave }) {
-  const [f, setF] = useState({ cutoffTime: slot.cutoffTime, cutoffDaysBefore: slot.cutoffDaysBefore, price: slot.price, guestPrice: slot.guestPrice });
-  const [busy, setBusy] = useState(false);
-  const changed = f.cutoffTime !== slot.cutoffTime || Number(f.cutoffDaysBefore) !== slot.cutoffDaysBefore ||
-    Number(f.price) !== slot.price || Number(f.guestPrice) !== slot.guestPrice;
-  const input = "rounded-lg border px-2 py-1 text-sm w-24";
-  const inputStyle = { background: "var(--input-bg)", borderColor: "var(--line)", color: "var(--ink)" };
+const hallCard = { background: "var(--panel)", borderColor: "var(--line)", color: "var(--ink)" };
 
-  if (!isAdmin) {
-    return (
-      <tr className="border-t" style={{ borderColor: "var(--line)" }}>
-        <td className="py-2 font-600">{slot.label}</td>
-        <td>{hallCutoffLabel(slot)}</td>
-        <td>{hallTaka(slot.price)}</td>
-        <td>{hallTaka(slot.guestPrice)}</td>
-      </tr>
-    );
-  }
+function HallCard({ title, children, right }) {
   return (
-    <tr className="border-t" style={{ borderColor: "var(--line)" }}>
-      <td className="py-2 font-600">{slot.label}</td>
-      <td>
-        <div className="flex gap-1 items-center flex-wrap">
-          <select className={input} style={inputStyle} value={f.cutoffDaysBefore} onChange={(e) => setF({ ...f, cutoffDaysBefore: Number(e.target.value) })}>
-            <option value={0}>Same day</option><option value={1}>1 day before</option><option value={2}>2 days before</option><option value={3}>3 days before</option>
-          </select>
-          <input type="time" className={input} style={inputStyle} value={f.cutoffTime} onChange={(e) => setF({ ...f, cutoffTime: e.target.value })} />
+    <section className="rounded-2xl border p-4 mb-4" style={hallCard}>
+      {(title || right) && (
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display font-700 text-base">{title}</h2>
+          {right}
         </div>
-      </td>
-      <td><input type="number" min="0" className={input} style={inputStyle} value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></td>
-      <td><input type="number" min="0" className={input} style={inputStyle} value={f.guestPrice} onChange={(e) => setF({ ...f, guestPrice: e.target.value })} /></td>
-      <td>
-        <button className="btn-gold px-3 py-1 rounded-lg text-xs" disabled={!changed || busy}
-          onClick={async () => { setBusy(true); try { await onSave(slot.slot, f); } finally { setBusy(false); } }}>Save</button>
-      </td>
-    </tr>
+      )}
+      {children}
+    </section>
   );
 }
 
-function HallMealTimes({ call, isAdmin, notify }) {
-  const [slots, setSlots] = useState(null);
-  const load = () => call("/api/hall/slots").then(setSlots).catch((e) => notify(e, true));
-  useEffect(() => { load(); }, []);
-
-  const save = async (slot, f) => {
-    try {
-      await call(`/api/hall/slots/${slot}`, { method: "PUT", body: { cutoffTime: f.cutoffTime, cutoffDaysBefore: Number(f.cutoffDaysBefore), price: Number(f.price), guestPrice: Number(f.guestPrice) } });
-      notify("Saved");
-      await load();
-    } catch (e) { notify(e, true); }
-  };
-
+// Home tab: proves the Hall API is reachable and shows the canteen clock.
+function HallHome({ call, user }) {
+  const [info, setInfo] = useState(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => { call("/api/hall/info").then(setInfo).catch((e) => setErr(e.message)); }, []);
+  const hh = info ? String(Math.floor(info.minutes / 60)).padStart(2, "0") : "";
+  const mm = info ? String(info.minutes % 60).padStart(2, "0") : "";
   return (
-    <HallCard title="Meal times & prices">
-      <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
-        You can switch a meal on or off until its cut-off. After that it is locked and the meal is counted.
+    <HallCard title="Welcome to the Hall">
+      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
+        The meal system: switch each meal on or off, see the weekly menu and feasts, and check your monthly bill.
+        More tabs appear here as the features are added.
       </p>
-      {!slots ? <p className="text-sm opacity-70">Loading…</p> : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead><tr style={{ color: "var(--ink-soft)" }}>
-              <th className="py-1">Meal</th><th>Cut-off</th><th>Price</th><th>Guest price</th>{isAdmin && <th></th>}
-            </tr></thead>
-            <tbody>{slots.map((s) => <HallSlotRow key={s.slot + s.cutoffTime + s.price + s.guestPrice + s.cutoffDaysBefore} slot={s} isAdmin={isAdmin} onSave={save} />)}</tbody>
-          </table>
-        </div>
+      {err && <p className="text-sm mt-3" style={{ color: "var(--danger-fg)" }}>{err}</p>}
+      {info && (
+        <p className="text-sm mt-3">
+          Signed in as <b>{info.userName}</b> ({info.role}) · Canteen time: <b>{info.today} {hh}:{mm}</b> ({info.timezone})
+        </p>
       )}
     </HallCard>
   );
 }
-Hall.register({ key: "times", label: "Meal times", order: 2, component: HallMealTimes });
+Hall.register({ key: "home", label: "Home", order: 1, component: HallHome });
+
+function HallApp({ call, user, lang, onBack, onLogout, refreshWallet }) {
+  const tabs = Hall.tabs.filter((t) => !t.roles || t.roles.includes(user.role));
+  const [tab, setTab] = useState(tabs[0].key);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+  const notify = (message, isError) => {
+    setToast({ message: String(message && message.message ? message.message : message), isError: !!isError });
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3500);
+  };
+  const Active = (tabs.find((t) => t.key === tab) || tabs[0]).component;
+
+  return (
+    <div className="min-h-screen p-4 md:p-6" style={{ color: "var(--ink)" }}>
+      <div className="max-w-4xl mx-auto fade-in">
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+          <div>
+            <div className="font-display gold-text text-2xl font-800">🍛 Hall</div>
+            <div className="text-xs opacity-70">{user.name} · {user.role}</div>
+          </div>
+          <div className="flex gap-2">
+            <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onBack}>← Restaurants</button>
+            <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onLogout}>Log out</button>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          {tabs.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className="px-3 py-1.5 rounded-lg text-sm border whitespace-nowrap"
+              style={t.key === tab
+                ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" }
+                : { background: "transparent", color: "var(--ink)", borderColor: "var(--line)" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {toast && (
+          <div className="rounded-xl border px-3 py-2 mb-4 text-sm"
+            style={toast.isError
+              ? { background: "var(--danger-bg)", color: "var(--danger-fg)", borderColor: "var(--danger-border)" }
+              : { background: "var(--ok-bg)", color: "var(--ok-fg)", borderColor: "var(--ok-border)" }}>
+            {toast.message}
+          </div>
+        )}
+
+        <Active call={call} user={user} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} />
+      </div>
+    </div>
+  );
+}
+window.HallApp = HallApp;
