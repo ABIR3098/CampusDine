@@ -445,6 +445,15 @@
 .chat-menu .danger{color:var(--brick)}
 .chat-deleted{font-style:italic;opacity:.7;font-size:13px}
 
+/*chat-ui6*/
+.chat-scroll-wrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.chat-scroll-wrap .chat-scroll{flex:1;min-height:0}
+.chat-jump{position:absolute;right:16px;bottom:14px;width:40px;height:40px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.2);display:grid;place-items:center;color:var(--ink);z-index:4;animation:chatIn .15s ease}
+.chat-jump:hover{border-color:var(--gold);color:var(--gold)}
+.chat-jump-badge{position:absolute;top:-6px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--gold);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center}
+.chat-unread{display:flex;align-items:center;gap:10px;margin:12px 0 6px;color:var(--gold);font-size:11px;font-weight:700}
+.chat-unread:before,.chat-unread:after{content:"";flex:1;height:1px;background:var(--gold);opacity:.45}
+
 </style>
 </head>
 <body>
@@ -5487,6 +5496,16 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [myOrders, setMyOrders] = useState(null);
   const [typing, setTyping] = useState(false);
   const [menuFor, setMenuFor] = useState(null);
+  const [dividerId, setDividerId] = useState(null);
+  const [atBottom, setAtBottom] = useState(true);
+  const [newBelow, setNewBelow] = useState(0);
+  const scrollRef = useRef(null);
+  const dividerRef = useRef(null);
+  const initRef = useRef(null);
+  const pendingInit = useRef(null);
+  const unreadFromRef = useRef(null);
+  const stickRef = useRef(true);
+  const prevLen = useRef(0);
   const typingTimer = useRef(null);
   const lastTypingSent = useRef(0);
   const bottomRef = useRef(null);
@@ -5502,6 +5521,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const refreshMessages = async (target = selectedUserId) => {
     if (isAdmin && !target) { setMessages([]); return; }
     const data = await chatCall(isAdmin ? `/api/chat/${target}/messages` : "/api/chat/messages");
+    if (data.firstUnreadId && initRef.current === null) unreadFromRef.current = data.firstUnreadId;
     setMessages(data.messages || []);
   };
 
@@ -5524,7 +5544,54 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     }, 10000);
     return () => clearInterval(t);
   }, [isAdmin, apiBase, sessionToken, selectedUserId]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId, typing]);
+  // Reset scroll state whenever another conversation is opened
+  useEffect(() => {
+    initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
+    stickRef.current = true; prevLen.current = 0;
+    setDividerId(null); setNewBelow(0); setAtBottom(true);
+    if (isAdmin) setMessages([]);
+  }, [selectedUserId]);
+  // First load of a conversation: remember where the unread messages start
+  useEffect(() => {
+    if (messages.length === 0 || initRef.current !== null) return;
+    initRef.current = String(selectedUserId || "me");
+    const fu = unreadFromRef.current ? messages.find(m => m.id === unreadFromRef.current && Number(m.sender_id) !== Number(userId)) : null;
+    pendingInit.current = { id: fu ? fu.id : null };
+    prevLen.current = messages.length;
+    setDividerId(fu ? fu.id : null);
+  }, [messages]);
+  // Smart scrolling: jump to first unread on open; afterwards only follow new messages if the reader is at the bottom
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+    const toBottom = (smooth) => { if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" }); else el.scrollTop = el.scrollHeight; };
+    if (pendingInit.current) {
+      const want = pendingInit.current.id;
+      if (want && !dividerRef.current) return;
+      pendingInit.current = null;
+      if (want) {
+        const top = dividerRef.current.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+        el.scrollTop = Math.max(0, top - 40);
+      } else toBottom(false);
+      return;
+    }
+    const grew = messages.length - prevLen.current;
+    prevLen.current = messages.length;
+    const last = messages[messages.length - 1];
+    if (stickRef.current || Number(last.sender_id) === Number(userId)) { toBottom(true); setNewBelow(0); }
+    else if (grew > 0) setNewBelow(n => n + grew);
+  }, [messages.length, typing, dividerId]);
+  const onScroll = (e) => {
+    const el = e.currentTarget;
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    stickRef.current = near; setAtBottom(near);
+    if (near) setNewBelow(0);
+  };
+  const jumpToBottom = () => {
+    const el = scrollRef.current; if (!el) return;
+    if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); else el.scrollTop = el.scrollHeight;
+    stickRef.current = true; setNewBelow(0);
+  };
 
   const send = async (text) => {
     const message = (text ?? draft).trim();
@@ -5630,12 +5697,16 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; }
   }, [draft]);
 
+  const di = dividerId ? messages.findIndex(m => m.id === dividerId) : -1;
+  const unreadN = di < 0 ? 0 : messages.slice(di).filter(m => Number(m.sender_id) !== Number(userId) && !m.deleted_at).length;
   const rows = [];
   messages.forEach((m, i) => {
     const prev = messages[i - 1], next = messages[i + 1];
     const mine = Number(m.sender_id) === Number(userId);
     if (!prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString())
       rows.push(<div key={`d${m.id}`} className="chat-day"><span>{dayLabel(m.created_at)}</span></div>);
+    if (m.id === dividerId && unreadN > 0)
+      rows.push(<div key={`u${m.id}`} ref={dividerRef} className="chat-unread"><span>{unreadN} new message{unreadN === 1 ? "" : "s"}</span></div>);
     const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
     const last = !next || Number(next.sender_id) !== Number(m.sender_id);
     rows.push(
@@ -5718,7 +5789,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           <span className="chat-pill">{tx("chat.support")}</span>
         </header>
         {error && <p className="chat-error">{error}</p>}
-        <div className="chat-scroll" aria-live="polite">
+        <div className="chat-scroll-wrap">
+        <div className="chat-scroll" ref={scrollRef} onScroll={onScroll} aria-live="polite">
           {messages.length === 0 ? (
             <div className="chat-empty">
               <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
@@ -5737,6 +5809,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             </div>
           )}
           <div ref={bottomRef} />
+        </div>
+        {!atBottom && messages.length > 0 && (
+          <button type="button" className="chat-jump" onClick={jumpToBottom} aria-label="Jump to latest message">
+            <Icon path="M12 5v14M19 12l-7 7-7-7" className="w-5 h-5" />
+            {newBelow > 0 && <span className="chat-jump-badge">{newBelow}</span>}
+          </button>
+        )}
         </div>
         {isAdmin && selectedUserId && (
           <div className="chat-templates">

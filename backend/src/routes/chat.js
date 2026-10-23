@@ -42,6 +42,10 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
     );
     if (!conversation) return res.json({ conversationId: null, messages: [] });
 
+    const [[firstUnread]] = await connection.query(
+      "SELECT MIN(id) AS id FROM chat_messages WHERE conversation_id = ? AND recipient_id = ? AND read_at IS NULL AND deleted_at IS NULL",
+      [conversation.id, req.user.id]
+    );
     await connection.query(
       "UPDATE chat_messages SET read_at = CURRENT_TIMESTAMP WHERE conversation_id = ? AND recipient_id = ? AND read_at IS NULL",
       [conversation.id, req.user.id]
@@ -53,7 +57,7 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
        WHERE m.conversation_id = ? ORDER BY m.id ASC`,
       [conversation.id]
     );
-    res.json({ conversationId: conversation.id, messages });
+    res.json({ conversationId: conversation.id, messages, firstUnreadId: firstUnread ? firstUnread.id : null });
   } catch (error) {
     console.error("Failed to load chat messages:", error);
     res.status(500).json({ error: "Failed to load messages" });
@@ -80,6 +84,10 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
     );
     if (!conversation) return res.json({ conversationId: null, user, messages: [] });
 
+    const [[firstUnread]] = await connection.query(
+      "SELECT MIN(id) AS id FROM chat_messages WHERE conversation_id = ? AND recipient_id = ? AND read_at IS NULL AND deleted_at IS NULL",
+      [conversation.id, req.user.id]
+    );
     await connection.query(
       "UPDATE chat_messages SET read_at = CURRENT_TIMESTAMP WHERE conversation_id = ? AND recipient_id = ? AND read_at IS NULL",
       [conversation.id, req.user.id]
@@ -91,7 +99,7 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
        WHERE m.conversation_id = ? ORDER BY m.id ASC`,
       [conversation.id]
     );
-    res.json({ conversationId: conversation.id, user, messages });
+    res.json({ conversationId: conversation.id, user, messages, firstUnreadId: firstUnread ? firstUnread.id : null });
   } catch (error) {
     console.error("Failed to load admin chat:", error);
     res.status(500).json({ error: "Failed to load messages" });
