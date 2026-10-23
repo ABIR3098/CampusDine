@@ -4,10 +4,9 @@ const HALL_WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5]; // Saturday first
 function HallMenuCell({ value, isAdmin, onSave }) {
   const [text, setText] = useState(value);
   useEffect(() => { setText(value); }, [value]);
-  if (!isAdmin) return <>{value || "—"}</>;
+  if (!isAdmin) return <div className="font-600">{value || "—"}</div>;
   return (
-    <input className="rounded-lg border px-2 py-1 text-sm w-full" style={{ background: "var(--input-bg)", borderColor: "var(--line)", color: "var(--ink)", minWidth: 150 }}
-      value={text} maxLength={255} onChange={(e) => setText(e.target.value)}
+    <input className="hl-input" value={text} maxLength={255} onChange={(e) => setText(e.target.value)}
       onBlur={() => { if (text.trim() && text.trim() !== value) onSave(text.trim()); else setText(value); }} />
   );
 }
@@ -19,7 +18,7 @@ function HallMenu({ call, isAdmin, notify }) {
     try {
       const [m, info] = await Promise.all([call("/api/hall/menu"), call("/api/hall/info")]);
       setMenu(m.days);
-      setToday(new Date(info.today + "T00:00:00Z").getUTCDay());
+      setToday(hallDow(info.today));
     } catch (e) { notify(e, true); }
   };
   useEffect(() => { load(); }, []);
@@ -31,31 +30,33 @@ function HallMenu({ call, isAdmin, notify }) {
   };
 
   return (
-    <HallCard title="Weekly menu">
-      <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
-        The same every week.{isAdmin ? " Click a meal, change the text and click outside to save." : ""}
-      </p>
-      {!menu ? <p className="text-sm opacity-70">Loading…</p> : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead><tr style={{ color: "var(--ink-soft)" }}><th className="py-1">Day</th>{HALL_SLOTS.map((s) => <th key={s}>{HALL_SLOT_LABEL[s]}</th>)}</tr></thead>
-            <tbody>
-              {HALL_WEEK_ORDER.map((dow) => {
-                const day = menu.find((d) => d.dow === dow);
-                return (
-                  <tr key={dow} className="border-t align-top" style={{ borderColor: "var(--line)", background: dow === today ? "var(--gold-soft)" : "transparent" }}>
-                    <td className="py-2 pr-2 font-600 whitespace-nowrap">{day.name}{dow === today && <span className="ml-1 text-[11px] opacity-70">(today)</span>}</td>
-                    {HALL_SLOTS.map((s) => (
-                      <td key={s} className="py-1 pr-2"><HallMenuCell value={day.slots[s]} isAdmin={isAdmin} onSave={(items) => save(dow, s, items)} /></td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+    <HallCard title="Weekly menu" icon="📋"
+      sub={`The same every week.${isAdmin ? " Click a meal, change the text and click outside to save." : ""}`}>
+      {!menu ? <div className="hl-empty">Loading…</div> : (
+        <div className="hl-week">
+          {HALL_WEEK_ORDER.map((dow) => {
+            const day = menu.find((d) => d.dow === dow);
+            return (
+              <div key={dow} className={`hl-dayc ${dow === today ? "today" : ""}`}>
+                <div className="hl-dayc-head font-display">
+                  <span>{day.name}</span>
+                  {dow === today && <span className="text-[11px] font-800 uppercase tracking-wide">Today</span>}
+                </div>
+                {HALL_SLOTS.map((s) => (
+                  <div key={s} className="hl-dayc-row">
+                    <span className="em">{HALL_SLOT_EMOJI[s]}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="tl">{HALL_SLOT_LABEL[s]}</div>
+                      <HallMenuCell value={day.slots[s]} isAdmin={isAdmin} onSave={(items) => save(dow, s, items)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </HallCard>
   );
 }
-Hall.register({ key: "menu", label: "Menu", order: 4, component: HallMenu });
+Hall.register({ key: "menu", label: "Menu", icon: "📋", order: 4, component: HallMenu });
