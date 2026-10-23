@@ -402,7 +402,6 @@
   .chat-pill{display:none}
 }
 
-<<<<<<< HEAD
 /*chat-ui2*/
 .chat-composer{position:relative}
 .chat-emoji-btn{width:38px;height:38px;border-radius:999px;font-size:20px;display:grid;place-items:center;flex-shrink:0;transition:background .15s}
@@ -457,8 +456,6 @@
 .chat-unread{display:flex;align-items:center;gap:10px;margin:12px 0 6px;color:var(--gold);font-size:11px;font-weight:700}
 .chat-unread:before,.chat-unread:after{content:"";flex:1;height:1px;background:var(--gold);opacity:.45}
 
-=======
->>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
 </style>
 </head>
 <body>
@@ -5344,7 +5341,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [mobileChat, setMobileChat] = useState(false);
-<<<<<<< HEAD
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [myOrders, setMyOrders] = useState(null);
@@ -5362,8 +5358,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const prevLen = useRef(0);
   const typingTimer = useRef(null);
   const lastTypingSent = useRef(0);
-=======
->>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isAdmin = role === "admin";
@@ -5400,7 +5394,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     }, 10000);
     return () => clearInterval(t);
   }, [isAdmin, apiBase, sessionToken, selectedUserId]);
-<<<<<<< HEAD
   // Reset scroll state whenever another conversation is opened
   useEffect(() => {
     initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
@@ -5449,9 +5442,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); else el.scrollTop = el.scrollHeight;
     stickRef.current = true; setNewBelow(0);
   };
-=======
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId]);
->>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
 
   const send = async (text) => {
     const message = (text ?? draft).trim();
@@ -5580,7 +5570,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           ) : rows}
           <div ref={bottomRef} />
         </div>
-<<<<<<< HEAD
         {!atBottom && messages.length > 0 && (
           <button type="button" className="chat-jump" onClick={jumpToBottom} aria-label="Jump to latest message">
             <Icon path="M12 5v14M19 12l-7 7-7-7" className="w-5 h-5" />
@@ -5593,8 +5582,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
           </div>
         )}
-=======
->>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
         <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
           <div className="chat-input-wrap">
             <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
