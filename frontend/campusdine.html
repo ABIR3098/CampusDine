@@ -16,6 +16,8 @@
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="/hall/files.js"></script>
+<script src="/hall/loader.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   // Saved theme (light / dark / auto + accent colour) is applied before the page paints, so there is no flash.
@@ -400,6 +402,7 @@
   .chat-pill{display:none}
 }
 
+<<<<<<< HEAD
 /*chat-ui2*/
 .chat-composer{position:relative}
 .chat-emoji-btn{width:38px;height:38px;border-radius:999px;font-size:20px;display:grid;place-items:center;flex-shrink:0;transition:background .15s}
@@ -454,6 +457,8 @@
 .chat-unread{display:flex;align-items:center;gap:10px;margin:12px 0 6px;color:var(--gold);font-size:11px;font-weight:700}
 .chat-unread:before,.chat-unread:after{content:"";flex:1;height:1px;background:var(--gold);opacity:.45}
 
+=======
+>>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
 </style>
 </head>
 <body>
@@ -467,7 +472,6 @@ const DEFAULT_API_BASE = (window.location.origin && window.location.origin !== "
   ? window.location.origin
   : "http://localhost:5000";
 const LOW_STOCK_THRESHOLD = 10;
-const STUDENT_LOW_STOCK = 5; /* Feature: stock badges */ // students see "Only N left" at or below this
 const LOW_BALANCE_THRESHOLD = 50; // wallet balance (৳) below which students/teachers get a top-up reminder
 const CATEGORIES = [
   { id: "heavy", label: "Heavy meals" },
@@ -885,16 +889,7 @@ const I18N = {
     "note.label": "Note for the kitchen (optional)",
     "note.ph": "e.g. less spicy, no onion",
     "note.show": "Note",
-    "notify.me": "Notify me",
-    "notify.on": "We'll notify you",
-    "notify.set": "Done! We'll tell you as soon as it's back in stock.",
-    "notify.back": "Back in stock",
-    "notify.backmsg": "{n} is available again — order now!",
-    "dnote.label": "Delivery instructions (optional)",
-    "dnote.ph": "e.g. leave it at the gate, call when you arrive",
-    "dnote.show": "Delivery",
-    "soldout": "Sold out",
-    "onlyleft": "Only {n} left"
+    "soldout": "Sold out"
   },
   bn: {
     "ann": "CampusDine-এ স্বাগতম — আপনার ক্যাম্পাস ক্যান্টিন থেকে খাবার অর্ডার করুন",
@@ -1245,16 +1240,7 @@ const I18N = {
     "note.label": "রান্নাঘরের জন্য নোট (ঐচ্ছিক)",
     "note.ph": "যেমন ঝাল কম, পেঁয়াজ ছাড়া",
     "note.show": "নোট",
-    "notify.me": "আমাকে জানান",
-    "notify.on": "জানানো হবে",
-    "notify.set": "ঠিক আছে! আবার পাওয়া গেলেই আপনাকে জানাব।",
-    "notify.back": "আবার পাওয়া যাচ্ছে",
-    "notify.backmsg": "{n} আবার পাওয়া যাচ্ছে — এখনই অর্ডার করুন!",
-    "dnote.label": "ডেলিভারি নির্দেশনা (ঐচ্ছিক)",
-    "dnote.ph": "যেমন গেটে দিবেন, এসে ফোন করবেন",
-    "dnote.show": "ডেলিভারি",
-    "soldout": "বিক্রি শেষ",
-    "onlyleft": "মাত্র {n}টি বাকি"
+    "soldout": "বিক্রি শেষ"
   }
 };
 // ---- Added: sign-up with email / hall residents, QR pickup token, forgot-password check ----
@@ -1377,7 +1363,6 @@ Object.assign(I18N.en, {
   "sp.same": "Same as last month",
   "sp.noprev": "No orders last month to compare",
   "sp.daily": "Spending by day",
-  "sp.months": "Last 6 months (tap a bar to open that month)",
   "sp.top": "Most ordered",
   "sp.cat": "Where it went",
   "sp.cat.heavy": "Main meals",
@@ -1405,7 +1390,6 @@ Object.assign(I18N.bn, {
   "sp.same": "গত মাসের সমান",
   "sp.noprev": "তুলনার জন্য গত মাসে অর্ডার নেই",
   "sp.daily": "দিন অনুযায়ী খরচ",
-  "sp.months": "গত ৬ মাস (বারে চাপ দিলে সেই মাস খুলবে)",
   "sp.top": "সবচেয়ে বেশি অর্ডার",
   "sp.cat": "কোথায় খরচ হলো",
   "sp.cat.heavy": "মূল খাবার",
@@ -1530,25 +1514,6 @@ Object.assign(I18N.bn, {
   "n.received.t": "টাকা পেয়েছেন",
   "n.received": "{n} আপনাকে {a} পাঠিয়েছে।"
 });
-function playChatPing() {
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    window.__chatAudio = window.__chatAudio || new AC();
-    const ctx = window.__chatAudio;
-    if (ctx.state === "suspended") ctx.resume();
-    const t = ctx.currentTime;
-    [[880, 0], [1320, 0.12]].forEach(([f, d]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "sine"; o.frequency.value = f;
-      g.gain.setValueAtTime(0.0001, t + d);
-      g.gain.exponentialRampToValueAtTime(0.18, t + d + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.28);
-      o.connect(g); g.connect(ctx.destination);
-      o.start(t + d); o.stop(t + d + 0.3);
-    });
-  } catch (e) {}
-}
 const tx = (key, vars) => {
   let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
   if (str === undefined) str = I18N.en[key];
@@ -2807,17 +2772,13 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
   const [couponActive, setCouponActive] = useState(""); // the code sent to the server with every price quote
   const [couponBusy, setCouponBusy] = useState(false);
   const [orderNote, setOrderNote] = useState("");
-  /* Feature: delivery instructions */
-  const [deliveryNote, setDeliveryNote] = useState("");
   const [rewardId, setRewardId] = useState(null);
   const [quote, setQuote] = useState(null);
-  /* Fix: checkout works even if price preview fails */
-  const [quoteError, setQuoteError] = useState("");
   const [offers, setOffers] = useState({ combos: [], happyHours: [] });
   const [loyalty, setLoyalty] = useState(null);
   const [availCoupons, setAvailCoupons] = useState([]);
   useEffect(() => {
-    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setDeliveryNote(""); setRewardId(null); setQuote(null); }
+    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setRewardId(null); setQuote(null); }
   }, [cart]);
 
   // Today's offers + my points (refetched after every order / points change)
@@ -2861,8 +2822,8 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
       api(apiBase, "/api/pricing/quote", { method: "POST", token: sessionToken, body: {
         items: cart.map(c => ({ id: c.id, qty: c.qty })), couponCode: couponActive || undefined,
         rewardId: rewardId || undefined, pickupTime: scheduleLater && pickupTime ? pickupTime : undefined,
-      } }).then(q => { if (!dead) { setQuote(q); setQuoteError(""); if (q.rewardError) setRewardId(null); } })
-        .catch((e) => { if (!dead) { setQuote(null); setQuoteError((e && e.message) || "Price preview unavailable"); } });
+      } }).then(q => { if (!dead) { setQuote(q); if (q.rewardError) setRewardId(null); } })
+        .catch(() => { if (!dead) setQuote(null); });
     }, 200);
     return () => { dead = true; clearTimeout(t); };
   }, [quoteKey, loyaltyKey, offers]);
@@ -2948,14 +2909,8 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
             const out = item.stock <= 0 || item.availability === "sold_out";
             const inCart = cart.find(c => c.id === item.id);
             return (
-              <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-75" : ""}`}>
-                <div className="overflow-hidden mb-3" style={{ position: "relative", margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
-                  {(out || (Number(item.stock) > 0 && Number(item.stock) <= STUDENT_LOW_STOCK)) && (
-                    <span className="absolute top-2 left-2 text-[11px] font-700 px-2.5 py-1 rounded-full"
-                      style={{ background: out ? "#B91C1C" : "#F59E0B", color: "#FFFFFF", zIndex: 1 }}>
-                      {out ? tx("soldout") : tx("onlyleft", { n: num(item.stock) })}
-                    </span>
-                  )}
+              <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-50" : ""}`}>
+                <div className="overflow-hidden mb-3" style={{ margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
                   <img src={(apiBase || "") + (item.image || "/images/food/default.svg")} alt={item.name} loading="lazy"
                     onError={(e) => { if (!e.target.dataset.fb) { e.target.dataset.fb = "1"; e.target.src = (apiBase || "") + "/images/food/default.svg"; } }}
                     className="w-full h-full object-cover" />
@@ -3114,11 +3069,6 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 <div className="text-[10px] text-right mt-0.5" style={{ color: "var(--ink-soft)" }}>{num(orderNote.length)}/{num(200)}</div>
               </div>
               <div className="mb-4">
-                <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("dnote.label")}</label>
-                <input type="text" value={deliveryNote} onChange={e => setDeliveryNote(e.target.value.slice(0, 200))} maxLength={200}
-                  placeholder={tx("dnote.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
-              </div>
-              <div className="mb-4">
                 <label className="flex items-center gap-2 text-sm mb-2">
                   <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
                   {tx("schedule")}
@@ -3150,12 +3100,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               {payMethod === "wallet" && !canPay && (
                 <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
               )}
-              {!quote && quoteError && (
-                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>
-                  Price preview unavailable ({quoteError}). The final price is calculated when you place the order.
-                </p>
-              )}
-              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId, deliveryNote)}
+              <button disabled={!canCheckout || busy || !quote} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? tx("placing") : tx("checkout")}
               </button>
@@ -3418,10 +3363,6 @@ function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmit
 
 function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
   const [printOrder, setPrintOrder] = useState(null);
-  /* Feature: order history filter */
-  const [hQuery, setHQuery] = useState("");
-  const [hStatus, setHStatus] = useState("all");
-  const [hRange, setHRange] = useState("all");
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
   // then trigger the browser print dialog; the CSS above hides everything else.
@@ -3436,22 +3377,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>{tx("noorders")}</div>;
   }
-  const hq = hQuery.trim().toLowerCase();
-  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
-  const filtered = orders.filter(o => {
-    if (hStatus !== "all" && o.status !== hStatus) return false;
-    if (hRange !== "all") {
-      const t = new Date(o.created_at).getTime();
-      const limit = hRange === "today" ? startOfToday.getTime() : Date.now() - (hRange === "week" ? 7 : 30) * 86400000;
-      if (t < limit) return false;
-    }
-    if (hq) {
-      const hay = [o.token, o.status, o.note, o.restaurant, o.payment_method]
-        .concat((o.items || []).map(i => i.name)).join(" ").toLowerCase();
-      if (!hay.includes(hq)) return false;
-    }
-    return true;
-  });
   return (
     <div className="space-y-6 max-w-2xl">
       {printOrder && (
@@ -3474,9 +3399,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
             {printOrder.note && (
               <div className="receipt-row"><span>{tx("note.show")}</span><span>{printOrder.note}</span></div>
             )}
-            {printOrder.delivery_note && (
-              <div className="receipt-row"><span>{tx("dnote.show")}</span><span>{printOrder.delivery_note}</span></div>
-            )}
             {printOrder.pickup_time && (
               <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
             )}
@@ -3493,33 +3415,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           </div>
         </div>
       )}
-      <div className="card p-4 space-y-3">
-        <input type="text" value={hQuery} onChange={e => setHQuery(e.target.value)}
-          placeholder="Search by token, item, note…"
-          className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
-        <div className="flex flex-wrap gap-2">
-          {[["all", "All"], ["Received", "Received"], ["Cooking", "Cooking"], ["Ready", "Ready"], ["Cancelled", "Cancelled"]].map(([v, label]) => (
-            <button key={v} type="button" onClick={() => setHStatus(v)}
-              className={"chip text-xs px-3 py-1.5 rounded-full" + (hStatus === v ? " active-chip" : "")}>{label}</button>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {[["all", "Any time"], ["today", "Today"], ["week", "Last 7 days"], ["month", "Last 30 days"]].map(([v, label]) => (
-            <button key={v} type="button" onClick={() => setHRange(v)}
-              className={"chip text-xs px-3 py-1.5 rounded-full" + (hRange === v ? " active-chip" : "")}>{label}</button>
-          ))}
-          <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{filtered.length} / {orders.length}</span>
-        </div>
-      </div>
-      {filtered.length === 0 && (
-        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
-          No orders match your filters.
-          <div className="mt-3">
-            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); }}>Clear filters</button>
-          </div>
-        </div>
-      )}
-      {filtered.map(o => {
+      {orders.map(o => {
         const stepIndex = STATUSES.indexOf(o.status);
         const isCancelled = o.status === "Cancelled";
         return (
@@ -3594,11 +3490,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               {o.note && (
                 <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
                   {tx("note.show")}: {o.note}
-                </div>
-              )}
-              {o.delivery_note && (
-                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
-                  🚪 {tx("dnote.show")}: {o.delivery_note}
                 </div>
               )}
               {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
@@ -3855,32 +3746,6 @@ function SpendingTab({ call, user }) {
             </div>
           </div>
         </div>
-
-        {/* Feature: spending last 6 months */}
-        {data.months && (
-          <div className="card p-5">
-            <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("sp.months")}</div>
-            {(() => {
-              const mMax = Math.max(1, ...data.months.map(m => m.spent));
-              return (
-                <div className="flex items-end gap-2 h-40">
-                  {data.months.map(m => {
-                    const sel = m.year === ym.year && m.month === ym.month;
-                    const label = new Date(m.year, m.month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "short" });
-                    return (
-                      <button key={m.year + "-" + m.month} type="button" onClick={() => setYm({ year: m.year, month: m.month })}
-                        className="flex-1 flex flex-col items-center justify-end" title={label + " " + m.year + ": " + taka(m.spent) + " · " + m.orders}>
-                        <div className="text-[10px] font-mono mb-1" style={{ color: "var(--ink-soft)" }}>{m.spent ? taka(Math.round(m.spent)) : ""}</div>
-                        <div className="w-full rounded-t" style={{ height: m.spent ? Math.max(4, (m.spent / mMax) * 110) + "px" : "2px", background: m.spent ? "var(--gold)" : "var(--line)", opacity: sel || !m.spent ? 1 : 0.5 }}></div>
-                        <div className="text-[11px] mt-1" style={{ color: sel ? "var(--gold)" : "var(--ink-soft)", fontWeight: sel ? 700 : 400 }}>{label}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
-        )}
 
         <div className="grid md:grid-cols-2 gap-5">
           <div className="card p-5">
@@ -4365,17 +4230,12 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                 <td className="p-3">
                   {(() => {
                     const a = item.availability || "available";
-                    const stockNum = Number(item.stock);
-                    const autoOut = a === "available" && stockNum <= 0;
-                    const lowStock = a === "available" && stockNum > 0 && stockNum <= LOW_STOCK_THRESHOLD;
-                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : autoOut ? "Sold out (stock 0)" : lowStock ? "Low stock · " + stockNum + " left" : "Available";
-                    const pillStyle = autoOut
-                      ? { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" }
-                      : lowStock || a === "sold_out"
+                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : "Available";
+                    const pillStyle = a === "available"
+                      ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
+                      : a === "sold_out"
                         ? { background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }
-                        : a === "available"
-                          ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
-                          : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
+                        : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[11px] font-700 px-2 py-0.5 rounded-full" style={pillStyle}>{pill}</span>
@@ -4448,12 +4308,6 @@ function AdminOrders({ orders, advance, call }) {
             <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
               style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
               📝 Note: {o.note}
-            </div>
-          )}
-          {o.delivery_note && (
-            <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
-              style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
-              🚪 Delivery: {o.delivery_note}
             </div>
           )}
           <div className="flex justify-between items-center">
@@ -4546,7 +4400,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
-    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}{o.delivery_note && <div className="text-xs mt-1" style={{color:"var(--ink-soft)"}}>🚪 {o.delivery_note}</div>}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
+    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
   </div></div>;
 }
 
@@ -5226,7 +5080,6 @@ function AdminVerify({ call, onCollected }) {
             </div>
             <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
             {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
-            {o.delivery_note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>🚪 {o.delivery_note}</div>}
             <div className="flex gap-2">
               {okToHandOver && (
                 <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
@@ -5491,6 +5344,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [mobileChat, setMobileChat] = useState(false);
+<<<<<<< HEAD
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [myOrders, setMyOrders] = useState(null);
@@ -5508,6 +5362,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const prevLen = useRef(0);
   const typingTimer = useRef(null);
   const lastTypingSent = useRef(0);
+=======
+>>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isAdmin = role === "admin";
@@ -5544,6 +5400,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     }, 10000);
     return () => clearInterval(t);
   }, [isAdmin, apiBase, sessionToken, selectedUserId]);
+<<<<<<< HEAD
   // Reset scroll state whenever another conversation is opened
   useEffect(() => {
     initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
@@ -5592,6 +5449,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); else el.scrollTop = el.scrollHeight;
     stickRef.current = true; setNewBelow(0);
   };
+=======
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages.length, selectedUserId]);
+>>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
 
   const send = async (text) => {
     const message = (text ?? draft).trim();
@@ -5599,8 +5459,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     setBusy(true); setError("");
     const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
     setMessages(m => [...m, temp]);
-    setDraft(""); setEmojiOpen(false); setOrderOpen(false);
-    lastTypingSent.current = 0; emitTyping(false);
+    setDraft("");
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
       await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
@@ -5614,9 +5473,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const onKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
   const onInput = (e) => {
     setDraft(e.target.value);
-    const nowTs = Date.now();
-    if (e.target.value && nowTs - lastTypingSent.current > 2000) { lastTypingSent.current = nowTs; emitTyping(true); }
-    if (!e.target.value) { lastTypingSent.current = 0; emitTyping(false); }
     e.target.style.height = "auto";
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
   };
@@ -5637,65 +5493,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
   const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
   const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
-  const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
-  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
-  const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
-  const deleteMsg = async (m) => {
-    setMenuFor(null);
-    if (!window.confirm("Delete this message for everyone?")) return;
-    try {
-      await chatCall(`/api/chat/messages/${m.id}`, { method: "DELETE" });
-      setMessages(list => list.map(x => x.id === m.id ? { ...x, message: "", deleted_at: new Date().toISOString() } : x));
-      if (isAdmin) refreshConversations().catch(() => {});
-    } catch (e) { setError(e.message); }
-  };
-  const copyMsg = (m) => { setMenuFor(null); try { navigator.clipboard.writeText(m.message); } catch (e) {} };
-  useEffect(() => {
-    if (menuFor === null) return;
-    const close = () => setMenuFor(null);
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, [menuFor]);
-  const emitTyping = (on) => {
-    const sock = window.__campusSocket;
-    if (!sock || (isAdmin && !selectedUserId)) return;
-    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
-  };
-  useEffect(() => {
-    const onTyping = (e) => {
-      const d = e.detail || {};
-      if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
-      clearTimeout(typingTimer.current);
-      setTyping(!!d.typing);
-      if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
-    };
-    window.addEventListener("chat-typing", onTyping);
-    return () => { window.removeEventListener("chat-typing", onTyping); clearTimeout(typingTimer.current); };
-  }, [isAdmin, selectedUserId]);
-  useEffect(() => { setTyping(false); }, [selectedUserId, messages.length]);
-  const parseOrder = (text) => {
-    const mt = /^🧾 Order (\S+) \| ([^|]+) \| ([^|]+) \| ([\s\S]*)$/.exec(text || "");
-    return mt ? { token: mt[1], status: mt[2].trim(), total: mt[3].trim(), items: mt[4].trim() } : null;
-  };
-  const openOrders = async () => {
-    setEmojiOpen(false);
-    const next = !orderOpen;
-    setOrderOpen(next);
-    if (next && myOrders === null) {
-      try {
-        const list = await chatCall("/api/orders/mine");
-        setMyOrders(Array.isArray(list) ? list.slice(0, 6) : []);
-      } catch (e) { setMyOrders([]); setError(e.message); }
-    }
-  };
-  const shareOrder = (o) => {
-    const items = (o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 200) || "-";
-    send(`🧾 Order ${o.token} | ${o.status} | ${taka(o.total)} | ${items}`);
-  };
-  useEffect(() => {
-    const el = inputRef.current;
-    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; }
-  }, [draft]);
 
   const di = dividerId ? messages.findIndex(m => m.id === dividerId) : -1;
   const unreadN = di < 0 ? 0 : messages.slice(di).filter(m => Number(m.sender_id) !== Number(userId) && !m.deleted_at).length;
@@ -5712,30 +5509,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     rows.push(
       <div key={m.id} className={`chat-row ${mine ? "mine" : ""}`}>
         {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
-        {mine && !m.pending && !m.deleted_at && (
-          <div className="chat-more-wrap">
-            <button type="button" className="chat-more" aria-label="Message options"
-              onClick={e => { e.stopPropagation(); setMenuFor(menuFor === m.id ? null : m.id); }}>⋯</button>
-            {menuFor === m.id && (
-              <div className="chat-menu" onClick={e => e.stopPropagation()}>
-                <button type="button" onClick={() => copyMsg(m)}>Copy</button>
-                <button type="button" className="danger" onClick={() => deleteMsg(m)}>Delete</button>
-              </div>
-            )}
-          </div>
-        )}
         <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
-          {m.deleted_at ? <p className="chat-deleted">🚫 This message was deleted</p> : (() => {
-            const oc = parseOrder(m.message);
-            return oc ? (
-              <div className="chat-order">
-                <div className="chat-order-top"><span className="chat-order-token">🧾 {oc.token}</span><span className="chat-order-status">{oc.status}</span></div>
-                <div className="chat-order-items">{oc.items}</div>
-                <div className="chat-order-total">{oc.total}</div>
-              </div>
-            ) : <p>{m.message}</p>;
-          })()}
+          <p>{m.message}</p>
           <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
         </div>
       </div>
@@ -5762,7 +5538,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                   <span className="chat-item-body">
                     <span className="chat-item-top">
                       <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
-                      <span className="chat-item-time">{listTime(c.updated_at || c.last_at)}</span>
+                      <span className="chat-item-time">{listTime(c.last_at || c.last_message_at)}</span>
                     </span>
                     <span className="chat-item-bottom">
                       <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
@@ -5783,7 +5559,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           <div style={{ minWidth: 0, flex: 1 }}>
             <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
-              {typing ? <span className="chat-typing-text">typing…</span> : (isAdmin ? selected?.role || "Admin inbox" : tx("chat.private"))}
+              {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
             </p>
           </div>
           <span className="chat-pill">{tx("chat.support")}</span>
@@ -5802,14 +5578,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               )}
             </div>
           ) : rows}
-          {typing && (
-            <div className="chat-row">
-              <div style={{ width: 30 }}><Avatar name={heading} size={30} /></div>
-              <div className="chat-bubble theirs first last chat-typing"><i /><i /><i /></div>
-            </div>
-          )}
           <div ref={bottomRef} />
         </div>
+<<<<<<< HEAD
         {!atBottom && messages.length > 0 && (
           <button type="button" className="chat-jump" onClick={jumpToBottom} aria-label="Jump to latest message">
             <Icon path="M12 5v14M19 12l-7 7-7-7" className="w-5 h-5" />
@@ -5822,29 +5593,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
           </div>
         )}
+=======
+>>>>>>> 167ccf4a12e1888983bb86af468877e4a7a153d2
         <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
-          {!isAdmin && (
-            <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
-          )}
-          {orderOpen && !isAdmin && (
-            <div className="chat-order-panel">
-              {myOrders === null ? <p className="chat-order-note">Loading…</p>
-                : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
-                : myOrders.map(o => (
-                  <button key={o.token} type="button" className="chat-order-pick" onClick={() => shareOrder(o)}>
-                    <b>{o.token} · {o.status} · {taka(o.total)}</b>
-                    <small>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 70)}</small>
-                  </button>
-                ))}
-            </div>
-          )}
-          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => { setOrderOpen(false); setEmojiOpen(o => !o); }}
-            disabled={isAdmin && !selectedUserId}>😊</button>
-          {emojiOpen && (
-            <div className="chat-emoji-panel">
-              {emojis.map(em => <button key={em} type="button" onClick={() => addEmoji(em)}>{em}</button>)}
-            </div>
-          )}
           <div className="chat-input-wrap">
             <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
               disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />
@@ -5911,14 +5662,12 @@ function ProfileInput({ label, value, onChange, placeholder }) {
     </div>
   );
 }
-function ProfileTab({ user, call, onUpdated, liveBalance }) {
+function ProfileTab({ user, call, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
     name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
   });
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
-  /* Fix: profile balance = live wallet balance */
-  const shownBalance = liveBalance != null ? liveBalance : walletBalance;
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -6150,7 +5899,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
             <div className="ticket p-4">
               <div className="perf pl-4">
                 <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
-                <div className="font-mono text-xl font-700">{taka(shownBalance)}</div>
+                <div className="font-mono text-xl font-700">{taka(walletBalance)}</div>
               </div>
             </div>
           )}
@@ -6206,6 +5955,24 @@ const RESTAURANTS = [
   { id: "staff", name: "Staff Canteen", subtitle: "", logo: "/images/restaurants/staff.svg",
     desc: "Home-style rice meals, curries & porota", descBn: "ঘরোয়া ভাত, তরকারি ও পরোটা" },
 ];
+
+// The Hall (meal system) sits next to the four restaurants on the picker. It is not a restaurant:
+// no cart, no riders, no offers. Its code lives in frontend/hall/ and backend/src/hall/.
+const HALL_ENTRY = { id: "hall", isHall: true, name: "Hall", desc: "Daily meal on/off, weekly menu, feasts & monthly bill", descBn: "দৈনিক মিল অন/অফ, সাপ্তাহিক মেনু, ফিস্ট ও মাসিক বিল" };
+
+// Waits for hall/loader.js to finish compiling the Hall files, then shows the Hall.
+function HallGate(props) {
+  const [ready, setReady] = useState(!!window.HallApp);
+  useEffect(() => {
+    if (ready) return;
+    const t = setInterval(() => { if (window.HallApp || window.HallLoadError) { setReady(true); clearInterval(t); } }, 150);
+    return () => clearInterval(t);
+  }, [ready]);
+  if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
+  if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
+  const Hall = window.HallApp;
+  return <Hall {...props} />;
+}
 
 /* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
 function RewardsTab({ call, refreshKey, onGoMenu }) {
@@ -6537,6 +6304,12 @@ function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
             </button>
           ))}
         </div>
+        <button onClick={() => onPick(HALL_ENTRY)} className="mt-4 w-full rounded-2xl border p-4 text-center transition hover:-translate-y-0.5 hover:shadow-lg"
+          style={{ background: "var(--card, #fff)", borderColor: "rgba(0,0,0,0.12)", color: "var(--ink)" }}>
+          <div style={{ fontSize: 40 }}>🍛</div>
+          <div className="font-display font-700 mt-1">Hall</div>
+          <div className="text-xs opacity-70 mt-1">{bn ? HALL_ENTRY.descBn : HALL_ENTRY.desc}</div>
+        </button>
         <div className="text-center mt-6">
           <button className="btn-gold px-4 py-2 rounded-xl text-sm" onClick={onLogout}>{bn ? "লগআউট" : "Log out"}</button>
         </div>
@@ -6582,10 +6355,6 @@ function App() {
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [chatRefreshKey, setChatRefreshKey] = useState(0);
-  const [chatUnread, setChatUnread] = useState(0);
-  const tabRef = useRef(tab);
-  tabRef.current = tab;
-  useEffect(() => { if (tab === "chat") setChatUnread(0); }, [tab]);
   const [loyaltyKey, setLoyaltyKey] = useState(0); // bumped whenever points / offers may have changed
 
   const now = new Date();
@@ -6669,7 +6438,7 @@ function App() {
     setBill(await call(`/api/calendar/bill?year=${year}&month=${month}`));
   };
   const refreshMyOrders = async () => setOrders(await call("/api/orders/mine"));
-  const restaurantQuery = () => (restaurantRef.current ? `?restaurant=${restaurantRef.current.id}` : "");
+  const restaurantQuery = () => (restaurantRef.current && !restaurantRef.current.isHall ? `?restaurant=${restaurantRef.current.id}` : "");
   const refreshAdminOrders = async () => setOrders(await call("/api/orders" + restaurantQuery()));
   const refreshOverview = async () => setOverview(await call("/api/admin/overview" + restaurantQuery()));
   const refreshCoupons = async () => {
@@ -6710,7 +6479,7 @@ function App() {
 
   // Admin: reload the queue and overview numbers for the restaurant they just picked / switched to
   useEffect(() => {
-    if (!session || session.user.role !== "admin" || !restaurant) return;
+    if (!session || session.user.role !== "admin" || !restaurant || restaurant.isHall) return;
     refreshAdminOrders().catch(() => {});
     refreshOverview().catch(() => {});
   }, [restaurant]);
@@ -6726,7 +6495,6 @@ function App() {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
     socketRef.current = socket;
-    window.__campusSocket = socket;
     socket.on("connect", () => {
       setConnected(true);
       if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
@@ -6778,15 +6546,11 @@ function App() {
     socket.on("chat:message", (payload) => {
       setChatRefreshKey(value => value + 1);
       if (Number(payload.senderId) !== Number(session.user.id)) {
-        playChatPing();
-        if (tabRef.current !== "chat") setChatUnread(n => n + 1);
         pushNotification("chat", tx("n.chat"), `${payload.senderName}: ${payload.message}`);
       }
     });
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
     // Admin changed an item (sold out / hidden / price): refresh the menu live
-    socket.on("chat:typing", (p) => window.dispatchEvent(new CustomEvent("chat-typing", { detail: p })));
-    socket.on("chat:deleted", () => setChatRefreshKey(value => value + 1));
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("menu:restocked", () => { refreshAlerts().catch(() => {}); });
     socket.on("queue:changed", () => {
@@ -6796,16 +6560,10 @@ function App() {
     return () => socket.disconnect();
   }, [session, apiBase]);
 
-  useEffect(() => {
-    if (session && session.user.role !== "admin" && (tab === "wallet" || tab === "profile")) refreshWallet().catch(() => {});
-  }, [tab]);
-
-  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, deliveryNote) => {
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId) => {
     setBusy(true); setError(null);
     try {
       const deliveryLocation = await new Promise(resolve => {
-        /* Fix: order feedback */
-        setTimeout(() => resolve(undefined), 2500); // give up on the location after 2.5s
         if (!navigator.geolocation) return resolve(undefined);
         navigator.geolocation.getCurrentPosition(
           position => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
@@ -6813,7 +6571,7 @@ function App() {
           { enableHighAccuracy: false, maximumAge: 60000, timeout: 1800 }
         );
       });
-      const placed = await call("/api/orders", {
+      await call("/api/orders", {
         method: "POST",
         body: {
           items: cartItems.map(c => ({ id: c.id, qty: c.qty })),
@@ -6823,7 +6581,6 @@ function App() {
           couponCode: coupon ? coupon.code : undefined,
           note: note && note.trim() ? note.trim() : undefined,
           rewardId: rewardId || undefined,
-          deliveryNote: deliveryNote && deliveryNote.trim() ? deliveryNote.trim() : undefined,
           deliveryLocation,
         },
       });
@@ -6831,9 +6588,7 @@ function App() {
       setLoyaltyKey(k => k + 1);
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");
-      showSuccess("✅ Order placed! Your token is " + placed.token + " — you can see it here in the Orders tab.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (e) { showError(e); window.scrollTo({ top: 0, behavior: "smooth" }); } finally { setBusy(false); }
+    } catch (e) { showError(e); } finally { setBusy(false); }
   }; 
     // Order again: put the items of a past order back into the cart (current prices, capped by stock).
   const reorder = (order) => {
@@ -6987,6 +6742,11 @@ function App() {
       onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} /></>;
   }
 
+  // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
+  if (restaurant.isHall) {
+    return <HallGate call={call} user={session.user} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet} />;
+  }
+
   // Each restaurant sells its own items; admin orders are also limited to the chosen restaurant
   const restaurantMenu = menu.filter(m => m.restaurant === restaurant.id);
   const restaurantOrders = session.user.role === "admin" ? orders.filter(o => o.restaurant === restaurant.id) : orders;
@@ -7007,7 +6767,7 @@ function App() {
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
     { key: "rewards", label: tx("nav.rewards"), icon: I.gift },
     { key: "spending", label: tx("nav.spending"), icon: I.chart },
-    { key: "chat", label: tx("nav.chat"), icon: I.chat, badge: chatUnread },
+    { key: "chat", label: tx("nav.chat"), icon: I.chat },
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
@@ -7019,7 +6779,7 @@ function App() {
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "offers", label: "Offers", icon: I.gift },
-    { key: "chat", label: "Messages", icon: I.chat, badge: chatUnread },
+    { key: "chat", label: "Messages", icon: I.chat },
     { key: "reports", label: "Reports", icon: I.chart },
     { key: "feedback", label: "Feedback", icon: I.star, badge: newFeedbackCount },
     { key: "profile", label: "Profile", icon: I.user },
@@ -7130,7 +6890,7 @@ function App() {
         {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
 
         {tab === "profile" && (
-          <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
+          <ProfileTab user={session.user} call={call}
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
         )}
       </div>
