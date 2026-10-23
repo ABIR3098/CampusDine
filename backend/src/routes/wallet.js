@@ -37,15 +37,29 @@ router.post("/topup", verifyToken, catchAsync(async (req, res) => {
   const label = PAY_METHOD_LABELS[method];
   if (!label) return res.status(400).json({ error: "a valid payment method is required" });
 
-  await pool.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [amount, req.user.id]);
-  await pool.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
-    req.user.id,
-    `Wallet top-up via ${label}`,
-    amount,
-  ]);
+  /* Fix: wallet top-up limits */
+  const MAX_PER_TOPUP = 10000;
+  if (Math.round(amount * 100) / 100 !== amount) return res.status(400).json({ error: "Amount can have at most 2 decimal places" });
+  if (amount > MAX_PER_TOPUP) return res.status(400).json({ error: `You can top up at most ৳${MAX_PER_TOPUP} at a time` });
 
-  const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
-  res.json({ balance: user.wallet_balance });
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [amount, req.user.id]);
+    await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
+      req.user.id,
+      `Wallet top-up via ${label}`,
+      amount,
+    ]);
+    const [[user]] = await conn.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
+    await conn.commit();
+    res.json({ balance: user.wallet_balance });
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }));
 
 // ─────────────── Wallet transfer (student/teacher → student/teacher) ───────────────

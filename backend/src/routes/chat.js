@@ -16,7 +16,7 @@ router.get("/conversations", verifyToken, requireRole("admin"), async (req, res)
     const [conversations] = await pool.query(
       `SELECT c.id AS conversation_id, u.id AS user_id, u.name, u.role,
               c.updated_at,
-              (SELECT message FROM chat_messages WHERE conversation_id = c.id ORDER BY id DESC LIMIT 1) AS last_message,
+              (SELECT CASE WHEN deleted_at IS NULL THEN message ELSE 'Message deleted' END FROM chat_messages WHERE conversation_id = c.id ORDER BY id DESC LIMIT 1) AS last_message,
               SUM(CASE WHEN m.recipient_id = ? AND m.read_at IS NULL THEN 1 ELSE 0 END) AS unread_count
        FROM chat_conversations c
        JOIN users u ON u.id = c.user_id
@@ -47,7 +47,7 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
       [conversation.id, req.user.id]
     );
     const [messages] = await connection.query(
-      `SELECT m.id, m.sender_id, m.recipient_id, m.message, m.created_at, m.read_at,
+      `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
               u.name AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
        WHERE m.conversation_id = ? ORDER BY m.id ASC`,
@@ -85,7 +85,7 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
       [conversation.id, req.user.id]
     );
     const [messages] = await connection.query(
-      `SELECT m.id, m.sender_id, m.recipient_id, m.message, m.created_at, m.read_at,
+      `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
               u.name AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
        WHERE m.conversation_id = ? ORDER BY m.id ASC`,
@@ -232,5 +232,25 @@ router.post("/order/:orderId/messages", verifyToken, requireRole("student", "tea
   io.to(`user:${req.user.id}`).emit("order-chat:message", payload);
   res.status(201).json({ message: payload });
 }));
+
+// Delete (hide) one of MY messages for everyone. The row stays, its text is blanked on read.
+router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid message id" });
+    const [[row]] = await pool.query("SELECT recipient_id FROM chat_messages WHERE id = ? AND sender_id = ? AND deleted_at IS NULL", [id, req.user.id]);
+    if (!row) return res.status(404).json({ error: "Message not found" });
+    await pool.query("UPDATE chat_messages SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", [id]);
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user:${req.user.id}`).emit("chat:deleted", { id });
+      io.to(`user:${row.recipient_id}`).emit("chat:deleted", { id });
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Failed to delete chat message:", error);
+    res.status(500).json({ error: "Failed to delete message" });
+  }
+});
 
 module.exports = router;
