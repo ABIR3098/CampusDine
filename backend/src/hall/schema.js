@@ -43,6 +43,23 @@ async function ensureHallSchema(db) {
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
 
+  // Step 6 — the fixed weekly menu: one line of food per weekday and meal (the same every week)
+  await db.query(`CREATE TABLE IF NOT EXISTS hall_menu (
+    dow TINYINT NOT NULL,              -- 0 = Sunday ... 6 = Saturday
+    slot VARCHAR(12) NOT NULL,
+    items VARCHAR(255) NOT NULL,
+    PRIMARY KEY (dow, slot)
+  )`);
+  // sample menu — INSERT IGNORE never overwrites what the admin has edited
+  await db.query(`INSERT IGNORE INTO hall_menu (dow, slot, items) VALUES
+    (0,'breakfast','Porota, Mixed veg, Egg'),   (0,'lunch','Rice, Dal, Chicken curry'),       (0,'dinner','Rice, Dal, Fish curry'),
+    (1,'breakfast','Khichuri, Egg fry'),        (1,'lunch','Rice, Dal, Beef curry'),          (1,'dinner','Rice, Dal, Egg curry'),
+    (2,'breakfast','Ruti, Vaji, Banana'),       (2,'lunch','Rice, Dal, Fish curry'),          (2,'dinner','Rice, Dal, Chicken curry'),
+    (3,'breakfast','Porota, Dal'),              (3,'lunch','Rice, Dal, Chicken curry'),       (3,'dinner','Rice, Dal, Mixed veg, Egg'),
+    (4,'breakfast','Suji, Banana'),             (4,'lunch','Rice, Dal, Beef curry'),          (4,'dinner','Rice, Dal, Fish curry'),
+    (5,'breakfast','Porota, Egg curry'),        (5,'lunch','Tehari, Borhani'),                (5,'dinner','Rice, Dal, Chicken curry'),
+    (6,'breakfast','Khichuri, Egg'),            (6,'lunch','Rice, Dal, Fish curry'),          (6,'dinner','Rice, Dal, Mixed veg, Egg')`);
+
   // (more tables are added by the next steps)
   console.log("✅ Hall schema ready");
 }
