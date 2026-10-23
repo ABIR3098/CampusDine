@@ -27,6 +27,7 @@ function HallMealCell({ cell, busy, onToggle }) {
       <div className="opacity-80">
         {cell.locked ? "🔒 locked" : `closes in ${hallClosesIn(cell.closesInMinutes)}`}
       </div>
+      {cell.feast && <div className="font-600 mt-0.5">🎉 {cell.feast.title}{cell.feast.extraPrice > 0 ? ` +${hallTaka(cell.feast.extraPrice)}` : ""}</div>}
     </button>
   );
 }

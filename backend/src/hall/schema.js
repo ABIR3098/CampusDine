@@ -60,6 +60,17 @@ async function ensureHallSchema(db) {
     (5,'breakfast','Porota, Egg curry'),        (5,'lunch','Tehari, Borhani'),                (5,'dinner','Rice, Dal, Chicken curry'),
     (6,'breakfast','Khichuri, Egg'),            (6,'lunch','Rice, Dal, Fish curry'),          (6,'dinner','Rice, Dal, Mixed veg, Egg')`);
 
+  // Step 7 — feasts: a special meal on one date (shown to everyone, charged on top of the normal price)
+  await db.query(`CREATE TABLE IF NOT EXISTS hall_feasts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    the_date DATE NOT NULL,
+    slot VARCHAR(12) NOT NULL,
+    title VARCHAR(80) NOT NULL,
+    items VARCHAR(255) NOT NULL,
+    extra_price DECIMAL(10,2) NOT NULL DEFAULT 0,   -- added to the meal's price for everyone who has that meal ON
+    UNIQUE KEY uniq_feast (the_date, slot)
+  )`);
+
   // (more tables are added by the next steps)
   console.log("✅ Hall schema ready");
 }

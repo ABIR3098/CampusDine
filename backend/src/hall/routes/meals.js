@@ -23,10 +23,16 @@ router.get("/meals", catchAsync(async (req, res) => {
   const [slotRows] = await pool.query("SELECT * FROM hall_slots");
   const slotBy = Object.fromEntries(slotRows.map((s) => [s.slot, s]));
   const days = await loadStates(pool, req.user.id, from, to);
+  const [feasts] = await pool.query(
+    "SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, extra_price FROM hall_feasts WHERE the_date >= ? AND the_date <= ?",
+    [from, days[days.length - 1].date]
+  );
   for (const day of days) {
     for (const slot of SLOTS) {
       const cell = day.slots[slot];
       cell.locked = isLocked(slotBy[slot], day.date, now);
+      const feast = feasts.find((f) => f.d === day.date && f.slot === slot);
+      cell.feast = feast ? { title: feast.title, extraPrice: feast.extra_price } : null; // step 7
       // minutes left before it locks (null once locked)
       const c = cutoffOf(slotBy[slot], day.date);
       cell.closesInMinutes = cell.locked ? null : dayDiff(now.dateKey, c.dateKey) * 1440 + c.minutes - now.minutes;
