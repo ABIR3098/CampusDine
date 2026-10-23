@@ -71,6 +71,18 @@ async function ensureHallSchema(db) {
     UNIQUE KEY uniq_feast (the_date, slot)
   )`);
 
+  // Step 8 — guest meals: extra plates a person books for their own guests (billed to that person)
+  await db.query(`CREATE TABLE IF NOT EXISTS hall_guests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    the_date DATE NOT NULL,
+    slot VARCHAR(12) NOT NULL,
+    guest_count TINYINT NOT NULL,
+    UNIQUE KEY uniq_guest (user_id, the_date, slot),
+    KEY idx_guest_date (the_date, slot),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+
   // (more tables are added by the next steps)
   console.log("✅ Hall schema ready");
 }

@@ -7,6 +7,7 @@ const { dayDiff } = require("../../utils/clock");
 const { loadStates, MAX_DAYS } = require("../states");
 
 const MAX_AHEAD_DAYS = 31; // how far ahead a person can plan
+const { MAX_GUESTS } = require("./guests"); // step 8
 
 const router = express.Router();
 router.use("/meals", requireRole("student", "teacher")); // the admin has no meals of their own
@@ -27,9 +28,14 @@ router.get("/meals", catchAsync(async (req, res) => {
     "SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, extra_price FROM hall_feasts WHERE the_date >= ? AND the_date <= ?",
     [from, days[days.length - 1].date]
   );
+  const [guests] = await pool.query(
+    "SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, guest_count FROM hall_guests WHERE user_id = ? AND the_date >= ? AND the_date <= ?",
+    [req.user.id, from, days[days.length - 1].date]
+  ); // step 8
   for (const day of days) {
     for (const slot of SLOTS) {
       const cell = day.slots[slot];
+      cell.guests = (guests.find((g) => g.d === day.date && g.slot === slot) || {}).guest_count || 0; // step 8
       cell.locked = isLocked(slotBy[slot], day.date, now);
       const feast = feasts.find((f) => f.d === day.date && f.slot === slot);
       cell.feast = feast ? { title: feast.title, extraPrice: feast.extra_price } : null; // step 7
@@ -38,7 +44,7 @@ router.get("/meals", catchAsync(async (req, res) => {
       cell.closesInMinutes = cell.locked ? null : dayDiff(now.dateKey, c.dateKey) * 1440 + c.minutes - now.minutes;
     }
   }
-  res.json({ today: now.dateKey, days });
+  res.json({ today: now.dateKey, maxGuests: MAX_GUESTS, days });
 }));
 
 // PUT /api/hall/meals/:date/:slot   body: { status: "on" | "off", onlyThisDay?: boolean }

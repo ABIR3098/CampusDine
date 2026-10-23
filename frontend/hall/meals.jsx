@@ -12,9 +12,10 @@ function hallClosesIn(mins) {
   return `${Math.max(mins, 0)}m`;
 }
 
-function HallMealCell({ cell, busy, onToggle }) {
+function HallMealCell({ cell, busy, onToggle, maxGuests, onGuests }) {
   const on = cell.status === "on";
   return (
+    <div>
     <button disabled={cell.locked || busy} onClick={onToggle}
       className="w-full rounded-lg border px-2 py-1.5 text-center text-xs transition"
       style={{
@@ -29,6 +30,15 @@ function HallMealCell({ cell, busy, onToggle }) {
       </div>
       {cell.feast && <div className="font-600 mt-0.5">🎉 {cell.feast.title}{cell.feast.extraPrice > 0 ? ` +${hallTaka(cell.feast.extraPrice)}` : ""}</div>}
     </button>
+    {/* step 8: guest plates for this meal */}
+    <div className="flex items-center justify-center gap-1 text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>
+      <button className="px-1.5 rounded border" style={{ borderColor: "var(--line)" }} title="One guest less"
+        disabled={cell.locked || busy || cell.guests <= 0} onClick={() => onGuests(cell.guests - 1)}>−</button>
+      <span>👥 {cell.guests}</span>
+      <button className="px-1.5 rounded border" style={{ borderColor: "var(--line)" }} title="One more guest"
+        disabled={cell.locked || busy || cell.guests >= maxGuests} onClick={() => onGuests(cell.guests + 1)}>+</button>
+    </div>
+    </div>
   );
 }
 
@@ -50,6 +60,17 @@ function HallMyMeals({ call, notify }) {
     return () => clearInterval(t);
   }, []);
 
+  const setGuests = async (date, slot, count) => {
+    const label = (slots.find((s) => s.slot === slot) || {}).label || slot;
+    setBusyKey(date + slot);
+    try {
+      await call(`/api/hall/guests/${date}/${slot}`, { method: "PUT", body: { count } });
+      notify(count ? `${count} guest(s) for ${label} on ${hallDateLabel(date)}` : `No guests for ${label} on ${hallDateLabel(date)}`);
+    } catch (e) { notify(e, true); }
+    setBusyKey(null);
+    await load(true);
+  };
+
   const toggle = async (date, slot) => {
     const cell = data.days.find((d) => d.date === date).slots[slot];
     const next = cell.status === "on" ? "off" : "on";
@@ -67,6 +88,7 @@ function HallMyMeals({ call, notify }) {
     <HallCard title="My meals — next 7 days">
       <p className="text-sm mb-2" style={{ color: "var(--ink-soft)" }}>
         Tap a meal to switch it on or off before it closes. If you do nothing, a meal stays the way you last set it.
+        Use 👥 − / + to book guest plates (paid at the guest price).
       </p>
       <label className="flex items-center gap-2 text-sm mb-3">
         <input type="checkbox" checked={onlyThisDay} onChange={(e) => setOnlyThisDay(e.target.checked)} />
@@ -87,7 +109,8 @@ function HallMyMeals({ call, notify }) {
                   </td>
                   {slots.map((s) => (
                     <td key={s.slot} className="px-1">
-                      <HallMealCell cell={day.slots[s.slot]} busy={busyKey === day.date + s.slot} onToggle={() => toggle(day.date, s.slot)} />
+                      <HallMealCell cell={day.slots[s.slot]} busy={busyKey === day.date + s.slot} onToggle={() => toggle(day.date, s.slot)}
+                        maxGuests={data.maxGuests} onGuests={(n) => setGuests(day.date, s.slot, n)} />
                     </td>
                   ))}
                 </tr>
