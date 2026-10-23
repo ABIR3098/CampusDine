@@ -10,6 +10,7 @@ const pricing = require("../pricing");
 const loyalty = require("../loyalty");
 const { assignOrderToBestRider } = require("../utils/riderAssignment");
 const { recordFraudEvent } = require("../utils/fraud");
+const { pingWatchers } = require("../stockAlerts");
 const { recordAuditEvent } = require("../utils/audit");
 
 const router = express.Router();
@@ -298,6 +299,7 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
     io.to("admins").emit("order:update", updated);
     io.to(`user:${order.user_id}`).emit("order:update", updated);
     io.emit("queue:changed");
+    try { await pingWatchers(io, items.map((i) => i.menu_item_id).filter(Boolean)); } catch (e) { console.error("Notify-me ping failed:", e.message); }
 
     res.json(updated);
   } catch (err) {

@@ -4,6 +4,7 @@ const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { nutritionFor, restaurantOf, isRestaurantId, menuRank, DEFAULT_RESTAURANT } = require("../catalog");
 const { loadItemRestaurants, saveItemRestaurant } = require("../restaurants");
+const { pingWatchers } = require("../stockAlerts");
 
 const router = express.Router();
 
@@ -127,7 +128,43 @@ router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res
   if (row.length === 0) return res.status(404).json({ error: "Item not found" });
   const io = req.app.get("io");
   if (io) io.emit("menu:changed"); // students' menus refresh live (sold out / hidden / price changes)
+  try { await pingWatchers(io, [row[0].id]); } catch (e) { console.error("Notify-me ping failed:", e.message); }
   res.json(row[0]);
+}));
+
+// Feature: notify me — students/teachers ask to be told when a sold-out item is available again
+router.get("/alerts", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT a.id, m.id AS item_id, m.name, m.stock, m.availability
+     FROM stock_alerts a JOIN menu_items m ON m.id = a.menu_item_id
+     WHERE a.user_id = ?`, [req.user.id]);
+  const isReady = (r) => Number(r.stock) > 0 && r.availability === "available";
+  const ready = rows.filter(isReady);
+  if (ready.length) {
+    // these are delivered now, so they are removed
+    await pool.query(`DELETE FROM stock_alerts WHERE id IN (${ready.map(() => "?").join(",")})`, ready.map((r) => r.id));
+  }
+  res.json({
+    watching: rows.filter((r) => !isReady(r)).map((r) => r.item_id),
+    ready: ready.map((r) => ({ id: r.item_id, name: r.name })),
+  });
+}));
+
+router.post("/:id/notify", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid item" });
+  const [[item]] = await pool.query("SELECT id, stock, availability FROM menu_items WHERE id = ?", [id]);
+  if (!item || item.availability === "hidden") return res.status(404).json({ error: "Item not found" });
+  if (Number(item.stock) > 0 && item.availability === "available") {
+    return res.status(409).json({ error: "This item is available right now — you can order it." });
+  }
+  await pool.query("INSERT IGNORE INTO stock_alerts (user_id, menu_item_id) VALUES (?, ?)", [req.user.id, id]);
+  res.json({ ok: true });
+}));
+
+router.delete("/:id/notify", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  await pool.query("DELETE FROM stock_alerts WHERE user_id = ? AND menu_item_id = ?", [req.user.id, Number(req.params.id)]);
+  res.json({ ok: true });
 }));
 
 module.exports = router;

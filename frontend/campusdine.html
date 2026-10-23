@@ -2678,7 +2678,7 @@ function PromoSlider({ slides }) {
   );
 }
 
-function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey }) {
+function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -2879,7 +2879,16 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
                 <div className="mt-3 flex items-center justify-between">
                   <span className="font-mono font-600 text-lg">{taka(item.price)}</span>
                   {out ? (
-                    <span className="text-xs font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                      {onToggleNotify && (
+                        <button type="button" onClick={() => onToggleNotify(item.id)}
+                          className="text-xs px-2.5 py-1 rounded-lg border font-600"
+                          style={{ borderColor: "var(--line)", color: watching.includes(item.id) ? "var(--leaf)" : "var(--gold)" }}>
+                          🔔 {watching.includes(item.id) ? tx("notify.on") : tx("notify.me")}
+                        </button>
+                      )}
+                    </div>
                   ) : inCart ? (
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border" style={{ borderColor: "var(--line)" }}><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
@@ -6178,6 +6187,8 @@ function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [wallet, setWallet] = useState({ balance: 0, transactions: [], loaded: false });
+  /* Feature: notify me */
+  const [watching, setWatching] = useState([]);
   const [calendar, setCalendar] = useState({});
   const [bill, setBill] = useState({ fullDays: 0, halfDays: 0, fullRate: 0, halfRate: 0, total: 0, paidDays: 0, paidAmount: 0, dueDays: 0, dueAmount: 0, walletBalance: 0 });
   const [calendarPaid, setCalendarPaid] = useState({});
@@ -6253,6 +6264,24 @@ function App() {
     } catch (e) { showError(e); }
   };
   const refreshWallet = async () => setWallet(mapWallet(await call("/api/wallet")));
+  const refreshAlerts = async () => {
+    const r = await call("/api/menu/alerts");
+    setWatching(r.watching || []);
+    for (const it of (r.ready || [])) pushNotification("stock", tx("notify.back"), tx("notify.backmsg", { n: it.name }));
+    if ((r.ready || []).length) refreshMenu().catch(() => {});
+  };
+  const toggleNotify = async (itemId) => {
+    try {
+      if (watching.includes(itemId)) {
+        await call("/api/menu/" + itemId + "/notify", { method: "DELETE" });
+        setWatching(w => w.filter(id => id !== itemId));
+      } else {
+        await call("/api/menu/" + itemId + "/notify", { method: "POST" });
+        setWatching(w => [...w, itemId]);
+        showSuccess(tx("notify.set"));
+      }
+    } catch (e) { showError(e); refreshMenu().catch(() => {}); }
+  };
   const refreshCalendar = async () => {
     const rows = await call(`/api/calendar?year=${year}&month=${month}`);
     setCalendar(mapCalendar(rows));
@@ -6319,7 +6348,7 @@ function App() {
     socketRef.current = socket;
     socket.on("connect", () => {
       setConnected(true);
-      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
     });
     socket.on("disconnect", () => setConnected(false));
     socket.on("order:new", (order) => {
@@ -6374,6 +6403,7 @@ function App() {
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
     // Admin changed an item (sold out / hidden / price): refresh the menu live
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
+    socket.on("menu:restocked", () => { refreshAlerts().catch(() => {}); });
     socket.on("queue:changed", () => {
       if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
     });
@@ -6669,7 +6699,7 @@ function App() {
         {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} watching={watching} onToggleNotify={toggleNotify} />
         )}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
