@@ -34,6 +34,7 @@ const { pricingRouter, loyaltyRouter, offersRouter } = require("./src/routes/off
 const { ensureOffersSchema } = require("./src/offersSchema");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
+const hall = require("./src/hall"); // Hall (meal system)
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -410,8 +411,6 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
-    await addColumn("orders", "delivery_note", "VARCHAR(255) NULL");   // delivery instructions, e.g. "gate-e dibe"
-    await addColumn("orders", "pickup_time", "DATETIME NULL");   // scheduled pickup (older databases don't have it)
 
     const [emailIndex] = await db.query("SHOW INDEX FROM users WHERE Column_name = 'email' AND Non_unique = 0");
     if (emailIndex.length === 0) {
@@ -470,8 +469,6 @@ async function ensureChatSchema(db) {
       FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
-  const [delCol] = await db.query("SHOW COLUMNS FROM chat_messages LIKE 'deleted_at'");
-  if (delCol.length === 0) await db.query("ALTER TABLE chat_messages ADD COLUMN deleted_at DATETIME NULL");
 }
 
 // ════════════════════════════════════════════════
@@ -597,6 +594,7 @@ async function runStartupCheck() {
   await ensureOtpSchema(db);
   await purgeOldOtps(db);
   await ensureOffersSchema(db); // loyalty points / streak, combo deals, happy hours
+  await hall.ensureHallSchema(db); // Hall (meal system) tables
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
@@ -643,19 +641,6 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
-  // Chat "typing..." indicator: students/teachers can only reach admins; admins can reach one user.
-  socket.on("chat:typing", (data) => {
-    const now = Date.now();
-    if (data && data.typing && now - (socket.lastTyping || 0) < 800) return;
-    socket.lastTyping = now;
-    const typing = !!(data && data.typing);
-    if (socket.user.role === "admin") {
-      const to = Number(data && data.to);
-      if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing });
-    } else {
-      io.to("admins").emit("chat:typing", { from: socket.user.id, typing });
-    }
-  });
   if (socket.user.role === "teacher") socket.join("teachers");
   if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
 });
@@ -677,6 +662,7 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
+app.use("/api/hall", hall.router);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
@@ -694,5 +680,6 @@ const PORT = process.env.PORT || 5000;
 runStartupCheck().then(() => {
   server.listen(PORT, () => {
     console.log(`🚀 CampusDine is running → http://localhost:${PORT}`);
+    hall.startJobs();
   });
 });
