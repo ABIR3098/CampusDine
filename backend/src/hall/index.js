@@ -9,6 +9,7 @@ router.use(verifyToken, requireRole("student", "teacher", "admin"));
 
 router.use("/", require("./routes/info"));
 router.use("/", require("./routes/slots")); // step 2
+router.use("/", require("./routes/meals")); // step 3
 // (each step adds its router here)
 
 // background jobs (started once after the server is listening)
