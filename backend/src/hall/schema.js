@@ -104,7 +104,21 @@ async function ensureHallSchema(db) {
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
 
-  // (more tables are added by the next steps)
+  // Step 13 — meal tokens: a serial number per person per meal per day, served in order
+  await db.query(`CREATE TABLE IF NOT EXISTS hall_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    the_date DATE NOT NULL,
+    slot VARCHAR(12) NOT NULL,
+    user_id INT NOT NULL,
+    serial INT NOT NULL,                              -- 1, 2, 3 ... within that date + meal
+    plates TINYINT NOT NULL,                          -- own plate (if ON) + guest plates
+    status ENUM('waiting','served') NOT NULL DEFAULT 'waiting',
+    created_at DATETIME NOT NULL,
+    served_at DATETIME NULL,
+    UNIQUE KEY uniq_token_user (the_date, slot, user_id),
+    UNIQUE KEY uniq_token_serial (the_date, slot, serial),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
   console.log("✅ Hall schema ready");
 }
 
