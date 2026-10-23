@@ -1,3 +1,3 @@
 // The Hall frontend is split into small files. They are loaded in this order and joined into one
 // script (so they share top-level names). Every step of the Hall feature adds its file here.
-window.HALL_FILES = ["core.jsx"];
+window.HALL_FILES = ["core.jsx", "slots.jsx"];
