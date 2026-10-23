@@ -12,42 +12,47 @@ function hallCutoffLabel(s) {
   return `${when}, ${hallClockLabel(s.cutoffTime)}`;
 }
 
-function HallSlotRow({ slot, isAdmin, onSave }) {
+function HallSlotCard({ slot, isAdmin, onSave }) {
   const [f, setF] = useState({ cutoffTime: slot.cutoffTime, cutoffDaysBefore: slot.cutoffDaysBefore, price: slot.price, guestPrice: slot.guestPrice });
   const [busy, setBusy] = useState(false);
   const changed = f.cutoffTime !== slot.cutoffTime || Number(f.cutoffDaysBefore) !== slot.cutoffDaysBefore ||
     Number(f.price) !== slot.price || Number(f.guestPrice) !== slot.guestPrice;
-  const input = "rounded-lg border px-2 py-1 text-sm w-24";
-  const inputStyle = { background: "var(--input-bg)", borderColor: "var(--line)", color: "var(--ink)" };
 
-  if (!isAdmin) {
-    return (
-      <tr className="border-t" style={{ borderColor: "var(--line)" }}>
-        <td className="py-2 font-600">{slot.label}</td>
-        <td>{hallCutoffLabel(slot)}</td>
-        <td>{hallTaka(slot.price)}</td>
-        <td>{hallTaka(slot.guestPrice)}</td>
-      </tr>
-    );
-  }
   return (
-    <tr className="border-t" style={{ borderColor: "var(--line)" }}>
-      <td className="py-2 font-600">{slot.label}</td>
-      <td>
-        <div className="flex gap-1 items-center flex-wrap">
-          <select className={input} style={inputStyle} value={f.cutoffDaysBefore} onChange={(e) => setF({ ...f, cutoffDaysBefore: Number(e.target.value) })}>
-            <option value={0}>Same day</option><option value={1}>1 day before</option><option value={2}>2 days before</option><option value={3}>3 days before</option>
-          </select>
-          <input type="time" className={input} style={inputStyle} value={f.cutoffTime} onChange={(e) => setF({ ...f, cutoffTime: e.target.value })} />
+    <div className="hl-tile">
+      <div className="flex items-center gap-3">
+        <span className="hl-ico" style={{ width: 44, height: 44, fontSize: 22, borderRadius: 14 }}>{HALL_SLOT_EMOJI[slot.slot]}</span>
+        <div>
+          <div className="font-display font-700 text-lg leading-tight">{slot.label}</div>
+          <div className="text-xs hl-muted">⏳ Closes: {hallCutoffLabel(slot)}</div>
         </div>
-      </td>
-      <td><input type="number" min="0" className={input} style={inputStyle} value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></td>
-      <td><input type="number" min="0" className={input} style={inputStyle} value={f.guestPrice} onChange={(e) => setF({ ...f, guestPrice: e.target.value })} /></td>
-      <td>
-        <button className="btn-gold px-3 py-1 rounded-lg text-xs" disabled={!changed || busy}
-          onClick={async () => { setBusy(true); try { await onSave(slot.slot, f); } finally { setBusy(false); } }}>Save</button>
-      </td>
-    </tr>
+      </div>
+
+      {!isAdmin ? (
+        <div className="hl-kv">
+          <div><div className="k">Price</div><div className="v">{hallTaka(slot.price)}</div></div>
+          <div><div className="k">Guest price</div><div className="v">{hallTaka(slot.guestPrice)}</div></div>
+        </div>
+      ) : (
+        <div className="grid gap-3 mt-4">
+          <div>
+            <label className="hl-label">Cut-off</label>
+            <div className="flex gap-2 flex-wrap">
+              <select className="hl-input" style={{ flex: "1 1 120px" }} value={f.cutoffDaysBefore} onChange={(e) => setF({ ...f, cutoffDaysBefore: Number(e.target.value) })}>
+                <option value={0}>Same day</option><option value={1}>1 day before</option><option value={2}>2 days before</option><option value={3}>3 days before</option>
+              </select>
+              <input type="time" className="hl-input" style={{ flex: "1 1 110px" }} value={f.cutoffTime} onChange={(e) => setF({ ...f, cutoffTime: e.target.value })} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className="hl-label">Price (৳)</label><input type="number" min="0" className="hl-input" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></div>
+            <div><label className="hl-label">Guest price (৳)</label><input type="number" min="0" className="hl-input" value={f.guestPrice} onChange={(e) => setF({ ...f, guestPrice: e.target.value })} /></div>
+          </div>
+          <button className="hl-btn" disabled={!changed || busy}
+            onClick={async () => { setBusy(true); try { await onSave(slot.slot, f); } finally { setBusy(false); } }}>{busy ? "Saving…" : "Save changes"}</button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -65,21 +70,14 @@ function HallMealTimes({ call, isAdmin, notify }) {
   };
 
   return (
-    <HallCard title="Meal times & prices">
-      <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
-        You can switch a meal on or off until its cut-off. After that it is locked and the meal is counted.
-      </p>
-      {!slots ? <p className="text-sm opacity-70">Loading…</p> : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead><tr style={{ color: "var(--ink-soft)" }}>
-              <th className="py-1">Meal</th><th>Cut-off</th><th>Price</th><th>Guest price</th>{isAdmin && <th></th>}
-            </tr></thead>
-            <tbody>{slots.map((s) => <HallSlotRow key={s.slot + s.cutoffTime + s.price + s.guestPrice + s.cutoffDaysBefore} slot={s} isAdmin={isAdmin} onSave={save} />)}</tbody>
-          </table>
+    <HallCard title="Meal times & prices" icon="⏰"
+      sub="You can switch a meal on or off until its cut-off. After that it is locked and the meal is counted.">
+      {!slots ? <div className="hl-empty">Loading…</div> : (
+        <div className="hl-grid3">
+          {slots.map((s) => <HallSlotCard key={s.slot + s.cutoffTime + s.price + s.guestPrice + s.cutoffDaysBefore} slot={s} isAdmin={isAdmin} onSave={save} />)}
         </div>
       )}
     </HallCard>
   );
 }
-Hall.register({ key: "times", label: "Meal times", order: 2, component: HallMealTimes });
+Hall.register({ key: "times", label: "Meal times", icon: "⏰", order: 2, component: HallMealTimes });
