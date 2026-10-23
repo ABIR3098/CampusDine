@@ -2,7 +2,7 @@ const express = require("express");
 const pool = require("../../db");
 const catchAsync = require("../../utils/catchAsync");
 const { requireRole } = require("../../middleware/auth");
-const { SLOTS, nowParts, isLocked, addDays } = require("../util");
+const { SLOTS, nowParts, isLocked, addDays, localStamp } = require("../util");
 const { loadStates } = require("../states");
 
 const router = express.Router();
@@ -74,13 +74,50 @@ async function computeBill(db, userId, year, month, now = nowParts()) {
   return { year, month, days, summary };
 }
 
+const ymKey = (year, month) => `${year}-${pad(month)}`;
+
+// what the person has already paid for the month, and what is still due (closed meals only)
+async function paymentState(db, userId, bill) {
+  const [[row]] = await db.query("SELECT COALESCE(SUM(amount), 0) AS paid FROM hall_payments WHERE user_id = ? AND ym = ?", [userId, ymKey(bill.year, bill.month)]);
+  return { paid: row.paid, due: Math.max(0, bill.summary.confirmedTotal - row.paid) };
+}
+
 // GET /api/hall/bill?year=2026&month=10   (default: this month)
 router.get("/bill", catchAsync(async (req, res) => {
   const now = nowParts();
   const ym = parseMonth(req.query, now);
   if (!ym) return res.status(400).json({ error: "Invalid month" });
   const bill = await computeBill(pool, req.user.id, ym.year, ym.month, now);
-  res.json({ ...bill, today: now.dateKey });
+  const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
+  res.json({ ...bill, today: now.dateKey, ...(await paymentState(pool, req.user.id, bill)), walletBalance: user.wallet_balance });
+}));
+
+// POST /api/hall/bill/pay   body: { year, month } — pays everything that is due (closed meals) from the wallet
+router.post("/bill/pay", catchAsync(async (req, res) => {
+  const now = nowParts();
+  const ym = parseMonth(req.body || {}, now);
+  if (!ym) return res.status(400).json({ error: "Invalid month" });
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [[user]] = await conn.query("SELECT wallet_balance FROM users WHERE id = ? FOR UPDATE", [req.user.id]); // also stops two payments at once
+    const bill = await computeBill(conn, req.user.id, ym.year, ym.month, now);
+    const { due } = await paymentState(conn, req.user.id, bill);
+    if (due <= 0) { await conn.rollback(); return res.status(400).json({ error: "Nothing to pay — no closed meal is unpaid this month" }); }
+    if (user.wallet_balance < due) { await conn.rollback(); return res.status(402).json({ error: "Insufficient wallet balance — add money to your wallet first" }); }
+
+    await conn.query("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?", [due, req.user.id]);
+    await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [req.user.id, `Hall bill ${ymKey(ym.year, ym.month)}`, -due]);
+    await conn.query("INSERT INTO hall_payments (user_id, ym, amount, created_at) VALUES (?, ?, ?, ?)", [req.user.id, ymKey(ym.year, ym.month), due, localStamp()]);
+    await conn.commit();
+    res.json({ ok: true, paid: due, balance: user.wallet_balance - due });
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }));
 
 module.exports = router;

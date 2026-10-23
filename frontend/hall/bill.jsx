@@ -23,7 +23,8 @@ function HallBillCell({ cell }) {
   );
 }
 
-function HallBill({ call, notify }) {
+function HallBill({ call, notify, refreshWallet }) {
+  const [payBusy, setPayBusy] = useState(false);
   const [ym, setYm] = useState(null); // { year, month } — null until the server tells us today's month
   const [bill, setBill] = useState(null);
 
@@ -40,6 +41,17 @@ function HallBill({ call, notify }) {
     let y = ym.year, m = ym.month + d;
     if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
     setBill(null); load({ year: y, month: m });
+  };
+  const pay = async () => {
+    if (!window.confirm(`Pay ${hallTaka(bill.due)} from your wallet?`)) return;
+    setPayBusy(true);
+    try {
+      const r = await call("/api/hall/bill/pay", { method: "POST", body: { year: ym.year, month: ym.month } });
+      notify(`Paid ${hallTaka(r.paid)}. Wallet balance: ${hallTaka(r.balance)}`);
+      await load(ym);
+      if (refreshWallet) refreshWallet().catch(() => {});
+    } catch (e) { notify(e, true); }
+    setPayBusy(false);
   };
   const monthName = ym ? new Date(Date.UTC(ym.year, ym.month - 1, 1)).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }) : "";
   const s = bill && bill.summary;
@@ -58,6 +70,15 @@ function HallBill({ call, notify }) {
             <HallStat label="Confirmed (closed meals)" value={hallTaka(s.confirmedTotal)} sub="can't change any more" />
             <HallStat label="Meals ON" value={s.mealsOn.total} sub={`B ${s.mealsOn.breakfast} · L ${s.mealsOn.lunch} · D ${s.mealsOn.dinner}`} />
             <HallStat label="Guests" value={`${s.guestPlates} plate(s)`} sub={hallTaka(s.guestCost)} />
+          </div>
+          <div className="rounded-xl border p-3 mb-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: "var(--line)", background: bill.due > 0 ? "var(--warn-bg)" : "var(--ok-bg)" }}>
+            <div className="text-sm">
+              <div>Paid: <b>{hallTaka(bill.paid)}</b> · Due now: <b>{hallTaka(bill.due)}</b> <span className="opacity-70">(closed meals only)</span></div>
+              <div className="text-xs opacity-80">Wallet balance: {hallTaka(bill.walletBalance)}</div>
+            </div>
+            <button className="btn-gold px-4 py-2 rounded-lg text-sm" disabled={bill.due <= 0 || payBusy} onClick={pay}>
+              {bill.due > 0 ? `Pay ${hallTaka(bill.due)} from wallet` : "Nothing due"}
+            </button>
           </div>
           {s.feastExtra > 0 && <p className="text-xs mb-3" style={{ color: "var(--ink-soft)" }}>Includes {hallTaka(s.feastExtra)} of feast extras 🎉.</p>}
 

@@ -93,6 +93,17 @@ async function ensureHallSchema(db) {
   await addColumnIfMissing(db, "hall_meal_state", "charged", "DECIMAL(10,2) NULL");   // the person's own plate (0 when OFF)
   await addColumnIfMissing(db, "hall_guests", "charged", "DECIMAL(10,2) NULL");       // all of the person's guest plates
 
+  // Step 11 — paying the bill from the wallet. Each payment is one row; paid so far = their sum for that month.
+  await db.query(`CREATE TABLE IF NOT EXISTS hall_payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    ym CHAR(7) NOT NULL,                 -- "2026-10"
+    amount DECIMAL(10,2) NOT NULL,
+    created_at DATETIME NOT NULL,        -- canteen clock
+    KEY idx_pay_user_month (user_id, ym),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+
   // (more tables are added by the next steps)
   console.log("✅ Hall schema ready");
 }
