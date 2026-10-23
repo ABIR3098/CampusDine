@@ -1,5 +1,10 @@
 // Hall tables. The server runs this on every start (safe to repeat: CREATE TABLE IF NOT EXISTS).
 // Each step of the Hall feature adds its own tables here.
+async function addColumnIfMissing(db, table, column, definition) {
+  const [cols] = await db.query(`SHOW COLUMNS FROM ${table} LIKE ?`, [column]);
+  if (cols.length === 0) await db.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
 async function ensureHallSchema(db) {
   // Step 2 — the three meal slots: when each one closes for changes, and what it costs
   await db.query(`CREATE TABLE IF NOT EXISTS hall_slots (
@@ -82,6 +87,11 @@ async function ensureHallSchema(db) {
     KEY idx_guest_date (the_date, slot),
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
+
+  // Step 9 — price fixed at cut-off. When a meal locks, what it costs the person is written down here, so a
+  // later change of price / feast never changes a bill that is already earned. NULL = not locked yet.
+  await addColumnIfMissing(db, "hall_meal_state", "charged", "DECIMAL(10,2) NULL");   // the person's own plate (0 when OFF)
+  await addColumnIfMissing(db, "hall_guests", "charged", "DECIMAL(10,2) NULL");       // all of the person's guest plates
 
   // (more tables are added by the next steps)
   console.log("✅ Hall schema ready");
