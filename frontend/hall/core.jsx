@@ -1,52 +1,304 @@
-// Hall core: shared helpers, the page shell (header + tabs) and the Hall home tab.
+// Hall core: shared helpers + small UI pieces (card, ON/OFF switch, hero slider), the page shell
+// (top bar, hero, tabs) and the Hall home tab. Styles are in hall/hall.css.
 // Naming rule: every top-level name in hall/*.jsx is shared, so keep names unique across files.
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const HALL_SLOTS = ["breakfast", "lunch", "dinner"];
 const HALL_SLOT_LABEL = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
+const HALL_SLOT_EMOJI = { breakfast: "🌅", lunch: "☀️", dinner: "🌙" };
 const hallTaka = (n) => "৳" + Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
-const hallCard = { background: "var(--panel)", borderColor: "var(--line)", color: "var(--ink)" };
+// Picks one of the food pictures in /images/food from the words of a menu line ("Rice, Dal, Fish curry" → fish-curry)
+function hallFoodImg(text, slot) {
+  const t = String(text || "").toLowerCase();
+  const rules = [["tehari", "tehari"], ["biryani", "chicken-biryani"], ["khichuri", "khichuri"], ["porota", "porota-vaji"], ["ruti", "porota-vaji"],
+    ["beef", "beef-bhuna"], ["fish", "fish-curry"], ["egg", "egg-curry"], ["chicken", "chicken-biryani"], ["veg", "mixed-veg-rice"], ["polao", "chicken-biryani"]];
+  const hit = rules.find(([k]) => t.includes(k));
+  return `/images/food/${hit ? hit[1] : slot === "breakfast" ? "porota-vaji" : "rice-dal"}.svg`;
+}
 
-function HallCard({ title, children, right }) {
+const hallDow = (dateKey) => new Date(dateKey + "T00:00:00Z").getUTCDay(); // 0 = Sunday
+
+// ---------- small shared UI ----------
+function HallCard({ title, children, right, icon, sub }) {
   return (
-    <section className="rounded-2xl border p-4 mb-4" style={hallCard}>
+    <section className="hl-sec">
       {(title || right) && (
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display font-700 text-base">{title}</h2>
+        <div className="hl-sec-head">
+          <h2 className="hl-sec-title font-display">{icon && <span className="hl-ico">{icon}</span>}{title}</h2>
           {right}
         </div>
       )}
+      {sub && <p className="hl-sub">{sub}</p>}
       {children}
     </section>
   );
 }
 
-// Home tab: proves the Hall API is reachable and shows the canteen clock.
-function HallHome({ call, user }) {
-  const [info, setInfo] = useState(null);
-  const [err, setErr] = useState(null);
-  useEffect(() => { call("/api/hall/info").then(setInfo).catch((e) => setErr(e.message)); }, []);
-  const hh = info ? String(Math.floor(info.minutes / 60)).padStart(2, "0") : "";
-  const mm = info ? String(info.minutes % 60).padStart(2, "0") : "";
+// The ON / OFF button (a real switch: tap, and the knob slides)
+function HallSwitch({ on, onChange, disabled, small, label }) {
   return (
-    <HallCard title="Welcome to the Hall">
-      <p className="text-sm" style={{ color: "var(--ink-soft)" }}>
-        The meal system: switch each meal on or off, see the weekly menu and feasts, and check your monthly bill.
-        More tabs appear here as the features are added.
-      </p>
-      {err && <p className="text-sm mt-3" style={{ color: "var(--danger-fg)" }}>{err}</p>}
-      {info && (
-        <p className="text-sm mt-3">
-          Signed in as <b>{info.userName}</b> ({info.role}) · Canteen time: <b>{info.today} {hh}:{mm}</b> ({info.timezone})
-        </p>
-      )}
-    </HallCard>
+    <button type="button" role="switch" aria-checked={!!on} aria-label={label || (on ? "ON" : "OFF")} disabled={disabled}
+      onClick={() => onChange && onChange(!on)} className={`hl-switch ${on ? "on" : ""} ${small ? "sm" : ""}`}>
+      <span className="t">{on ? "ON" : "OFF"}</span><span className="k" />
+    </button>
   );
 }
-Hall.register({ key: "home", label: "Home", order: 1, component: HallHome });
 
-function HallApp({ call, user, lang, onBack, onLogout, refreshWallet }) {
+function HallStat({ label, value, sub, icon }) {
+  return (
+    <div className="hl-stat">
+      {icon && <span className="hl-ico">{icon}</span>}
+      <div className="min-w-0">
+        <div className="l">{label}</div>
+        <div className="v font-display">{value}</div>
+        {sub && <div className="s">{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ---------- hero slider (same idea as the restaurants' offer slider) ----------
+// slides: [{ key, tag, title, text, cta?, onCta?, img?, tone? }]
+const HALL_TONES = {
+  green: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)",
+  warm: "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)",
+  rose: "linear-gradient(135deg, #E11D48 0%, #881337 100%)",
+  blue: "linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)",
+  violet: "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
+};
+function HallHero({ slides }) {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchX = useRef(null);
+  const n = slides.length;
+  useEffect(() => { if (i >= n) setI(0); }, [n]);
+  useEffect(() => {
+    if (n < 2 || paused) return;
+    const t = setInterval(() => setI((x) => (x + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [n, paused]);
+  if (n === 0) return null;
+  const go = (d) => setI((x) => (x + d + n) % n);
+  return (
+    <div className="hl-hero" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => { if (touchX.current == null) return; const dx = e.changedTouches[0].clientX - touchX.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); touchX.current = null; }}>
+      <div className="hl-hero-track" style={{ width: `${n * 100}%`, transform: `translateX(-${(i * 100) / n}%)` }}>
+        {slides.map((sl) => (
+          <div key={sl.key} className="hl-hero-slide" style={{ width: `${100 / n}%`, background: HALL_TONES[sl.tone] || HALL_TONES.green }}>
+            <div className="hl-hero-copy">
+              <span className="hl-hero-tag">{sl.tag}</span>
+              <div className="hl-hero-title font-display">{sl.title}</div>
+              {sl.text && <div className="hl-hero-text">{sl.text}</div>}
+              {sl.cta && <button type="button" className="hl-hero-cta" onClick={sl.onCta}>{sl.cta}</button>}
+            </div>
+            {sl.img && <img className="hl-hero-img" src={sl.img} alt="" onError={(e) => { e.target.style.display = "none"; }} />}
+          </div>
+        ))}
+      </div>
+      {n > 1 && (
+        <>
+          <button type="button" aria-label="Previous" className="hl-hero-arrow" style={{ left: 10 }} onClick={() => go(-1)}>‹</button>
+          <button type="button" aria-label="Next" className="hl-hero-arrow" style={{ right: 10 }} onClick={() => go(1)}>›</button>
+          <div className="hl-hero-dots">
+            {slides.map((sl, k) => <button type="button" key={sl.key} aria-label={"Slide " + (k + 1)} onClick={() => setI(k)} style={{ width: k === i ? 18 : 6, opacity: k === i ? 1 : 0.5 }} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Collects what the hero shows: today's three meals, a "closing soon" warning, upcoming feasts and a week summary.
+// Reloads when the tab changes and whenever a meal is switched (meals.jsx fires "hall-changed").
+function useHallHeroSlides(call, user, goTab, refreshKey) {
+  const [d, setD] = useState({});
+  const isMember = user.role !== "admin";
+  useEffect(() => {
+    let dead = false;
+    const safe = (p) => p.catch(() => null);
+    const load = async () => {
+      const [info, menu, feasts, meals, slots] = await Promise.all([
+        safe(call("/api/hall/info")), safe(call("/api/hall/menu")), safe(call("/api/hall/feasts")),
+        isMember ? safe(call("/api/hall/meals")) : Promise.resolve(null), safe(call("/api/hall/slots")),
+      ]);
+      if (!dead) setD({ info, menu, feasts, meals, slots });
+    };
+    load();
+    const onChange = () => load();
+    window.addEventListener("hall-changed", onChange);
+    return () => { dead = true; window.removeEventListener("hall-changed", onChange); };
+  }, [refreshKey]);
+
+  return useMemo(() => {
+    const { info, menu, feasts, meals, slots } = d;
+    const out = [];
+    const today = info && info.today;
+    const todayCells = meals && today ? (meals.days.find((x) => x.date === today) || {}).slots : null;
+
+    if (meals) { // member: the meal that closes first, within a day
+      let soon = null;
+      meals.days.forEach((day) => HALL_SLOTS.forEach((s) => {
+        const c = day.slots[s];
+        if (c && !c.locked && c.closesInMinutes <= 1440 && (!soon || c.closesInMinutes < soon.c.closesInMinutes)) soon = { c, date: day.date, slot: s };
+      }));
+      if (soon) out.push({
+        key: "soon", tone: "warm", tag: "⏰ Closing soon",
+        title: `${HALL_SLOT_LABEL[soon.slot]} closes in ${hallClosesIn(soon.c.closesInMinutes)}`,
+        text: `${hallDateLabel(soon.date)} · it is ${soon.c.status.toUpperCase()} for you right now. Change it before it locks.`,
+        cta: "Change now", onCta: () => goTab("meals"), img: "/images/food/" + (soon.slot === "breakfast" ? "porota-vaji" : "rice-dal") + ".svg",
+      });
+    }
+    if (menu && today) {
+      const day = menu.days.find((x) => x.dow === hallDow(today));
+      const tones = { breakfast: "green", lunch: "blue", dinner: "violet" };
+      const todays = HALL_SLOTS.filter((s) => day && day.slots[s]).map((s) => {
+        const c = todayCells && todayCells[s];
+        const price = slots && (slots.find((x) => x.slot === s) || {}).price;
+        const bits = [];
+        if (price != null) bits.push(`${hallTaka(price)} per plate`);
+        if (c) bits.push((c.status === "on" ? "✅ ON" : "⛔ OFF") + (c.locked ? " · locked" : ` · closes in ${hallClosesIn(c.closesInMinutes)}`));
+        return {
+          locked: !!(c && c.locked), key: "t" + s, tone: tones[s], tag: `${HALL_SLOT_EMOJI[s]} Today · ${HALL_SLOT_LABEL[s]}`,
+          title: day.slots[s], text: bits.join("  ·  "), img: hallFoodImg(day.slots[s], s),
+          cta: c && !c.locked ? "Change" : null, onCta: () => goTab("meals"),
+        };
+      });
+      todays.sort((a, b) => Number(a.locked) - Number(b.locked)).forEach((x) => out.push(x));
+    }
+    (feasts || []).slice(0, 2).forEach((x) => out.push({
+      key: "f" + x.id, tone: "rose", tag: "🎉 Feast", title: x.title,
+      text: `${hallDateLabel(x.date)} · ${HALL_SLOT_LABEL[x.slot]} — ${x.items}`, img: hallFoodImg(x.items, x.slot),
+    }));
+    if (meals) {
+      let on = 0, total = 0;
+      meals.days.forEach((day) => HALL_SLOTS.forEach((s) => { total++; if (day.slots[s].status === "on") on++; }));
+      out.push({ key: "week", tone: "blue", tag: "📅 Next 7 days", title: `${on} of ${total} meals are ON`,
+        text: "Tap a meal to switch it on or off before it closes.", cta: "Manage meals", onCta: () => goTab("meals") });
+    }
+    return out;
+  }, [d]);
+}
+
+// ---------- top bar (same bar as the restaurants: logo, tabs, theme, avatar, log out) ----------
+function HallTopBar({ user, tabs, active, setActive, onLogout, ui }) {
+  const deskRef = useRef(null);
+  const mobRef = useRef(null);
+  useEffect(() => {
+    [deskRef.current, mobRef.current].forEach((root) => {
+      const el = root && root.querySelector(".nav-pill.active");
+      if (el && el.scrollIntoView) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    });
+  }, [active]);
+  const renderTabs = (ref) => (
+    <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
+      {tabs.map((t) => (
+        <button key={t.key} onClick={() => setActive(t.key)} title={t.label} aria-label={t.label} className={`nav-pill ${active === t.key ? "active" : ""}`}>
+          <span style={{ fontSize: 15, lineHeight: 1 }}>{t.icon || "•"}</span>
+          <span className="nav-label">{t.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+  const ThemeMenu = ui && ui.ThemeMenu, Avatar = ui && ui.Avatar;
+  return (
+    <>
+      <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="logo-badge w-8 h-8 rounded-full grid place-items-center" style={{ fontSize: 16 }}>🍛</div>
+            <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
+          </div>
+          <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
+          <div className="flex-1 sm:hidden" />
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
+            <div className="hidden min-[1400px]:block text-right mr-1">
+              <div className="text-sm font-600 leading-tight">{user.name}</div>
+              <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{user.role}</div>
+            </div>
+            {Avatar && <div className="hidden sm:block" title={`${user.name} · ${user.role}`}><Avatar src={user.avatar} name={user.name} size={34} /></div>}
+            {ThemeMenu && <ThemeMenu />}
+            <button onClick={onLogout} title="Log out" aria-label="Log out" className="w-9 h-9 rounded-lg grid place-items-center hover:bg-black/5 transition-colors shrink-0" style={{ color: "var(--brick)", fontSize: 18 }}>⎋</button>
+          </div>
+        </div>
+      </div>
+      <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
+    </>
+  );
+}
+
+// ---------- Home tab ----------
+function HallMemberHome({ call, user, notify, goTab }) {
+  const m = useHallMeals(call, notify);
+  const today = m.data && m.data.today;
+  const cells = m.data && m.data.days.find((d) => d.date === today);
+  const first = String(user.name || "").split(" ")[0];
+  return (
+    <>
+      <div className="hl-greet">
+        <div>
+          <div className="font-display font-800 text-xl">Hello, {first} 👋</div>
+          <div className="text-sm hl-muted">Here are today's meals — switch any of them on or off until it closes.</div>
+        </div>
+        {today && <span className="hl-chip">📅 {hallDateLabel(today)}</span>}
+      </div>
+      {!cells ? <div className="hl-empty">Loading…</div> : (
+        <div className="hl-meals">
+          {HALL_SLOTS.map((s) => (
+            <HallMealCard key={s} slot={s} cell={cells.slots[s]} items={hallMenuFor(m.menu, today, s)}
+              price={(m.slots.find((x) => x.slot === s) || {}).price} busy={m.busyKey === today + s}
+              onToggle={() => m.toggle(today, s)} maxGuests={m.data.maxGuests} onGuests={(n) => m.setGuests(today, s, n)} />
+          ))}
+        </div>
+      )}
+      <div className="mt-4 text-center">
+        <button className="hl-btn ghost" onClick={() => goTab("meals")}>See the next 7 days →</button>
+      </div>
+    </>
+  );
+}
+
+function HallAdminHome({ call, user, notify, goTab }) {
+  const [day, setDay] = useState(null);
+  useEffect(() => { call("/api/hall/report/day").then(setDay).catch((e) => notify(e, true)); }, []);
+  return (
+    <>
+      <div className="hl-greet">
+        <div>
+          <div className="font-display font-800 text-xl">Hello, {String(user.name || "").split(" ")[0]} 👋</div>
+          <div className="text-sm hl-muted">Today's plates at a glance.</div>
+        </div>
+        {day && <span className="hl-chip">📅 {hallDateLabel(day.date)}</span>}
+      </div>
+      {!day ? <div className="hl-empty">Loading…</div> : (
+        <div className="hl-grid3">
+          {day.slots.map((s) => (
+            <div key={s.slot} className="hl-tile">
+              <div className="flex items-center justify-between">
+                <div className="font-700">{HALL_SLOT_EMOJI[s.slot]} {s.label}</div>
+                <span className={`hl-chip ${s.locked ? "plain" : "ok"}`}>{s.locked ? "🔒 final" : "open"}</span>
+              </div>
+              <div className="hl-big font-display my-2" style={{ color: "var(--gold-deep)" }}>{s.plates}</div>
+              <div className="text-xs hl-muted">plates = {s.on} ON + {s.guests} guest · {s.off} OFF of {s.members}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="mt-4 flex gap-2 flex-wrap justify-center">
+        <button className="hl-btn ghost" onClick={() => goTab("report")}>Full reports →</button>
+        <button className="hl-btn ghost" onClick={() => goTab("serve")}>Serve tokens →</button>
+      </div>
+    </>
+  );
+}
+
+function HallHome(props) {
+  return props.isAdmin ? <HallAdminHome {...props} /> : <HallMemberHome {...props} />;
+}
+Hall.register({ key: "home", label: "Home", icon: "🏠", order: 1, component: HallHome });
+
+function HallApp({ call, user, lang, onBack, onLogout, refreshWallet, ui }) {
   const tabs = Hall.tabs.filter((t) => !t.roles || t.roles.includes(user.role));
   const [tab, setTab] = useState(tabs[0].key);
   const [toast, setToast] = useState(null);
@@ -57,43 +309,37 @@ function HallApp({ call, user, lang, onBack, onLogout, refreshWallet }) {
     toastTimer.current = setTimeout(() => setToast(null), 3500);
   };
   const Active = (tabs.find((t) => t.key === tab) || tabs[0]).component;
+  const slides = useHallHeroSlides(call, user, setTab, tab);
 
   return (
-    <div className="min-h-screen p-4 md:p-6" style={{ color: "var(--ink)" }}>
-      <div className="max-w-4xl mx-auto fade-in">
-        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-          <div>
-            <div className="font-display gold-text text-2xl font-800">🍛 Hall</div>
-            <div className="text-xs opacity-70">{user.name} · {user.role}</div>
-          </div>
-          <div className="flex gap-2">
-            <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onBack}>← Restaurants</button>
-            <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onLogout}>Log out</button>
-          </div>
-        </div>
+    <div className="min-h-screen hl" style={{ color: "var(--ink)" }}>
+      <HallTopBar user={user} tabs={tabs} active={tab} setActive={setTab} onLogout={onLogout} ui={ui} />
 
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {tabs.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className="px-3 py-1.5 rounded-lg text-sm border whitespace-nowrap"
-              style={t.key === tab
-                ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" }
-                : { background: "transparent", color: "var(--ink)", borderColor: "var(--line)" }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {toast && (
-          <div className="rounded-xl border px-3 py-2 mb-4 text-sm"
+      {toast && (
+        <div className="fixed top-[76px] right-4 z-50 w-[min(90vw,340px)]">
+          <div className="hl-toast fade-in shadow-lg"
             style={toast.isError
               ? { background: "var(--danger-bg)", color: "var(--danger-fg)", borderColor: "var(--danger-border)" }
               : { background: "var(--ok-bg)", color: "var(--ok-fg)", borderColor: "var(--ok-border)" }}>
-            {toast.message}
+            <span>{toast.isError ? "⚠️" : "✅"}</span><span className="flex-1">{toast.message}</span>
           </div>
-        )}
+        </div>
+      )}
 
-        <Active call={call} user={user} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} />
+      <div className="hl-strip">
+        <div className="flex items-center gap-2.5">
+          <img src="/images/restaurants/hall.svg" alt="" />
+          <div className="leading-tight">
+            <div className="text-sm font-700">Hall</div>
+            <div className="text-[11px] opacity-60">Meal system</div>
+          </div>
+        </div>
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onBack}>← Restaurants</button>
+      </div>
+
+      <div className="hl-wrap fade-in" key={tab}>
+        {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
+        <Active call={call} user={user} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} goTab={setTab} />
       </div>
     </div>
   );
