@@ -15,12 +15,13 @@ function ensureChatColumns() {
       };
       await add("deleted_at", "deleted_at DATETIME NULL");
       await add("reply_to_id", "reply_to_id INT NULL");
+      await pool.query("CREATE TABLE IF NOT EXISTS chat_presence (user_id INT NOT NULL PRIMARY KEY, last_seen DATETIME NOT NULL)");
     })().catch((error) => { chatColumnsReady = null; throw error; });
   }
   return chatColumnsReady;
 }
 router.use(async (req, res, next) => {
-  try { await ensureChatColumns(); next(); }
+  try { await ensureChatColumns(); hookPresence(req.app.get("io")); next(); }
   catch (error) { console.error("Chat schema check failed:", error); res.status(500).json({ error: "Chat is not ready" }); }
 });
 const MAX_MESSAGE_LENGTH = 4000;
@@ -295,15 +296,55 @@ router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "a
   }
 });
 
-// Online status. Admin: which students/teachers are online. Everyone else: only whether an admin is online.
-router.get("/presence", verifyToken, requireRole("student", "teacher", "admin"), (req, res) => {
-  const io = req.app.get("io");
-  const live = io && io.sockets && io.sockets.sockets ? [...io.sockets.sockets.values()].filter((s) => s.user) : [];
-  if (req.user.role === "admin") {
-    const online = [...new Set(live.filter((s) => s.user.role !== "admin").map((s) => Number(s.user.id)))];
-    return res.json({ online });
+// Remember when each user was last online. Hooks the live socket connections the first time any chat request arrives.
+let presenceHooked = false;
+function hookPresence(io) {
+  if (presenceHooked || !io || !io.sockets) return;
+  presenceHooked = true;
+  const liveIds = () => [...new Set([...io.sockets.sockets.values()].filter((s) => s.user).map((s) => Number(s.user.id)))];
+  const stamp = (ids) => {
+    if (!ids.length) return;
+    pool.query("INSERT INTO chat_presence (user_id, last_seen) VALUES " + ids.map(() => "(?, NOW())").join(", ") + " ON DUPLICATE KEY UPDATE last_seen = NOW()", ids)
+      .catch((error) => console.error("Presence update failed:", error.message));
+  };
+  const watch = (socket) => {
+    if (!socket.user) return;
+    const uid = Number(socket.user.id);
+    socket.on("disconnect", () => {
+      const stillOnline = [...io.sockets.sockets.values()].some((s) => s.id !== socket.id && s.user && Number(s.user.id) === uid);
+      if (!stillOnline) stamp([uid]);
+    });
+  };
+  io.sockets.sockets.forEach(watch);
+  io.on("connection", watch);
+  stamp(liveIds());
+  setInterval(() => stamp(liveIds()), 60000).unref();
+}
+
+// Online status + "last seen". Admin: online students/teachers, and how long ago the offline ones were seen.
+// Everyone else: only whether an admin is online and when an admin was last seen.
+router.get("/presence", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const live = io && io.sockets && io.sockets.sockets ? [...io.sockets.sockets.values()].filter((s) => s.user) : [];
+    if (req.user.role === "admin") {
+      const online = [...new Set(live.filter((s) => s.user.role !== "admin").map((s) => Number(s.user.id)))];
+      const [rows] = await pool.query(
+        "SELECT p.user_id, TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role <> 'admin'"
+      );
+      const lastSeen = {};
+      for (const row of rows) if (!online.includes(Number(row.user_id))) lastSeen[row.user_id] = Math.max(0, Number(row.ago));
+      return res.json({ online, lastSeen });
+    }
+    const adminOnline = live.some((s) => s.user.role === "admin");
+    const [[row]] = await pool.query(
+      "SELECT TIMESTAMPDIFF(SECOND, MAX(p.last_seen), NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role = 'admin'"
+    );
+    res.json({ adminOnline, adminAgoSeconds: row && row.ago !== null ? Math.max(0, Number(row.ago)) : null });
+  } catch (error) {
+    console.error("Failed to load presence:", error);
+    res.status(500).json({ error: "Failed to load presence" });
   }
-  res.json({ adminOnline: live.some((s) => s.user.role === "admin") });
 });
 
 module.exports = router;

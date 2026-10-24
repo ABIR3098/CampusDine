@@ -485,6 +485,10 @@
 .chat-online-count{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
 .chat-online-count .chat-dot{position:static;width:8px;height:8px;border:0}
 
+/*chat-ui9*/
+.chat-item-role{text-transform:none;letter-spacing:0;font-size:11px}
+.chat-item-role::first-letter{text-transform:uppercase}
+
 </style>
 </head>
 <body>
@@ -5378,6 +5382,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [replyTo, setReplyTo] = useState(null);
   const [onlineIds, setOnlineIds] = useState([]);
   const [adminOnline, setAdminOnline] = useState(null);
+  const [lastSeen, setLastSeen] = useState({});
+  const [adminAgo, setAdminAgo] = useState(null);
   const [flashId, setFlashId] = useState(null);
   const [dividerId, setDividerId] = useState(null);
   const [atBottom, setAtBottom] = useState(true);
@@ -5410,7 +5416,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
 
   const refreshPresence = async () => {
     const d = await chatCall("/api/chat/presence");
-    if (isAdmin) setOnlineIds((d.online || []).map(Number)); else setAdminOnline(!!d.adminOnline);
+    if (isAdmin) { setOnlineIds((d.online || []).map(Number)); setLastSeen(d.lastSeen || {}); }
+    else { setAdminOnline(!!d.adminOnline); setAdminAgo(d.adminAgoSeconds ?? null); }
   };
   useEffect(() => {
     (isAdmin ? refreshConversations() : refreshMessages()).catch(e => setError(e.message));
@@ -5532,6 +5539,17 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
+  const agoText = (sec) => {
+    if (sec === null || sec === undefined) return "";
+    if (sec < 60) return "just now";
+    const mins = Math.floor(sec / 60);
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  };
+  const headAgo = isAdmin ? (selectedUserId ? lastSeen[String(selectedUserId)] : undefined) : adminAgo;
   const withDot = (name, size, online) => (
     <span className="chat-avatar"><Avatar name={name} size={size} />{online !== undefined && <i className={`chat-dot ${online ? "on" : ""}`} />}</span>
   );
@@ -5691,7 +5709,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                       <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
                       {unread && <span className="chat-badge">{c.unread_count}</span>}
                     </span>
-                    <span className="chat-item-role">{c.role}</span>
+                    <span className="chat-item-role">{c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
                   </span>
                 </button>
               );
@@ -5708,7 +5726,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
               {typing ? <span className="chat-typing-text">typing…</span> : (
               <>
-                {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}</span>}
+                {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
                 {headOnline !== undefined && " · "}
                 {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
               </>
