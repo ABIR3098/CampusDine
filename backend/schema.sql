@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_method ENUM('wallet','cash') NOT NULL,
   pickup_time DATETIME NULL,
   note VARCHAR(255) NULL,
+  delivery_note VARCHAR(255) NULL,
   status ENUM('Received','Cooking','Ready','Cancelled') NOT NULL DEFAULT 'Received',
   rider_id INT NULL,
   rider_assignment_status ENUM('Unassigned','Assigned','Accepted','Declined','Completed') NOT NULL DEFAULT 'Unassigned',

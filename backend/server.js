@@ -518,6 +518,24 @@ async function ensureProfilePictureAndMenuImages(db) {
   }
 }
 
+// Fix 7: two columns the code already uses but no schema step ever created.
+async function ensureFixColumns(db) {
+  try {
+    const [deliveryNote] = await db.query("SHOW COLUMNS FROM orders LIKE 'delivery_note'");
+    if (deliveryNote.length === 0) {
+      await db.query("ALTER TABLE orders ADD COLUMN delivery_note VARCHAR(255) NULL");
+      console.log("✅ Added orders.delivery_note column");
+    }
+    const [deletedAt] = await db.query("SHOW COLUMNS FROM chat_messages LIKE 'deleted_at'");
+    if (deletedAt.length === 0) {
+      await db.query("ALTER TABLE chat_messages ADD COLUMN deleted_at DATETIME NULL");
+      console.log("✅ Added chat_messages.deleted_at column");
+    }
+  } catch (error) {
+    console.warn("⚠️ Could not add the delivery_note / deleted_at columns:", error.message);
+  }
+}
+
 async function runStartupCheck() {
   console.log("\n🔧 CampusDine startup check running...\n");
 
@@ -593,6 +611,7 @@ async function runStartupCheck() {
   await ensureTrackingSchema(db);
   await ensureChatSchema(db);
   await ensureNoteAndAvailabilitySchema(db);
+  await ensureFixColumns(db);
   await ensureProfilePictureAndMenuImages(db);
   await ensureAccountAndQrSchema(db);
   await ensureMealPlanSchema(db);
@@ -703,4 +722,7 @@ runStartupCheck().then(() => {
     console.log(`🚀 CampusDine is running → http://localhost:${PORT}`);
     hall.startJobs();
   });
+}).catch((err) => {
+  console.error("❌ Startup failed:", err.message);
+  process.exit(1);
 });
