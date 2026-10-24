@@ -456,6 +456,25 @@
 .chat-unread{display:flex;align-items:center;gap:10px;margin:12px 0 6px;color:var(--gold);font-size:11px;font-weight:700}
 .chat-unread:before,.chat-unread:after{content:"";flex:1;height:1px;background:var(--gold);opacity:.45}
 
+/*chat-ui7*/
+.chat-reply-btn{align-self:center;width:26px;height:26px;border-radius:999px;color:var(--ink-soft);font-size:15px;line-height:1;opacity:0;transition:opacity .12s,background .12s}
+.chat-row:hover .chat-reply-btn,.chat-reply-btn:focus-visible{opacity:1}
+@media (hover:none){.chat-reply-btn{opacity:.55}}
+.chat-reply-btn:hover{background:var(--hover);color:var(--gold)}
+.chat-quote{display:flex;flex-direction:column;gap:1px;width:100%;text-align:left;margin:0 0 6px;padding:5px 9px;border-radius:8px;border-left:3px solid var(--gold);background:rgba(127,127,127,.16);font-size:12px;line-height:1.35;color:inherit}
+.chat-quote b{font-size:11px;color:var(--gold)}
+.chat-bubble.mine .chat-quote{border-left-color:rgba(255,255,255,.85)}
+.chat-bubble.mine .chat-quote b{color:#fff}
+.chat-quote span{opacity:.88;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.chat-replybar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-top:1px solid var(--line);animation:chatIn .15s ease}
+.chat-replybar>div{flex:1;min-width:0;border-left:3px solid var(--gold);padding-left:10px;display:flex;flex-direction:column}
+.chat-replybar b{font-size:12px;color:var(--gold)}
+.chat-replybar span{font-size:12.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-replybar button{width:28px;height:28px;border-radius:999px;color:var(--ink-soft)}
+.chat-replybar button:hover{background:var(--hover)}
+@keyframes chatFlash{0%,100%{box-shadow:0 0 0 0 transparent}30%{box-shadow:0 0 0 4px var(--gold-soft),0 0 0 6px var(--gold)}}
+.chat-row.flash .chat-bubble{animation:chatFlash 1.2s ease}
+
 </style>
 </head>
 <body>
@@ -5346,6 +5365,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [myOrders, setMyOrders] = useState(null);
   const [typing, setTyping] = useState(false);
   const [menuFor, setMenuFor] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [flashId, setFlashId] = useState(null);
   const [dividerId, setDividerId] = useState(null);
   const [atBottom, setAtBottom] = useState(true);
   const [newBelow, setNewBelow] = useState(0);
@@ -5398,7 +5419,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   useEffect(() => {
     initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
     stickRef.current = true; prevLen.current = 0;
-    setDividerId(null); setNewBelow(0); setAtBottom(true);
+    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null);
     if (isAdmin) setMessages([]);
   }, [selectedUserId]);
   // First load of a conversation: remember where the unread messages start
@@ -5447,22 +5468,31 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     const message = (text ?? draft).trim();
     if (!message || busy || (isAdmin && !selectedUserId)) return;
     setBusy(true); setError("");
-    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true };
+    const reply = replyTo;
+    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true,
+      ...(reply ? { reply_to_id: reply.id, reply_sender_id: reply.sender_id, reply_sender_name: reply.sender_name, reply_text: shortText(reply.message) } : {}) };
     setMessages(m => [...m, temp]);
-    setDraft("");
+    setDraft(""); setEmojiOpen(false); setOrderOpen(false); setReplyTo(null);
+    lastTypingSent.current = 0; emitTyping(false);
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
-      await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}) } });
+      await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}) } });
       await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
     } catch (e) {
       setMessages(m => m.filter(x => x.id !== temp.id));
-      setDraft(message);
+      setDraft(message); setReplyTo(reply);
       setError(e.message || tx("chat.sendfail"));
     } finally { setBusy(false); }
   };
-  const onKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  const onKey = (e) => {
+    if (e.key === "Escape" && replyTo) { setReplyTo(null); return; }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  };
   const onInput = (e) => {
     setDraft(e.target.value);
+    const nowTs = Date.now();
+    if (e.target.value && nowTs - lastTypingSent.current > 2000) { lastTypingSent.current = nowTs; emitTyping(true); }
+    if (!e.target.value) { lastTypingSent.current = 0; emitTyping(false); }
     e.target.style.height = "auto";
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
   };
@@ -5483,6 +5513,74 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
   const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
   const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+  const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
+  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+  const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const shortText = (t) => { const mt = /^🧾 Order (\S+)/.exec(t || ""); return mt ? `🧾 Order ${mt[1]}` : (t || ""); };
+  const startReply = (m) => { setReplyTo(m); setMenuFor(null); inputRef.current?.focus(); };
+  const jumpToMessage = (id) => {
+    const box = scrollRef.current, el = box && box.querySelector(`[data-mid="${id}"]`);
+    if (!el) return;
+    const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - 80;
+    if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
+    setFlashId(id); setTimeout(() => setFlashId(null), 1400);
+  };
+  const deleteMsg = async (m) => {
+    setMenuFor(null);
+    if (!window.confirm("Delete this message for everyone?")) return;
+    try {
+      await chatCall(`/api/chat/messages/${m.id}`, { method: "DELETE" });
+      setMessages(list => list.map(x => x.id === m.id ? { ...x, message: "", deleted_at: new Date().toISOString() } : x));
+      if (isAdmin) refreshConversations().catch(() => {});
+    } catch (e) { setError(e.message); }
+  };
+  const copyMsg = (m) => { setMenuFor(null); try { navigator.clipboard.writeText(m.message); } catch (e) {} };
+  useEffect(() => {
+    if (menuFor === null) return;
+    const close = () => setMenuFor(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuFor]);
+  const emitTyping = (on) => {
+    const sock = window.__campusSocket;
+    if (!sock || (isAdmin && !selectedUserId)) return;
+    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
+  };
+  useEffect(() => {
+    const onTyping = (e) => {
+      const d = e.detail || {};
+      if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
+      clearTimeout(typingTimer.current);
+      setTyping(!!d.typing);
+      if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
+    };
+    window.addEventListener("chat-typing", onTyping);
+    return () => { window.removeEventListener("chat-typing", onTyping); clearTimeout(typingTimer.current); };
+  }, [isAdmin, selectedUserId]);
+  useEffect(() => { setTyping(false); }, [selectedUserId, messages.length]);
+  const parseOrder = (text) => {
+    const mt = /^🧾 Order (\S+) \| ([^|]+) \| ([^|]+) \| ([\s\S]*)$/.exec(text || "");
+    return mt ? { token: mt[1], status: mt[2].trim(), total: mt[3].trim(), items: mt[4].trim() } : null;
+  };
+  const openOrders = async () => {
+    setEmojiOpen(false);
+    const next = !orderOpen;
+    setOrderOpen(next);
+    if (next && myOrders === null) {
+      try {
+        const list = await chatCall("/api/orders/mine");
+        setMyOrders(Array.isArray(list) ? list.slice(0, 6) : []);
+      } catch (e) { setMyOrders([]); setError(e.message); }
+    }
+  };
+  const shareOrder = (o) => {
+    const items = (o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 200) || "-";
+    send(`🧾 Order ${o.token} | ${o.status} | ${taka(o.total)} | ${items}`);
+  };
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; }
+  }, [draft]);
 
   const di = dividerId ? messages.findIndex(m => m.id === dividerId) : -1;
   const unreadN = di < 0 ? 0 : messages.slice(di).filter(m => Number(m.sender_id) !== Number(userId) && !m.deleted_at).length;
@@ -5497,13 +5595,46 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
     const last = !next || Number(next.sender_id) !== Number(m.sender_id);
     rows.push(
-      <div key={m.id} className={`chat-row ${mine ? "mine" : ""}`}>
+      <div key={m.id} data-mid={m.id} className={`chat-row ${mine ? "mine" : ""} ${flashId === m.id ? "flash" : ""}`}>
         {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
+        {mine && !m.pending && !m.deleted_at && (
+          <div className="chat-more-wrap">
+            <button type="button" className="chat-more" aria-label="Message options"
+              onClick={e => { e.stopPropagation(); setMenuFor(menuFor === m.id ? null : m.id); }}>⋯</button>
+            {menuFor === m.id && (
+              <div className="chat-menu" onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={() => copyMsg(m)}>Copy</button>
+                <button type="button" className="danger" onClick={() => deleteMsg(m)}>Delete</button>
+              </div>
+            )}
+          </div>
+        )}
+        {mine && !m.pending && !m.deleted_at && (
+          <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
+        )}
         <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
-          <p>{m.message}</p>
+          {m.reply_to_id && !m.deleted_at && (
+            <button type="button" className="chat-quote" onClick={() => jumpToMessage(m.reply_to_id)}>
+              <b>{Number(m.reply_sender_id) === Number(userId) ? "You" : (m.reply_sender_name || "Message")}</b>
+              <span>{m.reply_deleted ? "🚫 Message deleted" : shortText(m.reply_text)}</span>
+            </button>
+          )}
+          {m.deleted_at ? <p className="chat-deleted">🚫 This message was deleted</p> : (() => {
+            const oc = parseOrder(m.message);
+            return oc ? (
+              <div className="chat-order">
+                <div className="chat-order-top"><span className="chat-order-token">🧾 {oc.token}</span><span className="chat-order-status">{oc.status}</span></div>
+                <div className="chat-order-items">{oc.items}</div>
+                <div className="chat-order-total">{oc.total}</div>
+              </div>
+            ) : <p>{m.message}</p>;
+          })()}
           <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
         </div>
+        {!mine && !m.pending && !m.deleted_at && (
+          <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
+        )}
       </div>
     );
   });
@@ -5528,7 +5659,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                   <span className="chat-item-body">
                     <span className="chat-item-top">
                       <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
-                      <span className="chat-item-time">{listTime(c.last_at || c.last_message_at)}</span>
+                      <span className="chat-item-time">{listTime(c.updated_at || c.last_at)}</span>
                     </span>
                     <span className="chat-item-bottom">
                       <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
@@ -5549,7 +5680,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           <div style={{ minWidth: 0, flex: 1 }}>
             <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
-              {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+              {typing ? <span className="chat-typing-text">typing…</span> : (isAdmin ? selected?.role || "Admin inbox" : tx("chat.private"))}
             </p>
           </div>
           <span className="chat-pill">{tx("chat.support")}</span>
@@ -5568,6 +5699,12 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               )}
             </div>
           ) : rows}
+          {typing && (
+            <div className="chat-row">
+              <div style={{ width: 30 }}><Avatar name={heading} size={30} /></div>
+              <div className="chat-bubble theirs first last chat-typing"><i /><i /><i /></div>
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
         {!atBottom && messages.length > 0 && (
@@ -5582,7 +5719,38 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
           </div>
         )}
+        {replyTo && (
+          <div className="chat-replybar">
+            <div>
+              <b>Replying to {Number(replyTo.sender_id) === Number(userId) ? "yourself" : (replyTo.sender_name || heading)}</b>
+              <span>{shortText(replyTo.message)}</span>
+            </div>
+            <button type="button" aria-label="Cancel reply" onClick={() => setReplyTo(null)}>✕</button>
+          </div>
+        )}
         <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+          {!isAdmin && (
+            <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
+          )}
+          {orderOpen && !isAdmin && (
+            <div className="chat-order-panel">
+              {myOrders === null ? <p className="chat-order-note">Loading…</p>
+                : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
+                : myOrders.map(o => (
+                  <button key={o.token} type="button" className="chat-order-pick" onClick={() => shareOrder(o)}>
+                    <b>{o.token} · {o.status} · {taka(o.total)}</b>
+                    <small>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 70)}</small>
+                  </button>
+                ))}
+            </div>
+          )}
+          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => { setOrderOpen(false); setEmojiOpen(o => !o); }}
+            disabled={isAdmin && !selectedUserId}>😊</button>
+          {emojiOpen && (
+            <div className="chat-emoji-panel">
+              {emojis.map(em => <button key={em} type="button" onClick={() => addEmoji(em)}>{em}</button>)}
+            </div>
+          )}
           <div className="chat-input-wrap">
             <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
               disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />

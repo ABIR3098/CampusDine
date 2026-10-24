@@ -4,6 +4,25 @@ const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 
 const router = express.Router();
+
+let chatColumnsReady = null;
+function ensureChatColumns() {
+  if (!chatColumnsReady) {
+    chatColumnsReady = (async () => {
+      const add = async (col, ddl) => {
+        const [rows] = await pool.query("SHOW COLUMNS FROM chat_messages LIKE '" + col + "'");
+        if (rows.length === 0) await pool.query("ALTER TABLE chat_messages ADD COLUMN " + ddl);
+      };
+      await add("deleted_at", "deleted_at DATETIME NULL");
+      await add("reply_to_id", "reply_to_id INT NULL");
+    })().catch((error) => { chatColumnsReady = null; throw error; });
+  }
+  return chatColumnsReady;
+}
+router.use(async (req, res, next) => {
+  try { await ensureChatColumns(); next(); }
+  catch (error) { console.error("Chat schema check failed:", error); res.status(500).json({ error: "Chat is not ready" }); }
+});
 const MAX_MESSAGE_LENGTH = 4000;
 
 async function getAdminId(connection) {
@@ -52,8 +71,13 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
     );
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
+              m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
+              CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
+              (r.id IS NOT NULL AND r.deleted_at IS NOT NULL) AS reply_deleted,
               u.name AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
+       LEFT JOIN chat_messages r ON r.id = m.reply_to_id AND r.conversation_id = m.conversation_id
+       LEFT JOIN users ru ON ru.id = r.sender_id
        WHERE m.conversation_id = ? ORDER BY m.id ASC`,
       [conversation.id]
     );
@@ -94,8 +118,13 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
     );
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
+              m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
+              CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
+              (r.id IS NOT NULL AND r.deleted_at IS NOT NULL) AS reply_deleted,
               u.name AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
+       LEFT JOIN chat_messages r ON r.id = m.reply_to_id AND r.conversation_id = m.conversation_id
+       LEFT JOIN users ru ON ru.id = r.sender_id
        WHERE m.conversation_id = ? ORDER BY m.id ASC`,
       [conversation.id]
     );
@@ -146,9 +175,14 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "admin")
       "SELECT id FROM chat_conversations WHERE user_id = ? FOR UPDATE",
       [userId]
     );
+    let replyToId = Number(req.body.replyTo);
+    if (Number.isInteger(replyToId) && replyToId > 0) {
+      const [[target]] = await connection.query("SELECT id FROM chat_messages WHERE id = ? AND conversation_id = ?", [replyToId, conversation.id]);
+      if (!target) replyToId = null;
+    } else replyToId = null;
     const [result] = await connection.query(
-      "INSERT INTO chat_messages (conversation_id, sender_id, recipient_id, message) VALUES (?, ?, ?, ?)",
-      [conversation.id, req.user.id, recipientId, message]
+      "INSERT INTO chat_messages (conversation_id, sender_id, recipient_id, message, reply_to_id) VALUES (?, ?, ?, ?, ?)",
+      [conversation.id, req.user.id, recipientId, message, replyToId]
     );
     await connection.query("UPDATE chat_conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [conversation.id]);
     await connection.commit();
