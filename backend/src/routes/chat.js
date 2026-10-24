@@ -295,4 +295,15 @@ router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "a
   }
 });
 
+// Online status. Admin: which students/teachers are online. Everyone else: only whether an admin is online.
+router.get("/presence", verifyToken, requireRole("student", "teacher", "admin"), (req, res) => {
+  const io = req.app.get("io");
+  const live = io && io.sockets && io.sockets.sockets ? [...io.sockets.sockets.values()].filter((s) => s.user) : [];
+  if (req.user.role === "admin") {
+    const online = [...new Set(live.filter((s) => s.user.role !== "admin").map((s) => Number(s.user.id)))];
+    return res.json({ online });
+  }
+  res.json({ adminOnline: live.some((s) => s.user.role === "admin") });
+});
+
 module.exports = router;

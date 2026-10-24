@@ -476,6 +476,15 @@
 @keyframes chatFlash{0%,100%{box-shadow:0 0 0 0 transparent}30%{box-shadow:0 0 0 4px var(--gold-soft),0 0 0 6px var(--gold)}}
 .chat-row.flash .chat-bubble{animation:chatFlash 1.2s ease}
 
+/*chat-ui8*/
+.chat-avatar{position:relative;display:inline-flex;flex-shrink:0}
+.chat-dot{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;background:#9aa0a6;border:2px solid var(--panel);box-sizing:border-box}
+.chat-dot.on{background:#22c55e}
+.chat-online-text{color:#22c55e;font-weight:600}
+.chat-inbox-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chat-online-count{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)}
+.chat-online-count .chat-dot{position:static;width:8px;height:8px;border:0}
+
 </style>
 </head>
 <body>
@@ -5367,6 +5376,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [typing, setTyping] = useState(false);
   const [menuFor, setMenuFor] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
+  const [onlineIds, setOnlineIds] = useState([]);
+  const [adminOnline, setAdminOnline] = useState(null);
   const [flashId, setFlashId] = useState(null);
   const [dividerId, setDividerId] = useState(null);
   const [atBottom, setAtBottom] = useState(true);
@@ -5397,8 +5408,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     setMessages(data.messages || []);
   };
 
+  const refreshPresence = async () => {
+    const d = await chatCall("/api/chat/presence");
+    if (isAdmin) setOnlineIds((d.online || []).map(Number)); else setAdminOnline(!!d.adminOnline);
+  };
   useEffect(() => {
     (isAdmin ? refreshConversations() : refreshMessages()).catch(e => setError(e.message));
+    refreshPresence().catch(() => {});
   }, [isAdmin, apiBase, sessionToken, refreshKey]);
   useEffect(() => {
     if (!isAdmin || selectedUserId || conversations.length === 0) return;
@@ -5412,6 +5428,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   useEffect(() => {
     const t = setInterval(() => {
       if (document.hidden) return;
+      refreshPresence().catch(() => {});
       (isAdmin ? Promise.all([refreshConversations(), refreshMessages()]) : refreshMessages()).catch(() => {});
     }, 10000);
     return () => clearInterval(t);
@@ -5513,6 +5530,11 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
 
   const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
   const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const isOnline = (id) => onlineIds.includes(Number(id));
+  const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
+  const withDot = (name, size, online) => (
+    <span className="chat-avatar"><Avatar name={name} size={size} />{online !== undefined && <i className={`chat-dot ${online ? "on" : ""}`} />}</span>
+  );
   const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
@@ -5645,7 +5667,10 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
       {isAdmin && (
         <aside className="card chat-inbox">
           <div className="chat-inbox-head">
-            <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
+            <div className="chat-inbox-title">
+              <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
+              <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
+            </div>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search students & teachers…" className="chat-search" />
           </div>
           <div className="chat-inbox-list">
@@ -5656,7 +5681,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               return (
                 <button key={c.user_id} className={`chat-item ${active ? "active" : ""}`}
                   onClick={() => { setSelectedUserId(c.user_id); setMobileChat(true); }}>
-                  <Avatar name={c.name} size={42} />
+                  {withDot(c.name, 42, isOnline(c.user_id))}
                   <span className="chat-item-body">
                     <span className="chat-item-top">
                       <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
@@ -5677,11 +5702,17 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
       <div className="card chat-panel">
         <header className="chat-head">
           {isAdmin && <button className="chat-back" onClick={() => setMobileChat(false)} aria-label="Back"><Icon path="M15 18l-6-6 6-6" /></button>}
-          <Avatar name={heading} size={40} />
+          {withDot(heading, 40, headOnline)}
           <div style={{ minWidth: 0, flex: 1 }}>
             <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
             <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
-              {typing ? <span className="chat-typing-text">typing…</span> : (isAdmin ? selected?.role || "Admin inbox" : tx("chat.private"))}
+              {typing ? <span className="chat-typing-text">typing…</span> : (
+              <>
+                {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}</span>}
+                {headOnline !== undefined && " · "}
+                {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+              </>
+            )}
             </p>
           </div>
           <span className="chat-pill">{tx("chat.support")}</span>
