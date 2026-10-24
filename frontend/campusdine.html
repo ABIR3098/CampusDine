@@ -491,6 +491,20 @@
 
 /*chat-ui10*/
 .chat-input-wrap textarea{overflow-y:hidden}
+/*chat-ui11*/
+.chat-input-wrap textarea{overflow-y:hidden}
+.chat-img{display:block;max-width:260px;width:100%;max-height:320px;object-fit:cover;border-radius:12px;cursor:zoom-in;background:rgba(127,127,127,.2);margin-bottom:4px}
+.chat-img-skel{width:220px;max-width:100%;height:150px;border-radius:12px;margin-bottom:4px;background:linear-gradient(90deg,rgba(127,127,127,.15),rgba(127,127,127,.3),rgba(127,127,127,.15));background-size:200% 100%;animation:chatSkel 1.2s infinite linear}
+@keyframes chatSkel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.chat-img-missing{padding:14px 18px;border-radius:12px;background:rgba(127,127,127,.18);font-size:13px;opacity:.8}
+.chat-photobar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-top:1px solid var(--line);animation:chatIn .15s ease}
+.chat-photobar img{width:48px;height:48px;border-radius:8px;object-fit:cover}
+.chat-photobar span{flex:1;font-size:12.5px;color:var(--ink-soft)}
+.chat-photobar button{width:28px;height:28px;border-radius:999px;color:var(--ink-soft)}
+.chat-photobar button:hover{background:var(--hover)}
+.chat-lightbox{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:grid;place-items:center;cursor:zoom-out;padding:24px;animation:chatIn .15s ease}
+.chat-lightbox img{max-width:min(100%,1100px);max-height:100%;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+
 </style>
 </head>
 <body>
@@ -927,6 +941,8 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "usual.title": "Your usual",
+    "usual.times": "Ordered {n} time(s)",
     "rr.title": "Rate your rider",
     "rr.ph": "How was the delivery? (optional)",
     "rr.send": "Submit rating",
@@ -1292,6 +1308,8 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "usual.title": "আপনার নিয়মিত পছন্দ",
+    "usual.times": "{n} বার অর্ডার করেছেন",
     "rr.title": "আপনার রাইডারকে রেটিং দিন",
     "rr.ph": "ডেলিভারি কেমন ছিল? (ঐচ্ছিক)",
     "rr.send": "রেটিং দিন",
@@ -2688,6 +2706,52 @@ function NutritionInfo({ item }) {
   );
 }
 
+/* Feature: your usual */
+// the (up to) 3 menu items this student has ordered in the most separate orders; unavailable items are skipped
+function pickUsual(pastOrders, menu) {
+  const counts = new Map();
+  for (const o of pastOrders || []) {
+    if (o.status === "Cancelled") continue;
+    for (const name of new Set((o.items || []).map(i => i.name))) counts.set(name, (counts.get(name) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, n]) => ({ item: menu.find(m => m.name === name), n }))
+    .filter(x => x.item && x.item.availability === "available" && Number(x.item.stock) > 0)
+    .slice(0, 3);
+}
+function UsualPanel({ pastOrders, menu, cart, add }) {
+  const usual = pickUsual(pastOrders, menu);
+  if (usual.length === 0) return null;
+  return (
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
+      <div className="font-display font-700 text-base mb-3" style={{ color: "var(--gold)" }}>🔁 {tx("usual.title")}</div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {usual.map(({ item, n }) => {
+          const inCart = cart.find(c => c.id === item.id);
+          const maxed = !!inCart && inCart.qty >= item.stock;
+          return (
+            <div key={"usual-" + item.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+              <div className="flex items-center gap-1.5">
+                <DietMark isVeg={!!item.is_veg} />
+                <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{itemName(item)}</span>
+              </div>
+              <div className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>{tx("usual.times", { n: num(n) })}</div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                <button type="button" disabled={maxed} onClick={() => add(item)}
+                  className="text-xs px-2.5 py-1.5 rounded-lg text-white disabled:opacity-50"
+                  style={{ background: inCart ? "var(--teal)" : "var(--gold)" }}>
+                  {inCart ? tx("plus1") : tx("add")}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavoritesOnly }) {
   if (items.length === 0) return null;
   return (
@@ -2807,7 +2871,7 @@ function noteToggle(note, text) {
   const added = parts.concat(text).join(", ");
   return added.length > 200 ? note : added; // no room left: leave the note as it is
 }
-function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
+function MenuOrder({ pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -2974,6 +3038,7 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
           <FavoritesFilterToggle favoritesOnly={favoritesOnly} onChange={e => setFavoritesOnly(e.target.checked)} />
           <MenuDietFilter diet={diet} setDiet={setDiet} />
         </div>
+        <UsualPanel pastOrders={pastOrders} menu={menu} cart={cart} add={add} />
         <FavoritesQuickOrderPanel items={starredItems} cart={cart} add={add}
           onToggleFavorite={onToggleFavorite} setFavoritesOnly={setFavoritesOnly} />
         {filtered.length === 0 && (
@@ -5501,6 +5566,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [typing, setTyping] = useState(false);
   const [menuFor, setMenuFor] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
+  const [pendingPhoto, setPendingPhoto] = useState(null);
+  const [lightbox, setLightbox] = useState(null);
+  const fileRef = useRef(null);
   const [onlineIds, setOnlineIds] = useState([]);
   const [adminOnline, setAdminOnline] = useState(null);
   const [lastSeen, setLastSeen] = useState({});
@@ -5565,7 +5633,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   useEffect(() => {
     initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
     stickRef.current = true; prevLen.current = 0;
-    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null);
+    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null);
     if (isAdmin) setMessages([]);
   }, [selectedUserId]);
   // First load of a conversation: remember where the unread messages start
@@ -5611,22 +5679,26 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   };
 
   const send = async (text) => {
+    const photo = text === undefined ? pendingPhoto : null;
     const message = (text ?? draft).trim();
-    if (!message || busy || (isAdmin && !selectedUserId)) return;
+    if ((!message && !photo) || busy || (isAdmin && !selectedUserId)) return;
     setBusy(true); setError("");
     const reply = replyTo;
-    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message, created_at: new Date().toISOString(), pending: true,
+    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message: message || "📷 Photo", created_at: new Date().toISOString(), pending: true,
+      ...(photo ? { image_local: photo.url } : {}),
       ...(reply ? { reply_to_id: reply.id, reply_sender_id: reply.sender_id, reply_sender_name: reply.sender_name, reply_text: shortText(reply.message) } : {}) };
     setMessages(m => [...m, temp]);
     setDraft(""); setEmojiOpen(false); setOrderOpen(false); setReplyTo(null);
+    if (photo) setPendingPhoto(null);
     lastTypingSent.current = 0; emitTyping(false);
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
-      await chatCall("/api/chat/messages", { method: "POST", body: { message, ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}) } });
+      const imageId = photo ? await uploadImage(photo.blob) : null;
+      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
       await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
     } catch (e) {
       setMessages(m => m.filter(x => x.id !== temp.id));
-      setDraft(message); setReplyTo(reply);
+      setDraft(message); setReplyTo(reply); if (photo) setPendingPhoto(photo);
       setError(e.message || tx("chat.sendfail"));
     } finally { setBusy(false); }
   };
@@ -5639,8 +5711,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     const nowTs = Date.now();
     if (e.target.value && nowTs - lastTypingSent.current > 2000) { lastTypingSent.current = nowTs; emitTyping(true); }
     if (!e.target.value) { lastTypingSent.current = 0; emitTyping(false); }
-    e.target.style.height = "auto";
-    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+    fitChatInput(e.target);
   };
 
   const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -5678,6 +5749,32 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const uploadImage = async (blob) => {
+    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : ""}`, {
+      method: "POST", headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": blob.type || "image/jpeg" }, body: blob,
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) { /* empty body */ }
+    if (!res.ok) {
+      if (data.error) throw new Error(data.error);
+      if (res.status === 404 || res.status === 405) throw new Error("Photo upload is not available yet. Restart the server, then refresh the page (Ctrl + Shift + R).");
+      if (res.status === 401 || res.status === 403) throw new Error("Please log in again to send photos.");
+      throw new Error("Photo upload failed (error " + res.status + ").");
+    }
+    return data.id;
+  };
+  const pickPhoto = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { setError("Please choose an image file"); return; }
+    try {
+      setError("");
+      const blob = await compressChatPhoto(file);
+      setPendingPhoto({ blob, url: URL.createObjectURL(blob) });
+      inputRef.current?.focus();
+    } catch (err) { setError(err.message); }
+  };
   const shortText = (t) => { const mt = /^🧾 Order (\S+)/.exec(t || ""); return mt ? `🧾 Order ${mt[1]}` : (t || ""); };
   const startReply = (m) => { setReplyTo(m); setMenuFor(null); inputRef.current?.focus(); };
   const jumpToMessage = (id) => {
@@ -5703,6 +5800,12 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
   }, [menuFor]);
+  useEffect(() => {
+    if (!lightbox) return;
+    const onEsc = (e) => { if (e.key === "Escape") setLightbox(null); };
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [lightbox]);
   const emitTyping = (on) => {
     const sock = window.__campusSocket;
     if (!sock || (isAdmin && !selectedUserId)) return;
@@ -5741,7 +5844,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   };
   useEffect(() => {
     const el = inputRef.current;
-    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; }
+    fitChatInput(el);
   }, [draft]);
 
   const di = dividerId ? messages.findIndex(m => m.id === dividerId) : -1;
@@ -5782,6 +5885,11 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               <span>{m.reply_deleted ? "🚫 Message deleted" : shortText(m.reply_text)}</span>
             </button>
           )}
+          {!m.deleted_at && (m.image_id || m.image_local) && (
+            m.image_local
+              ? <img className="chat-img" src={m.image_local} alt="Sending photo" />
+              : <ChatImage id={m.image_id} apiBase={apiBase} token={sessionToken} onOpen={setLightbox} />
+          )}
           {m.deleted_at ? <p className="chat-deleted">🚫 This message was deleted</p> : (() => {
             const oc = parseOrder(m.message);
             return oc ? (
@@ -5790,7 +5898,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                 <div className="chat-order-items">{oc.items}</div>
                 <div className="chat-order-total">{oc.total}</div>
               </div>
-            ) : <p>{m.message}</p>;
+            ) : ((m.image_id || m.image_local) && m.message === "📷 Photo") ? null : <p>{m.message}</p>;
           })()}
           <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
         </div>
@@ -5890,6 +5998,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
           </div>
         )}
+        {pendingPhoto && (
+          <div className="chat-photobar">
+            <img src={pendingPhoto.url} alt="Selected photo" />
+            <span>Photo ready. Add a caption (optional) and press send.</span>
+            <button type="button" aria-label="Remove photo" onClick={() => setPendingPhoto(null)}>✕</button>
+          </div>
+        )}
         {replyTo && (
           <div className="chat-replybar">
             <div>
@@ -5900,6 +6015,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           </div>
         )}
         <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+          <button type="button" className="chat-emoji-btn" aria-label="Send a photo" title="Send a photo"
+            onClick={() => fileRef.current?.click()} disabled={isAdmin && !selectedUserId}>📷</button>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
           {!isAdmin && (
             <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
           )}
@@ -5928,13 +6046,69 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             {draft.length > 3500 && <span className="chat-count">{draft.length}/4000</span>}
           </div>
           <button type="submit" className="chat-send" aria-label={tx("chat.send")}
-            disabled={busy || !draft.trim() || (isAdmin && !selectedUserId)}>
+            disabled={busy || (!draft.trim() && !pendingPhoto) || (isAdmin && !selectedUserId)}>
             <Icon path="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" className="w-5 h-5" />
           </button>
         </form>
       </div>
+      {lightbox && (
+        <div className="chat-lightbox" onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="Photo" />
+        </div>
+      )}
     </section>
   );
+}
+
+// Shrinks a chosen photo (max 1280px, JPEG) so it stays small enough to upload quickly.
+function compressChatPhoto(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = async () => {
+      try {
+        let scale = Math.min(1, 1280 / Math.max(img.width, img.height)), quality = 0.82, blob = null;
+        for (let i = 0; i < 6; i++) {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+          if (blob && blob.size <= 700 * 1024) break;
+          quality = Math.max(0.5, quality - 0.1); scale *= 0.85;
+        }
+        URL.revokeObjectURL(url);
+        if (!blob || blob.size > 900 * 1024) return reject(new Error("This photo is too large. Please choose a smaller one."));
+        resolve(blob);
+      } catch (e) { reject(new Error("Could not process this photo")); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("This file is not a supported photo")); };
+    img.src = url;
+  });
+}
+
+// A photo inside a chat bubble. Loaded with the login token, so only the two people in the chat can see it.
+function ChatImage({ id, apiBase, token, onOpen }) {
+  const [src, setSrc] = useState(() => (window.__chatImgCache && window.__chatImgCache[id]) || null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (src) return;
+    let alive = true;
+    fetch(`${apiBase}/api/chat/images/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => { if (!r.ok) throw new Error("missing"); return r.blob(); })
+      .then(b => {
+        const url = URL.createObjectURL(b);
+        (window.__chatImgCache = window.__chatImgCache || {})[id] = url;
+        if (alive) setSrc(url);
+      })
+      .catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, [id]);
+  if (failed) return <div className="chat-img-missing">📷 Photo unavailable</div>;
+  if (!src) return <div className="chat-img-skel" />;
+  return <img className="chat-img" src={src} alt="Chat photo" onClick={() => onOpen(src)} />;
 }
 
 /* ---------------- Profile tab (all roles) ---------------- */
@@ -7171,7 +7345,7 @@ function App() {
         {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} watching={watching} onToggleNotify={toggleNotify} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
         )}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
