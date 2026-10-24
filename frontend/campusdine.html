@@ -941,6 +941,15 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "greet.morning": "Good morning",
+    "greet.afternoon": "Good afternoon",
+    "greet.evening": "Good evening",
+    "greet.night": "Good night",
+    "meal.breakfast": "It's breakfast time",
+    "meal.lunch": "It's lunch time",
+    "meal.snack": "Snack time",
+    "meal.dinner": "It's dinner time",
+    "meal.late": "Late-night cravings?",
     "usual.title": "Your usual",
     "usual.times": "Ordered {n} time(s)",
     "rr.title": "Rate your rider",
@@ -1308,6 +1317,15 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "greet.morning": "শুভ সকাল",
+    "greet.afternoon": "শুভ দুপুর",
+    "greet.evening": "শুভ সন্ধ্যা",
+    "greet.night": "শুভ রাত্রি",
+    "meal.breakfast": "এখন সকালের নাস্তার সময়",
+    "meal.lunch": "এখন দুপুরের খাবারের সময়",
+    "meal.snack": "এখন নাস্তার সময়",
+    "meal.dinner": "এখন রাতের খাবারের সময়",
+    "meal.late": "রাতে ক্ষুধা লেগেছে?",
     "usual.title": "আপনার নিয়মিত পছন্দ",
     "usual.times": "{n} বার অর্ডার করেছেন",
     "rr.title": "আপনার রাইডারকে রেটিং দিন",
@@ -2871,8 +2889,25 @@ function noteToggle(note, text) {
   const added = parts.concat(text).join(", ");
   return added.length > 200 ? note : added; // no room left: leave the note as it is
 }
-function MenuOrder({ pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
-  const [cat, setCat] = useState("heavy");
+/* Feature: time greeting */
+function mealSlot(h) {
+  if (h >= 5 && h < 11) return { meal: "breakfast", cat: "snacks" };
+  if (h >= 11 && h < 15) return { meal: "lunch", cat: "heavy" };
+  if (h >= 15 && h < 18) return { meal: "snack", cat: "snacks" };
+  if (h >= 18 && h < 22) return { meal: "dinner", cat: "heavy" };
+  return { meal: "late", cat: "drinks" };
+}
+function greetingFor(h) {
+  if (h >= 5 && h < 12) return { key: "morning", icon: "☀️" };
+  if (h >= 12 && h < 17) return { key: "afternoon", icon: "🌤️" };
+  if (h >= 17 && h < 21) return { key: "evening", icon: "🌆" };
+  return { key: "night", icon: "🌙" };
+}
+function MenuOrder({ userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
+  const [cat, setCat] = useState(() => {
+    const c = mealSlot(new Date().getHours()).cat;
+    return menu.some(m => m.category === c) ? c : "heavy";
+  });
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("default");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -3031,6 +3066,16 @@ function MenuOrder({ pastOrders = [], menu, cart, setCart, placeOrder, walletBal
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
+        {userName && (() => {
+          const h = new Date().getHours();
+          const g = greetingFor(h);
+          return (
+            <div className="mb-4">
+              <div className="font-display font-800 text-xl" style={{ color: "var(--ink)" }}>{g.icon} {tx("greet." + g.key)}, {String(userName).split(" ")[0]}!</div>
+              <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("meal." + mealSlot(h).meal)}</div>
+            </div>
+          );
+        })()}
         <PromoSlider slides={slides} />
         <MenuCategoryTabs category={cat} setCategory={setCat} />
         <div className="flex flex-col sm:flex-row gap-2 mb-5">
@@ -7345,7 +7390,7 @@ function App() {
         {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
         )}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
