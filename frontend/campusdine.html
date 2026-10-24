@@ -920,6 +920,12 @@ const I18N = {
     "lowbal": "Your wallet balance is low ({b}). Top up to keep ordering.",
     "note.label": "Note for the kitchen (optional)",
     "note.ph": "e.g. less spicy, no onion",
+    "chip.lessspicy": "Less spicy",
+    "chip.noonion": "No onion",
+    "chip.extrasauce": "Extra sauce",
+    "chip.lessoil": "Less oil",
+    "chip.nosugar": "No sugar",
+    "chip.packsep": "Pack separately",
     "note.show": "Note",
     "rr.title": "Rate your rider",
     "rr.ph": "How was the delivery? (optional)",
@@ -1279,6 +1285,12 @@ const I18N = {
     "lowbal": "আপনার ওয়ালেটে ব্যালেন্স কম ({b})। অর্ডার চালিয়ে যেতে টপ-আপ করুন।",
     "note.label": "রান্নাঘরের জন্য নোট (ঐচ্ছিক)",
     "note.ph": "যেমন ঝাল কম, পেঁয়াজ ছাড়া",
+    "chip.lessspicy": "ঝাল কম",
+    "chip.noonion": "পেঁয়াজ ছাড়া",
+    "chip.extrasauce": "বেশি সস",
+    "chip.lessoil": "তেল কম",
+    "chip.nosugar": "চিনি ছাড়া",
+    "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
     "rr.title": "আপনার রাইডারকে রেটিং দিন",
     "rr.ph": "ডেলিভারি কেমন ছিল? (ঐচ্ছিক)",
@@ -2783,6 +2795,18 @@ function PromoSlider({ slides }) {
   );
 }
 
+/* Feature: kitchen note chips */
+const NOTE_CHIPS = ["chip.lessspicy", "chip.noonion", "chip.extrasauce", "chip.lessoil", "chip.nosugar", "chip.packsep"];
+function noteHas(note, text) {
+  return note.split(",").some(p => p.trim().toLowerCase() === text.toLowerCase());
+}
+function noteToggle(note, text) {
+  const parts = note.split(",").map(p => p.trim()).filter(Boolean);
+  const i = parts.findIndex(p => p.toLowerCase() === text.toLowerCase());
+  if (i >= 0) { parts.splice(i, 1); return parts.join(", "); }
+  const added = parts.concat(text).join(", ");
+  return added.length > 200 ? note : added; // no room left: leave the note as it is
+}
 function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState("heavy");
   const [search, setSearch] = useState("");
@@ -3115,6 +3139,16 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
               )}
               <div className="mb-4">
                 <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("note.label")}</label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {NOTE_CHIPS.map(k => {
+                    const text = tx(k);
+                    const on = noteHas(orderNote, text);
+                    return (
+                      <button key={k} type="button" onClick={() => setOrderNote(noteToggle(orderNote, text))}
+                        className={"chip text-xs px-2.5 py-1 rounded-full" + (on ? " active-chip" : "")}>{text}</button>
+                    );
+                  })}
+                </div>
                 <textarea value={orderNote} onChange={e => setOrderNote(e.target.value.slice(0, 200))} rows={2} maxLength={200}
                   placeholder={tx("note.ph")} className="w-full px-3 py-2 rounded-lg border text-sm resize-none" style={{ borderColor: "var(--line)" }} />
                 <div className="text-[10px] text-right mt-0.5" style={{ color: "var(--ink-soft)" }}>{num(orderNote.length)}/{num(200)}</div>
