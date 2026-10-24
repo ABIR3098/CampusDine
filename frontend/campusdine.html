@@ -941,6 +941,7 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "topup.short": "You need {a} more",
     "copytoken": "Copy token",
     "copied": "Copied!",
     "greet.morning": "Good morning",
@@ -1319,6 +1320,7 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "topup.short": "আরও {a} দরকার",
     "copytoken": "টোকেন কপি",
     "copied": "কপি হয়েছে!",
     "greet.morning": "শুভ সকাল",
@@ -2907,7 +2909,7 @@ function greetingFor(h) {
   if (h >= 17 && h < 21) return { key: "evening", icon: "🌆" };
   return { key: "night", icon: "🌙" };
 }
-function MenuOrder({ userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
+function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState(() => {
     const c = mealSlot(new Date().getHours()).cat;
     return menu.some(m => m.category === c) ? c : "heavy";
@@ -3309,7 +3311,15 @@ function MenuOrder({ userName, pastOrders = [], menu, cart, setCart, placeOrder,
                 </div>
               )}
               {payMethod === "wallet" && !canPay && (
-                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
+                <div className="mb-3">
+                  <p className="text-xs" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
+                  {onTopUp && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs font-600">{tx("topup.short", { a: taka(Math.max(0, total + tip - walletBalance)) })}</span>
+                      <button type="button" onClick={() => onTopUp(Math.max(0, total + tip - walletBalance))} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("topup")}</button>
+                    </div>
+                  )}
+                </div>
               )}
               <button disabled={!canCheckout || busy || !quote} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId, tip)}
                 className="btn-primary w-full py-2.5 rounded-xl">
@@ -4249,8 +4259,8 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
 }
 
 /* ---------------- Wallet tab ---------------- */
-function WalletTab({ balance, topUp, transactions, busy, onLookup, onSend }) {
-  const [amount, setAmount] = useState(100);
+function WalletTab({ balance, topUp, transactions, busy, onLookup, onSend, suggestedAmount }) {
+  const [amount, setAmount] = useState(suggestedAmount || 100);
   const [showPay, setShowPay] = useState(false);
 
   const handleConfirm = async (method) => {
@@ -7129,6 +7139,14 @@ function App() {
     return () => socket.disconnect();
   }, [session, apiBase]);
 
+  /* Feature: cart top-up shortcut */
+  const [topupSuggest, setTopupSuggest] = useState(null);
+  useEffect(() => { if (tab !== "wallet") setTopupSuggest(null); }, [tab]);
+  const goTopUp = (shortage) => {
+    setTopupSuggest(Math.min(10000, Math.max(10, Math.ceil(shortage / 10) * 10))); // rounded up to ৳10, within the ৳10,000 limit
+    setTab("wallet");
+  };
+
   const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, tip) => {
     setBusy(true); setError(null);
     try {
@@ -7420,7 +7438,7 @@ function App() {
         {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} onTopUp={goTopUp} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
         )}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
@@ -7438,7 +7456,7 @@ function App() {
         )}
         {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} />}
         {session.user.role !== "admin" && tab === "wallet" && (
-          <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy}
+          <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
             onLookup={lookupRecipient} onSend={sendMoney} />
         )}
         {tab === "chat" && (
