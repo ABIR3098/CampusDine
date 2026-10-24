@@ -921,6 +921,10 @@ const I18N = {
     "note.label": "Note for the kitchen (optional)",
     "note.ph": "e.g. less spicy, no onion",
     "note.show": "Note",
+    "rr.title": "Rate your rider",
+    "rr.ph": "How was the delivery? (optional)",
+    "rr.send": "Submit rating",
+    "rr.done": "You rated your rider",
     "tip.label": "Tip your rider (optional, paid from your wallet)",
     "tip.none": "No tip",
     "tip.total": "Total with tip: {t}",
@@ -1276,6 +1280,10 @@ const I18N = {
     "note.label": "রান্নাঘরের জন্য নোট (ঐচ্ছিক)",
     "note.ph": "যেমন ঝাল কম, পেঁয়াজ ছাড়া",
     "note.show": "নোট",
+    "rr.title": "আপনার রাইডারকে রেটিং দিন",
+    "rr.ph": "ডেলিভারি কেমন ছিল? (ঐচ্ছিক)",
+    "rr.send": "রেটিং দিন",
+    "rr.done": "আপনি রাইডারকে রেটিং দিয়েছেন",
     "tip.label": "রাইডারকে টিপ দিন (ঐচ্ছিক, ওয়ালেট থেকে কাটা হবে)",
     "tip.none": "টিপ নয়",
     "tip.total": "টিপসহ মোট: {t}",
@@ -3168,6 +3176,44 @@ function MenuOrder({ menu, cart, setCart, placeOrder, walletBalance, busy, onTog
 }
 
 /* ---------------- Track order tab ---------------- */
+/* Feature: rate your rider */
+function RiderRating({ order, apiBase, token }) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [saved, setSaved] = useState(order.rider_rating ? { rating: Number(order.rider_rating), comment: order.rider_comment } : null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const send = async () => {
+    if (rating < 1) return;
+    setBusy(true); setError("");
+    try {
+      await api(apiBase, "/api/orders/" + order.id + "/rate-rider", { method: "POST", token, body: { rating, comment } });
+      setSaved({ rating, comment: comment.trim() });
+    } catch (e) { setError(e.message || "Could not save your rating"); }
+    finally { setBusy(false); }
+  };
+  if (saved) {
+    return (
+      <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+        <div className="flex items-center gap-2">
+          <StarPicker value={saved.rating} readOnly size="w-4 h-4" />
+          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>✓ {tx("rr.done")}{order.rider_name ? " (" + order.rider_name + ")" : ""}</span>
+        </div>
+        {saved.comment && <p className="text-xs italic mt-1.5" style={{ color: "var(--ink-soft)" }}>"{saved.comment}"</p>}
+      </div>
+    );
+  }
+  return (
+    <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>🛵 {tx("rr.title")}{order.rider_name ? " — " + order.rider_name : ""}</div>
+      <StarPicker value={rating} onChange={setRating} />
+      <input type="text" value={comment} onChange={e => setComment(e.target.value.slice(0, 200))} placeholder={tx("rr.ph")}
+        className="w-full mt-2 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      {error && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{error}</p>}
+      <button type="button" disabled={busy || rating < 1} onClick={send} className="btn-primary text-xs px-3 py-1.5 rounded-lg mt-2">{tx("rr.send")}</button>
+    </div>
+  );
+}
 function StarPicker({ value, onChange, size = "w-6 h-6", readOnly = false }) {
   return (
     <div className="flex gap-1">
@@ -3572,6 +3618,9 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               </div>
               {o.status === "Ready" && (
                 <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
+              )}
+              {o.rider_id && o.picked_up_at && o.status !== "Cancelled" && (
+                <RiderRating order={o} apiBase={apiBase} token={token} />
               )}
             </div>
           </div>
@@ -4458,6 +4507,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       <p className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>Logout does not stop GPS sharing. To stop it, use Stop GPS Sharing. Keep this page open; browser closure or OS background restrictions can stop location updates.</p>
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready},{label:"Tips earned (today / total)",value:"৳" + (summary.tips_today || 0) + " / ৳" + (summary.tips_total || 0)}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
+    {summary.rating_count > 0 && <div className="card p-5"><div className="flex flex-wrap items-center gap-3"><div className="text-lg font-display font-800">Your rating</div><div className="text-2xl font-display font-800">⭐ {Number(summary.rating_avg).toFixed(1)}</div><div className="text-sm" style={{color:"var(--ink-soft)"}}>({summary.rating_count} {summary.rating_count === 1 ? "rating" : "ratings"})</div></div>{(summary.reviews || []).filter(r => r.comment).map((r, i) => <div key={i} className="text-sm mt-2" style={{color:"var(--ink-soft)"}}>{"⭐".repeat(r.rating)} “{r.comment}”</div>)}</div>}
     <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}{Number(o.tip_amount) > 0 && <span className="ml-2 text-xs font-700 px-2 py-0.5 rounded-full" style={{background:"var(--gold-soft)",color:"var(--teal-deep)"}}>🪙 Tip ৳{o.tip_amount}</span>}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
   </div></div>;
 }

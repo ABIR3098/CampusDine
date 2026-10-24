@@ -411,6 +411,9 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await addColumn("orders", "rider_rating", "TINYINT NULL");            // student's 1-5 stars for the rider
+    await addColumn("orders", "rider_comment", "VARCHAR(255) NULL");
+    await addColumn("orders", "rider_rated_at", "DATETIME NULL");
     await addColumn("orders", "tip_amount", "DECIMAL(8,2) NOT NULL DEFAULT 0");   // rider tip
     await addColumn("orders", "tip_settled", "TINYINT(1) NOT NULL DEFAULT 0");    // 1 = tip already paid to the rider / given back
 

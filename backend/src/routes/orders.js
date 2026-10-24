@@ -244,7 +244,15 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 // GET /api/orders/mine  (student/teacher) — my order history
 router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
-  res.json(await attachQueue(await attachFeedback(await attachItems(orders))));
+  const mine = await attachQueue(await attachFeedback(await attachItems(orders)));
+  // Feature: rate your rider — show the rider's name on each order
+  const riderIds = [...new Set(mine.map((o) => o.rider_id).filter(Boolean))];
+  if (riderIds.length) {
+    const [riders] = await pool.query(`SELECT id, name FROM users WHERE id IN (${riderIds.map(() => "?").join(",")})`, riderIds);
+    const names = Object.fromEntries(riders.map((r) => [r.id, r.name]));
+    for (const o of mine) o.rider_name = o.rider_id ? names[o.rider_id] || null : null;
+  }
+  res.json(mine);
 }));
 
 // GET /api/orders  (admin) — live queue
@@ -454,6 +462,27 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async
 
 // POST /api/orders/:id/feedback  (student/teacher) — rate a completed order
 // body: { rating: 1-5, comment? }
+// POST /api/orders/:id/rate-rider  (student/teacher) — one rating per delivered order
+router.post("/:id/rate-rider", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const id = Number(req.params.id);
+  const rating = Number(req.body && req.body.rating);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid order" });
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ error: "Rating must be from 1 to 5" });
+  const comment = typeof req.body.comment === "string" ? (req.body.comment.trim().slice(0, 200) || null) : null;
+
+  const [[order]] = await pool.query("SELECT id, user_id, rider_id, picked_up_at, rider_rating FROM orders WHERE id = ?", [id]);
+  if (!order || order.user_id !== req.user.id) return res.status(404).json({ error: "Order not found" });
+  if (!order.rider_id) return res.status(400).json({ error: "This order did not have a rider" });
+  if (!order.picked_up_at) return res.status(409).json({ error: "You can rate the rider after the order is delivered" });
+  if (order.rider_rating) return res.status(409).json({ error: "You already rated this rider" });
+
+  const [result] = await pool.query(
+    "UPDATE orders SET rider_rating = ?, rider_comment = ?, rider_rated_at = NOW() WHERE id = ? AND rider_rating IS NULL",
+    [rating, comment, id]);
+  if (!result.affectedRows) return res.status(409).json({ error: "You already rated this rider" });
+  res.json({ ok: true, rating, comment });
+}));
+
 router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { rating } = req.body;
   const comment = String(req.body.comment || "").trim();

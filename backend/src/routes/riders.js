@@ -105,7 +105,11 @@ router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(asyn
     `SELECT COALESCE(SUM(tip_amount), 0) AS total,
             COALESCE(SUM(CASE WHEN picked_up_at >= CURDATE() THEN tip_amount ELSE 0 END), 0) AS today
      FROM orders WHERE rider_id = ? AND tip_settled = 1`, [riderId]);
-  res.json({ ...summary, tips_total: Number(tips.total), tips_today: Number(tips.today), orders: recent });
+  // Feature: rate your rider — average stars and the latest comments (the student's name is not shown)
+  const [[rt]] = await pool.query("SELECT COALESCE(AVG(rider_rating), 0) AS avg, COUNT(rider_rating) AS cnt FROM orders WHERE rider_id = ? AND rider_rating IS NOT NULL", [riderId]);
+  const [reviews] = await pool.query(
+    "SELECT rider_rating AS rating, rider_comment AS comment, rider_rated_at AS at FROM orders WHERE rider_id = ? AND rider_rating IS NOT NULL ORDER BY rider_rated_at DESC LIMIT 5", [riderId]);
+  res.json({ ...summary, tips_total: Number(tips.total), tips_today: Number(tips.today), rating_avg: Number(rt.avg), rating_count: Number(rt.cnt), reviews, orders: recent });
 }));
 
 router.get("/locations", verifyToken, requireRole("teacher"), catchAsync(async (_req, res) => {
