@@ -1,5 +1,5 @@
 // Small helpers shared by every Hall route.
-const { localParts, addDays } = require("../utils/clock");
+const { localParts, addDays, TZ } = require("../utils/clock");
 
 const SLOTS = ["breakfast", "lunch", "dinner"];
 
@@ -26,4 +26,14 @@ function isLocked(slotRow, dateKey, now = nowParts()) {
   return now.dateKey > c.dateKey || (now.dateKey === c.dateKey && now.minutes >= c.minutes);
 }
 
-module.exports = { SLOTS, nowParts, isDateKey, addDays, cutoffOf, isLocked };
+// "YYYY-MM-DD HH:MM:SS" on the canteen clock — stored as-is so reports show canteen time whatever the DB timezone is
+function localStamp(date = new Date()) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(date)) p[x.type] = x.value;
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
+}
+
+module.exports = { SLOTS, nowParts, isDateKey, addDays, cutoffOf, isLocked, localStamp };

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Hall">
+  <rect width="120" height="120" rx="26" fill="#EAF6EE"/>
+  <path d="M22 62a38 38 0 0 1 76 0z" fill="#FFFFFF" stroke="#1F7A4D" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="60" cy="22" r="5" fill="#F5A623"/>
+  <rect x="16" y="62" width="88" height="7" rx="3.5" fill="#1F7A4D"/>
+  <path d="M46 62c0-9 6-16 14-16s14 7 14 16" fill="none" stroke="#F5A623" stroke-width="4" stroke-linecap="round"/>
+  <path d="M34 62c0-4 2-8 5-10M86 62c0-4-2-8-5-10" fill="none" stroke="#1F7A4D" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+  <text x="60" y="94" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="800" fill="#14532D">HALL</text>
+  <text x="60" y="109" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" letter-spacing="2.5" fill="#4B7A5E">MEAL SYSTEM</text>
+</svg>
