@@ -941,6 +941,8 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "copytoken": "Copy token",
+    "copied": "Copied!",
     "greet.morning": "Good morning",
     "greet.afternoon": "Good afternoon",
     "greet.evening": "Good evening",
@@ -1317,6 +1319,8 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "copytoken": "টোকেন কপি",
+    "copied": "কপি হয়েছে!",
     "greet.morning": "শুভ সকাল",
     "greet.afternoon": "শুভ দুপুর",
     "greet.evening": "শুভ সন্ধ্যা",
@@ -3606,8 +3610,24 @@ function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmit
   );
 }
 
+/* Feature: copy token */
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+  } catch (_) { /* fall through to the old way */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) { return false; }
+}
 function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
   const [printOrder, setPrintOrder] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
   // then trigger the browser print dialog; the CSS above hides everything else.
@@ -3751,6 +3771,16 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
                   <Icon path={I.printer} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
                   {tx("print")}
+                </button>
+                <button type="button"
+                  onClick={async () => {
+                    const ok = await copyText(o.token);
+                    if (ok) { setCopiedId(o.id); setTimeout(() => setCopiedId(null), 1500); }
+                    else window.prompt(tx("copytoken") + ":", o.token);
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: copiedId === o.id ? "var(--leaf)" : "var(--ink-soft)" }}>
+                  {copiedId === o.id ? "✓ " + tx("copied") : "📋 " + tx("copytoken")}
                 </button>
                 {o.status === "Received" && (
                   <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
