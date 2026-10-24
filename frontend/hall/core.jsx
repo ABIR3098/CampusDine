@@ -298,7 +298,7 @@ function HallHome(props) {
 }
 Hall.register({ key: "home", label: "Home", icon: "🏠", order: 1, component: HallHome });
 
-function HallApp({ call, user, lang, onBack, onLogout, refreshWallet, ui }) {
+function HallApp({ call, user, lang, onBack, onLogout, refreshWallet, ui, ext }) {
   const tabs = Hall.tabs.filter((t) => !t.roles || t.roles.includes(user.role));
   const [tab, setTab] = useState(tabs[0].key);
   const [toast, setToast] = useState(null);
@@ -334,12 +334,17 @@ function HallApp({ call, user, lang, onBack, onLogout, refreshWallet, ui }) {
             <div className="text-[11px] opacity-60">Meal system</div>
           </div>
         </div>
-        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onBack}>← Restaurants</button>
+        <div className="flex items-center gap-2">
+          {user.role !== "admin" && ext && ext.wallet && (
+            <button type="button" className="hl-chip" title="Open wallet" onClick={() => setTab("wallet")}>👛 {hallTaka(ext.wallet.balance)}</button>
+          )}
+          <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onBack}>← Restaurants</button>
+        </div>
       </div>
 
       <div className="hl-wrap fade-in" key={tab}>
         {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
-        <Active call={call} user={user} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} goTab={setTab} />
+        <Active call={call} user={user} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} goTab={setTab} ui={ui} ext={ext} />
       </div>
     </div>
   );
