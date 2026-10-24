@@ -1,48 +1,82 @@
 // Step 13 — meal tokens. Student/teacher: "Token" tab, take a number for today's meal and watch the queue.
 // Admin: "Serve" tab, the waiting list for a meal and a button to serve each token.
 
-function HallToken({ call, notify }) {
+function HallToken({ call, notify, refreshWallet }) {
   const [data, setData] = useState(null);
+  const [pick, setPick] = useState(null);     // the meal whose "how do you pay" panel is open
+  const [method, setMethod] = useState("wallet");
+  const [busy, setBusy] = useState(false);
   const load = async (quiet) => {
     try { setData(await call("/api/hall/token")); } catch (e) { if (!quiet) notify(e, true); }
   };
   useEffect(() => { load(); const t = setInterval(() => load(true), 10000); return () => clearInterval(t); }, []);
 
   const take = async (slot) => {
-    try { const r = await call("/api/hall/token", { method: "POST", body: { slot } }); notify(`Your token for ${HALL_SLOT_LABEL[slot]} is #${r.serial}`); await load(true); }
-    catch (e) { notify(e, true); }
+    setBusy(true);
+    try {
+      const r = await call("/api/hall/token", { method: "POST", body: { slot, payMethod: method } });
+      notify(`Your token for ${HALL_SLOT_LABEL[slot]} is #${r.serial}` + (r.paid > 0 ? ` — ${hallTaka(r.paid)} paid from your wallet.` : method === "wallet" ? " — already paid in your bill." : "."));
+      setPick(null);
+      await load(true);
+      if (method === "wallet" && refreshWallet) refreshWallet().catch(() => {});
+    } catch (e) { notify(e, true); }
+    setBusy(false);
   };
 
   return (
     <HallCard title="Today's meal token" icon="🎫"
-      sub="Take a number when you come for a meal that is ON for you. Meals are served in token order.">
+      sub="Take a number when you come for a meal that is ON for you, and choose how to pay. Meals are served in token order.">
       {!data ? <div className="hl-empty">Loading…</div> : (
-        <div className="hl-grid3">
-          {HALL_SLOTS.map((slot) => {
-            const t = data.tokens.find((x) => x.slot === slot);
-            return (
-              <div key={slot} className={`hl-ticket ${t ? "has" : ""}`}>
-                <div className="font-display font-700">{HALL_SLOT_EMOJI[slot]} {HALL_SLOT_LABEL[slot]}</div>
-                {!t ? (
-                  <>
-                    <div className="text-sm hl-muted mt-2 mb-3">No token yet</div>
-                    <button className="hl-btn" onClick={() => take(slot)}>Get token</button>
-                  </>
-                ) : (
-                  <>
-                    <div className="hl-ticket-no font-display">#{t.serial}</div>
-                    <div className="text-xs hl-muted">{t.plates} plate(s)</div>
-                    <div className="mt-2">
-                      {t.status === "served" ? <span className="hl-chip ok">✅ Served</span>
-                        : t.ahead === 0 ? <span className="hl-chip warn">🔔 You're next!</span>
-                        : <span className="hl-chip">{t.ahead} ahead · now serving #{t.nowServing}</span>}
+        <>
+          <div className="mb-3"><span className="hl-chip">👛 Wallet balance: {hallTaka(data.walletBalance)}</span></div>
+          <div className="hl-grid3">
+            {HALL_SLOTS.map((slot) => {
+              const t = data.tokens.find((x) => x.slot === slot);
+              const q = data.quotes && data.quotes[slot];
+              const enough = q ? data.walletBalance >= q.amount : true;
+              return (
+                <div key={slot} className={`hl-ticket ${t ? "has" : ""}`}>
+                  <div className="font-display font-700">{HALL_SLOT_EMOJI[slot]} {HALL_SLOT_LABEL[slot]}</div>
+                  {t ? (
+                    <>
+                      <div className="hl-ticket-no font-display">#{t.serial}</div>
+                      <div className="text-xs hl-muted">{t.plates} plate(s)</div>
+                      <div className="mt-2">
+                        {t.status === "served" ? <span className="hl-chip ok">✅ Served</span>
+                          : t.ahead === 0 ? <span className="hl-chip warn">🔔 You're next!</span>
+                          : <span className="hl-chip">{t.ahead} ahead · now serving #{t.nowServing}</span>}
+                      </div>
+                    </>
+                  ) : !q ? (
+                    <div className="text-sm hl-muted mt-3">This meal is OFF for you — no token needed.</div>
+                  ) : pick !== slot ? (
+                    <>
+                      <div className="text-sm hl-muted mt-2 mb-3">{q.plates} plate(s) · {hallTaka(q.amount)}</div>
+                      <button className="hl-btn" onClick={() => { setPick(slot); setMethod("wallet"); }}>Get token</button>
+                    </>
+                  ) : (
+                    <div className="text-left mt-3">
+                      <div className="text-sm mb-2 text-center">{q.plates} plate(s) · <b>{hallTaka(q.amount)}</b></div>
+                      <div className="grid gap-2">
+                        <button type="button" className={`hl-pay ${method === "wallet" ? "sel" : ""}`} onClick={() => setMethod("wallet")}>
+                          <span>👛</span><span><b>Pay now from wallet</b><small>{hallTaka(data.walletBalance)} available</small></span>
+                        </button>
+                        <button type="button" className={`hl-pay ${method === "later" ? "sel" : ""}`} onClick={() => setMethod("later")}>
+                          <span>🧾</span><span><b>Pay later</b><small>stays in your monthly bill</small></span>
+                        </button>
+                      </div>
+                      {method === "wallet" && !enough && <p className="text-xs mt-2" style={{ color: "var(--brick)" }}>Not enough balance — add money in the Wallet tab.</p>}
+                      <div className="flex gap-2 mt-3">
+                        <button className="hl-btn flex-1" disabled={busy || (method === "wallet" && !enough)} onClick={() => take(slot)}>{busy ? "Please wait…" : "Confirm"}</button>
+                        <button className="hl-btn ghost" disabled={busy} onClick={() => setPick(null)}>Cancel</button>
+                      </div>
                     </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </HallCard>
   );
