@@ -146,15 +146,24 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     const total = priced.total;
     const pointsUsed = priced.reward ? Number(priced.reward.points_cost) : 0;
 
+    // Feature: rider tip — a fixed amount, paid from the wallet now, handed to the rider at pickup
+    const TIP_OPTIONS = [0, 5, 10, 20];
+    const tip = Number(req.body.tip || 0);
+    if (!TIP_OPTIONS.includes(tip)) throw { status: 400, message: "Invalid tip amount" };
+    if (tip > 0 && paymentMethod !== "wallet") throw { status: 400, message: "Tips are paid from your wallet" };
+
     if (paymentMethod === "wallet") {
       const [[user]] = await conn.query("SELECT wallet_balance FROM users WHERE id = ? FOR UPDATE", [req.user.id]);
-      if (user.wallet_balance < total) throw { status: 402, message: "Insufficient wallet balance" };
-      await conn.query("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?", [total, req.user.id]);
+      if (user.wallet_balance < total + tip) throw { status: 402, message: "Insufficient wallet balance" };
+      await conn.query("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?", [total + tip, req.user.id]);
       await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
         req.user.id,
         "Order payment",
         -total,
       ]);
+      if (tip > 0) {
+        await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [req.user.id, "Rider tip", -tip]);
+      }
     }
 
     for (const item of snapshot) {
@@ -175,6 +184,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     );
     const token = `C-${String(100 + orderResult.insertId).padStart(3, "0")}`;
     await conn.query("UPDATE orders SET token = ? WHERE id = ?", [token, orderResult.insertId]);
+    if (tip > 0) await conn.query("UPDATE orders SET tip_amount = ? WHERE id = ?", [tip, orderResult.insertId]);
     for (const item of snapshot) {
       await conn.query(
         "INSERT INTO order_items (order_id, menu_item_id, name, price, qty) VALUES (?, ?, ?, ?, ?)",
@@ -211,6 +221,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
       promo_label: priced.promoLabel, subtotal: priced.subtotal, points_earnable: priced.pointsEarnable, points_balance: pointsBalance,
       status: "Received", pickup_time: pickupTime, note: orderNote, delivery_note: deliveryNote,
       rider_id: assignedRiderId,
+      tip_amount: tip,
       rider_assignment_status: assignedRiderId ? "Assigned" : "Unassigned",
       items: snapshot.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
     };
@@ -276,6 +287,15 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
         `Refund — Order ${order.token} cancelled`,
         order.total,
       ]);
+      if (Number(order.tip_amount) > 0 && !order.tip_settled) {
+        await conn.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [order.tip_amount, req.user.id]);
+        await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
+          req.user.id,
+          `Tip refund — Order ${order.token} cancelled`,
+          order.tip_amount,
+        ]);
+        await conn.query("UPDATE orders SET tip_settled = 1 WHERE id = ?", [order.id]);
+      }
     }
 
     await loyalty.refundForOrder(conn, order); // points spent on this order go back to the customer
@@ -356,6 +376,15 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
         return res.status(409).json({ error: "This order is not ready or was already collected", code: "ALREADY_COLLECTED", order: { ...order, items } });
       }
       await recordAuditEvent(connection, req, "ORDER_PICKUP_VERIFIED", "order", order.id, { riderId: order.rider_id });
+      const [[tipRow]] = await connection.query("SELECT tip_amount, tip_settled, rider_id, user_id FROM orders WHERE id = ? FOR UPDATE", [order.id]);
+      if (tipRow && Number(tipRow.tip_amount) > 0 && !tipRow.tip_settled) {
+        const amount = Number(tipRow.tip_amount);
+        const payee = tipRow.rider_id ? tipRow.rider_id : tipRow.user_id;
+        const tipLabel = tipRow.rider_id ? `Tip received — Order ${order.token}` : `Tip refund — Order ${order.token} (no rider)`;
+        await connection.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [amount, payee]);
+        await connection.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [payee, tipLabel, amount]);
+        await connection.query("UPDATE orders SET tip_settled = 1 WHERE id = ?", [order.id]);
+      }
       const [[fresh]] = await connection.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
       pickedUpAt = fresh.picked_up_at;
       await connection.commit();

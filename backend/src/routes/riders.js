@@ -41,7 +41,7 @@ router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAs
 
 router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const [orders] = await pool.query(`
-    SELECT o.id, o.token, o.total, o.status, o.pickup_time, o.note, o.delivery_note,
+    SELECT o.id, o.token, o.total, o.status, o.pickup_time, o.note, o.tip_amount, o.delivery_note,
       o.rider_assignment_status, o.created_at,
       u.name AS customer_name, u.phone AS customer_phone, u.address AS customer_address
     FROM orders o JOIN users u ON u.id = o.user_id
@@ -97,10 +97,15 @@ router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(asyn
     if (Object.prototype.hasOwnProperty.call(summary, key)) summary[key] = Number(row.total);
     summary.total += Number(row.total);
   }
-  const [recent] = await pool.query(`SELECT id, status, created_at, pickup_time, rider_assignment_status FROM orders
+  const [recent] = await pool.query(`SELECT id, status, created_at, pickup_time, rider_assignment_status, tip_amount, delivery_note FROM orders
     WHERE rider_id = ? AND rider_assignment_status IN ('Assigned','Accepted')
       AND status IN ('Received','Cooking','Ready') ORDER BY created_at DESC LIMIT 20`, [riderId]);
-  res.json({ ...summary, orders: recent });
+  // Feature: rider tip — tips already paid to this rider
+  const [[tips]] = await pool.query(
+    `SELECT COALESCE(SUM(tip_amount), 0) AS total,
+            COALESCE(SUM(CASE WHEN picked_up_at >= CURDATE() THEN tip_amount ELSE 0 END), 0) AS today
+     FROM orders WHERE rider_id = ? AND tip_settled = 1`, [riderId]);
+  res.json({ ...summary, tips_total: Number(tips.total), tips_today: Number(tips.today), orders: recent });
 }));
 
 router.get("/locations", verifyToken, requireRole("teacher"), catchAsync(async (_req, res) => {

@@ -411,6 +411,8 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await addColumn("orders", "tip_amount", "DECIMAL(8,2) NOT NULL DEFAULT 0");   // rider tip
+    await addColumn("orders", "tip_settled", "TINYINT(1) NOT NULL DEFAULT 0");    // 1 = tip already paid to the rider / given back
 
     const [emailIndex] = await db.query("SHOW INDEX FROM users WHERE Column_name = 'email' AND Non_unique = 0");
     if (emailIndex.length === 0) {
