@@ -5959,7 +5959,7 @@ function HallGate(props) {
   if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
   if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
   const Hall = window.HallApp;
-  return <Hall {...props} ui={{ ThemeMenu, Avatar }} />;
+  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab }} />;
 }
 
 /* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
@@ -6726,7 +6726,9 @@ function App() {
 
   // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
   if (restaurant.isHall) {
-    return <HallGate call={call} user={session.user} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet} />;
+    return <HallGate call={call} user={session.user} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
+      ext={{ wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
+        onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
   }
 
   // Each restaurant sells its own items; admin orders are also limited to the chosen restaurant
