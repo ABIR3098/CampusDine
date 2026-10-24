@@ -187,3 +187,9 @@
 .hl-ticket.has { background: var(--gold-soft); border-style: solid; }
 .hl-ticket-no { font-size: 3.4rem; font-weight: 800; color: var(--gold-deep); line-height: 1; margin: 8px 0; }
 .hl-toast { border-radius: 14px; border: 1px solid; padding: 10px 14px; margin-bottom: 16px; font-size: .88rem; display: flex; gap: 8px; align-items: center; }
+
+/* ---------- token: payment choice ---------- */
+.hl-pay { display: flex; align-items: center; gap: 10px; text-align: left; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-size: .85rem; transition: all .15s; }
+.hl-pay small { display: block; font-size: 11px; color: var(--ink-soft); }
+.hl-pay > span:first-child { font-size: 20px; }
+.hl-pay.sel { border-color: var(--gold); background: var(--gold-soft); box-shadow: 0 0 0 3px var(--accent-glow); }
