@@ -3594,7 +3594,7 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                 </div>
               )}
               {Number(o.tip_amount) > 0 && (
-                <div className="text-xs mt-2 font-600" style={{ color: "var(--ink-soft)" }}>🪙 {tx("tip.show")}: ৳{o.tip_amount}</div>
+                <div className="text-xs mt-2 font-600" style={{ color: "var(--ink-soft)" }}>🪙 {tx("tip.show")}: ৳{o.tip_amount}{o.status === "Cancelled" && " " + tx("refunded")}</div>
               )}
               {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
               <div className="flex items-center gap-2 mt-3">
@@ -6913,7 +6913,7 @@ function App() {
       setLoyaltyKey(k => k + 1); // spent points come back on cancel
       showSuccess(
         cancelled.payment_method === "wallet"
-          ? tx("msg.cancel.w", { t: cancelled.token, a: taka(cancelled.total) })
+          ? tx("msg.cancel.w", { t: cancelled.token, a: taka(Number(cancelled.total) + Number(cancelled.tip_amount || 0)) /* Fix: cancel refund shows tip */ })
           : tx("msg.cancel", { t: cancelled.token })
       );
     } catch (e) { showError(e); } finally { setBusy(false); }
