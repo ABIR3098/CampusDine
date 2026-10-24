@@ -1,5 +1,9 @@
 require("dotenv").config();
 
+// Fix 8: run the whole app on the canteen's clock, whatever timezone the host machine is in.
+// Pre-order pickup times, the meal calendar and the daily reports all follow it.
+process.env.TZ = process.env.CANTEEN_TZ || "Asia/Dhaka";
+
 // Without a JWT_SECRET (e.g. backend/.env was not created) every login used to fail with a
 // vague "Something went wrong". Fall back to a random secret for this run and say so clearly.
 // Logins then work straight away, but sessions end whenever the server restarts.
@@ -720,6 +724,14 @@ const PORT = process.env.PORT || 5000;
 runStartupCheck().then(() => {
   server.listen(PORT, () => {
     console.log(`🚀 CampusDine is running → http://localhost:${PORT}`);
+    try {
+      const nowForTz = new Date();
+      const sameClock = nowForTz.toLocaleString("en-US", { timeZone: process.env.TZ }) === nowForTz.toLocaleString("en-US");
+      if (sameClock) console.log(`🕒 Server clock follows ${process.env.TZ}`);
+      else console.warn(`⚠️  Server clock does not follow CANTEEN_TZ (${process.env.TZ}) — pre-order pickup times may be rejected.`);
+    } catch (error) {
+      console.warn(`⚠️  CANTEEN_TZ "${process.env.TZ}" is not a valid timezone name (example: Asia/Dhaka).`);
+    }
     hall.startJobs();
   });
 }).catch((err) => {
