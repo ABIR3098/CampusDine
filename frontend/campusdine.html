@@ -4555,6 +4555,16 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
   );
 }
 
+/* ---------------- Admin: Hall food management ---------------- */
+function AdminHallFood() {
+  return (
+    <div className="card p-5">
+      <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Hall food & weekly menu</div>
+      <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>Manage breakfast, lunch and dinner for Hall students.</p>
+    </div>
+  );
+}
+
 /* ---------------- Admin: Orders queue ---------------- */
 function AdminOrders({ orders, advance, call }) {
   const [assignmentMessage, setAssignmentMessage] = useState("");
@@ -7389,6 +7399,7 @@ function App() {
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "adminMenu", label: "Menu", icon: I.box },
+    { key: "hallFood", label: "Hall Food", icon: I.calendar },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
@@ -7492,6 +7503,7 @@ function App() {
         {session.user.role === "admin" && tab === "adminMenu" && (
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
+        {session.user.role === "admin" && tab === "hallFood" && <AdminHallFood />}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "offers" && (
