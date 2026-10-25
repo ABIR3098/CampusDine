@@ -93,7 +93,13 @@ router.post("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
   res.json({ok:true});
 }));
 router.delete("/inventory/:id", requireRole("admin"), catchAsync(async(req,res)=>{
-  await pool.query("DELETE FROM hall_inventory WHERE id=?",[Number(req.params.id)]); res.json({ok:true});
+  const id=Number(req.params.id);
+  if(!Number.isSafeInteger(id)||id<1) return res.status(400).json({error:"Invalid inventory item ID"});
+  const [rows]=await pool.query("SELECT item_name FROM hall_inventory WHERE id=?",[id]);
+  if(!rows.length) return res.status(404).json({error:"Inventory item not found"});
+  await pool.query("DELETE FROM hall_inventory WHERE id=?",[id]);
+  await audit(req.user.id,"deleted","inventory",id,{name:rows[0].item_name});
+  res.json({ok:true});
 }));
 
 router.get("/students", requireRole("admin"), catchAsync(async(req,res)=>{
