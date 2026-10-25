@@ -4556,11 +4556,52 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
 }
 
 /* ---------------- Admin: Hall food management ---------------- */
-function AdminHallFood() {
+function AdminHallFood({ call }) {
+  const [days, setDays] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const slots = [
+    { key: "breakfast", label: "Breakfast" },
+    { key: "lunch", label: "Lunch" },
+    { key: "dinner", label: "Dinner" },
+  ];
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await call("/api/hall/menu");
+      setDays(data.days || []);
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not load the Hall meal schedule.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { load(); }, []);
   return (
-    <div className="card p-5">
-      <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Hall food & weekly menu</div>
-      <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>Manage breakfast, lunch and dinner for Hall students.</p>
+    <div className="space-y-5">
+      <div className="card p-5">
+        <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Hall food & weekly menu</div>
+        <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>View the weekly breakfast, lunch and dinner schedule for Hall students.</p>
+      </div>
+      {error && <div className="error-banner rounded-xl px-4 py-3 text-sm">{error}</div>}
+      {loading ? <div className="card p-6 text-sm">Loading Hall meal schedule…</div> : (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {days.map(day => (
+            <section key={day.dow} className="card p-4">
+              <div className="font-display font-700 text-lg mb-3" style={{ color: "var(--gold)" }}>{day.name}</div>
+              <div className="space-y-3">
+                {slots.map(slot => (
+                  <div key={slot.key} className="rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
+                    <div className="text-sm font-700">{slot.label}</div>
+                    <div className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{day.slots?.[slot.key] || "No menu set"}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -7503,7 +7544,7 @@ function App() {
         {session.user.role === "admin" && tab === "adminMenu" && (
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
-        {session.user.role === "admin" && tab === "hallFood" && <AdminHallFood />}
+        {session.user.role === "admin" && tab === "hallFood" && <AdminHallFood call={call} />}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "offers" && (
