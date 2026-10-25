@@ -5225,7 +5225,8 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
 /* ---------------- Admin: Scan / verify a pickup token ---------------- */
 function AdminVerify({ call, onCollected }) {
   const [code, setCode] = useState("");
-  const [result, setResult] = useState(null);   // { order, problem, justCollected }
+  const [result, setResult] = useState(null);   // regular canteen order result
+  const [hallResult, setHallResult] = useState(null); // verified Hall meal QR
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -5235,10 +5236,15 @@ function AdminVerify({ call, onCollected }) {
   const check = async (raw) => {
     const text = String(raw === undefined ? code : raw).trim();
     if (!text) return;
-    setBusy(true); setError(null); setResult(null);
+    setBusy(true); setError(null); setResult(null); setHallResult(null);
     try {
-      const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
-      setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+      if (text.startsWith("HALL|")) {
+        const data = await call("/api/hall/queue/scan", { method: "POST", body: { code: text } });
+        setHallResult(data);
+      } else {
+        const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
+        setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -5329,7 +5335,7 @@ function AdminVerify({ call, onCollected }) {
       <div className="card p-5">
         <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
         <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
-          Scan the QR on the customer's ticket, or type the token (e.g. C-105). A barcode scanner that "types" into the box works too.
+          Scan a canteen order QR or a Hall Student meal QR. Hall QR scans mark that meal token as served. You can also type the token text into the box.
         </p>
         <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
           <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
@@ -5351,6 +5357,18 @@ function AdminVerify({ call, onCollected }) {
         {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
       </div>
 
+      {hallResult && (
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)", borderBottom: "1px solid var(--ok-border, #BBF7D0)" }}>Hall meal QR verified — pickup completed</div>
+          <div className="p-5 space-y-2">
+            <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>Hall #{hallResult.serial}</div>
+            <div className="text-sm">Student: <strong>{hallResult.name}</strong> · ID: {hallResult.externalId || "—"}</div>
+            <div className="text-sm">Meal: <strong>{hallResult.slot}</strong> · Plates: <strong>{hallResult.plates}</strong></div>
+            <div className="text-xs" style={{ color: "var(--ink-soft)" }}>This QR is now marked as used. Scanning it again will be rejected.</div>
+            <button onClick={() => { setHallResult(null); setCode(""); setError(null); }} className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+          </div>
+        </div>
+      )}
       {o && (
         <div className="card overflow-hidden">
           <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
@@ -7336,7 +7354,7 @@ function App() {
 
   // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
   if (restaurant.isHall) {
-    return <HallGate call={call} user={session.user} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
+    return <HallGate call={call} user={session.user} token={session.token} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
       ext={{ wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
         onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
   }

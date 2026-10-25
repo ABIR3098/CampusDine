@@ -1,6 +1,26 @@
 // Step 13 — meal tokens. Student/teacher: "Token" tab, take a number for today's meal and watch the queue.
 // Admin: "Serve" tab, the waiting list for a meal and a button to serve each token.
 
+function HallMealQr({ value, size = 156 }) {
+  const qr = useMemo(() => {
+    try {
+      if (typeof window.qrcode !== "function" || !value) return null;
+      const q = window.qrcode(0, "M"); q.addData(String(value)); q.make();
+      const n = q.getModuleCount(); let d = "";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c},${r}h1v1h-1z`;
+      return { n, d };
+    } catch (_) { return null; }
+  }, [value]);
+  if (!qr) return <div className="text-xs text-center">QR library unavailable. Use the token text above.</div>;
+  const pad = 4;
+  return <svg role="img" aria-label="Hall meal pickup QR code" width={size} height={size}
+    viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`} shapeRendering="crispEdges"
+    style={{ background: "#fff", borderRadius: 8, flexShrink: 0 }}>
+    <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
+    <path d={qr.d} fill="#000" />
+  </svg>;
+}
+
 function HallToken({ call, notify, refreshWallet }) {
   const [data, setData] = useState(null);
   const [pick, setPick] = useState(null);     // the meal whose "how do you pay" panel is open
@@ -41,6 +61,11 @@ function HallToken({ call, notify, refreshWallet }) {
                     <>
                       <div className="hl-ticket-no font-display">#{t.serial}</div>
                       <div className="text-xs hl-muted">{t.plates} plate(s)</div>
+                      <div className="mt-3 flex flex-col items-center gap-2 rounded-xl p-3" style={{ background: "#fff", color: "#111" }}>
+                        <HallMealQr value={`HALL|${data.date}|${slot}|${t.serial}`} />
+                        <div className="text-xs font-mono text-center">HALL|{data.date}|{slot}|{t.serial}</div>
+                        <div className="text-[11px] text-center">Show this QR at the canteen counter</div>
+                      </div>
                       <div className="mt-2">
                         {t.status === "served" ? <span className="hl-chip ok">✅ Served</span>
                           : t.ahead === 0 ? <span className="hl-chip warn">🔔 You're next!</span>

@@ -297,7 +297,7 @@ function HallHome(props) {
 }
 Hall.register({ key: "home", label: "Home", icon: "🏠", order: 1, component: HallHome });
 
-function HallApp({ call, user, lang, onBack, onLogout, ui, ext }) {
+function HallApp({ call, user, token, lang, onBack, onLogout, ui, ext }) {
   const tabs = Hall.tabs.filter((t) => !t.roles || t.roles.includes(user.role));
   const [tab, setTab] = useState(tabs[0].key);
   const [toast, setToast] = useState(null);
@@ -340,7 +340,7 @@ function HallApp({ call, user, lang, onBack, onLogout, ui, ext }) {
 
       <div className="hl-wrap fade-in" key={tab}>
         {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
-        <Active call={call} user={user} isAdmin={user.role === "admin"} notify={notify} goTab={setTab} ui={ui} ext={ext} />
+        <Active call={call} user={user} token={token} isAdmin={user.role === "admin"} notify={notify} goTab={setTab} ui={ui} ext={ext} />
       </div>
     </div>
   );
