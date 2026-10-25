@@ -6,6 +6,7 @@ const HALL_SERVICE_TYPES = [
   ["feedback","Food / hall feedback"],["emergency","Urgent issue"],["event","Hall event / catering"]
 ];
 const HALL_STATUS_LABEL = {submitted:"Submitted",approved:"Approved",in_progress:"In progress",resolved:"Resolved",rejected:"Rejected",cancelled:"Cancelled"};
+const HALL_PICKUP_STATUS = {issued:"Issued",served:"Served",cancelled:"Cancelled"};
 function HallServices({call,user,isAdmin,notify}) {
   const [section,setSection]=useState("requests");
   const [requests,setRequests]=useState([]);
@@ -24,15 +25,15 @@ function HallServices({call,user,isAdmin,notify}) {
   const [wasteForm,setWasteForm]=useState({date:new Date().toISOString().slice(0,10),slot:"lunch",preparedPlates:"",servedPlates:"",wastedPlates:"",notes:""});
   const [type,setType]=useState("maintenance");
   const [form,setForm]=useState({title:"",description:"",location:"",requestedDate:""});
-  const [noticeForm,setNoticeForm]=useState({title:"",body:"",category:"General",pinned:false});
+  const [noticeForm,setNoticeForm]=useState({title:"",body:"",category:"General",pinned:false,expiresAt:""});
   const [itemForm,setItemForm]=useState({itemName:"",category:"Food",quantity:"",unit:"kg",minQuantity:""});
   const [busy,setBusy]=useState(false);
   const load=async()=>{
     try {
       const [r,n]=await Promise.all([call("/api/hall/services"),call("/api/hall/notices")]);
       setRequests(r); setNotices(n);
-      try { const inf=await call("/api/hall/info"); if(inf.today) setPickupDate(inf.today); } catch(e) {}
-      try { setPickupTokens(await call("/api/hall/pickup-tokens")); } catch(e) {}
+      try { const inf=await call("/api/hall/info"); if(inf.today) setPickupDate(inf.today); } catch(e) {notify(e,true);}
+      try { setPickupTokens(await call("/api/hall/pickup-tokens")); } catch(e) {notify(e,true);}
       if(isAdmin){
         const [i,o,a,w,f,st]=await Promise.all([call("/api/hall/inventory"),call("/api/hall/overview"),call("/api/hall/audit"),call("/api/hall/waste"),call("/api/hall/forecast"),call("/api/hall/students")]);
         setInventory(i);setOverview(o);setAudit(a);setWaste(w);setForecast(f);setStudents(st);
@@ -55,8 +56,12 @@ function HallServices({call,user,isAdmin,notify}) {
     try{await call(`/api/hall/services/${id}`,{method:"DELETE"});notify("Request cancelled");await load();}
     catch(e){notify(e,true);}
   };
+  const cancelPickup=async(code)=>{
+    try{await call(`/api/hall/pickup-tokens/${encodeURIComponent(code)}/cancel`,{method:"PATCH",body:{}});notify("Pickup token cancelled");await load();}
+    catch(e){notify(e,true);}
+  };
   const createNotice=async()=>{
-    try{await call("/api/hall/notices",{method:"POST",body:noticeForm});setNoticeForm({title:"",body:"",category:"General",pinned:false});notify("Notice published");await load();}
+    try{await call("/api/hall/notices",{method:"POST",body:noticeForm});setNoticeForm({title:"",body:"",category:"General",pinned:false,expiresAt:""});notify("Notice published");await load();}
     catch(e){notify(e,true);}
   };
   const deleteNotice=async(id)=>{
@@ -94,8 +99,8 @@ function HallServices({call,user,isAdmin,notify}) {
       </HallCard>
     </>}
     {section==="notices"&&<HallCard title="Hall notice board" icon="📢" sub="Official hall announcements and important updates.">
-      {isAdmin&&<div className="hl-tile mb-4 space-y-3"><input className="hl-input w-full" placeholder="Notice title" value={noticeForm.title} onChange={e=>setNoticeForm({...noticeForm,title:e.target.value})}/><input className="hl-input w-full" placeholder="Category (e.g. Maintenance)" value={noticeForm.category} onChange={e=>setNoticeForm({...noticeForm,category:e.target.value})}/><textarea className="hl-input w-full" rows="3" placeholder="Notice details" value={noticeForm.body} onChange={e=>setNoticeForm({...noticeForm,body:e.target.value})}/><label className="text-sm flex gap-2 items-center"><input type="checkbox" checked={noticeForm.pinned} onChange={e=>setNoticeForm({...noticeForm,pinned:e.target.checked})}/> Pin this notice</label><button className="hl-btn" onClick={createNotice}>Publish notice</button></div>}
-      {!notices.length?<div className="hl-empty">No active notices.</div>:<div className="space-y-3">{notices.map(n=><article key={n.id} className="hl-tile"><div className="flex justify-between gap-2"><b>{n.pinned?"📌 ":""}{n.title}</b><span className="hl-chip">{n.category}</span></div><p className="text-sm mt-2 whitespace-pre-wrap">{n.body}</p><div className="text-xs hl-muted mt-2">{new Date(n.created_at).toLocaleString()}</div>{isAdmin&&<button className="hl-btn ghost mt-2" onClick={()=>deleteNotice(n.id)}>Delete notice</button>}</article>)}</div>}
+      {isAdmin&&<div className="hl-tile mb-4 space-y-3"><input className="hl-input w-full" placeholder="Notice title" value={noticeForm.title} onChange={e=>setNoticeForm({...noticeForm,title:e.target.value})}/><input className="hl-input w-full" placeholder="Category (e.g. Maintenance)" value={noticeForm.category} onChange={e=>setNoticeForm({...noticeForm,category:e.target.value})}/><textarea className="hl-input w-full" rows="3" placeholder="Notice details" value={noticeForm.body} onChange={e=>setNoticeForm({...noticeForm,body:e.target.value})}/><label className="text-sm">Expires at (optional)<input className="hl-input w-full mt-1" type="datetime-local" value={noticeForm.expiresAt} onChange={e=>setNoticeForm({...noticeForm,expiresAt:e.target.value})}/></label><label className="text-sm flex gap-2 items-center"><input type="checkbox" checked={noticeForm.pinned} onChange={e=>setNoticeForm({...noticeForm,pinned:e.target.checked})}/> Pin this notice</label><button className="hl-btn" onClick={createNotice}>Publish notice</button></div>}
+      {!notices.length?<div className="hl-empty">No active notices.</div>:<div className="space-y-3">{notices.map(n=><article key={n.id} className="hl-tile"><div className="flex justify-between gap-2"><b>{n.pinned?"📌 ":""}{n.title}</b><span className="hl-chip">{n.category}</span></div><p className="text-sm mt-2 whitespace-pre-wrap">{n.body}</p><div className="text-xs hl-muted mt-2">{new Date(n.created_at).toLocaleString()}{n.expires_at?` · Expires ${new Date(n.expires_at).toLocaleString()}`:""}</div>{isAdmin&&<button className="hl-btn ghost mt-2" onClick={()=>deleteNotice(n.id)}>Delete notice</button>}</article>)}</div>}
     </HallCard>}
 
 
@@ -106,7 +111,7 @@ function HallServices({call,user,isAdmin,notify}) {
       </div>
       {!pickupTokens.length?<div className="hl-empty">No pickup tokens for this date.</div>:<div className="grid sm:grid-cols-2 gap-3">{pickupTokens.map(t=>{
         let qrUrl="";try{if(window.qrcode){const q=window.qrcode(0,"M");q.addData(t.token_code);q.make();qrUrl=q.createDataURL(5,4);}}catch(e){}
-        return <div className="hl-tile flex gap-3 items-center" key={t.id}><div className="shrink-0">{qrUrl&&<img src={qrUrl} alt="Meal pickup QR" width="100" height="100"/>}</div><div className="min-w-0"><b>{isAdmin?(t.student_name||"Student"):HALL_SLOT_LABEL[t.slot]}</b><div className="text-xs hl-muted">{HALL_SLOT_LABEL[t.slot]} · {String(t.the_date).slice(0,10)}</div><div className="font-mono font-700 mt-1">{t.token_code}</div><span className="hl-chip mt-1">{t.status==="served"?"Collected":"Waiting"}</span>{isAdmin&&<div className="text-xs hl-muted mt-1">Student ID: {t.external_id||t.user_id}</div>}</div></div>;
+        return <div className="hl-tile flex gap-3 items-center" key={t.id}><div className="shrink-0">{qrUrl&&<img src={qrUrl} alt="Meal pickup QR" width="100" height="100"/>}</div><div className="min-w-0"><b>{isAdmin?(t.student_name||"Student"):HALL_SLOT_LABEL[t.slot]}</b><div className="text-xs hl-muted">{HALL_SLOT_LABEL[t.slot]} · {String(t.the_date).slice(0,10)}</div><div className="font-mono font-700 mt-1">{t.token_code}</div><span className="hl-chip mt-1">{HALL_PICKUP_STATUS[t.status]||t.status}</span>{t.status==="issued"&&<button className="hl-btn ghost mt-2" onClick={()=>cancelPickup(t.token_code)}>Cancel token</button>}{isAdmin&&<div className="text-xs hl-muted mt-1">Student ID: {t.external_id||t.user_id}</div>}</div></div>;
       })}</div>}
     </HallCard>}
     {section==="rooms"&&isAdmin&&<HallCard title="Hall student & room management" icon="🏠" sub="Assign hall, room and optional hall ID to registered Hall Student accounts.">
@@ -118,7 +123,7 @@ function HallServices({call,user,isAdmin,notify}) {
       })}</div>}
     </HallCard>}
     {section==="inventory"&&isAdmin&&<HallCard title="Kitchen & supply inventory" icon="📦" sub="Track ingredients, supplies and low-stock alerts. This does not handle purchases or payments.">
-      <div className="grid sm:grid-cols-5 gap-2 mb-4"><input className="hl-input" placeholder="Item name" value={itemForm.itemName} onChange={e=>setItemForm({...itemForm,itemName:e.target.value})}/><input className="hl-input" placeholder="Category" value={itemForm.category} onChange={e=>setItemForm({...itemForm,category:e.target.value})}/><input className="hl-input" type="number" min="0" placeholder="Quantity" value={itemForm.quantity} onChange={e=>setItemForm({...itemForm,quantity:e.target.value})}/><input className="hl-input" placeholder="Unit" value={itemForm.unit} onChange={e=>setItemForm({...itemForm,unit:e.target.value})}/><button className="hl-btn" onClick={saveItem}>Save stock</button></div>
+      <div className="grid sm:grid-cols-6 gap-2 mb-4"><input className="hl-input" placeholder="Item name" value={itemForm.itemName} onChange={e=>setItemForm({...itemForm,itemName:e.target.value})}/><input className="hl-input" placeholder="Category" value={itemForm.category} onChange={e=>setItemForm({...itemForm,category:e.target.value})}/><input className="hl-input" type="number" min="0" placeholder="Quantity" value={itemForm.quantity} onChange={e=>setItemForm({...itemForm,quantity:e.target.value})}/><input className="hl-input" placeholder="Unit" value={itemForm.unit} onChange={e=>setItemForm({...itemForm,unit:e.target.value})}/><input className="hl-input" type="number" min="0" placeholder="Minimum stock" value={itemForm.minQuantity} onChange={e=>setItemForm({...itemForm,minQuantity:e.target.value})}/><button className="hl-btn" onClick={saveItem}>Save stock</button></div>
       {!inventory.length?<div className="hl-empty">No inventory items yet.</div>:<div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="text-left p-2">Item</th><th className="text-left p-2">Category</th><th className="text-left p-2">Stock</th><th className="text-left p-2">Status</th><th/></tr></thead><tbody>{inventory.map(i=><tr key={i.id} className="border-t"><td className="p-2">{i.item_name}</td><td className="p-2">{i.category}</td><td className="p-2">{i.quantity} {i.unit}</td><td className="p-2">{Number(i.quantity)<=Number(i.min_quantity)?<span className="text-red-600">Low stock</span>:"OK"}</td><td><button className="hl-btn ghost" onClick={async()=>{try{await call(`/api/hall/inventory/${i.id}`,{method:"DELETE"});await load();}catch(e){notify(e,true)}}}>Remove</button></td></tr>)}</tbody></table></div>}
     </HallCard>}
 
