@@ -77,4 +77,20 @@ router.delete("/notices/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"deleted","notice",Number(req.params.id));
   res.json({ok:true});
 }));
+router.get("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
+  const [rows]=await pool.query("SELECT * FROM hall_inventory ORDER BY category,item_name"); res.json(rows);
+}));
+router.post("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
+  const b=req.body||{}, name=String(b.itemName||"").trim(), category=String(b.category||"General").trim().slice(0,80), unit=String(b.unit||"pcs").trim().slice(0,30);
+  const quantity=Number(b.quantity), min=Number(b.minQuantity||0);
+  if(!name||name.length>180||!Number.isFinite(quantity)||quantity<0||!Number.isFinite(min)||min<0) return res.status(400).json({error:"Enter a valid item and non-negative quantities"});
+  await pool.query(`INSERT INTO hall_inventory(item_name,category,quantity,unit,min_quantity,updated_by) VALUES(?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE category=VALUES(category),quantity=VALUES(quantity),unit=VALUES(unit),min_quantity=VALUES(min_quantity),updated_by=VALUES(updated_by)`,
+    [name,category,quantity,unit,min,req.user.id]);
+  await audit(req.user.id,"upserted","inventory",null,{name,quantity,unit});
+  res.json({ok:true});
+}));
+router.delete("/inventory/:id", requireRole("admin"), catchAsync(async(req,res)=>{
+  await pool.query("DELETE FROM hall_inventory WHERE id=?",[Number(req.params.id)]); res.json({ok:true});
+}));
 module.exports=router;
