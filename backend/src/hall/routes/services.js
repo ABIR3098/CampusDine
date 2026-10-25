@@ -122,4 +122,33 @@ router.get("/forecast", requireRole("admin"), catchAsync(async(req,res)=>{
     return {slot,estimatedPlates:r?Math.max(0,Math.round(Number(r.avg_plates))):0,sampleDays:r?Number(r.sample_days):0,confidence:r&&Number(r.sample_days)>=4?"moderate":"low"};
   }));
 }));
+router.get("/pickup-tokens", catchAsync(async(req,res)=>{
+  const date=String(req.query.date||new Date().toISOString().slice(0,10));
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Date must be YYYY-MM-DD"});
+  const admin=req.user.role==="admin";
+  const [rows]=await pool.query(`SELECT t.id,t.user_id,t.the_date,t.slot,t.token_code,t.status,t.created_at,t.served_at,u.name AS student_name,u.external_id
+    FROM hall_pickup_tokens t LEFT JOIN users u ON u.id=t.user_id
+    WHERE t.the_date=? ${admin?"":"AND t.user_id=?"} ORDER BY FIELD(t.slot,'breakfast','lunch','dinner'),t.created_at`,
+    admin?[date]:[date,req.user.id]);
+  res.json(rows);
+}));
+router.post("/pickup-tokens", requireRole("student","teacher"), catchAsync(async(req,res)=>{
+  const b=req.body||{}, slot=String(b.slot||""), date=String(b.date||new Date().toISOString().slice(0,10));
+  if(!["breakfast","lunch","dinner"].includes(slot)||!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Choose a valid date and meal"});
+  const [meal]=await pool.query("SELECT status FROM hall_meal_state WHERE user_id=? AND the_date=? AND slot=?",[req.user.id,date,slot]);
+  if(!meal.length||meal[0].status!=="on") return res.status(400).json({error:"Turn this meal ON before creating a pickup token"});
+  const crypto=require("crypto"), code=crypto.randomBytes(6).toString("hex").toUpperCase();
+  await pool.query(`INSERT INTO hall_pickup_tokens(user_id,the_date,slot,token_code) VALUES(?,?,?,?)
+    ON DUPLICATE KEY UPDATE token_code=IF(status='served',token_code,VALUES(token_code))`,
+    [req.user.id,date,slot,code]);
+  const [rows]=await pool.query("SELECT id,user_id,the_date,slot,token_code,status,created_at,served_at FROM hall_pickup_tokens WHERE user_id=? AND the_date=? AND slot=?",[req.user.id,date,slot]);
+  res.status(201).json(rows[0]);
+}));
+router.patch("/pickup-tokens/:code/serve", requireRole("admin"), catchAsync(async(req,res)=>{
+  const code=String(req.params.code||"").toUpperCase().slice(0,24);
+  const [r]=await pool.query("UPDATE hall_pickup_tokens SET status='served',served_by=?,served_at=NOW() WHERE token_code=? AND status='issued'",[req.user.id,code]);
+  if(!r.affectedRows) return res.status(404).json({error:"Token not found or already served"});
+  await audit(req.user.id,"served","pickup_token",null,{code});
+  res.json({ok:true,status:"served"});
+}));
 module.exports=router;
