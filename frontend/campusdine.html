@@ -4558,8 +4558,11 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
 /* ---------------- Admin: Hall food management ---------------- */
 function AdminHallFood({ call }) {
   const [days, setDays] = useState([]);
+  const [drafts, setDrafts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState(null);
   const slots = [
     { key: "breakfast", label: "Breakfast" },
     { key: "lunch", label: "Lunch" },
@@ -4569,7 +4572,11 @@ function AdminHallFood({ call }) {
     setLoading(true);
     try {
       const data = await call("/api/hall/menu");
-      setDays(data.days || []);
+      const nextDays = data.days || [];
+      setDays(nextDays);
+      const nextDrafts = {};
+      nextDays.forEach(day => slots.forEach(slot => { nextDrafts[`${day.dow}-${slot.key}`] = day.slots?.[slot.key] || ""; }));
+      setDrafts(nextDrafts);
       setError("");
     } catch (e) {
       setError(e.message || "Could not load the Hall meal schedule.");
@@ -4578,6 +4585,22 @@ function AdminHallFood({ call }) {
     }
   };
   useEffect(() => { load(); }, []);
+  const save = async (day, slot) => {
+    const key = `${day.dow}-${slot.key}`;
+    const items = (drafts[key] || "").trim();
+    if (!items) { setNotice({ ok: false, text: "Enter the meal menu before saving." }); return; }
+    setSaving(key);
+    setNotice(null);
+    try {
+      await call(`/api/hall/menu/${day.dow}/${slot.key}`, { method: "PUT", body: { items } });
+      setDays(prev => prev.map(d => d.dow === day.dow ? { ...d, slots: { ...d.slots, [slot.key]: items } } : d));
+      setNotice({ ok: true, text: `${day.name} ${slot.label} menu saved.` });
+    } catch (e) {
+      setNotice({ ok: false, text: e.message || "Menu could not be saved." });
+    } finally {
+      setSaving("");
+    }
+  };
   return (
     <div className="space-y-5">
       <div className="card p-5">
@@ -4585,6 +4608,7 @@ function AdminHallFood({ call }) {
         <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>View the weekly breakfast, lunch and dinner schedule for Hall students.</p>
       </div>
       {error && <div className="error-banner rounded-xl px-4 py-3 text-sm">{error}</div>}
+      {notice && <div className={`${notice.ok ? "success-banner" : "error-banner"} rounded-xl px-4 py-3 text-sm`}>{notice.text}</div>}
       {loading ? <div className="card p-6 text-sm">Loading Hall meal schedule…</div> : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {days.map(day => (
@@ -4593,8 +4617,12 @@ function AdminHallFood({ call }) {
               <div className="space-y-3">
                 {slots.map(slot => (
                   <div key={slot.key} className="rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
-                    <div className="text-sm font-700">{slot.label}</div>
-                    <div className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{day.slots?.[slot.key] || "No menu set"}</div>
+                    <label className="block text-sm font-700 mb-2">{slot.label}</label>
+                    <textarea rows={3} maxLength={255} value={drafts[`${day.dow}-${slot.key}`] ?? ""} onChange={e => setDrafts(prev => ({ ...prev, [`${day.dow}-${slot.key}`]: e.target.value }))} placeholder="e.g. Rice, Dal, Chicken curry" className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)", background: "var(--surface, white)" }} />
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <span className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{(drafts[`${day.dow}-${slot.key}`] || "").length}/255 characters</span>
+                      <button disabled={!!saving || !(drafts[`${day.dow}-${slot.key}`] || "").trim()} onClick={() => save(day, slot)} className="btn-gold px-3 py-1.5 rounded-lg text-xs font-700">{saving === `${day.dow}-${slot.key}` ? "Saving…" : "Save meal"}</button>
+                    </div>
                   </div>
                 ))}
               </div>
