@@ -1,35 +1,39 @@
-# CampusDine Hall Module — Implemented Features
+# CampusDine Hall Module — Implementation Notes
 
-This update is based on the supplied main project. Hall payments and wallet features are intentionally excluded from the Hall navigation and Hall API routes.
+This implementation modifies the existing CampusDine project. It does not create a separate demo app. Hall navigation and Hall-specific APIs do not expose wallet/top-up/payment functionality.
 
-## Hall student login
-- Student accounts with `account_type = 'hall'` go directly to the Hall module after login.
-- Regular student accounts continue to the existing restaurant picker.
-- Existing teacher/admin/rider login flow is unchanged.
+## Implemented workflows
 
-## Hall meal operations
-- Existing daily meal ON/OFF, weekly menu, cut-off times, guest plates, feast menu and meal reports are retained.
-- Hall profile remains available.
-- Monthly bill and wallet/token-payment tabs/routes are not exposed in Hall.
+1. **Room assignment:** admin room inventory, capacity/vacancy, student room application, approve/reject, automatic assignment, room transfer, check-out, and room history.
+2. **Meal pickup QR:** existing unique pickup tokens, QR generation in the Hall UI, camera scanning using the browser `BarcodeDetector` API where supported, manual token entry fallback, and server-side single-use verification.
+3. **Notifications:** persisted in-app notifications, authenticated Socket.IO `hall:notification` events, optional desktop notifications while the Hall page is open, and optional SMTP email delivery.
+4. **Laundry:** vendor directory, active/inactive vendor management, student service requests, status lifecycle, and rating after delivery.
+5. **University directory:** university creation, user-to-university assignment, and tenant-aware scoping for newly added Hall operations and inventory/request/notice/token/waste/audit records when a user is assigned to a university.
+6. **Student profile / digital Hall ID:** contact and emergency details, blood group, department, hall/room information, and stable digital ID fallback.
+7. **Leave and visitors:** date-range leave request, visitor approval/rejection/check-in/check-out.
+8. **Complaints and maintenance:** service requests support maintenance, cleaning, complaints, and request status review.
+9. **Facilities and incidents:** facility booking with overlap prevention, plus incident report creation and admin review through service requests.
+10. **Hall clearance:** request, in-review, approve/reject, checklist and review note.
+11. **Kitchen inventory and suppliers:** quantity/unit/minimum-stock tracking, low-stock reporting, supplier directory.
+12. **Production and forecast:** date/meal production plans plus the existing 56-day historical meal-demand estimate.
+13. **Analytics:** request breakdown, prepared/served/wasted plates and waste rate over the last 30 days.
+14. **Audit and access control:** audit events for core actions; administrative endpoints use the existing admin-role middleware.
+15. **Hall operations UI:** the Hall Operations tab includes rooms, applications, profile, leave/complaints, visitors, facilities, clearance, laundry, notifications, supplier/production admin panels, analytics, university directory, and QR scanning.
 
-## Added hall operations
-- Service requests: maintenance/repair, cleaning, laundry, guest entry, lost & found, facility booking, feedback, urgent issue and hall event/catering.
-- Students see their own requests and may cancel eligible requests; admins can update request status.
-- Hall notice board with pinned notices and admin publishing/deletion.
-- Kitchen/supply inventory with quantity, units, minimum stock and low-stock indicator.
-- Food-waste records for prepared/served/wasted plates.
-- Historical meal-demand estimate based on the last 56 days of hall meal selections.
-- Admin overview and audit log.
+## Setup
 
-## Database
-On server startup, `ensureHallExtraSchema` creates these tables safely if missing:
-`hall_requests`, `hall_notices`, `hall_inventory`, `hall_pickup_tokens`, `hall_food_waste`, `hall_audit_log`.
+1. Keep a backup of the existing project and extract this project to a new folder.
+2. Copy `backend/.env.example` to `backend/.env` and set the existing MySQL credentials and a persistent `JWT_SECRET`.
+3. Start XAMPP/MySQL and make sure the CampusDine database from `backend/schema.sql` exists. The server creates the Hall extension tables and compatible columns at startup.
+4. In PowerShell, open the `backend` folder and run `npm install`, then `npm start`.
+5. Log in with a Student account whose `account_type` is `hall`. Use an Admin account to create rooms and review applications.
+6. For real email delivery, set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, optional `SMTP_SECURE=true`, and `SMTP_FROM` in `backend/.env`. Use the Hall Operations → Notifications → Test email control to verify configuration.
+7. Camera QR scanning requires browser camera permission and a secure context (localhost or HTTPS). If camera scanning is unavailable, use manual token entry.
 
-## Run
-1. Extract the ZIP.
-2. Configure `backend/.env` for your local MySQL database and JWT secret.
-3. Import `backend/schema.sql` if this is a fresh database.
-4. In `backend`, run `npm install` (if needed), then `npm start`.
-5. Open the normal CampusDine frontend and sign in using a Student account registered as a Hall account.
+## Notes
 
-The forecast is a simple historical estimate, not an AI prediction service. Payment/wallet, laundry vendors, actual QR attendance scanning, push/email delivery, room assignment administration and multi-university tenancy are not claimed as completed integrations.
+- The historical demand forecast is a simple average-based estimate, not an AI service.
+- Desktop notifications work while the Hall page is open and permission is granted; email requires SMTP configuration. No VAPID/browser push subscription service is configured.
+- University scoping is applied to the new operational records and the extended room/request/notice/inventory/token/waste/audit workflows. The pre-existing weekly menu and meal-slot cutoff/price configuration remains shared across universities; meal reports and newly added operational records are tenant-scoped. Per-university weekly menus and per-university slot pricing would need a separate data migration before a production deployment that requires different menus or pricing by university.
+- End-to-end tests require the user's local MySQL database and credentials. This package was checked for JavaScript syntax and JSX transpilation, but was not tested against a live database in this environment.
+- Hall wallet/payment features are intentionally excluded from the Hall Operations UI and new Hall APIs.

@@ -44,5 +44,14 @@ async function ensureHallExtraSchema(db) {
     details JSON NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_hall_audit_created (created_at)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  // Add tenant key to existing tables without breaking previously installed Hall data.
+  for (const table of ['hall_requests','hall_notices','hall_inventory','hall_pickup_tokens','hall_food_waste','hall_audit_log']) {
+    const [cols] = await db.query(`SHOW COLUMNS FROM ${table} LIKE 'university_id'`);
+    if (!cols.length) await db.query(`ALTER TABLE ${table} ADD COLUMN university_id BIGINT UNSIGNED NULL`);
+  }
+  const [idx] = await db.query("SHOW INDEX FROM hall_inventory WHERE Key_name='uniq_hall_inventory_item'");
+  if (idx.length) await db.query('ALTER TABLE hall_inventory DROP INDEX uniq_hall_inventory_item');
+  const [tenantIdx] = await db.query("SHOW INDEX FROM hall_inventory WHERE Key_name='uq_hall_inventory_tenant_item'");
+  if (!tenantIdx.length) await db.query('ALTER TABLE hall_inventory ADD UNIQUE KEY uq_hall_inventory_tenant_item (university_id,item_name)');
 }
 module.exports = { ensureHallExtraSchema };
