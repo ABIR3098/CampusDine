@@ -39,6 +39,7 @@ const { ensureOffersSchema } = require("./src/offersSchema");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
 const hall = require("./src/hall"); // Hall (meal system)
+const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -623,6 +624,7 @@ async function runStartupCheck() {
   await purgeOldOtps(db);
   await ensureOffersSchema(db); // loyalty points / streak, combo deals, happy hours
   await hall.ensureHallSchema(db); // Hall (meal system) tables
+  await ensureHallExtraSchema(db); // Hall notices, requests, inventory, pickup and audit tables
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
