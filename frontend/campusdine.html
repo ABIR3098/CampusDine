@@ -1987,6 +1987,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
     { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
     { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
+    { key: "hall_admin", label: "Hall Admin", desc: "Manage hall services, complaints, notices and operations.", icon: I.dashboard },
   ];
 
   const sampleMenu = [
@@ -2292,7 +2293,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             {!role ? (
               <div className="space-y-3">
                 {roleOptions.map((r) => (
-                  <button key={r.key} onClick={() => { setRole(r.key); if (r.key === "admin") setMode("login"); }}
+                  <button key={r.key} onClick={() => { if (r.key === "hall_admin") { window.location.href = "/hall-admin.html"; return; } setRole(r.key); if (r.key === "admin") setMode("login"); }}
                     className="role-option w-full flex items-center gap-4 p-4 rounded-lg border text-left"
                     style={{ borderColor: "var(--line)" }}>
                     <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0" style={{ background: "var(--gold-soft)" }}>
@@ -7060,6 +7061,7 @@ function App() {
   };
   const logout = () => {
     if (socketRef.current) socketRef.current.disconnect();
+    try { localStorage.removeItem("campusdine_hall_admin_token"); } catch (_) {}
     setSession(null); setRestaurant(null); setCart([]); setError(null); setNotificationCenterOpen(false);
     setWallet({ balance: 0, transactions: [], loaded: false }); setLowBalanceDismissed(false);
   };
