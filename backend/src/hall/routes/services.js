@@ -93,4 +93,20 @@ router.post("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
 router.delete("/inventory/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   await pool.query("DELETE FROM hall_inventory WHERE id=?",[Number(req.params.id)]); res.json({ok:true});
 }));
+router.get("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
+  const [rows]=await pool.query("SELECT id,DATE_FORMAT(waste_date,'%Y-%m-%d') waste_date,slot,prepared_plates,served_plates,wasted_plates,notes,created_at FROM hall_food_waste ORDER BY waste_date DESC,FIELD(slot,'breakfast','lunch','dinner') LIMIT 120");
+  res.json(rows);
+}));
+router.post("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
+  const b=req.body||{}, date=String(b.date||""), slot=String(b.slot||"");
+  const prepared=Number(b.preparedPlates), served=Number(b.servedPlates), wasted=Number(b.wastedPlates);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!["breakfast","lunch","dinner"].includes(slot)||
+    ![prepared,served,wasted].every(Number.isInteger)||prepared<0||served<0||wasted<0||served+wasted>prepared)
+    return res.status(400).json({error:"Use a valid date, meal and whole-plate counts; served + wasted cannot exceed prepared"});
+  const notes=String(b.notes||"").trim().slice(0,500);
+  const [r]=await pool.query("INSERT INTO hall_food_waste(waste_date,slot,prepared_plates,served_plates,wasted_plates,notes,recorded_by) VALUES(?,?,?,?,?,?,?)",
+    [date,slot,prepared,served,wasted,notes||null,req.user.id]);
+  await audit(req.user.id,"recorded","food_waste",r.insertId,{date,slot,prepared,served,wasted});
+  res.status(201).json({id:r.insertId,date,slot,preparedPlates:prepared,servedPlates:served,wastedPlates:wasted});
+}));
 module.exports=router;
