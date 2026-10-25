@@ -151,4 +151,41 @@ router.patch("/pickup-tokens/:code/serve", requireRole("admin"), catchAsync(asyn
   await audit(req.user.id,"served","pickup_token",null,{code});
   res.json({ok:true,status:"served"});
 }));
+router.get("/students", requireRole("admin"), catchAsync(async(req,res)=>{
+  const [rows]=await pool.query("SELECT id,name,external_id,email,department,hall_name,room_number,hall_id,phone,account_type FROM users WHERE role='student' AND account_type='hall' ORDER BY hall_name,room_number,name LIMIT 1000");
+  res.json(rows);
+}));
+router.patch("/students/:id/room", requireRole("admin"), catchAsync(async(req,res)=>{
+  const id=Number(req.params.id), b=req.body||{};
+  const hallName=String(b.hallName||"").trim().slice(0,60), roomNumber=String(b.roomNumber||"").trim().slice(0,20), hallId=String(b.hallId||"").trim().slice(0,20);
+  if(!Number.isSafeInteger(id)||id<1||!hallName||!roomNumber) return res.status(400).json({error:"Hall name and room number are required"});
+  try {
+    const [r]=await pool.query("UPDATE users SET hall_name=?,room_number=?,hall_id=? WHERE id=? AND role='student' AND account_type='hall'",[hallName,roomNumber,hallId||null,id]);
+    if(!r.affectedRows) return res.status(404).json({error:"Hall student not found"});
+    await audit(req.user.id,"room_assigned","hall_student",id,{hallName,roomNumber,hallId});
+    res.json({ok:true,id,hallName,roomNumber,hallId:hallId||null});
+  } catch(e) {
+    if(e.code==="ER_DUP_ENTRY") return res.status(409).json({error:"That Hall ID is already assigned"});
+    throw e;
+  }
+}));
+
+router.get("/overview", requireRole("admin"), catchAsync(async(req,res)=>{
+  const [[counts]] = await pool.query(`SELECT
+    (SELECT COUNT(*) FROM hall_requests WHERE status IN ('submitted','approved','in_progress')) open_requests,
+    (SELECT COUNT(*) FROM hall_requests WHERE type='maintenance' AND status NOT IN ('resolved','rejected','cancelled')) maintenance_open,
+    (SELECT COUNT(*) FROM hall_requests WHERE type='guest' AND status='submitted') guest_pending,
+    (SELECT COUNT(*) FROM hall_requests WHERE type='feedback' AND created_at >= DATE_SUB(NOW(),INTERVAL 30 DAY)) feedback_30d,
+    (SELECT COUNT(*) FROM hall_notices WHERE expires_at IS NULL OR expires_at>NOW()) active_notices,
+    (SELECT COUNT(*) FROM hall_inventory WHERE quantity<=min_quantity) low_stock`);
+  res.json(counts);
+}));
+router.get("/audit", requireRole("admin"), catchAsync(async(req,res)=>{
+  const [rows]=await pool.query("SELECT a.id,a.user_id,u.name AS actor,a.action,a.entity_type,a.entity_id,a.details,a.created_at FROM hall_audit_log a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.created_at DESC LIMIT 200");
+  res.json(rows);
+}));
+
+// Food-waste recording and a simple historical demand estimate (no AI service/API required).
+
+// Meal pickup QR/token. The token only verifies collection; it never charges a wallet.
 module.exports=router;
