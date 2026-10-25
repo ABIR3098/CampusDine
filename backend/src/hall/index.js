@@ -1,5 +1,4 @@
-// Hall = the meal system (students & teachers switch each meal on/off, weekly menu, feasts, monthly bill).
-// It sits next to the four restaurants and shares the same login and wallet.
+// Hall meal management and services share the CampusDine login; wallet and payment routes are excluded.
 const express = require("express");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const { ensureHallSchema } = require("./schema");
@@ -27,9 +26,7 @@ router.use("/", require("./routes/menu")); // step 6
 router.use("/", require("./routes/feasts")); // step 7
 router.use("/", require("./routes/guests")); // step 8
 router.use("/", require("./routes/services"));
-router.use("/", require("./routes/bill")); // step 10
 router.use("/", require("./routes/report")); // step 12
-router.use("/", require("./routes/tokens")); // step 13
 // (each step adds its router here)
 
 // background jobs (started once after the server is listening)
