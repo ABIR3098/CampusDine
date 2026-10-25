@@ -7033,7 +7033,11 @@ function App() {
 
   const onAuth = (token, user) => {
     setSession({ token, user });
-    setRestaurant(null); // everyone picks a restaurant first
+    // Hall-account students go straight to the Hall module after Student login.
+    // Regular students and other roles keep the original restaurant picker.
+    setRestaurant(user.role === "student" && user.accountType === "hall"
+      ? { ...HALL_ENTRY, logo: "/images/restaurants/hall.svg" }
+      : null);
     setTab(user.role === "admin" ? "overview" : "menu");
   };
   const logout = () => {
