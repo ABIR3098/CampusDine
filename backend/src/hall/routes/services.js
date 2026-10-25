@@ -58,6 +58,23 @@ router.delete("/services/:id", catchAsync(async(req,res)=>{
   await audit(req.user.id,"cancelled","request",id,{type:r.type});
   res.json({id,status:"cancelled"});
 }));
-
-
+router.get("/notices", catchAsync(async(req,res)=>{
+  const [rows]=await pool.query("SELECT id,title,body,category,pinned,expires_at,created_at FROM hall_notices WHERE expires_at IS NULL OR expires_at > NOW() ORDER BY pinned DESC,created_at DESC LIMIT 100");
+  res.json(rows);
+}));
+router.post("/notices", requireRole("admin"), catchAsync(async(req,res)=>{
+  const b=req.body||{}, title=String(b.title||"").trim(), body=String(b.body||"").trim(), category=String(b.category||"General").trim().slice(0,50);
+  if(title.length<3||title.length>180||!body||body.length>10000) return res.status(400).json({error:"Enter a title and notice body"});
+  const expiry=b.expiresAt?new Date(b.expiresAt):null;
+  if(expiry && Number.isNaN(expiry.getTime())) return res.status(400).json({error:"Invalid expiry date"});
+  const [r]=await pool.query("INSERT INTO hall_notices (title,body,category,pinned,expires_at,created_by) VALUES (?,?,?,?,?,?)",
+    [title,body,category,b.pinned?1:0,expiry,req.user.id]);
+  await audit(req.user.id,"created","notice",r.insertId,{title});
+  res.status(201).json({id:r.insertId,title,body,category,pinned:!!b.pinned});
+}));
+router.delete("/notices/:id", requireRole("admin"), catchAsync(async(req,res)=>{
+  await pool.query("DELETE FROM hall_notices WHERE id=?",[Number(req.params.id)]);
+  await audit(req.user.id,"deleted","notice",Number(req.params.id));
+  res.json({ok:true});
+}));
 module.exports=router;
