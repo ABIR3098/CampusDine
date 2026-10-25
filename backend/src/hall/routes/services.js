@@ -109,4 +109,17 @@ router.post("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"recorded","food_waste",r.insertId,{date,slot,prepared,served,wasted});
   res.status(201).json({id:r.insertId,date,slot,preparedPlates:prepared,servedPlates:served,wastedPlates:wasted});
 }));
+router.get("/forecast", requireRole("admin"), catchAsync(async(req,res)=>{
+  const [rows]=await pool.query(`SELECT DAYOFWEEK(the_date) dow,slot,AVG(daily_count) avg_plates,COUNT(*) sample_days FROM
+    (SELECT the_date,slot,SUM(CASE WHEN status='on' THEN 1 ELSE 0 END)+SUM(guest_count) daily_count
+     FROM hall_meal_state LEFT JOIN hall_guests USING(user_id,the_date,slot)
+     WHERE hall_meal_state.the_date >= DATE_SUB(CURDATE(),INTERVAL 56 DAY) AND hall_meal_state.the_date < CURDATE()
+     GROUP BY hall_meal_state.the_date,hall_meal_state.slot) d GROUP BY dow,slot`);
+  const [todayRows]=await pool.query("SELECT DAYOFWEEK(CURDATE()) dow");
+  const dow=Number(todayRows[0].dow);
+  res.json(["breakfast","lunch","dinner"].map(slot=>{
+    const r=rows.find(x=>Number(x.dow)===dow&&x.slot===slot);
+    return {slot,estimatedPlates:r?Math.max(0,Math.round(Number(r.avg_plates))):0,sampleDays:r?Number(r.sample_days):0,confidence:r&&Number(r.sample_days)>=4?"moderate":"low"};
+  }));
+}));
 module.exports=router;
