@@ -39,6 +39,9 @@ const { ensureOffersSchema } = require("./src/offersSchema");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
 const hall = require("./src/hall"); // Hall (meal system)
+const hallAdminRoutes = require("./src/routes/hallAdmin");
+const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
+const { ensureHallAdvancedSchema } = require("./src/hall/advancedSchema");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -98,7 +101,7 @@ async function seedDefaultMenuAndRates(db) {
 
 async function ensureRiderSchema(db) {
   // Add the internal rider role without changing existing student/teacher/admin accounts.
-  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider') NOT NULL");
+  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin') NOT NULL");
   await db.query(`CREATE TABLE IF NOT EXISTS rider_locations (
     rider_id INT PRIMARY KEY, latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL, accuracy_m DECIMAL(8,2) NULL,
     active TINYINT(1) NOT NULL DEFAULT 0, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -623,6 +626,8 @@ async function runStartupCheck() {
   await purgeOldOtps(db);
   await ensureOffersSchema(db); // loyalty points / streak, combo deals, happy hours
   await hall.ensureHallSchema(db); // Hall (meal system) tables
+    await ensureHallExtraSchema(db); // Hall notices, service requests, inventory and audit trail
+    await ensureHallAdvancedSchema(db); // Hall room workflow, visitors, facilities, laundry, kitchen and notifications
 
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
@@ -654,6 +659,7 @@ app.use(express.json({ limit: "2mb" })); // profile pictures arrive as small bas
 
 const io = new Server(server, { cors: corsOptions });
 app.set("io", io);
+global.__campusdineHallIO = io;
 
 // Socket auth: client connects with { auth: { token } }, gets placed into
 // a personal room (user:<id>) and, if admin, the shared "admins" room.
@@ -707,6 +713,7 @@ app.use("/api/pricing", pricingRouter);
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
 app.use("/api/hall", hall.router);
+app.use("/api/hall-admin", hallAdminRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
@@ -716,7 +723,8 @@ app.get("/", (req, res) => res.sendFile(path.join(FRONTEND_DIR, "campusdine.html
 // Fallback error handler
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ error: "Something went wrong" });
+  const status = Number(err.status || err.statusCode) || 500;
+  res.status(status >= 400 && status < 600 ? status : 500).json({ error: status < 500 && err.message ? err.message : "Something went wrong" });
 });
 
 const PORT = process.env.PORT || 5000;

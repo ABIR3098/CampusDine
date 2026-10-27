@@ -14,12 +14,15 @@ function HallMenuCell({ value, isAdmin, onSave }) {
 function HallMenu({ call, isAdmin, notify }) {
   const [menu, setMenu] = useState(null);
   const [today, setToday] = useState(null); // today's weekday, 0 = Sunday
+  const [refreshing, setRefreshing] = useState(false);
   const load = async () => {
+    setRefreshing(true);
     try {
       const [m, info] = await Promise.all([call("/api/hall/menu"), call("/api/hall/info")]);
       setMenu(m.days);
       setToday(hallDow(info.today));
     } catch (e) { notify(e, true); }
+    finally { setRefreshing(false); }
   };
   useEffect(() => { load(); }, []);
 
@@ -31,6 +34,7 @@ function HallMenu({ call, isAdmin, notify }) {
 
   return (
     <HallCard title="Weekly menu" icon="📋"
+      right={!isAdmin && <button className="hl-btn sm ghost" onClick={load} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh menu"}</button>}
       sub={`The same every week.${isAdmin ? " Click a meal, change the text and click outside to save." : ""}`}>
       {!menu ? <div className="hl-empty">Loading…</div> : (
         <div className="hl-week">

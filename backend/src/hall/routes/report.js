@@ -9,7 +9,7 @@ const router = express.Router();
 router.use("/report", requireRole("admin"));
 
 // Everyone's effective state for one date + meal (the row if there is one, else their last earlier choice, else the default).
-async function peopleFor(date, slot) {
+async function peopleFor(date, slot, universityId = null) {
   const [rows] = await pool.query(
     `SELECT u.id, u.name, u.external_id AS externalId, u.role,
             COALESCE(cur.status,
@@ -17,15 +17,15 @@ async function peopleFor(date, slot) {
                      ?) AS status
      FROM users u
      LEFT JOIN hall_meal_state cur ON cur.user_id = u.id AND cur.the_date = ? AND cur.slot = ?
-     WHERE u.role IN ('student', 'teacher')
+     WHERE u.role IN ('student', 'teacher') AND (? IS NULL OR u.university_id = ?)
      ORDER BY u.name`,
-    [slot, date, DEFAULT_STATE, date, slot]
+    [slot, date, DEFAULT_STATE, date, slot, universityId || null, universityId || null]
   );
   return rows;
 }
 
-async function guestPlates(date, slot) {
-  const [[r]] = await pool.query("SELECT COALESCE(SUM(guest_count), 0) AS n FROM hall_guests WHERE the_date = ? AND slot = ?", [date, slot]);
+async function guestPlates(date, slot, universityId = null) {
+  const [[r]] = await pool.query("SELECT COALESCE(SUM(g.guest_count), 0) AS n FROM hall_guests g JOIN users u ON u.id=g.user_id WHERE g.the_date = ? AND g.slot = ? AND (? IS NULL OR u.university_id = ?)", [date, slot, universityId || null, universityId || null]);
   return Number(r.n);
 }
 
@@ -36,14 +36,14 @@ router.get("/report/day", catchAsync(async (req, res) => {
   const date = req.query.date || now.dateKey;
   if (!isDateKey(date)) return res.status(400).json({ error: "date must look like 2026-10-22" });
   const [slotRows] = await pool.query("SELECT * FROM hall_slots");
-  const [feasts] = await pool.query("SELECT slot, title, extra_price FROM hall_feasts WHERE the_date = ?", [date]);
+  const [feasts] = await pool.query("SELECT slot, title, extra_price FROM hall_feasts WHERE the_date = ? AND (? IS NULL OR university_id = ?)", [date, req.user.universityId || null, req.user.universityId || null]);
 
   const slots = [];
   for (const slot of SLOTS) {
     const s = slotRows.find((x) => x.slot === slot);
-    const people = await peopleFor(date, slot);
+    const people = await peopleFor(date, slot, req.user.universityId);
     const on = people.filter((p) => p.status === "on").length;
-    const guests = await guestPlates(date, slot);
+    const guests = await guestPlates(date, slot, req.user.universityId);
     const feast = feasts.find((f) => f.slot === slot);
     slots.push({
       slot, label: s.label, locked: isLocked(s, date, now),
@@ -66,8 +66,8 @@ router.get("/report/range", catchAsync(async (req, res) => {
   for (let d = from; d <= to; d = addDays(d, 1)) {
     const row = { date: d, total: 0 };
     for (const slot of SLOTS) {
-      const people = await peopleFor(d, slot);
-      row[slot] = people.filter((p) => p.status === "on").length + (await guestPlates(d, slot));
+      const people = await peopleFor(d, slot, req.user.universityId);
+      row[slot] = people.filter((p) => p.status === "on").length + (await guestPlates(d, slot, req.user.universityId));
       row.total += row[slot];
     }
     out.push(row);
@@ -86,7 +86,7 @@ router.get("/report/changes", catchAsync(async (req, res) => {
     `SELECT u.name, u.external_id AS externalId, l.slot, l.old_status AS fromStatus, l.new_status AS toStatus,
             DATE_FORMAT(l.created_at, '%Y-%m-%d %H:%i') AS at
      FROM hall_meal_log l JOIN users u ON u.id = l.user_id
-     WHERE ${where.join(" AND ")} ORDER BY l.created_at DESC, l.id DESC LIMIT 500`, args);
+     WHERE ${where.join(" AND ")} AND (? IS NULL OR u.university_id = ?) ORDER BY l.created_at DESC, l.id DESC LIMIT 500`, [...args, req.user.universityId || null, req.user.universityId || null]);
   res.json(rows);
 }));
 

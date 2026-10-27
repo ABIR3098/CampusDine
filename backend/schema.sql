@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(120) NULL UNIQUE,
   external_id VARCHAR(50) NOT NULL UNIQUE,
-  role ENUM('student','teacher','admin','rider') NOT NULL,
+  role ENUM('student','teacher','admin','rider','hall_admin') NOT NULL,
   account_type ENUM('regular','hall') NOT NULL DEFAULT 'regular',
   password_hash VARCHAR(255) NOT NULL,
   wallet_balance DECIMAL(10,2) NOT NULL DEFAULT 0,

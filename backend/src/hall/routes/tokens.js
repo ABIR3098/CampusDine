@@ -113,6 +113,36 @@ router.get("/queue", requireRole("admin"), catchAsync(async (req, res) => {
   });
 }));
 
+// POST /api/hall/queue/scan (admin) body: { code: "HALL|YYYY-MM-DD|slot|serial" }
+// Scanning a Hall QR verifies today's token and atomically marks it served.
+router.post("/queue/scan", requireRole("admin"), catchAsync(async (req, res) => {
+  const code = String((req.body || {}).code || "").trim();
+  const match = /^HALL\|(\d{4}-\d{2}-\d{2})\|(breakfast|lunch|dinner)\|(\d+)$/.exec(code);
+  if (!match) return res.status(400).json({ error: "Invalid Hall meal QR code." });
+  const [, date, slot, serialText] = match;
+  const serial = Number(serialText);
+  if (date !== nowParts().dateKey) return res.status(400).json({ error: "This Hall meal QR is not for today." });
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [[t]] = await conn.query(
+      `SELECT t.id, t.serial, t.slot, t.the_date, t.plates, t.status, u.name, u.external_id AS externalId
+       FROM hall_tokens t JOIN users u ON u.id = t.user_id
+       WHERE t.the_date = ? AND t.slot = ? AND t.serial = ? FOR UPDATE`,
+      [date, slot, serial]);
+    if (!t) { await conn.rollback(); return res.status(404).json({ error: "Hall meal token not found." }); }
+    if (t.status === "served") { await conn.rollback(); return res.status(409).json({ error: `Hall token #${serial} was already used.` }); }
+    await conn.query("UPDATE hall_tokens SET status = 'served', served_at = ? WHERE id = ?", [localStamp(), t.id]);
+    await conn.commit();
+    return res.json({ ok: true, type: "hall", date, slot, serial, plates: t.plates, name: t.name, externalId: t.externalId, status: "served" });
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}));
+
 // POST /api/hall/queue/serve (admin) body: { slot, serial } — mark a token as served
 router.post("/queue/serve", requireRole("admin"), catchAsync(async (req, res) => {
   const { slot, serial } = req.body || {};

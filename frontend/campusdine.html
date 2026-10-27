@@ -1987,6 +1987,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
     { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
     { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
+    { key: "hall_admin", label: "Hall Admin", desc: "Manage hall services, complaints, notices and operations.", icon: I.dashboard },
   ];
 
   const sampleMenu = [
@@ -2292,7 +2293,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             {!role ? (
               <div className="space-y-3">
                 {roleOptions.map((r) => (
-                  <button key={r.key} onClick={() => { setRole(r.key); if (r.key === "admin") setMode("login"); }}
+                  <button key={r.key} onClick={() => { if (r.key === "hall_admin") { window.location.href = "/hall-admin.html"; return; } setRole(r.key); if (r.key === "admin") setMode("login"); }}
                     className="role-option w-full flex items-center gap-4 p-4 rounded-lg border text-left"
                     style={{ borderColor: "var(--line)" }}>
                     <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0" style={{ background: "var(--gold-soft)" }}>
@@ -4554,6 +4555,85 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
   );
 }
 
+/* ---------------- Admin: Hall food management ---------------- */
+function AdminHallFood({ call }) {
+  const [days, setDays] = useState([]);
+  const [drafts, setDrafts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState(null);
+  const slots = [
+    { key: "breakfast", label: "Breakfast" },
+    { key: "lunch", label: "Lunch" },
+    { key: "dinner", label: "Dinner" },
+  ];
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await call("/api/hall/menu");
+      const nextDays = data.days || [];
+      setDays(nextDays);
+      const nextDrafts = {};
+      nextDays.forEach(day => slots.forEach(slot => { nextDrafts[`${day.dow}-${slot.key}`] = day.slots?.[slot.key] || ""; }));
+      setDrafts(nextDrafts);
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not load the Hall meal schedule.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { load(); }, []);
+  const save = async (day, slot) => {
+    const key = `${day.dow}-${slot.key}`;
+    const items = (drafts[key] || "").trim();
+    if (!items) { setNotice({ ok: false, text: "Enter the meal menu before saving." }); return; }
+    setSaving(key);
+    setNotice(null);
+    try {
+      await call(`/api/hall/menu/${day.dow}/${slot.key}`, { method: "PUT", body: { items } });
+      setDays(prev => prev.map(d => d.dow === day.dow ? { ...d, slots: { ...d.slots, [slot.key]: items } } : d));
+      setNotice({ ok: true, text: `${day.name} ${slot.label} menu saved.` });
+    } catch (e) {
+      setNotice({ ok: false, text: e.message || "Menu could not be saved." });
+    } finally {
+      setSaving("");
+    }
+  };
+  return (
+    <div className="space-y-5">
+      <div className="card p-5">
+        <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Hall food & weekly menu</div>
+        <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>View the weekly breakfast, lunch and dinner schedule for Hall students.</p>
+      </div>
+      {error && <div className="error-banner rounded-xl px-4 py-3 text-sm">{error}</div>}
+      {notice && <div className={`${notice.ok ? "success-banner" : "error-banner"} rounded-xl px-4 py-3 text-sm`}>{notice.text}</div>}
+      {loading ? <div className="card p-6 text-sm">Loading Hall meal schedule…</div> : (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {days.map(day => (
+            <section key={day.dow} className="card p-4">
+              <div className="font-display font-700 text-lg mb-3" style={{ color: "var(--gold)" }}>{day.name}</div>
+              <div className="space-y-3">
+                {slots.map(slot => (
+                  <div key={slot.key} className="rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
+                    <label className="block text-sm font-700 mb-2">{slot.label}</label>
+                    <textarea rows={3} maxLength={255} value={drafts[`${day.dow}-${slot.key}`] ?? ""} onChange={e => setDrafts(prev => ({ ...prev, [`${day.dow}-${slot.key}`]: e.target.value }))} placeholder="e.g. Rice, Dal, Chicken curry" className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)", background: "var(--surface, white)" }} />
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <span className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{(drafts[`${day.dow}-${slot.key}`] || "").length}/255 characters</span>
+                      <button disabled={!!saving || !(drafts[`${day.dow}-${slot.key}`] || "").trim()} onClick={() => save(day, slot)} className="btn-gold px-3 py-1.5 rounded-lg text-xs font-700">{saving === `${day.dow}-${slot.key}` ? "Saving…" : "Save meal"}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------------- Admin: Orders queue ---------------- */
 function AdminOrders({ orders, advance, call }) {
   const [assignmentMessage, setAssignmentMessage] = useState("");
@@ -5225,7 +5305,8 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
 /* ---------------- Admin: Scan / verify a pickup token ---------------- */
 function AdminVerify({ call, onCollected }) {
   const [code, setCode] = useState("");
-  const [result, setResult] = useState(null);   // { order, problem, justCollected }
+  const [result, setResult] = useState(null);   // regular canteen order result
+  const [hallResult, setHallResult] = useState(null); // verified Hall meal QR
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -5235,10 +5316,15 @@ function AdminVerify({ call, onCollected }) {
   const check = async (raw) => {
     const text = String(raw === undefined ? code : raw).trim();
     if (!text) return;
-    setBusy(true); setError(null); setResult(null);
+    setBusy(true); setError(null); setResult(null); setHallResult(null);
     try {
-      const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
-      setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+      if (text.startsWith("HALL|")) {
+        const data = await call("/api/hall/queue/scan", { method: "POST", body: { code: text } });
+        setHallResult(data);
+      } else {
+        const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
+        setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -5329,7 +5415,7 @@ function AdminVerify({ call, onCollected }) {
       <div className="card p-5">
         <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
         <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
-          Scan the QR on the customer's ticket, or type the token (e.g. C-105). A barcode scanner that "types" into the box works too.
+          Scan a canteen order QR or a Hall Student meal QR. Hall QR scans mark that meal token as served. You can also type the token text into the box.
         </p>
         <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
           <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
@@ -5351,6 +5437,18 @@ function AdminVerify({ call, onCollected }) {
         {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
       </div>
 
+      {hallResult && (
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)", borderBottom: "1px solid var(--ok-border, #BBF7D0)" }}>Hall meal QR verified — pickup completed</div>
+          <div className="p-5 space-y-2">
+            <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>Hall #{hallResult.serial}</div>
+            <div className="text-sm">Student: <strong>{hallResult.name}</strong> · ID: {hallResult.externalId || "—"}</div>
+            <div className="text-sm">Meal: <strong>{hallResult.slot}</strong> · Plates: <strong>{hallResult.plates}</strong></div>
+            <div className="text-xs" style={{ color: "var(--ink-soft)" }}>This QR is now marked as used. Scanning it again will be rejected.</div>
+            <button onClick={() => { setHallResult(null); setCode(""); setError(null); }} className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+          </div>
+        </div>
+      )}
       {o && (
         <div className="card overflow-hidden">
           <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
@@ -6543,7 +6641,7 @@ const RESTAURANTS = [
 
 // The Hall (meal system) sits next to the four restaurants on the picker. It is not a restaurant:
 // no cart, no riders, no offers. Its code lives in frontend/hall/ and backend/src/hall/.
-const HALL_ENTRY = { id: "hall", isHall: true, name: "Hall", desc: "Daily meal on/off, weekly menu, feasts & monthly bill", descBn: "দৈনিক মিল অন/অফ, সাপ্তাহিক মেনু, ফিস্ট ও মাসিক বিল" };
+const HALL_ENTRY = { id: "hall", isHall: true, name: "Hall", desc: "Meal schedule, weekly menu, hall services & notices", descBn: "মিল শিডিউল, সাপ্তাহিক মেনু, হল সার্ভিস ও নোটিশ" };
 
 // Waits for hall/loader.js to finish compiling the Hall files, then shows the Hall.
 function HallGate(props) {
@@ -7090,11 +7188,16 @@ function App() {
 
   const onAuth = (token, user) => {
     setSession({ token, user });
-    setRestaurant(null); // everyone picks a restaurant first
+    // Hall-account students go straight to the Hall module after Student login.
+    // Regular students and other roles keep the original restaurant picker.
+    setRestaurant(user.role === "student" && user.accountType === "hall"
+      ? { ...HALL_ENTRY, logo: "/images/restaurants/hall.svg" }
+      : null);
     setTab(user.role === "admin" ? "overview" : "menu");
   };
   const logout = () => {
     if (socketRef.current) socketRef.current.disconnect();
+    try { localStorage.removeItem("campusdine_hall_admin_token"); } catch (_) {}
     setSession(null); setRestaurant(null); setCart([]); setError(null); setNotificationCenterOpen(false);
     setWallet({ balance: 0, transactions: [], loaded: false }); setLowBalanceDismissed(false);
   };
@@ -7389,7 +7492,7 @@ function App() {
 
   // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
   if (restaurant.isHall) {
-    return <HallGate call={call} user={session.user} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
+    return <HallGate call={call} user={session.user} token={session.token} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
       ext={{ wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
         onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
   }
@@ -7422,6 +7525,7 @@ function App() {
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "adminMenu", label: "Menu", icon: I.box },
+    { key: "hallFood", label: "Hall Food", icon: I.calendar },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
@@ -7526,6 +7630,7 @@ function App() {
         {session.user.role === "admin" && tab === "adminMenu" && (
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         )}
+        {session.user.role === "admin" && tab === "hallFood" && <AdminHallFood call={call} />}
         {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
         {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
         {session.user.role === "admin" && tab === "offers" && (

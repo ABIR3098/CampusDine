@@ -285,7 +285,7 @@ router.post("/login", catchAsync(async (req, res) => {
   }
   fails.delete(key);
 
-  if (["student", "teacher", "admin", "rider"].includes(portal) && portal !== user.role) {
+  if (["student", "teacher", "admin", "rider", "hall_admin"].includes(portal) && portal !== user.role) {
     return res.status(403).json({ error: `This account is a ${user.role} account — go back and choose the ${user.role} portal.` });
   }
 
