@@ -941,6 +941,22 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "iss.report": "Report a problem",
+    "iss.title": "What went wrong?",
+    "iss.ph": "Tell us more (optional)",
+    "iss.send": "Send report",
+    "iss.cancel": "Cancel",
+    "iss.open": "Reported — waiting for the admin",
+    "iss.resolved": "Resolved",
+    "iss.reply": "Admin's reply",
+    "iss.r.cold": "Food was cold",
+    "iss.r.wrong": "Wrong item",
+    "iss.r.missing": "Missing item",
+    "iss.r.late": "Very late",
+    "iss.r.quality": "Poor quality",
+    "iss.r.other": "Other",
+    "iss.upd.t": "Problem report updated",
+    "iss.upd": "Order {o}: the admin replied to your problem report.",
     "topup.short": "You need {a} more",
     "copytoken": "Copy token",
     "copied": "Copied!",
@@ -1320,6 +1336,22 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "iss.report": "সমস্যা জানান",
+    "iss.title": "কী সমস্যা হয়েছে?",
+    "iss.ph": "আরও কিছু লিখুন (ঐচ্ছিক)",
+    "iss.send": "রিপোর্ট পাঠান",
+    "iss.cancel": "বাতিল",
+    "iss.open": "জানানো হয়েছে — অ্যাডমিনের উত্তরের অপেক্ষায়",
+    "iss.resolved": "সমাধান হয়েছে",
+    "iss.reply": "অ্যাডমিনের উত্তর",
+    "iss.r.cold": "খাবার ঠান্ডা ছিল",
+    "iss.r.wrong": "ভুল আইটেম",
+    "iss.r.missing": "আইটেম বাদ পড়েছে",
+    "iss.r.late": "অনেক দেরি হয়েছে",
+    "iss.r.quality": "মান ভালো ছিল না",
+    "iss.r.other": "অন্যান্য",
+    "iss.upd.t": "সমস্যার রিপোর্ট আপডেট হয়েছে",
+    "iss.upd": "অর্ডার {o}: আপনার সমস্যার রিপোর্টে অ্যাডমিন উত্তর দিয়েছেন।",
     "topup.short": "আরও {a} দরকার",
     "copytoken": "টোকেন কপি",
     "copied": "কপি হয়েছে!",
@@ -3638,6 +3670,29 @@ async function copyText(text) {
 }
 function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
   const [printOrder, setPrintOrder] = useState(null);
+  /* Feature: order problem report */
+  const [issues, setIssues] = useState({});          // order id -> my report
+  const [reporting, setReporting] = useState(null);  // order id whose form is open
+  const [rForm, setRForm] = useState({ reason: "", details: "" });
+  const [rBusy, setRBusy] = useState(false);
+  const [rError, setRError] = useState("");
+  useEffect(() => {
+    let dead = false;
+    api(apiBase, "/api/orders/issues/mine", { token })
+      .then(list => { if (!dead) setIssues(Object.fromEntries(list.map(i => [i.order_id, i]))); })
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [orders]);
+  const submitIssue = async (orderId) => {
+    if (!rForm.reason) return;
+    setRBusy(true); setRError("");
+    try {
+      const r = await api(apiBase, "/api/orders/" + orderId + "/report", { method: "POST", token, body: { reason: rForm.reason, details: rForm.details } });
+      setIssues(prev => ({ ...prev, [orderId]: r.issue }));
+      setReporting(null); setRForm({ reason: "", details: "" });
+    } catch (e) { setRError(e.message || "Could not send your report"); }
+    finally { setRBusy(false); }
+  };
   const [copiedId, setCopiedId] = useState(null);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
@@ -3770,6 +3825,39 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
               )}
               {Number(o.tip_amount) > 0 && (
                 <div className="text-xs mt-2 font-600" style={{ color: "var(--ink-soft)" }}>🪙 {tx("tip.show")}: ৳{o.tip_amount}{o.status === "Cancelled" && " " + tx("refunded")}</div>
+              )}
+              {(o.status === "Ready" || o.picked_up_at) && o.status !== "Cancelled" && (
+                <div className="mt-3">
+                  {issues[o.id] ? (
+                    <div className="rounded-lg border p-3 text-xs" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                      <div className="font-700">{issues[o.id].status === "Resolved" ? "✅ " + tx("iss.resolved") : "⏳ " + tx("iss.open")} — {tx("iss.r." + issues[o.id].reason)}</div>
+                      {issues[o.id].details && <div className="mt-1" style={{ color: "var(--ink-soft)" }}>“{issues[o.id].details}”</div>}
+                      {issues[o.id].admin_reply && <div className="mt-1.5 font-600">💬 {tx("iss.reply")}: {issues[o.id].admin_reply}</div>}
+                    </div>
+                  ) : reporting === o.id ? (
+                    <div className="rounded-lg border p-3" style={{ borderColor: "var(--line)" }}>
+                      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>⚠️ {tx("iss.title")}</div>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {["cold", "wrong", "missing", "late", "quality", "other"].map(r => (
+                          <button key={r} type="button" onClick={() => setRForm(f => ({ ...f, reason: r }))}
+                            className={"chip text-xs px-2.5 py-1 rounded-full" + (rForm.reason === r ? " active-chip" : "")}>{tx("iss.r." + r)}</button>
+                        ))}
+                      </div>
+                      <input type="text" value={rForm.details} onChange={e => setRForm(f => ({ ...f, details: e.target.value.slice(0, 300) }))}
+                        placeholder={tx("iss.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                      {rError && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{rError}</p>}
+                      <div className="flex gap-2 mt-2">
+                        <button type="button" disabled={rBusy || !rForm.reason} onClick={() => submitIssue(o.id)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("iss.send")}</button>
+                        <button type="button" onClick={() => { setReporting(null); setRError(""); }} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("iss.cancel")}</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setReporting(o.id); setRError(""); setRForm({ reason: "", details: "" }); }}
+                      className="text-xs px-3 py-1.5 rounded-lg border font-600 transition-colors hover:bg-black/5" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                      ⚠️ {tx("iss.report")}
+                    </button>
+                  )}
+                </div>
               )}
               {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
               <div className="flex items-center gap-2 mt-3">
@@ -5486,6 +5574,57 @@ function AdminVerify({ call, onCollected }) {
 
 
 /* ---------------- Admin: Feedback ---------------- */
+const ISSUE_LABELS = { cold: "Food was cold", wrong: "Wrong item", missing: "Missing item", late: "Very late", quality: "Poor quality", other: "Other" };
+function ProblemReports({ apiBase, token, refreshKey }) {
+  const [rows, setRows] = useState([]);
+  const [replies, setReplies] = useState({});
+  const [busyId, setBusyId] = useState(null);
+  const [error, setError] = useState("");
+  const load = () => api(apiBase, "/api/orders/issues", { token }).then(setRows).catch(e => setError(e.message || "Could not load problem reports"));
+  useEffect(() => { load(); }, [refreshKey]);
+  const act = async (row, resolve) => {
+    setBusyId(row.id); setError("");
+    try {
+      const reply = (replies[row.id] || "").trim();
+      await api(apiBase, "/api/orders/issues/" + row.id, { method: "PATCH", token, body: { reply: reply || undefined, resolve } });
+      setReplies(r => ({ ...r, [row.id]: "" }));
+      await load();
+    } catch (e) { setError(e.message || "Could not save"); }
+    finally { setBusyId(null); }
+  };
+  const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const openCount = rows.filter(r => r.status === "Open").length;
+  return (
+    <div className="card p-5 mb-6">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>⚠️ Reported problems {openCount > 0 && <span className="ml-2 text-xs px-2 py-0.5 rounded-full text-white" style={{ background: "var(--brick)" }}>{openCount} open</span>}</div>
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      {rows.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No problems reported 🎉</p>}
+      <div className="space-y-3">
+        {rows.map(r => (
+          <div key={r.id} className="rounded-lg border p-3" style={{ borderColor: "var(--line)", background: r.status === "Open" ? "var(--panel-soft)" : "transparent" }}>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-mono font-700">{r.token}</span>
+              <span style={{ color: "var(--ink-soft)" }}>{r.user_name}{r.external_id ? " (" + r.external_id + ")" : ""}</span>
+              <span className="font-600">· {ISSUE_LABELS[r.reason] || r.reason}</span>
+              <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{when(r.created_at)} · {r.status === "Open" ? "⏳ Open" : "✅ Resolved"}</span>
+            </div>
+            {r.details && <div className="text-sm mt-1.5" style={{ color: "var(--ink-soft)" }}>“{r.details}”</div>}
+            {r.admin_reply && <div className="text-sm mt-1.5 font-600">💬 {r.admin_reply}</div>}
+            {r.status === "Open" && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <input type="text" value={replies[r.id] || ""} onChange={e => setReplies(p => ({ ...p, [r.id]: e.target.value.slice(0, 500) }))}
+                  placeholder="Reply to the student (optional)" className="flex-1 min-w-[180px] px-3 py-1.5 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                <button type="button" disabled={busyId === r.id || !(replies[r.id] || "").trim()} onClick={() => act(r, false)}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>Send reply</button>
+                <button type="button" disabled={busyId === r.id} onClick={() => act(r, true)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">Resolve</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 function AdminFeedback({ summary }) {
   const { average = 0, count = 0, entries = [], distribution = {} } = summary;
   const [filter, setFilter] = useState("all");
@@ -7239,6 +7378,15 @@ function App() {
       if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
     });
     socket.on("disconnect", () => setConnected(false));
+    socket.on("issue:new", (p) => {
+      if (session.user.role !== "admin") return;
+      pushNotification("order", "New problem report", `Order ${p.token}: ${p.reason_label}`);
+      setIssueTick(t => t + 1);
+    });
+    socket.on("issue:update", (p) => {
+      pushNotification("order", tx("iss.upd.t"), tx("iss.upd", { o: p.token || "#" + p.order_id }));
+      refreshMyOrders().catch(() => {});
+    });
     socket.on("order:new", (order) => {
       if (session.user.role === "admin") {
         setOrders(prev => [order, ...prev]);
@@ -7306,6 +7454,8 @@ function App() {
     setTopupSuggest(Math.min(10000, Math.max(10, Math.ceil(shortage / 10) * 10))); // rounded up to ৳10, within the ৳10,000 limit
     setTab("wallet");
   };
+
+  const [issueTick, setIssueTick] = useState(0); // bumps when a new problem report arrives (admin list reloads)
 
   const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, tip) => {
     setBusy(true); setError(null);
@@ -7640,7 +7790,12 @@ function App() {
           <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
         )}
         {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} call={call} apiBase={apiBase} token={session.token} />}
-        {session.user.role === "admin" && tab === "feedback" && <AdminFeedback summary={feedbackSummary} />}
+        {session.user.role === "admin" && tab === "feedback" && (
+          <>
+            <ProblemReports apiBase={apiBase} token={session.token} refreshKey={issueTick} />
+            <AdminFeedback summary={feedbackSummary} />
+          </>
+        )}
 
         {tab === "profile" && (
           <ProfileTab user={session.user} call={call}

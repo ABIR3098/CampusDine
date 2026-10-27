@@ -531,4 +531,72 @@ router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), cat
   res.json({ orderId: order.id, rating: r, comment: comment || null });
 }));
 
+// Feature: order problem report
+const ISSUE_REASONS = { cold: "Cold food", wrong: "Wrong item", missing: "Missing item", late: "Very late", quality: "Poor quality", other: "Other" };
+
+// POST /api/orders/:id/report  (student/teacher) — one report per order, once it is ready or handed over
+router.post("/:id/report", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const id = Number(req.params.id);
+  const reason = req.body && req.body.reason;
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid order" });
+  if (!Object.prototype.hasOwnProperty.call(ISSUE_REASONS, reason)) return res.status(400).json({ error: "Please choose what went wrong" });
+  const details = typeof req.body.details === "string" ? (req.body.details.trim().slice(0, 300) || null) : null;
+
+  const [[order]] = await pool.query("SELECT id, user_id, token, status, picked_up_at FROM orders WHERE id = ?", [id]);
+  if (!order || order.user_id !== req.user.id) return res.status(404).json({ error: "Order not found" });
+  if (order.status === "Cancelled") return res.status(400).json({ error: "A cancelled order can't be reported" });
+  if (order.status !== "Ready" && !order.picked_up_at) return res.status(409).json({ error: "You can report a problem once your order is ready" });
+
+  try {
+    await pool.query("INSERT INTO order_issues (order_id, user_id, reason, details) VALUES (?, ?, ?, ?)", [id, req.user.id, reason, details]);
+  } catch (e) {
+    if (e.code === "ER_DUP_ENTRY") return res.status(409).json({ error: "You already reported a problem for this order" });
+    throw e;
+  }
+  const [[issue]] = await pool.query(
+    "SELECT id, order_id, reason, details, status, admin_reply, created_at, resolved_at FROM order_issues WHERE order_id = ?", [id]);
+  const io = req.app.get("io");
+  if (io) io.to("admins").emit("issue:new", { id: issue.id, order_id: id, token: order.token, reason: reason, reason_label: ISSUE_REASONS[reason] });
+  res.status(201).json({ issue });
+}));
+
+// GET /api/orders/issues/mine  (student/teacher) — my reports, with the admin's reply
+router.get("/issues/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const [rows] = await pool.query(
+    "SELECT id, order_id, reason, details, status, admin_reply, created_at, resolved_at FROM order_issues WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
+  res.json(rows);
+}));
+
+// GET /api/orders/issues  (admin) — all reports, open ones first
+router.get("/issues", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT i.id, i.order_id, i.reason, i.details, i.status, i.admin_reply, i.created_at, i.resolved_at,
+            o.token, o.total, u.name AS user_name, u.external_id
+     FROM order_issues i
+     JOIN orders o ON o.id = i.order_id
+     JOIN users u ON u.id = i.user_id
+     ORDER BY (i.status = 'Open') DESC, i.id DESC LIMIT 200`);
+  res.json(rows);
+}));
+
+// PATCH /api/orders/issues/:id  (admin) — { reply?, resolve? }
+router.patch("/issues/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid report" });
+  const reply = typeof req.body.reply === "string" ? (req.body.reply.trim().slice(0, 500) || null) : null;
+  const resolve = req.body.resolve === true;
+  if (!reply && !resolve) return res.status(400).json({ error: "Write a reply or mark it resolved" });
+
+  const [[issue]] = await pool.query("SELECT i.id, i.user_id, i.order_id, o.token FROM order_issues i JOIN orders o ON o.id = i.order_id WHERE i.id = ?", [id]);
+  if (!issue) return res.status(404).json({ error: "Report not found" });
+
+  await pool.query(
+    "UPDATE order_issues SET admin_reply = COALESCE(?, admin_reply), status = IF(?, 'Resolved', status), resolved_at = IF(?, NOW(), resolved_at) WHERE id = ?",
+    [reply, resolve ? 1 : 0, resolve ? 1 : 0, id]);
+  const [[updated]] = await pool.query("SELECT id, order_id, status, admin_reply FROM order_issues WHERE id = ?", [id]);
+  const io = req.app.get("io");
+  if (io) io.to(`user:${issue.user_id}`).emit("issue:update", { order_id: issue.order_id, token: issue.token, status: updated.status, admin_reply: updated.admin_reply });
+  res.json({ ok: true, issue: updated });
+}));
+
 module.exports = router;

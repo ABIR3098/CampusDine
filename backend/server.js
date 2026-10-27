@@ -418,6 +418,18 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await db.query(`CREATE TABLE IF NOT EXISTS order_issues (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      order_id INT NOT NULL,
+      user_id INT NOT NULL,
+      reason VARCHAR(20) NOT NULL,
+      details VARCHAR(300) NULL,
+      status ENUM('Open','Resolved') NOT NULL DEFAULT 'Open',
+      admin_reply VARCHAR(500) NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      resolved_at DATETIME NULL,
+      UNIQUE KEY uq_issue_order (order_id)
+    )`);   // problem reports on orders
     await addColumn("orders", "rider_rating", "TINYINT NULL");            // student's 1-5 stars for the rider
     await addColumn("orders", "rider_comment", "VARCHAR(255) NULL");
     await addColumn("orders", "rider_rated_at", "DATETIME NULL");
