@@ -92,11 +92,9 @@ async function ensureHallSchema(db) {
   // later change of price / feast never changes a bill that is already earned. NULL = not locked yet.
   await addColumnIfMissing(db, "hall_meal_state", "charged", "DECIMAL(10,2) NULL");   // the person's own plate (0 when OFF)
   await addColumnIfMissing(db, "hall_guests", "charged", "DECIMAL(10,2) NULL");       // all of the person's guest plates
-  await addColumnIfMissing(db, "hall_feasts", "university_id", "BIGINT UNSIGNED NULL");
-  const [feastIdx] = await db.query("SHOW INDEX FROM hall_feasts WHERE Key_name='uniq_feast'");
-  if (feastIdx.length) await db.query("ALTER TABLE hall_feasts DROP INDEX uniq_feast");
-  const [feastTenantIdx] = await db.query("SHOW INDEX FROM hall_feasts WHERE Key_name='uniq_feast_tenant'");
-  if (!feastTenantIdx.length) await db.query("ALTER TABLE hall_feasts ADD UNIQUE KEY uniq_feast_tenant (university_id,the_date,slot)");
+
+  // Guest names: who the guest plates are for, as JSON text [{ name, phone }] (the admin sees it in the report)
+  await addColumnIfMissing(db, "hall_guests", "guest_names", "TEXT NULL");
 
   // Step 11 — paying the bill from the wallet. Each payment is one row; paid so far = their sum for that month.
   await db.query(`CREATE TABLE IF NOT EXISTS hall_payments (
