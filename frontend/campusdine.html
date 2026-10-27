@@ -519,6 +519,29 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-row.search-current .chat-bubble{box-shadow:0 0 0 2px var(--gold)}
 .chat-row.search-current mark.chat-hit{background:#f59e0b}
 
+/*chat-ui14*/
+.chat-bubble{position:relative}
+.chat-react-wrap{position:relative;align-self:center}
+.chat-react-btn{width:26px;height:26px;border-radius:999px;color:var(--ink-soft);font-size:15px;line-height:1;opacity:0;transition:opacity .12s,background .12s}
+.chat-row:hover .chat-react-btn,.chat-react-btn:focus-visible,.chat-react-wrap.open .chat-react-btn{opacity:1}
+@media (hover:none){.chat-react-btn{opacity:.55}}
+.chat-react-btn:hover{background:var(--hover)}
+.chat-reactbar{position:absolute;z-index:7;display:flex;gap:2px;padding:5px 6px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.2);animation:chatIn .12s ease;white-space:nowrap}
+.chat-reactbar.up{bottom:calc(100% + 6px)}
+.chat-reactbar.down{top:calc(100% + 6px)}
+.chat-reactbar.mine{right:0}
+.chat-reactbar.theirs{left:0}
+.chat-reactbar button{width:34px;height:34px;border-radius:999px;font-size:20px;transition:transform .12s,background .12s}
+.chat-reactbar button:hover{transform:scale(1.25);background:var(--gold-soft)}
+.chat-reactbar button.on{background:var(--gold-soft);box-shadow:inset 0 0 0 2px var(--gold)}
+.chat-bubble.has-react{margin-bottom:14px}
+.chat-reactions{position:absolute;bottom:-13px;display:flex;gap:4px}
+.chat-bubble.mine .chat-reactions{right:10px}
+.chat-bubble.theirs .chat-reactions{left:10px}
+.chat-pill-react{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.12);font-size:12px;line-height:1.5;color:var(--ink);cursor:pointer}
+.chat-pill-react.mine{border-color:var(--gold);background:var(--gold-soft)}
+.chat-pill-react b{font-size:11px;font-weight:600;color:var(--ink-soft)}
+
 </style>
 </head>
 <body>
@@ -5973,6 +5996,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [query, setQuery] = useState("");
   const [matchPos, setMatchPos] = useState(0);
   const searchRef = useRef(null);
+  const [reactFor, setReactFor] = useState(null);
   const fileRef = useRef(null);
   const [onlineIds, setOnlineIds] = useState([]);
   const [adminOnline, setAdminOnline] = useState(null);
@@ -6038,7 +6062,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   useEffect(() => {
     initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
     stickRef.current = true; prevLen.current = 0;
-    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null); setSearchOpen(false); setQuery("");
+    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null); setSearchOpen(false); setQuery(""); setReactFor(null);
     if (isAdmin) setMessages([]);
   }, [selectedUserId]);
   // First load of a conversation: remember where the unread messages start
@@ -6227,6 +6251,53 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const stepMatch = (dir) => { if (matchIds.length) setMatchPos(p => (Math.min(p, matchIds.length - 1) + dir + matchIds.length) % matchIds.length); };
   const closeSearch = () => { setSearchOpen(false); setQuery(""); };
   const toggleSearch = () => { if (searchOpen) closeSearch(); else { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 30); } };
+  // ---- reactions (one per person per message; tap the same emoji again to remove it) ----
+  const REACTION_SET = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+  useEffect(() => {
+    if (!reactFor) return;
+    const close = () => setReactFor(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [reactFor]);
+  const withReaction = (list, next) => {
+    let out = (list || []).map(r => r.mine ? { ...r, count: r.count - 1, mine: false } : r).filter(r => r.count > 0);
+    if (next) {
+      const hit = out.find(r => r.emoji === next);
+      if (hit) out = out.map(r => r === hit ? { ...r, count: r.count + 1, mine: true } : r);
+      else out = [...out, { emoji: next, count: 1, mine: true, names: [] }];
+    }
+    return out;
+  };
+  const reactTo = async (m, emoji) => {
+    setReactFor(null);
+    const mineNow = (m.reactions || []).find(r => r.mine);
+    const next = mineNow && mineNow.emoji === emoji ? null : emoji;
+    setMessages(list => list.map(x => x.id === m.id ? { ...x, reactions: withReaction(x.reactions, next) } : x));
+    try {
+      await chatCall(`/api/chat/messages/${m.id}/reaction`, { method: "POST", body: { emoji: next } });
+      await refreshMessages(selectedUserId);
+    } catch (e) { setError(e.message); refreshMessages(selectedUserId).catch(() => {}); }
+  };
+  const reactControl = (m, side, boxEl) => (
+    <div className={`chat-react-wrap ${reactFor && reactFor.id === m.id ? "open" : ""}`}>
+      <button type="button" className="chat-react-btn" aria-label="React to message" title="React"
+        onClick={e => {
+          e.stopPropagation();
+          if (reactFor && reactFor.id === m.id) { setReactFor(null); return; }
+          const box = scrollRef.current;
+          const place = box && e.currentTarget.getBoundingClientRect().top - box.getBoundingClientRect().top < 70 ? "down" : "up";
+          setReactFor({ id: m.id, place });
+        }}>☺</button>
+      {reactFor && reactFor.id === m.id && (
+        <div className={`chat-reactbar ${reactFor.place} ${side}`} onClick={e => e.stopPropagation()}>
+          {REACTION_SET.map(em => {
+            const on = (m.reactions || []).some(r => r.mine && r.emoji === em);
+            return <button key={em} type="button" className={on ? "on" : ""} aria-label={`React ${em}`} onClick={() => reactTo(m, em)}>{em}</button>;
+          })}
+        </div>
+      )}
+    </div>
+  );
   const highlight = (text) => {
     if (!q) return text;
     const out = [], low = text.toLowerCase();
@@ -6312,7 +6383,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
         {mine && !m.pending && !m.deleted_at && (
           <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
         )}
-        <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""}`}>
+        {mine && !m.pending && !m.deleted_at && reactControl(m, "mine")}
+        <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""} ${!m.deleted_at && m.reactions && m.reactions.length ? "has-react" : ""}`}>
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
           {m.reply_to_id && !m.deleted_at && (
             <button type="button" className="chat-quote" onClick={() => jumpToMessage(m.reply_to_id)}>
@@ -6336,10 +6408,21 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             ) : ((m.image_id || m.image_local) && m.message === "📷 Photo") ? null : <p>{highlight(m.message)}</p>;
           })()}
           <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
+          {!m.deleted_at && m.reactions && m.reactions.length > 0 && (
+            <div className="chat-reactions">
+              {m.reactions.map(r => (
+                <button key={r.emoji} type="button" className={`chat-pill-react ${r.mine ? "mine" : ""}`}
+                  title={(r.names || []).join(", ")} onClick={() => reactTo(m, r.emoji)}>
+                  <span>{r.emoji}</span>{r.count > 1 && <b>{r.count}</b>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {!mine && !m.pending && !m.deleted_at && (
           <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
         )}
+        {!mine && !m.pending && !m.deleted_at && reactControl(m, "theirs")}
       </div>
     );
   });
