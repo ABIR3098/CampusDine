@@ -7,7 +7,7 @@ const { dayDiff } = require("../../utils/clock");
 const { loadStates, MAX_DAYS } = require("../states");
 
 const MAX_AHEAD_DAYS = 31; // how far ahead a person can plan
-const { MAX_GUESTS } = require("./guests"); // step 8
+const { MAX_GUESTS, parseGuests } = require("./guests"); // step 8
 
 const router = express.Router();
 router.use("/meals", requireRole("student", "teacher")); // the admin has no meals of their own
@@ -29,13 +29,15 @@ router.get("/meals", catchAsync(async (req, res) => {
     [from, days[days.length - 1].date]
   );
   const [guests] = await pool.query(
-    "SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, guest_count FROM hall_guests WHERE user_id = ? AND the_date >= ? AND the_date <= ?",
+    "SELECT DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, guest_count, guest_names FROM hall_guests WHERE user_id = ? AND the_date >= ? AND the_date <= ?",
     [req.user.id, from, days[days.length - 1].date]
   ); // step 8
   for (const day of days) {
     for (const slot of SLOTS) {
       const cell = day.slots[slot];
-      cell.guests = (guests.find((g) => g.d === day.date && g.slot === slot) || {}).guest_count || 0; // step 8
+      const gRow = guests.find((g) => g.d === day.date && g.slot === slot);
+      cell.guests = (gRow && gRow.guest_count) || 0; // step 8
+      cell.guestNames = gRow ? parseGuests(gRow.guest_names) : []; // [{ name, phone }]
       delete cell.charged; // prices are shown on the bill, not here
       cell.locked = isLocked(slotBy[slot], day.date, now);
       const feast = feasts.find((f) => f.d === day.date && f.slot === slot);
