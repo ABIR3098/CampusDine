@@ -505,6 +505,20 @@
 .chat-lightbox{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);display:grid;place-items:center;cursor:zoom-out;padding:24px;animation:chatIn .15s ease}
 .chat-lightbox img{max-width:min(100%,1100px);max-height:100%;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 
+/*chat-ui13*/
+.chat-search-btn{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;color:var(--ink-soft);flex-shrink:0;transition:background .12s,color .12s}
+.chat-search-btn:hover,.chat-search-btn.on{background:var(--gold-soft);color:var(--gold)}
+.chat-searchbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);animation:chatIn .15s ease}
+.chat-searchbar input{flex:1;min-width:0;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:13px;outline:none}
+.chat-searchbar input:focus{border-color:var(--gold)}
+.chat-search-count{font-size:12px;color:var(--ink-soft);white-space:nowrap;min-width:64px;text-align:right}
+.chat-searchbar button{width:28px;height:28px;border-radius:999px;color:var(--ink-soft);font-size:11px}
+.chat-searchbar button:hover:not(:disabled){background:var(--hover)}
+.chat-searchbar button:disabled{opacity:.35;cursor:default}
+mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
+.chat-row.search-current .chat-bubble{box-shadow:0 0 0 2px var(--gold)}
+.chat-row.search-current mark.chat-hit{background:#f59e0b}
+
 </style>
 </head>
 <body>
@@ -5955,6 +5969,10 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [replyTo, setReplyTo] = useState(null);
   const [pendingPhoto, setPendingPhoto] = useState(null);
   const [lightbox, setLightbox] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [matchPos, setMatchPos] = useState(0);
+  const searchRef = useRef(null);
   const fileRef = useRef(null);
   const [onlineIds, setOnlineIds] = useState([]);
   const [adminOnline, setAdminOnline] = useState(null);
@@ -6020,7 +6038,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   useEffect(() => {
     initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
     stickRef.current = true; prevLen.current = 0;
-    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null);
+    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null); setSearchOpen(false); setQuery("");
     if (isAdmin) setMessages([]);
   }, [selectedUserId]);
   // First load of a conversation: remember where the unread messages start
@@ -6114,7 +6132,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
   };
 
-  const filtered = conversations.filter(c => (c.name || "").toLowerCase().includes(search.trim().toLowerCase()));
+  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
   const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
@@ -6193,6 +6211,36 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     document.addEventListener("keydown", onEsc);
     return () => document.removeEventListener("keydown", onEsc);
   }, [lightbox]);
+  // ---- search inside this chat ----
+  const q = query.trim().toLowerCase();
+  const matchIds = q ? messages.filter(m => !m.deleted_at && !(m.image_id && m.message === "📷 Photo") && (m.message || "").toLowerCase().includes(q)).map(m => m.id) : [];
+  const curPos = matchIds.length ? Math.min(matchPos, matchIds.length - 1) : -1;
+  const curId = curPos >= 0 ? matchIds[curPos] : null;
+  useEffect(() => { setMatchPos(Math.max(0, matchIds.length - 1)); }, [q]);
+  useEffect(() => {
+    if (curId === null) return;
+    const box = scrollRef.current, el = box && box.querySelector(`[data-mid="${curId}"]`);
+    if (!el) return;
+    const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - 80;
+    if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
+  }, [curId, q]);
+  const stepMatch = (dir) => { if (matchIds.length) setMatchPos(p => (Math.min(p, matchIds.length - 1) + dir + matchIds.length) % matchIds.length); };
+  const closeSearch = () => { setSearchOpen(false); setQuery(""); };
+  const toggleSearch = () => { if (searchOpen) closeSearch(); else { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 30); } };
+  const highlight = (text) => {
+    if (!q) return text;
+    const out = [], low = text.toLowerCase();
+    let i = 0, k = 0;
+    for (;;) {
+      const j = low.indexOf(q, i);
+      if (j < 0) break;
+      if (j > i) out.push(text.slice(i, j));
+      out.push(<mark key={k++} className="chat-hit">{text.slice(j, j + q.length)}</mark>);
+      i = j + q.length;
+    }
+    out.push(text.slice(i));
+    return out;
+  };
   const emitTyping = (on) => {
     const sock = window.__campusSocket;
     if (!sock || (isAdmin && !selectedUserId)) return;
@@ -6247,7 +6295,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
     const last = !next || Number(next.sender_id) !== Number(m.sender_id);
     rows.push(
-      <div key={m.id} data-mid={m.id} className={`chat-row ${mine ? "mine" : ""} ${flashId === m.id ? "flash" : ""}`}>
+      <div key={m.id} data-mid={m.id} className={`chat-row ${mine ? "mine" : ""} ${flashId === m.id ? "flash" : ""} ${curId === m.id ? "search-current" : ""}`}>
         {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
         {mine && !m.pending && !m.deleted_at && (
           <div className="chat-more-wrap">
@@ -6285,7 +6333,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                 <div className="chat-order-items">{oc.items}</div>
                 <div className="chat-order-total">{oc.total}</div>
               </div>
-            ) : ((m.image_id || m.image_local) && m.message === "📷 Photo") ? null : <p>{m.message}</p>;
+            ) : ((m.image_id || m.image_local) && m.message === "📷 Photo") ? null : <p>{highlight(m.message)}</p>;
           })()}
           <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
         </div>
@@ -6305,7 +6353,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
               <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
             </div>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search students & teachers…" className="chat-search" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
           </div>
           <div className="chat-inbox-list">
             {filtered.length === 0 ? (
@@ -6349,8 +6397,21 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
             )}
             </p>
           </div>
+          <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
+            <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
+          </button>
           <span className="chat-pill">{tx("chat.support")}</span>
         </header>
+        {searchOpen && (
+          <div className="chat-searchbar">
+            <input ref={searchRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search in this chat…"
+              onKeyDown={e => { if (e.key === "Escape") closeSearch(); else if (e.key === "Enter") { e.preventDefault(); stepMatch(e.shiftKey ? 1 : -1); } }} />
+            <span className="chat-search-count">{q ? (matchIds.length ? `${curPos + 1} of ${matchIds.length}` : "No results") : ""}</span>
+            <button type="button" aria-label="Older match" title="Older match (Enter)" disabled={matchIds.length < 2} onClick={() => stepMatch(-1)}>▲</button>
+            <button type="button" aria-label="Newer match" title="Newer match (Shift+Enter)" disabled={matchIds.length < 2} onClick={() => stepMatch(1)}>▼</button>
+            <button type="button" aria-label="Close search" onClick={closeSearch}>✕</button>
+          </div>
+        )}
         {error && <p className="chat-error">{error}</p>}
         <div className="chat-scroll-wrap">
         <div className="chat-scroll" ref={scrollRef} onScroll={onScroll} aria-live="polite">
