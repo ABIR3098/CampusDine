@@ -7703,11 +7703,17 @@ function App() {
   }; 
     // Order again: put the items of a past order back into the cart (current prices, capped by stock).
   const reorder = (order) => {
-    const next = [...cart];
+    // Fix 13: match items by id (name only as a fallback, and only inside the order's own restaurant);
+    // an order from another restaurant opens that restaurant, because one order = one restaurant.
+    const target = RESTAURANTS.find(r => r.id === order.restaurant) || restaurant;
+    const switching = !!(target && restaurant && target.id !== restaurant.id);
+    const next = switching ? [] : [...cart];
     const added = [];
     const skipped = [];
     for (const it of order.items) {
-      const m = menu.find(x => (it.menuItemId != null ? x.id === it.menuItemId : x.name === it.name));
+      const m = menu.find(x => (it.menuItemId != null
+        ? x.id === it.menuItemId
+        : x.name === it.name && (!target || x.restaurant === target.id)));
       if (!m || m.stock <= 0 || m.availability === "sold_out") { skipped.push(dispName(it.name)); continue; }
       const idx = next.findIndex(c => c.id === m.id);
       const have = idx >= 0 ? next[idx].qty : 0;
@@ -7717,6 +7723,10 @@ function App() {
       added.push(qty < have + it.qty ? `${dispName(m.name)} (${num(m.stock)}${tx("reorder.left")})` : dispName(m.name));
     }
     if (added.length === 0) { showError(tx("reorder.none")); return; }
+    if (switching && cart.length > 0 && !window.confirm(lang === "bn"
+      ? `এই অর্ডারটি ${target.name}-এর। সেখানে গেলে আপনার বর্তমান কার্ট খালি হয়ে যাবে। চালিয়ে যাবেন?`
+      : `This order is from ${target.name}. Switching will empty your current cart. Continue?`)) return;
+    if (switching) setRestaurant(target);
     setCart(next);
     showSuccess(tx("reorder.added") + added.join(", ") + "." + (skipped.length ? tx("reorder.skipped") + skipped.join(", ") + "." : ""));
     setTab("menu");

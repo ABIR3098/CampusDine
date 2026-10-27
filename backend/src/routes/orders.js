@@ -31,7 +31,7 @@ async function attachItems(orders) {
     return {
       ...o,
       restaurant: restaurantOf(own[0] && own[0].name, own[0] && own[0].menu_item_id, extra),
-      items: own.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
+      items: own.map((i) => ({ menuItemId: i.menu_item_id, name: i.name, price: i.price, qty: i.qty })),
       qr: buildPayload(o.token), // signed text shown as a QR code on the ticket
     };
   });
