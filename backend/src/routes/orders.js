@@ -10,6 +10,7 @@ const pricing = require("../pricing");
 const loyalty = require("../loyalty");
 const { assignOrderToBestRider } = require("../utils/riderAssignment");
 const { recordFraudEvent } = require("../utils/fraud");
+const { rewardReferral } = require("../referrals");
 const { pingWatchers } = require("../stockAlerts");
 const { recordAuditEvent } = require("../utils/audit");
 
@@ -373,6 +374,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
     if (problem) return res.status(409).json({ error: problem.message, code: problem.code, order: { ...order, items } });
     const connection = await pool.getConnection();
     let pickedUpAt;
+    let referralResult = null;
     try {
       await connection.beginTransaction();
       const [updated] = await connection.query(
@@ -395,6 +397,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
       }
       const [[fresh]] = await connection.query("SELECT picked_up_at FROM orders WHERE id = ?", [order.id]);
       pickedUpAt = fresh.picked_up_at;
+      referralResult = await rewardReferral(connection, order.user_id); // Feature: referral code (never blocks the pickup)
       await connection.commit();
     } catch (error) {
       await connection.rollback();
@@ -403,6 +406,11 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
       connection.release();
     }
     const done = { ...order, picked_up_at: pickedUpAt, items };
+    if (referralResult) {
+      const ioRef = req.app.get("io");
+      ioRef.to(`user:${referralResult.userId}`).emit("referral:bonus", { amount: referralResult.amount, kind: "friend" });
+      if (referralResult.referrerPaid) ioRef.to(`user:${referralResult.referrerId}`).emit("referral:bonus", { amount: referralResult.amount, kind: "referrer" });
+    }
     req.app.get("io").to(`user:${order.user_id}`).emit("order:update", { id: order.id, token: order.token, status: order.status, picked_up_at: pickedUpAt });
     return res.json({ ok: true, collected: true, order: done });
   }

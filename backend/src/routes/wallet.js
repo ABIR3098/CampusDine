@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
+const { ensureCode, REFERRAL_BONUS, MAX_REWARDS_PER_REFERRER } = require("../referrals");
 
 const router = express.Router();
 
@@ -154,6 +155,18 @@ router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAs
   } finally {
     conn.release();
   }
+}));
+
+// Feature: referral code — GET /api/wallet/referral: my code and how it is doing
+router.get("/referral", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const code = await ensureCode(pool, req.user.id);
+  const [[st]] = await pool.query(
+    "SELECT COUNT(*) AS invited, COALESCE(SUM(referral_rewarded_at IS NOT NULL), 0) AS rewarded FROM users WHERE referred_by = ?", [req.user.id]);
+  const rewarded = Number(st.rewarded);
+  res.json({
+    code, bonus: REFERRAL_BONUS, maxRewards: MAX_REWARDS_PER_REFERRER,
+    invited: Number(st.invited), rewarded, earned: Math.min(rewarded, MAX_REWARDS_PER_REFERRER) * REFERRAL_BONUS,
+  });
 }));
 
 module.exports = router;

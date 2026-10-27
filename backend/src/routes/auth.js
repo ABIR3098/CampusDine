@@ -199,6 +199,15 @@ router.post("/register", catchAsync(async (req, res) => {
   const [mailRows] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
   if (mailRows.length > 0) return res.status(409).json({ error: "An account with this email already exists" });
 
+  // Feature: referral code — optional; checked before the email code is used up, so a typo doesn't waste it
+  let referrerId = null;
+  const referralCode = clean(req.body.referralCode).toUpperCase();
+  if (referralCode && role !== "rider") {
+    const [refRows] = await pool.query("SELECT id FROM users WHERE referral_code = ? AND role IN ('student', 'teacher')", [referralCode]);
+    if (refRows.length === 0) return res.status(400).json({ error: "That referral code was not found — check it, or leave it empty", code: "REFERRAL_INVALID" });
+    referrerId = refRows[0].id;
+  }
+
   // Email must be proven with the 6-digit code that /otp/send-signup mailed (body.otp)
   if (otpRequired()) {
     const check = await verifyOtp(pool, email, "signup", req.body.otp);
@@ -224,6 +233,7 @@ router.post("/register", catchAsync(async (req, res) => {
       hallId = hallIdFor(userId);
       await conn.query("UPDATE users SET hall_id = ? WHERE id = ?", [hallId, userId]);
     }
+    if (referrerId) await conn.query("UPDATE users SET referred_by = ? WHERE id = ?", [referrerId, userId]);
     if (startingBalance > 0) {
       await conn.query(
         "INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, 'Welcome bonus', ?)",

@@ -418,6 +418,10 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await addColumn("users", "referral_code", "VARCHAR(12) NULL");       // this user's own code
+    await addColumn("users", "referred_by", "INT NULL");                  // whose code they signed up with
+    await addColumn("users", "referral_rewarded_at", "DATETIME NULL");    // when the bonus was paid (only once)
+    try { await db.query("ALTER TABLE users ADD UNIQUE KEY uq_referral_code (referral_code)"); } catch (_) { /* already there */ }
     await db.query(`CREATE TABLE IF NOT EXISTS order_issues (
       id INT AUTO_INCREMENT PRIMARY KEY,
       order_id INT NOT NULL,

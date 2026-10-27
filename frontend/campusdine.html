@@ -941,6 +941,18 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "ref.label": "Referral code (optional)",
+    "ref.ph": "e.g. CD7K2PQ",
+    "ref.hint": "A friend's code — you both get a wallet bonus after your first order.",
+    "ref.title": "Invite friends",
+    "ref.yours": "Your code",
+    "ref.copy": "Copy",
+    "ref.copied": "Copied!",
+    "ref.how": "Share your code. When a friend signs up with it and their first order is collected, you both get {b}.",
+    "ref.stats": "{i} joined · {r} ordered · you earned {e}",
+    "ref.got.friend": "Welcome gift: {a} from your friend's referral code!",
+    "ref.got.referrer": "A friend you invited got their first order — you earned {a}!",
+    "ref.got.t": "Referral bonus",
     "iss.report": "Report a problem",
     "iss.title": "What went wrong?",
     "iss.ph": "Tell us more (optional)",
@@ -1336,6 +1348,18 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "ref.label": "রেফারেল কোড (ঐচ্ছিক)",
+    "ref.ph": "যেমন CD7K2PQ",
+    "ref.hint": "বন্ধুর কোড — প্রথম অর্ডারের পর দুজনেই ওয়ালেটে বোনাস পাবেন।",
+    "ref.title": "বন্ধুদের আমন্ত্রণ জানান",
+    "ref.yours": "আপনার কোড",
+    "ref.copy": "কপি",
+    "ref.copied": "কপি হয়েছে!",
+    "ref.how": "আপনার কোড শেয়ার করুন। বন্ধু এই কোড দিয়ে সাইন আপ করে প্রথম অর্ডার নিলে দুজনেই {b} পাবেন।",
+    "ref.stats": "{i} জন যোগ দিয়েছেন · {r} জন অর্ডার করেছেন · আপনি পেয়েছেন {e}",
+    "ref.got.friend": "স্বাগতম উপহার: বন্ধুর রেফারেল কোড থেকে {a}!",
+    "ref.got.referrer": "আপনার আমন্ত্রিত বন্ধু প্রথম অর্ডার নিয়েছেন — আপনি পেলেন {a}!",
+    "ref.got.t": "রেফারেল বোনাস",
     "iss.report": "সমস্যা জানান",
     "iss.title": "কী সমস্যা হয়েছে?",
     "iss.ph": "আরও কিছু লিখুন (ঐচ্ছিক)",
@@ -1959,6 +1983,8 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   const [accountType, setAccountType] = useState("regular"); // 'regular' | 'hall'
   const [hallName, setHallName] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
+  /* Feature: referral code */
+  const [referralCode, setReferralCode] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [taken, setTaken] = useState({ email: false, externalId: false });
   const [newPassword, setNewPassword] = useState("");
@@ -2061,6 +2087,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
             name: name.trim(), email: email.trim(), externalId: id, role, password,
             accountType: role === "rider" ? "regular" : accountType, hallName: role === "rider" ? "" : hallName.trim(), roomNumber: role === "rider" ? "" : roomNumber.trim(),
             otp: otpRequired ? otp.trim() : undefined,
+            referralCode: referralCode.trim() || undefined,
           } });
       // Password was right but this account needs an emailed code: show the code box instead of logging in
       if (data.otpRequired) {
@@ -2447,6 +2474,15 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
                         </div>
                       </div>
                       <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("hall.signup.note")}</p>
+                    </div>
+                  )}
+
+                  {mode === "register" && role !== "rider" && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("ref.label")}</label>
+                      <input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12))} placeholder={tx("ref.ph")}
+                        className="w-full px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+                      <p className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>{tx("ref.hint")}</p>
                     </div>
                   )}
 
@@ -4348,7 +4384,35 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
 }
 
 /* ---------------- Wallet tab ---------------- */
-function WalletTab({ balance, topUp, transactions, busy, onLookup, onSend, suggestedAmount }) {
+function ReferralCard({ apiBase, token }) {
+  const [info, setInfo] = useState(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    let dead = false;
+    api(apiBase, "/api/wallet/referral", { token }).then(d => { if (!dead) setInfo(d); }).catch(() => {});
+    return () => { dead = true; };
+  }, []);
+  if (!info) return null;
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(info.code); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    catch (_) { window.prompt(tx("ref.copy") + ":", info.code); }
+  };
+  return (
+    <div className="card p-5 mb-5">
+      <div className="font-display font-700 mb-2" style={{ color: "var(--gold)" }}>🎁 {tx("ref.title")}</div>
+      <div className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("ref.yours")}</div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-mono text-xl font-700 tracking-widest px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>{info.code}</span>
+        <button type="button" onClick={copy} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: copied ? "var(--leaf)" : "var(--ink-soft)" }}>
+          {copied ? "✓ " + tx("ref.copied") : "📋 " + tx("ref.copy")}
+        </button>
+      </div>
+      <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>{tx("ref.how", { b: taka(info.bonus) })}</p>
+      <p className="text-xs font-600">{tx("ref.stats", { i: num(info.invited), r: num(info.rewarded), e: taka(info.earned) })}</p>
+    </div>
+  );
+}
+function WalletTab({ apiBase, token, balance, topUp, transactions, busy, onLookup, onSend, suggestedAmount }) {
   const [amount, setAmount] = useState(suggestedAmount || 100);
   const [showPay, setShowPay] = useState(false);
 
@@ -4368,6 +4432,7 @@ function WalletTab({ balance, topUp, transactions, busy, onLookup, onSend, sugge
             <div className="font-mono text-3xl font-700 mt-1">{taka(balance)}</div>
           </div>
         </div>
+        <ReferralCard apiBase={apiBase} token={token} />
         <div className="card p-5">
           <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("topup")}</div>
           <div className="flex gap-2 mb-3">
@@ -7378,6 +7443,10 @@ function App() {
       if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
     });
     socket.on("disconnect", () => setConnected(false));
+    socket.on("referral:bonus", (p) => {
+      refreshWallet().catch(() => {});
+      pushNotification("wallet", tx("ref.got.t"), tx(p.kind === "referrer" ? "ref.got.referrer" : "ref.got.friend", { a: taka(p.amount) }));
+    });
     socket.on("issue:new", (p) => {
       if (session.user.role !== "admin") return;
       pushNotification("order", "New problem report", `Order ${p.token}: ${p.reason_label}`);
@@ -7768,7 +7837,7 @@ function App() {
         )}
         {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} />}
         {session.user.role !== "admin" && tab === "wallet" && (
-          <WalletTab balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
+          <WalletTab apiBase={apiBase} token={session.token} balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
             onLookup={lookupRecipient} onSend={sendMoney} />
         )}
         {tab === "chat" && (
