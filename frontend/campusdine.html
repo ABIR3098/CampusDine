@@ -7864,7 +7864,7 @@ function App() {
   // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
   if (restaurant.isHall) {
     return <HallGate call={call} user={session.user} token={session.token} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
-      ext={{ wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
+     ext={{ apiBase, wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
         onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
   }
 
