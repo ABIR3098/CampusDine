@@ -119,6 +119,11 @@ Leave this terminal running the whole time you're using the app.
 - **Wallet** → real balance and transaction history; top-ups persist.
 - **Admin Overview / Menu / Orders / Reports** → all pulled live from the
   database.
+- **Menu Book** → front page → *More on the full menu* → *Menu Book* opens a
+  full-screen page with the *Good Food, Better Days* picture as background, a
+  **Back** button and a **View Menu** button. View Menu opens the 3D leather
+  menu book (`frontend/menu-book.js`, pictures in `frontend/images/menu-book/`)
+  on top of that picture; Esc or the cross closes the book, Back leaves the page.
 
 ---
 
