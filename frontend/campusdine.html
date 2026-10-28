@@ -272,7 +272,14 @@
   .error-banner{ background:var(--danger-bg); color:var(--danger-fg); border:1px solid var(--danger-border); }
   .success-banner{ background:var(--ok-bg); color:var(--ok-fg); border:1px solid var(--ok-border); }
   .warn-banner{ background:var(--warn-bg); color:var(--warn-fg); border:1px solid var(--warn-border); }
-
+    
+  /* top bar log out button (all restaurants) */
+  .cd-divider{ width:1px; height:24px; background:var(--line); margin:0 4px; }
+  .cd-logout{ display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 10px; border-radius:10px; border:1px solid var(--danger-border); background:var(--panel); color:var(--danger-fg); font-size:.8rem; font-weight:600; cursor:pointer; flex-shrink:0; transition:background .15s, transform .1s; }
+  .cd-logout:hover{ background:var(--danger-bg); }
+  .cd-logout:active{ transform:scale(.97); }
+  .cd-logout-text{ display:none; }
+  @media (min-width:1100px){ .cd-logout{ padding:0 12px; } .cd-logout-text{ display:inline; } }
   #print-area{ display:none; }
   #print-sheet{ display:none; }
   @page{ margin:14mm; }
