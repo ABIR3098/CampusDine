@@ -65,4 +65,52 @@
 
   `;
 
+  css += `
+  /* deep-green leather */
+  .cdmb-leather{background-color:#15452a;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),linear-gradient(135deg,rgba(130,230,165,.14),rgba(0,0,0,.28))}
+  .cdmb-base{position:absolute;top:calc(var(--m)*-1);bottom:calc(var(--m)*-1);transform:translateZ(-4px);transition:opacity .5s;
+    box-shadow:0 20px 44px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.08)}
+  .cdmb-base.l{left:calc(var(--m)*-1);right:50%;border-radius:14px 2px 2px 14px;box-shadow:-1px 1px 0 #0d3a20,-2px 2px 0 #0a2f1a,-3px 3px 0 #082613,-4px 4px 0 #061d0f,-5px 6px 0 #04160b,-4px 24px 44px rgba(0,0,0,.65)}
+  .cdmb-base.r{left:50%;right:calc(var(--m)*-1);border-radius:2px 14px 14px 2px;box-shadow:1px 1px 0 #0d3a20,2px 2px 0 #0a2f1a,3px 3px 0 #082613,4px 4px 0 #061d0f,5px 6px 0 #04160b,4px 24px 44px rgba(0,0,0,.65)}
+  .cdmb-base{overflow:hidden}
+  .cdmb-base::after{content:"";position:absolute;inset:calc(var(--m)*.32);border:1.5px dashed rgba(210,245,220,.34);border-radius:10px}
+  .cdmb-base.l::before,.cdmb-base.r::before{content:"";position:absolute;inset:0;pointer-events:none;background-repeat:no-repeat;background-size:var(--cs) var(--cs)}
+  .cdmb-base.l::before{background-image:var(--tl),var(--bl);background-position:0 0,0 100%}
+  .cdmb-base.r::before{background-image:var(--tr),var(--br);background-position:100% 0,100% 100%}
+  .cdmb-overlay{--gold1:#f6e08e;--gold2:#c9a03a;--gold3:#8a6a1f;
+    --tl:linear-gradient(135deg,var(--gold1) 0,var(--gold2) 30%,var(--gold3) 49%,transparent 50%);
+    --tr:linear-gradient(225deg,var(--gold1) 0,var(--gold2) 30%,var(--gold3) 49%,transparent 50%);
+    --bl:linear-gradient(45deg,var(--gold1) 0,var(--gold2) 30%,var(--gold3) 49%,transparent 50%);
+    --br:linear-gradient(315deg,var(--gold1) 0,var(--gold2) 30%,var(--gold3) 49%,transparent 50%);
+    --lthr:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .38 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      radial-gradient(ellipse at 30% 20%,rgba(120,220,150,.20),transparent 60%),
+      linear-gradient(160deg,#1f6038 0%,#14472a 55%,#0f3820 100%)}
+  /* spine: plain ribbed leather hinge + two silver binder rings */
+  .cdmb-groove{position:absolute;top:calc(var(--m)*-1);bottom:calc(var(--m)*-1);left:calc(50% - var(--gap)/2);width:var(--gap);
+    transform:translateZ(-3px);transition:opacity .5s;overflow:hidden;
+    background-color:#0f3d22;
+    background-image:
+      linear-gradient(90deg,rgba(0,0,0,.72) 0,rgba(0,0,0,.05) 22%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.05) 78%,rgba(0,0,0,.72) 100%),
+      repeating-linear-gradient(90deg,rgba(0,0,0,.20) 0 1px,rgba(150,240,180,.06) 1px 3px),
+      var(--lthr),
+      linear-gradient(180deg,#17603a,#0d3b21 50%,#17603a);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),inset 0 8px 14px rgba(0,0,0,.35),inset 0 -8px 14px rgba(0,0,0,.35)}
+  /* rings sit above the pages (like a real ring binder) and drop in after the cover opens */
+  .cdmb-ring{position:absolute;left:calc(50% - var(--gap)*1.3);width:calc(var(--gap)*2.6);height:calc(var(--gap)*1.55);margin-top:calc(var(--gap)*-.775);
+    transform:translateZ(14px);pointer-events:none;transition:opacity .35s;
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,.65)) drop-shadow(0 0 1px rgba(0,0,0,.9))}
+  .cdmb-ring svg{display:block;width:100%;height:100%;overflow:visible}
+  .cdmb-ring.r1{top:calc(var(--m)*-1 + (var(--h) + var(--m)*2)*.24)}
+  .cdmb-ring.r2{top:calc(var(--m)*-1 + (var(--h) + var(--m)*2)*.76)}
+
+  .cdmb-leaf{position:absolute;top:0;left:calc(50% + var(--gap)/2);width:var(--pw);height:100%;transform-origin:left center;transform-style:preserve-3d;
+    transition:transform var(--flip,1000ms) cubic-bezier(.645,.045,.355,1)}
+  .cdmb-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#111;
+    box-shadow:0 2px 8px rgba(0,0,0,.45)}
+  .cdmb-face.b{transform:rotateY(180deg)}
+  .cdmb-face img{width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none}
+
+  `;
+
 })();
