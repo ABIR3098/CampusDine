@@ -254,6 +254,16 @@ html[data-accent="orange"] .cdl .cdl-brand-logo{background-image:url(images/land
 .cdl-fm-backbtn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border:2px solid #2f7d4a;border-radius:999px;background:#fff;color:#1f5c36;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s ease,color .15s ease,transform .15s ease}
 .cdl-fm-backbtn:hover{background:#2f7d4a;color:#fff;transform:translateX(-2px)}
 .cdl-fm-backbtn:focus-visible{outline:3px solid #14301f;outline-offset:2px}
+/* Back and View Menu: same dark-green pill with a white edge as in the picture */
+.cdl-fm-book .cdl-fm-backbtn,.cdl-fm-viewbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:clamp(9px,1.1vw,14px) clamp(18px,2vw,30px);border:2px solid rgba(255,255,255,.92);border-radius:999px;background:#1c4e33;color:#fff;font-size:clamp(14px,1.25vw,19px);font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(20,48,31,.28);transition:background .15s ease,transform .15s ease,box-shadow .15s ease}
+.cdl-fm-book .cdl-fm-backbtn:hover,.cdl-fm-viewbtn:hover{background:#2f7d4a;color:#fff;box-shadow:0 10px 24px rgba(20,48,31,.36)}
+.cdl-fm-viewbtn{position:absolute;left:39%;bottom:7%;z-index:3;transform:translateX(-50%);padding:clamp(12px,1.4vw,18px) clamp(26px,3vw,46px);font-size:clamp(16px,1.5vw,22px);animation:cdl-fm-pulse 2.4s ease-in-out infinite}
+.cdl-fm-viewbtn:hover{transform:translateX(-50%) scale(1.05);animation:none}
+.cdl-fm-viewbtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@keyframes cdl-fm-pulse{0%,100%{box-shadow:0 6px 18px rgba(20,48,31,.28),0 0 0 0 rgba(47,125,74,.45)}50%{box-shadow:0 6px 18px rgba(20,48,31,.28),0 0 0 12px rgba(47,125,74,0)}}
+.cdl-fm-viewbtn[hidden]{display:none}
+@media (max-width:760px){.cdl-fm-viewbtn{left:50%;bottom:9%}}
+@media (prefers-reduced-motion:reduce){.cdl-fm-viewbtn{animation:none}}
 .cdl-fm-book-in{max-width:1100px;margin:0 auto;padding:36px 20px 56px}
 .cdl-fm-book h2{font-size:30px;font-weight:800;color:var(--ink);text-align:center;margin:0}
 .cdl-fm-book .sub{text-align:center;color:var(--ink-soft);font-size:13px;margin:6px 0 26px}
