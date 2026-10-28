@@ -113,4 +113,27 @@
 
   `;
 
+  css += `
+  /* full-green covers (must beat .cdmb-face background:#111) */
+  .cdmb-face.cv.cdmb-leather{background-color:#1a5230;background-image:var(--lthr)}
+  .cdmb-face.f.cv.cdmb-leather{background-image:var(--tr),var(--br),var(--lthr);background-position:100% 0,100% 100%,0 0,0 0,0 0;
+    background-size:var(--cs) var(--cs),var(--cs) var(--cs),220px 220px,auto,auto;background-repeat:no-repeat,no-repeat,repeat,no-repeat,no-repeat}
+  .cdmb-face.b.cv.cdmb-leather{background-image:var(--tl),var(--bl),var(--lthr);background-position:0 0,0 100%,0 0,0 0,0 0;
+    background-size:var(--cs) var(--cs),var(--cs) var(--cs),220px 220px,auto,auto;background-repeat:no-repeat,no-repeat,repeat,no-repeat,no-repeat}
+  .cdmb-face.cv{box-shadow:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cdmb-face.f.cv{inset:calc(var(--m)*-1) calc(var(--m)*-1) calc(var(--m)*-1) calc(var(--gap)/-2);border-radius:2px 14px 14px 2px}
+  .cdmb-face.b.cv{inset:calc(var(--m)*-1) calc(var(--gap)/-2) calc(var(--m)*-1) calc(var(--m)*-1);border-radius:14px 2px 2px 14px}
+  .cdmb-face.cv::before{content:"";position:absolute;inset:calc(var(--m)*.32);border:1.5px dashed rgba(210,245,220,.30);border-radius:10px;pointer-events:none}
+  .cdmb-face.cv::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to right,rgba(0,0,0,.35),transparent 10%),linear-gradient(125deg,rgba(255,255,255,.07),transparent 40%)}
+  .cdmb-face.b.cv::after{background:linear-gradient(to left,rgba(0,0,0,.35),transparent 10%),linear-gradient(235deg,rgba(255,255,255,.07),transparent 40%)}
+  .cdmb-emboss{position:relative;display:flex;flex-direction:column;align-items:center;gap:6%;width:100%;text-align:center}
+  .cdmb-emboss img{width:74%;max-width:400px;display:block;opacity:.88;
+    filter:brightness(.55) drop-shadow(0 1.5px 0 rgba(170,240,195,.20)) drop-shadow(0 -1px 1px rgba(0,0,0,.75))}
+  .cdmb-emboss .t{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:.6em;padding-left:.6em;
+    font-size:clamp(1rem,2.2vw,1.7rem);color:rgba(60,115,80,.85);
+    text-shadow:0 -1px 1px rgba(0,0,0,.7),0 1.5px 0 rgba(170,240,195,.22)}
+  .cdmb-emboss.sm img{width:40%}
+  `;
+
 })();
