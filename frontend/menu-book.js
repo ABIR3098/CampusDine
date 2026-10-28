@@ -421,4 +421,39 @@
     } else { busy = false; close(); }
   }
 
+  btnPrev.onclick = function () { go(-1); };
+  btnNext.onclick = function () { go(1); };
+  btnClose.onclick = closeBook;
+  overlay.querySelector(".cdmb-x").onclick = close;
+  zl.onclick = function () { go(-1); };
+  zr.onclick = function () { go(1); };
+  overlay.addEventListener("click", function (e) { if (e.target === overlay || e.target.className === "cdmb-stage") close(); });
+  addEventListener("keydown", function (e) {
+    if (!overlay.classList.contains("cdmb-open")) return;
+    if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "Escape") close();
+  });
+  var sx = null;
+  overlay.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
+  overlay.addEventListener("touchend", function (e) {
+    if (sx === null) return; var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); sx = null;
+  });
+  addEventListener("resize", function () { size(); render(); });
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest("[data-open-menu-book]");
+    if (t) { e.preventDefault(); open(); }
+  });
+
+  var fab = null;
+  if (CFG.floatingButton) {
+    fab = document.createElement("button"); fab.className = "cdmb-fab"; fab.textContent = "📖 Menu Book";
+    fab.onclick = open; document.body.appendChild(fab);
+  }
+  window.CampusDineMenuBook = { open: open, close: close, goTo: function (n) { cur = Math.max(0, Math.min(lastCur, n)); render(); } };
+
+  size(); render();
+  if (CFG.autoOpen) {
+    var seen = false; try { seen = CFG.oncePerSession && sessionStorage.getItem(SEENKEY); } catch (e) {}
+    if (!seen) { try { sessionStorage.setItem(SEENKEY, "1"); } catch (e) {} setTimeout(open, 600); }
+  }
 })();
