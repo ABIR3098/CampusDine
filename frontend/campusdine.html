@@ -2710,8 +2710,10 @@ function TopBar({
           <div className="hidden sm:block" title={`${name} · ${tx("r." + role)}`}><Avatar src={avatar} name={name} size={34} /></div>
           <ThemeMenu />
           {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
-          <button onClick={onLogout} title={tx("logout")} aria-label={tx("logout")} className="w-9 h-9 rounded-lg grid place-items-center hover:bg-black/5 transition-colors shrink-0">
-            <Icon path={I.logout} className="w-5 h-5" style={{ color: "var(--brick)" }} />
+                    <span className="cd-divider hidden sm:block" />
+          <button onClick={onLogout} title={tx("logout")} aria-label={tx("logout")} className="cd-logout">
+            <Icon path={I.logout} className="w-4 h-4" />
+            <span className="cd-logout-text">{tx("logout")}</span>
           </button>
         </div>
       </div>
