@@ -46,4 +46,23 @@
   var GAP_Z = 0.7, KEY = "cdmb_page3", SEENKEY = "cdmb_seen";
   var LOGO = url(CFG.logo);
 
+  /* ---------- CSS ---------- */
+  var css = `
+  .cdmb-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;
+    background:rgba(6,16,9,.74);backdrop-filter:blur(9px) saturate(.8);-webkit-backdrop-filter:blur(9px) saturate(.8);
+    opacity:0;visibility:hidden;transition:opacity .45s,visibility .45s;font-family:inherit;color:#fff}
+  .cdmb-overlay.cdmb-open{opacity:1;visibility:visible}
+  .cdmb-overlay *{box-sizing:border-box;margin:0;padding:0}
+  .cdmb-x{position:absolute;top:18px;right:20px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.35);
+    background:rgba(0,0,0,.45);color:#fff;font-size:20px;cursor:pointer;z-index:5}
+  .cdmb-x:hover{background:#fff;color:#111}
+  .cdmb-stage{perspective:2600px;perspective-origin:50% 35%}
+  .cdmb-book{position:relative;width:calc(var(--pw)*2 + var(--gap));height:var(--h);transform-style:preserve-3d;
+    transition:transform var(--flip,1000ms) cubic-bezier(.645,.045,.355,1)}
+  .cdmb-overlay:not(.cdmb-open) .cdmb-book{opacity:0;transform:translateY(40px) rotateX(5deg) scale(.92)}
+  .cdmb-tshadow{position:absolute;left:-2%;right:-2%;bottom:-16px;height:50px;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(0,0,0,.8),transparent 70%);filter:blur(12px);transform:translateZ(-8px)}
+
+  `;
+
 })();
