@@ -221,4 +221,51 @@
   `;
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
+  /* ---------- DOM ---------- */
+  var overlay = document.createElement("div");
+  overlay.className = "cdmb-overlay"; overlay.setAttribute("role", "dialog"); overlay.setAttribute("aria-modal", "true");
+  overlay.innerHTML =
+    '<button class="cdmb-x" aria-label="Close">✕</button>' +
+    '<div class="cdmb-stage"><div class="cdmb-book"></div></div>' +
+    '<button class="cdmb-nav p" aria-label="Previous page">❮</button>' +
+    '<button class="cdmb-nav n" aria-label="Next page">❯</button>' +
+    '<button class="cdmb-closebook">Close Book ✕</button>' +
+    '<div class="cdmb-label"></div>';
+  document.body.appendChild(overlay);
+
+  var book = overlay.querySelector(".cdmb-book");
+  var btnPrev = overlay.querySelector(".cdmb-nav.p"), btnNext = overlay.querySelector(".cdmb-nav.n");
+  var btnClose = overlay.querySelector(".cdmb-closebook"), label = overlay.querySelector(".cdmb-label");
+
+  overlay.style.setProperty("--flip", "0ms");
+  var pairs = [];
+  for (var i = 0; i < ITEMS.length; i += 2) pairs.push([ITEMS[i], i + 1 < ITEMS.length ? ITEMS[i + 1] : undefined]);
+  if (ITEMS.length % 2 === 0) pairs.push(["__blank__", undefined]);   // endpaper + back cover
+  var N = pairs.length;
+  var lastCur = N - 1;
+  var cur = 0, busy = false, openTimer = null;   // always starts on the closed cover
+
+  book.innerHTML = '<div class="cdmb-tshadow"></div>' +
+    '<div class="cdmb-base l cdmb-leather"></div><div class="cdmb-base r cdmb-leather"></div><div class="cdmb-groove"></div>' +
+    '<div class="cdmb-stack l"></div><div class="cdmb-stack r"></div>';
+  var RING = '<svg viewBox="0 0 100 60"><defs><linearGradient id="cdSv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#c9ced4"/><stop offset=".6" stop-color="#7f858c"/><stop offset="1" stop-color="#e9edf1"/></linearGradient>' +
+    '<radialGradient id="cdEy" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#b4bac1"/><stop offset="1" stop-color="#5d636a"/></radialGradient></defs>' +
+    '<ellipse cx="50" cy="30" rx="43" ry="22" fill="none" stroke="#3b4046" stroke-width="9.5"/>' +
+    '<ellipse cx="50" cy="30" rx="43" ry="22" fill="none" stroke="url(#cdSv)" stroke-width="7"/>' +
+    '<path d="M16 17C26 8 74 8 84 17" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="1.8" stroke-linecap="round"/>' +
+    '<rect x="44" y="5" width="12" height="9" rx="2" fill="url(#cdEy)" stroke="#4c5258" stroke-width=".8"/>' +
+    '<circle cx="9" cy="33" r="5.2" fill="url(#cdEy)" stroke="#43484e" stroke-width="1"/><circle cx="9" cy="33" r="2" fill="#15191c"/>' +
+    '<circle cx="91" cy="33" r="5.2" fill="url(#cdEy)" stroke="#43484e" stroke-width="1"/><circle cx="91" cy="33" r="2" fill="#15191c"/></svg>';
+  book.innerHTML = book.innerHTML.split("%RING%").join(RING);
+  var ringEls = book.querySelectorAll(".cdmb-ring");
+  var stackL = book.querySelector(".cdmb-stack.l"), stackR = book.querySelector(".cdmb-stack.r");
+  function stackShadow(n, dir) {
+    if (n <= 0) return "none";
+    var parts = [];
+    for (var i = 1; i <= n; i++) parts.push((dir * i) + "px " + (i * 0.9).toFixed(1) + "px 0 " + (i % 2 ? "#e9e3cd" : "#c7c0a6"));
+    parts.push((dir * (n + 3)) + "px " + (n + 8) + "px 18px rgba(0,0,0,.45)");
+    return parts.join(",");
+  }
+  var baseL = book.querySelector(".cdmb-base.l"), baseR = book.querySelector(".cdmb-base.r"), groove = book.querySelector(".cdmb-groove");
+
 })();
