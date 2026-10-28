@@ -50,7 +50,8 @@ function HallBill({ call, notify, refreshWallet }) {
 
   return (
     <HallCard title={`My bill — ${monthName}`} icon="🧾" right={ym && (
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 flex-wrap justify-end">
+        {bill && <HallBillActions bill={bill} monthName={monthName} />}
         <button className="hl-btn sm ghost" onClick={() => shift(-1)}>‹ Prev</button>
         <button className="hl-btn sm ghost" onClick={() => shift(1)}>Next ›</button>
       </div>
