@@ -219,7 +219,7 @@ function HallTopBar({ user, tabs, active, setActive, onLogout, ui }) {
             </div>
             {Avatar && <div className="hidden sm:block" title={`${user.name} · ${user.role}`}><Avatar src={user.avatar} name={user.name} size={34} /></div>}
             {ThemeMenu && <ThemeMenu />}
-                        <span className="hl-divider hidden sm:block" />
+            <span className="hl-divider hidden sm:block" />
             <button onClick={onLogout} title="Log out" aria-label="Log out" className="hl-logout">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -251,7 +251,7 @@ function HallMemberHome({ call, user, notify, goTab }) {
         </div>
         {today && <span className="hl-chip">📅 {hallDateLabel(today)}</span>}
       </div>
-      {!cells ? <div className="hl-empty">Loading…</div> : (
+      {!cells ? (m.error ? <div className="hl-error">⚠️ {m.error}</div> : <div className="hl-empty">Loading…</div>) : (
         <div className="hl-meals">
           {HALL_SLOTS.map((s) => (
             <HallMealCard key={s} slot={s} cell={cells.slots[s]} items={hallMenuFor(m.menu, today, s)}
@@ -269,7 +269,8 @@ function HallMemberHome({ call, user, notify, goTab }) {
 
 function HallAdminHome({ call, user, notify, goTab }) {
   const [day, setDay] = useState(null);
-  useEffect(() => { call("/api/hall/report/day").then(setDay).catch((e) => notify(e, true)); }, []);
+  const [err, setErr] = useState(null);
+  useEffect(() => { call("/api/hall/report/day").then(setDay).catch((e) => { setErr(e.message || String(e)); notify(e, true); }); }, []);
   return (
     <>
       <div className="hl-greet">
@@ -279,7 +280,7 @@ function HallAdminHome({ call, user, notify, goTab }) {
         </div>
         {day && <span className="hl-chip">📅 {hallDateLabel(day.date)}</span>}
       </div>
-      {!day ? <div className="hl-empty">Loading…</div> : (
+      {!day ? (err ? <div className="hl-error">⚠️ {err}</div> : <div className="hl-empty">Loading…</div>) : (
         <div className="hl-grid3">
           {day.slots.map((s) => (
             <div key={s.slot} className="hl-tile">
@@ -305,7 +306,7 @@ function HallHome(props) {
 }
 Hall.register({ key: "home", label: "Home", icon: "🏠", order: 1, component: HallHome });
 
-function HallApp({ call, user, token, lang, onBack, onLogout, ui, ext }) {
+function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui, ext }) {
   const tabs = Hall.tabs.filter((t) => !t.roles || t.roles.includes(user.role));
   const [tab, setTab] = useState(tabs[0].key);
   const [toast, setToast] = useState(null);
@@ -348,7 +349,7 @@ function HallApp({ call, user, token, lang, onBack, onLogout, ui, ext }) {
 
       <div className="hl-wrap fade-in" key={tab}>
         {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
-        <Active call={call} user={user} token={token} isAdmin={user.role === "admin"} notify={notify} goTab={setTab} ui={ui} ext={ext} />
+        <Active call={call} user={user} token={token} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} goTab={setTab} ui={ui} ext={ext} />
       </div>
     </div>
   );
