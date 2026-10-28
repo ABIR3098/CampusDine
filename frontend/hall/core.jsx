@@ -251,6 +251,7 @@ function HallMemberHome({ call, user, notify, goTab }) {
         </div>
         {today && <span className="hl-chip">📅 {hallDateLabel(today)}</span>}
       </div>
+      <HallHomeAlerts call={call} goTab={goTab} days={m.data && m.data.days} />
       {!cells ? (m.error ? <div className="hl-error">⚠️ {m.error}</div> : <div className="hl-empty">Loading…</div>) : (
         <div className="hl-meals">
           {HALL_SLOTS.map((s) => (
@@ -263,6 +264,7 @@ function HallMemberHome({ call, user, notify, goTab }) {
       <div className="mt-4 text-center">
         <button className="hl-btn ghost" onClick={() => goTab("meals")}>See the next 7 days →</button>
       </div>
+      <HallSavingsCard call={call} />
     </>
   );
 }
