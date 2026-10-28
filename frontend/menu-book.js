@@ -220,6 +220,9 @@
   .cdmb-fab:hover{background:#17623a}
   @media(max-width:700px){.cdmb-nav{width:44px;height:44px;font-size:18px}.cdmb-nav.p{left:6px}.cdmb-nav.n{right:6px}
     .cdmb-closebook{right:6px;padding:11px 14px;font-size:.85rem}}
+  /* page mode: no dark blur, the picture behind the book stays visible; only the book and its buttons take clicks */
+  .cdmb-overlay.cdmb-clear{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding-top:1vh;pointer-events:none}
+  .cdmb-overlay.cdmb-clear>*{pointer-events:auto}
   `;
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
