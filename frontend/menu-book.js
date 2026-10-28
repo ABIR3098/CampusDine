@@ -314,4 +314,57 @@
   var zr = document.createElement("div"); zr.className = "cdmb-zone r";
   book.appendChild(zl); book.appendChild(zr);
 
+  /* ---------- logic ---------- */
+  var PW = 400, GAP = 30;
+  function tilt() { return " rotateX(" + CFG.tilt + "deg)"; }
+  function size() {
+    var availH = innerHeight * 0.90;
+    var totalW = innerWidth * (innerWidth > 900 ? 0.92 : 0.96);
+    // cover rim (m) ≈ 7.5% of page width, spine gap ≈ 7.5%  -> total width = PW*(2 + .075 + 2*.075)
+    var pwW = totalW / 2.225;
+    var pwH = (availH / 1.08) / CFG.pageRatio;          // height incl. top+bottom rim
+    PW = Math.min(pwW, pwH); var h = PW * CFG.pageRatio;
+    var GAPn = Math.max(26, PW * 0.075), m = Math.max(22, PW * 0.075);
+    GAP = GAPn;
+    overlay.style.setProperty("--cs", Math.round(m * 1.7) + "px");
+    overlay.style.setProperty("--h", h + "px");
+    overlay.style.setProperty("--pw", PW + "px");
+    overlay.style.setProperty("--gap", GAP + "px");
+    overlay.style.setProperty("--m", m + "px");
+  }
+  function render() {
+    leafEls.forEach(function (el, i) {
+      el.style.transform = i < cur
+        ? "translateX(" + (-GAP) + "px) translateZ(" + (i * GAP_Z) + "px) rotateY(-180deg)"
+        : "translateX(0px) translateZ(" + ((N - i) * GAP_Z) + "px) rotateY(0deg)";
+    });
+    var half = GAP / 2 + PW / 2;
+    var shift = cur === 0 ? -half : cur === N ? half : 0;
+    if (overlay.classList.contains("cdmb-open")) book.style.transform = "translateX(" + shift + "px)" + tilt();
+    baseL.style.opacity = cur > 0 ? 1 : 0;
+    baseR.style.opacity = cur < N ? 1 : 0;
+    groove.style.opacity = (cur > 0 && cur < N) ? 1 : 0;
+    ringEls.forEach(function (r) { r.style.opacity = groove.style.opacity; });
+    stackR.style.boxShadow = stackShadow(cur < N ? Math.min(9, Math.round((N - cur) * 1.5)) : 0, 1);
+    stackL.style.boxShadow = stackShadow(cur > 0 ? Math.min(9, Math.round(cur * 1.5)) : 0, -1);
+    stackR.style.opacity = cur < N ? 1 : 0; stackL.style.opacity = cur > 0 ? 1 : 0;
+    var tyEl = book.querySelector(".cdmb-face.ty");
+    if (tyEl) {
+      if (cur === lastCur) { clearTimeout(tyEl._t); tyEl.classList.add("on"); }
+      else if (tyEl.classList.contains("on")) { clearTimeout(tyEl._t); tyEl._t = setTimeout(function () { tyEl.classList.remove("on"); }, 1200); }
+    }
+    btnPrev.disabled = cur === 0;
+    var end = cur >= lastCur;
+    btnNext.style.display = end ? "none" : "flex";
+    btnClose.style.display = end ? "block" : "none";
+    var L = cur * 2, R = L + 1;
+    var TOTAL = ITEMS.length;
+    label.textContent = cur === 0 ? "Cover" : L > TOTAL ? "Back cover" : "Pages " + L + "–" + Math.min(R, TOTAL) + " of " + TOTAL;
+    try { sessionStorage.setItem(KEY, cur); localStorage.setItem(KEY, cur); } catch (e) {}
+  }
+  function resetTiming() {
+    leafEls.forEach(function (el) { el.style.transitionDelay = ""; });
+    book.style.transitionDelay = ""; book.style.transitionDuration = "";
+    [baseL, groove, stackL].concat([].slice.call(ringEls)).forEach(function (el) { el.style.transitionDelay = ""; el.style.transitionDuration = ""; });
+  }
 })();
