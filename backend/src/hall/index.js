@@ -4,6 +4,7 @@ const express = require("express");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const { ensureHallSchema } = require("./schema");
 const { ensureHallRatingsSchema } = require("./ratingsSchema");
+const { ensureHallAutoPaySchema } = require("./autopaySchema");
 const pool = require("../db");
 
 const router = express.Router();
@@ -31,6 +32,8 @@ router.use("/", require("./routes/guests")); // step 8
 router.use("/", require("./routes/bill")); // step 10: monthly bill
 router.use("/", require("./routes/ratings")); // meal ratings (student)
 router.use("/", require("./routes/ratingsReport")); // meal ratings summary (admin)
+router.use("/", require("./routes/autopay")); // auto-pay of the monthly bill
+router.use("/", require("./routes/defaulters")); // who still owes money (admin)
 router.use("/", require("./routes/report")); // step 12
 router.use("/", require("./routes/tokens")); // student meal token and canteen serving queue
 router.use("/", require("./routes/services"));
@@ -40,12 +43,14 @@ router.use("/", require("./advanced"));
 // background jobs (started once after the server is listening)
 function startJobs() {
   require("./jobs").startAutoFill(); // step 5
+  require("./autopay").startAutoPay(); // pays last month's bill for people who turned auto-pay on
 }
 
 // server.js calls ensureHallSchema once at start-up, so the ratings table is created together with the rest.
 async function ensureAllHallSchema(db) {
   await ensureHallSchema(db);
   await ensureHallRatingsSchema(db);
+  await ensureHallAutoPaySchema(db);
 }
 
 module.exports = { router, ensureHallSchema: ensureAllHallSchema, startJobs };
