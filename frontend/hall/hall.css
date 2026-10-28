@@ -193,19 +193,15 @@
 .hl-pay small { display: block; font-size: 11px; color: var(--ink-soft); }
 .hl-pay > span:first-child { font-size: 20px; }
 .hl-pay.sel { border-color: var(--gold); background: var(--gold-soft); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+/* error box (shown instead of an endless "Loading…") */
+.hl-error { text-align: center; padding: 16px; border-radius: 12px; border: 1px solid var(--danger-border); background: var(--danger-bg); color: var(--danger-fg); font-size: .9rem; }
+
 /* Hall top bar: log out button */
 .hl-divider { width: 1px; height: 24px; background: var(--line); margin: 0 6px; }
-.hl-logout {
-  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px;
-  border-radius: 10px; border: 1px solid var(--danger-border); background: var(--panel);
-  color: var(--danger-fg); font-size: .8rem; font-weight: 600; cursor: pointer;
-  flex-shrink: 0; transition: background .15s, transform .1s;
-}
+.hl-logout { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--danger-border); background: var(--panel); color: var(--danger-fg); font-size: .8rem; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background .15s, transform .1s; }
 .hl-logout:hover { background: var(--danger-bg); }
 .hl-logout:active { transform: scale(.97); }
 .hl-logout svg { width: 16px; height: 16px; }
 .hl-logout-text { display: none; }
-@media (min-width: 640px) {
-  .hl-logout { padding: 0 12px; }
-  .hl-logout-text { display: inline; }
-}
+@media (min-width: 640px) { .hl-logout { padding: 0 12px; } .hl-logout-text { display: inline; } }
