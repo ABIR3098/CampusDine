@@ -268,4 +268,50 @@
   }
   var baseL = book.querySelector(".cdmb-base.l"), baseR = book.querySelector(".cdmb-base.r"), groove = book.querySelector(".cdmb-groove");
 
+  function pageFace(src, side) {
+    if (src === "__blank__") {
+      var T = CFG.thankYou, b = document.createElement("div"); b.className = "cdmb-face pg ty " + side;
+      var sp = [[12,16,.2],[84,12,1.1],[10,60,2],[88,50,.6],[14,86,1.5],[82,88,2.2]].map(function (q) {
+        return '<span class="sp" style="left:' + q[0] + '%;top:' + q[1] + '%;animation-delay:' + (q[2] + 3) + 's">✦</span>'; }).join("");
+      var ORN = '<svg class="orn %C%" viewBox="0 0 100 100" fill="none" stroke="#e0b43a" stroke-width="1.5" stroke-linecap="round"><path d="M3 44V10Q3 3 10 3H44"/><path d="M10 10C34 8 46 22 38 34C32 42 20 37 24 29C27 24 34 27 32 31"/><path d="M10 10C8 34 22 46 34 38C42 32 37 20 29 24C24 27 27 34 31 31"/><path d="M40 8C54 6 62 12 66 20M8 40C6 54 12 62 20 66"/><circle cx="68" cy="22" r="1.8" fill="#e0b43a"/><circle cx="22" cy="68" r="1.8" fill="#e0b43a"/><path d="M46 14C52 20 52 26 48 30C44 26 43 20 46 14ZM14 46C20 52 26 52 30 48C26 44 20 43 14 46Z" fill="rgba(224,180,58,.25)"/></svg>';
+      var DECO = '<svg class="deco" viewBox="0 0 150 120"><g stroke="#4a3719" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">' +
+        '<path d="M70 30C60 14 74 12 66 2" fill="none" stroke="rgba(244,230,184,.7)"/><path d="M84 32C76 18 90 14 82 6" fill="none" stroke="rgba(244,230,184,.7)"/>' +
+        '<ellipse cx="82" cy="108" rx="62" ry="10" fill="#efe0b0"/><ellipse cx="82" cy="106" rx="40" ry="6" fill="#d9c68f"/>' +
+        '<path d="M42 46H122C122 80 106 98 82 98C58 98 42 80 42 46Z" fill="#f6ebc7"/><ellipse cx="82" cy="46" rx="40" ry="8" fill="#f6ebc7"/><ellipse cx="82" cy="47" rx="34" ry="5.5" fill="#8a5a2b"/>' +
+        '<path d="M121 54C142 52 142 82 112 84" fill="none"/><path d="M62 46L50 78" fill="none"/><path d="M42 76L52 72L58 84L47 88Z" fill="#fff6d8"/>' +
+        '<circle cx="30" cy="40" r="22" fill="#f3e0b0"/><path d="M30 40m-3 0a3 3 0 1 1 6 0a6 6 0 1 1-12 0a10 10 0 1 1 20 0a15 15 0 1 1-30 0a19 19 0 0 1 31-12" fill="none"/>' +
+        '<path d="M16 64C6 62 6 52 14 52C16 58 20 60 24 60Z" fill="#7da86f"/><path d="M26 62C32 70 44 70 46 62C38 58 30 58 26 62Z" fill="#7da86f"/></g></svg>';
+      var sp = [[12,16,.2],[84,12,1.1],[10,60,2],[88,50,.6],[14,86,1.5],[82,88,2.2]].map(function (q) {
+        return '<span class="sp" style="left:' + q[0] + '%;top:' + q[1] + '%;animation-delay:' + (q[2] + 3) + 's">✦</span>'; }).join("");
+      b.innerHTML = '<div class="cdmb-ty">' + ["tl","tr","bl","br"].map(function (c) { return ORN.replace("%C%", c); }).join("") + sp +
+        '<img src="' + url("logo-foil.png") + '" alt="CampusDine" draggable="false">' +
+        '<div class="tt">' + T.title + '</div><div class="bn">' + T.bn + '</div>' +
+        '<div class="chits">' + T.chits.map(function (c, i) { return '<div class="chit"><i class="pin"></i>' + c + (i === 1 ? "" : DECO) + '</div>'; }).join("") + '</div>' +
+        '<div class="hr">❤</div><div class="tg">' + T.tagline + '</div></div>';
+      return b;
+    }
+    var f = document.createElement("div"); f.className = "cdmb-face pg " + side;
+    f.innerHTML = '<img src="' + src + '" alt="Menu page" draggable="false">'; return f;
+  }
+  function coverFace() {
+    var f = document.createElement("div"); f.className = "cdmb-face f cv cdmb-leather";
+    f.innerHTML = '<div class="cdmb-emboss"><img src="' + LOGO + '" alt="CampusDine" draggable="false"><div class="t">MENU</div></div>';
+    return f;
+  }
+  function backCoverFace() {
+    var f = document.createElement("div"); f.className = "cdmb-face b cv cdmb-leather";
+    f.innerHTML = '<div class="cdmb-emboss sm"><img src="' + LOGO + '" alt="" draggable="false"></div>';
+    return f;
+  }
+  var leafEls = pairs.map(function (pr) {
+    var el = document.createElement("div"); el.className = "cdmb-leaf";
+    el.appendChild(pr[0] === null ? coverFace() : pageFace(pr[0], "f"));
+    el.appendChild(pr[1] ? pageFace(pr[1], "b") : backCoverFace());
+    book.appendChild(el); return el;
+  });
+
+  var zl = document.createElement("div"); zl.className = "cdmb-zone l";
+  var zr = document.createElement("div"); zr.className = "cdmb-zone r";
+  book.appendChild(zl); book.appendChild(zr);
+
 })();
