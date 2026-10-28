@@ -193,4 +193,32 @@
   @media (prefers-reduced-motion:reduce){.cdmb-face.ty.on .cdmb-ty *{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
   `;
 
+  css += `
+  /* page thickness + soft shade near the spine */
+  .cdmb-stack{position:absolute;top:0;height:100%;width:var(--pw);background:#e8e2cc;transform:translateZ(-2px);transition:opacity .5s}
+  .cdmb-stack.l{left:calc(50% - var(--gap)/2 - var(--pw))}
+  .cdmb-stack.r{left:calc(50% + var(--gap)/2)}
+  .cdmb-face.pg::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(0,0,0,.42),rgba(0,0,0,0) 9%)}
+  .cdmb-face.pg.b::after{background:linear-gradient(to left,rgba(0,0,0,.42),rgba(0,0,0,0) 9%)}
+
+  .cdmb-zone{position:absolute;top:0;bottom:0;width:calc(50% - var(--gap)/2);cursor:pointer;transform:translateZ(60px)}
+  .cdmb-zone.l{left:0}.cdmb-zone.r{right:0}
+  .cdmb-nav{position:absolute;top:50%;margin-top:-28px;width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.35);
+    background:rgba(0,0,0,.5);color:#fff;font-size:24px;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center}
+  .cdmb-nav:hover:not(:disabled){background:#fff;color:#15452a}
+  .cdmb-nav:disabled{opacity:.25;cursor:default}
+  .cdmb-nav.p{left:20px}.cdmb-nav.n{right:20px}
+  .cdmb-closebook{position:absolute;right:20px;top:50%;margin-top:-26px;z-index:5;display:none;cursor:pointer;
+    border:0;border-radius:999px;padding:15px 24px;font-weight:700;font-size:1rem;background:#ffc61a;color:#1a1a1a;
+    box-shadow:0 8px 24px rgba(255,198,26,.35);transition:transform .2s}
+  .cdmb-closebook:hover{transform:scale(1.05)}
+  .cdmb-label{display:none;position:absolute;bottom:5px;line-height:1;left:0;right:0;text-align:center;font-size:.8rem;text-shadow:0 1px 3px #000;opacity:.9}
+  .cdmb-fab{position:fixed;left:18px;bottom:18px;z-index:2147482000;border:0;border-radius:999px;padding:12px 20px;cursor:pointer;
+    background:#15452a;color:#fff;font-weight:700;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+  .cdmb-fab:hover{background:#17623a}
+  @media(max-width:700px){.cdmb-nav{width:44px;height:44px;font-size:18px}.cdmb-nav.p{left:6px}.cdmb-nav.n{right:6px}
+    .cdmb-closebook{right:6px;padding:11px 14px;font-size:.85rem}}
+  `;
+  var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+
 })();
