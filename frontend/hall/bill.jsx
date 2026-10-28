@@ -74,6 +74,7 @@ function HallBill({ call, notify, refreshWallet }) {
               {bill.due > 0 ? `Pay ${hallTaka(bill.due)} from wallet` : "✓ Nothing due"}
             </button>
           </div>
+          <HallAutoPayCard call={call} notify={notify} />
           {s.feastExtra > 0 && <p className="text-xs mb-3 hl-muted">Includes {hallTaka(s.feastExtra)} of feast extras 🎉.</p>}
 
           <div className="hl-scroll">
