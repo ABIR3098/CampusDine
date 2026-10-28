@@ -1949,6 +1949,24 @@ function FullMenuCard({ onLogin }) {
     setPage(null);
   };
   const openBook = () => { window.location.hash = "menu-book"; setPage("book"); };
+  // the 3D book opens on top of the Menu Book page (see menu-book.js); the View Menu button hides while it is open
+  const [bookOpen, setBookOpen] = useState(false);
+  const viewMenu = () => { if (window.CampusDineMenuBook) window.CampusDineMenuBook.open(); };
+  useEffect(() => {
+    const onToggle = (e) => setBookOpen(!!(e.detail && e.detail.open));
+    document.addEventListener("menubook:toggle", onToggle);
+    return () => document.removeEventListener("menubook:toggle", onToggle);
+  }, []);
+  // the book opens by itself (cover first, then it swings open); View Menu brings it back after it is closed with the cross
+  useEffect(() => {
+    if (page !== "book" || !window.CampusDineMenuBook) return;
+    const t = setTimeout(() => window.CampusDineMenuBook.open(), 350);
+    return () => clearTimeout(t);
+  }, [page]);
+  // leaving the Menu Book page (Back, Esc, browser back) also closes the book
+  useEffect(() => {
+    if (page !== "book" && window.CampusDineMenuBook && window.CampusDineMenuBook.isOpen()) window.CampusDineMenuBook.close();
+  }, [page]);
   useEffect(() => {
     const sync = () => {
       if (window.location.hash === "#menu-book") setPage("book");
@@ -1960,7 +1978,7 @@ function FullMenuCard({ onLogin }) {
   }, []);
   useEffect(() => {
     if (!page) return;
-    const onKey = (e) => { if (e.key === "Escape") closePage(); };
+    const onKey = (e) => { if (e.key === "Escape" && !e.defaultPrevented) closePage(); };   // Esc inside the open book only closes the book
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
@@ -1982,13 +2000,11 @@ function FullMenuCard({ onLogin }) {
       </div>, document.body);
   } else if (page === "book") {
     overlay = ReactDOM.createPortal(
-      <div className="cdl-fm-page cdl-fm-book" role="dialog" aria-modal="true" aria-label={tx("more.mb")}>
+      <div className={"cdl-fm-page cdl-fm-book" + (bookOpen ? " is-reading" : "")} role="dialog" aria-modal="true" aria-label={tx("more.mb")}>
         <div className="cdl-fm-bar">
           <button type="button" className="cdl-fm-backbtn" onClick={closePage}>&larr; {tx("more.back")}</button>
         </div>
-        <div className="cdl-fm-book-in">
-          {/* Menu Book page content goes here (empty for now, only the Back button above) */}
-        </div>
+        <button type="button" className="cdl-fm-viewbtn" hidden={bookOpen} onClick={viewMenu}>&#128214; {tx("more.view")}</button>
       </div>, document.body);
   }
 
