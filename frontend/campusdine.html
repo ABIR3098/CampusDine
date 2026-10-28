@@ -272,7 +272,7 @@
   .error-banner{ background:var(--danger-bg); color:var(--danger-fg); border:1px solid var(--danger-border); }
   .success-banner{ background:var(--ok-bg); color:var(--ok-fg); border:1px solid var(--ok-border); }
   .warn-banner{ background:var(--warn-bg); color:var(--warn-fg); border:1px solid var(--warn-border); }
-    
+
   /* top bar log out button (all restaurants) */
   .cd-divider{ width:1px; height:24px; background:var(--line); margin:0 4px; }
   .cd-logout{ display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 10px; border-radius:10px; border:1px solid var(--danger-border); background:var(--panel); color:var(--danger-fg); font-size:.8rem; font-weight:600; cursor:pointer; flex-shrink:0; transition:background .15s, transform .1s; }
@@ -280,6 +280,7 @@
   .cd-logout:active{ transform:scale(.97); }
   .cd-logout-text{ display:none; }
   @media (min-width:1100px){ .cd-logout{ padding:0 12px; } .cd-logout-text{ display:inline; } }
+
   #print-area{ display:none; }
   #print-sheet{ display:none; }
   @page{ margin:14mm; }
@@ -337,6 +338,14 @@
     background: var(--gold);
     border-radius: 10px;
   }
+
+  /* CampusDine logo after login: the same picture as the front page (follows the accent colour) */
+  .cd-logo{ display:block; flex:none; width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:#fffdf7 url(/images/landing/logo-green.png) center/cover no-repeat; }
+  html[data-accent="blue"] .cd-logo{ background-image:url(/images/landing/logo-blue.png); }
+  html[data-accent="purple"] .cd-logo{ background-image:url(/images/landing/logo-purple.png); }
+  html[data-accent="rose"] .cd-logo{ background-image:url(/images/landing/logo-rose.png); }
+  html[data-accent="orange"] .cd-logo{ background-image:url(/images/landing/logo.png); }
+  .cd-logo-lg{ width:72px; height:72px; }
 
   .role-option{ background:var(--panel); transition:border-color .15s ease, background-color .15s ease; }
   .role-option:hover{ border-color:var(--gold) !important; background:var(--panel-soft); }
@@ -2648,9 +2657,7 @@ function TopBar({
     <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
       <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
         <div className="flex items-center gap-2 shrink-0">
-          <div className="logo-badge w-8 h-8 rounded-full grid place-items-center">
-            <Icon path={I.ticket} className="w-4 h-4" style={{ color: "var(--gold)" }} />
-          </div>
+          <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
           <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
           <span className="w-2 h-2 rounded-full" title={connected ? tx("live.on") : tx("live.off")}
             style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
@@ -2717,10 +2724,10 @@ function TopBar({
           <div className="hidden sm:block" title={`${name} · ${tx("r." + role)}`}><Avatar src={avatar} name={name} size={34} /></div>
           <ThemeMenu />
           {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
-                    <span className="cd-divider hidden sm:block" />
-          <button onClick={onLogout} title={tx("logout")} aria-label={tx("logout")} className="cd-logout">
+          <span className="cd-divider hidden sm:block" />
+          <button onClick={onLogout} title="Log out" aria-label="Log out" className="cd-logout">
             <Icon path={I.logout} className="w-4 h-4" />
-            <span className="cd-logout-text">{tx("logout")}</span>
+            <span className="cd-logout-text">Log out</span>
           </button>
         </div>
       </div>
@@ -7325,7 +7332,10 @@ function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
     <div className="min-h-screen flex items-center justify-center p-5">
       <div className="w-full max-w-6xl fade-in">
         <div className="text-center mb-6">
-          <div className="font-display gold-text text-3xl font-800">🍽 CampusDine</div>
+          <div className="flex items-center justify-center gap-3">
+            <span role="img" aria-label="CampusDine logo" className="cd-logo cd-logo-lg"></span>
+            <span className="font-display gold-text text-3xl font-800">CampusDine</span>
+          </div>
           <h1 className="font-display text-xl font-700 mt-3">{bn ? "স্বাগতম" : "Welcome"}, {userName}</h1>
           <p className="text-sm opacity-70 mt-1">
             {role === "admin"
@@ -7543,7 +7553,7 @@ function App() {
   const refreshFeedback = async () => setFeedbackSummary(await call("/api/admin/feedback"));
   const refreshMyGeneralFeedback = async () => setMyGeneralFeedback(await call("/api/feedback/mine"));
 
-   const onAuth = (token, user) => {
+  const onAuth = (token, user) => {
     setSession({ token, user });
     // Everyone (including Hall students) sees the restaurant picker first;
     // Hall students can open the Hall from its card.
@@ -7873,7 +7883,7 @@ function App() {
   // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
   if (restaurant.isHall) {
     return <HallGate call={call} user={session.user} token={session.token} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
-     ext={{ apiBase, wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
+      ext={{ apiBase, wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
         onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
   }
 
