@@ -563,6 +563,18 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 <body>
 <div id="root"></div>
 
+<!-- 3D Menu Book: opens from the Menu Book page (front page -> More on the full menu -> Menu Book) -->
+<script>
+  window.CampusDineMenuBookConfig = {
+    imageFolder: "images/menu-book/",   // menu pages and cover logo
+    autoOpen: false,                    // opens only when the student presses View Menu
+    floatingButton: false,              // no floating "Menu Book" button on every screen
+    clearBackdrop: true,                // keep our Good Food, Better Days picture behind the book
+    zIndex: 9999                        // just above the Menu Book page (9998)
+  };
+</script>
+<script src="/menu-book.js"></script>
+
 <script type="text/babel" data-presets="react">
 const { useState, useMemo, useEffect, useRef } = React;
 
