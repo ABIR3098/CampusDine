@@ -13,6 +13,8 @@
     autoOpen: true,
     oncePerSession: true,
     floatingButton: true,
+    clearBackdrop: false,             // true = no dark blur behind the book, the page behind it stays visible
+    zIndex: 2147483000,               // stacking order of the overlay
     thankYou: {                       // last page (edit freely)
       title: "Thank You!",
       bn: "Taste the Freshness",
@@ -223,7 +225,7 @@
 
   /* ---------- DOM ---------- */
   var overlay = document.createElement("div");
-  overlay.className = "cdmb-overlay"; overlay.setAttribute("role", "dialog"); overlay.setAttribute("aria-modal", "true");
+  overlay.className = "cdmb-overlay" + (CFG.clearBackdrop ? " cdmb-clear" : ""); overlay.style.zIndex = CFG.zIndex; overlay.setAttribute("role", "dialog"); overlay.setAttribute("aria-modal", "true");
   overlay.innerHTML =
     '<button class="cdmb-x" aria-label="Close">✕</button>' +
     '<div class="cdmb-stage"><div class="cdmb-book"></div></div>' +
@@ -318,7 +320,7 @@
   var PW = 400, GAP = 30;
   function tilt() { return " rotateX(" + CFG.tilt + "deg)"; }
   function size() {
-    var availH = innerHeight * 0.90;
+    var availH = innerHeight * (CFG.clearBackdrop ? 0.92 : 0.90);   // page mode: bigger book, still clear of the Back button
     var totalW = innerWidth * (innerWidth > 900 ? 0.92 : 0.96);
     // cover rim (m) ≈ 7.5% of page width, spine gap ≈ 7.5%  -> total width = PW*(2 + .075 + 2*.075)
     var pwW = totalW / 2.225;
@@ -385,12 +387,16 @@
       cur = n; render(); setTimeout(function () { busy = false; }, 450);
     }
   }
+  // tells the page around the book (React) when the book opens or closes
+  function announce(isOpen) {
+    try { document.dispatchEvent(new CustomEvent("menubook:toggle", { detail: { open: isOpen } })); } catch (e) {}
+  }
   function open() {
     clearTimeout(openTimer); cur = 0; busy = false; resetTiming();
     size();
     overlay.style.setProperty("--flip", "0ms"); render();
     document.documentElement.style.overflow = "hidden";
-    overlay.classList.add("cdmb-open"); render();
+    overlay.classList.add("cdmb-open"); render(); announce(true);
     requestAnimationFrame(function () { requestAnimationFrame(function () {
       overlay.style.setProperty("--flip", "1000ms");
     }); });
@@ -402,7 +408,7 @@
   }
   function close() {
     clearTimeout(openTimer);
-    overlay.classList.remove("cdmb-open");
+    overlay.classList.remove("cdmb-open"); announce(false);
     document.documentElement.style.overflow = "";
     if (fab) fab.style.display = "";
   }
@@ -430,7 +436,7 @@
   overlay.addEventListener("click", function (e) { if (e.target === overlay || e.target.className === "cdmb-stage") close(); });
   addEventListener("keydown", function (e) {
     if (!overlay.classList.contains("cdmb-open")) return;
-    if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "Escape") close();
+    if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "Escape") { e.preventDefault(); close(); }   // preventDefault: the page below must not also close
   });
   var sx = null;
   overlay.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
@@ -449,7 +455,7 @@
     fab = document.createElement("button"); fab.className = "cdmb-fab"; fab.textContent = "📖 Menu Book";
     fab.onclick = open; document.body.appendChild(fab);
   }
-  window.CampusDineMenuBook = { open: open, close: close, goTo: function (n) { cur = Math.max(0, Math.min(lastCur, n)); render(); } };
+  window.CampusDineMenuBook = { open: open, close: close, isOpen: function () { return overlay.classList.contains("cdmb-open"); }, goTo: function (n) { cur = Math.max(0, Math.min(lastCur, n)); render(); } };
 
   size(); render();
   if (CFG.autoOpen) {
