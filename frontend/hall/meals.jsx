@@ -23,12 +23,13 @@ function useHallMeals(call, notify) {
   const [menu, setMenu] = useState(null);
   const [busyKey, setBusyKey] = useState(null);
   const [onlyThisDay, setOnlyThisDay] = useState(false);
+  const [error, setError] = useState(null);
 
   const load = async (quiet) => {
     try {
       const [m, s] = await Promise.all([call("/api/hall/meals"), call("/api/hall/slots")]);
-      setData(m); setSlots(s);
-    } catch (e) { if (!quiet) notify(e, true); }
+      setData(m); setSlots(s); setError(null);
+    } catch (e) { setError(e.message || String(e)); if (!quiet) notify(e, true); }
   };
   useEffect(() => {
     load();
@@ -63,7 +64,7 @@ function useHallMeals(call, notify) {
     window.dispatchEvent(new Event("hall-changed"));
   };
 
-  return { data, slots, menu, busyKey, onlyThisDay, setOnlyThisDay, toggle, setGuests };
+  return { data, slots, menu, busyKey, onlyThisDay, setOnlyThisDay, toggle, setGuests, error };
 }
 
 // One meal: picture, what is cooked, price, ON/OFF switch, closing time and guest plates
