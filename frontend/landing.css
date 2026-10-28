@@ -243,8 +243,14 @@ html[data-accent="orange"] .cdl .cdl-brand-logo{background-image:url(images/land
 .cdl-fm-x{position:fixed;top:0;right:0;z-index:2;width:44px;height:44px;padding:0;border:0;background:transparent;color:#000;font-size:36px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-shadow:0 0 5px rgba(255,255,255,.85);transition:transform .15s ease,color .15s ease}
 .cdl-fm-x:hover{color:#d62828;transform:scale(1.15)}
 .cdl-fm-x:focus-visible{outline:2px solid #1f6b3a;outline-offset:-2px}
-.cdl-fm-book{--ink:#14301f;--ink-soft:#3d5f48;--line:rgba(20,48,31,.2);--gold:#2f7d4a;--gold-soft:#e6f3e2;--panel:#fff;background:#cae9b8;overflow-y:auto}
+.cdl-fm-book{--ink:#14301f;--ink-soft:#3d5f48;--line:rgba(20,48,31,.2);--gold:#2f7d4a;--gold-soft:#e6f3e2;--panel:#fff;background:#cae9b8 url("images/menu-book/menu-bg.webp") center center/cover no-repeat;overflow:hidden}
 .cdl-fm-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;padding:12px 16px;background:#cae9b8;border-bottom:1px solid rgba(20,48,31,.15)}
+/* Menu Book page: the picture is the background, so the top bar is see-through and floats over it */
+.cdl-fm-book .cdl-fm-bar{position:absolute;top:0;left:0;right:0;justify-content:space-between;padding:clamp(14px,2.4vw,42px) clamp(14px,2.9vw,52px);background:transparent;border-bottom:0;pointer-events:none}
+.cdl-fm-book .cdl-fm-bar>*{pointer-events:auto}
+/* while the book is open the picture fades to its writing-free twin, so no text shows behind the pages */
+.cdl-fm-book::before{content:"";position:absolute;inset:0;background:url("images/menu-book/menu-bg-clean.webp") center center/cover no-repeat;opacity:0;transition:opacity .6s ease;pointer-events:none}
+.cdl-fm-book.is-reading::before{opacity:1}
 .cdl-fm-backbtn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border:2px solid #2f7d4a;border-radius:999px;background:#fff;color:#1f5c36;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s ease,color .15s ease,transform .15s ease}
 .cdl-fm-backbtn:hover{background:#2f7d4a;color:#fff;transform:translateX(-2px)}
 .cdl-fm-backbtn:focus-visible{outline:3px solid #14301f;outline-offset:2px}
