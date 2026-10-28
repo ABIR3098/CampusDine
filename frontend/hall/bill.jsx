@@ -17,13 +17,15 @@ function HallBill({ call, notify, refreshWallet }) {
   const [payBusy, setPayBusy] = useState(false);
   const [ym, setYm] = useState(null); // { year, month } — null until the server tells us today's month
   const [bill, setBill] = useState(null);
+  const [err, setErr] = useState(null);
 
   const load = async (target) => {
     try {
+      setErr(null);
       const q = target ? `?year=${target.year}&month=${target.month}` : "";
       const b = await call("/api/hall/bill" + q);
       setBill(b); setYm({ year: b.year, month: b.month });
-    } catch (e) { notify(e, true); }
+    } catch (e) { setErr(e.message || String(e)); notify(e, true); }
   };
   useEffect(() => { load(); }, []);
 
@@ -53,7 +55,7 @@ function HallBill({ call, notify, refreshWallet }) {
         <button className="hl-btn sm ghost" onClick={() => shift(1)}>Next ›</button>
       </div>
     )}>
-      {!bill ? <div className="hl-empty">Loading…</div> : (
+      {!bill ? (err ? <div className="hl-error">⚠️ {err}</div> : <div className="hl-empty">Loading…</div>) : (
         <>
           <div className="hl-stats">
             <HallStat icon="💰" label="Whole month" value={hallTaka(s.total)} sub="open meals at today's price" />
