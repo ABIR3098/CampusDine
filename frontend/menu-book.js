@@ -367,4 +367,58 @@
     book.style.transitionDelay = ""; book.style.transitionDuration = "";
     [baseL, groove, stackL].concat([].slice.call(ringEls)).forEach(function (el) { el.style.transitionDelay = ""; el.style.transitionDuration = ""; });
   }
+  function go(d) {
+    var n = cur + d; if (n < 0 || n > lastCur || busy) return;
+    busy = true;
+    if (cur === 0 && d > 0) {                 // 1) book slides right  2) cover opens
+      book.style.transitionDuration = "650ms"; book.style.transitionDelay = "0ms";
+      leafEls[0].style.transitionDelay = "350ms";
+      // keep the blank left side hidden until the cover has swung past the middle
+      [baseL, groove, stackL].concat([].slice.call(ringEls)).forEach(function (el) { el.style.transitionDelay = "850ms"; el.style.transitionDuration = ".25s"; });
+      cur = n; render();
+      setTimeout(function () { resetTiming(); busy = false; }, 1650);
+    } else if (n === 0) {                     // 1) cover closes  2) book slides back
+      book.style.transitionDuration = "650ms"; book.style.transitionDelay = "800ms";
+      cur = n; render();
+      setTimeout(function () { resetTiming(); busy = false; }, 1550);
+    } else {
+      cur = n; render(); setTimeout(function () { busy = false; }, 450);
+    }
+  }
+  function open() {
+    clearTimeout(openTimer); cur = 0; busy = false; resetTiming();
+    size();
+    overlay.style.setProperty("--flip", "0ms"); render();
+    document.documentElement.style.overflow = "hidden";
+    overlay.classList.add("cdmb-open"); render();
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      overlay.style.setProperty("--flip", "1000ms");
+    }); });
+    if (fab) fab.style.display = "none";
+    // show the cover first, then open it to pages 2–3 (only the cover leaf moves)
+    openTimer = setTimeout(function () {
+      if (overlay.classList.contains("cdmb-open") && cur === 0 && !busy) go(1);
+    }, 1300);
+  }
+  function close() {
+    clearTimeout(openTimer);
+    overlay.classList.remove("cdmb-open");
+    document.documentElement.style.overflow = "";
+    if (fab) fab.style.display = "";
+  }
+  function closeBook() {
+    if (busy) return; busy = true;
+    clearTimeout(openTimer);
+    var n = cur;
+    if (n > 0) {
+      var step = 110;
+      leafEls.forEach(function (el, i) { if (i < n) el.style.transitionDelay = ((n - 1 - i) * step) + "ms"; });
+      var total = (n - 1) * step + 1000;
+      book.style.transitionDuration = "650ms"; book.style.transitionDelay = ((n - 1) * step + 800) + "ms";
+      cur = 0; render();
+      setTimeout(resetTiming, total + 600);
+      setTimeout(function () { busy = false; close(); }, total + 1500);   // cover stays visible, then overlay fades
+    } else { busy = false; close(); }
+  }
+
 })();
