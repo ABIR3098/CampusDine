@@ -136,4 +136,61 @@
   .cdmb-emboss.sm img{width:40%}
   `;
 
+  css += `
+  /* thank-you page (last page) */
+  .cdmb-face.ty{container-type:inline-size;background:radial-gradient(ellipse at 50% 26%,#1f2a22,#0c0f0d 72%);overflow:hidden}
+  .cdmb-ty{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:6.5cqw 8cqw;gap:2.3cqw;color:#f4efd8}
+  .cdmb-ty::before{content:"";position:absolute;inset:3cqw;border:.45cqw solid #e0b43a;border-radius:2.4cqw;pointer-events:none}
+  .cdmb-ty::after{content:"";position:absolute;inset:4.4cqw;border:.2cqw solid rgba(224,180,58,.45);border-radius:1.6cqw;pointer-events:none}
+  .cdmb-ty>*{opacity:0}
+  .cdmb-ty>.chits,.cdmb-ty>.sp,.cdmb-ty>.orn{opacity:1}
+  .cdmb-ty .orn{position:absolute;width:23cqw;height:23cqw;pointer-events:none;z-index:0}
+  .cdmb-ty .orn.tl{left:3.4cqw;top:3.4cqw}.cdmb-ty .orn.tr{right:3.4cqw;top:3.4cqw;transform:scaleX(-1)}
+  .cdmb-ty .orn.bl{left:3.4cqw;bottom:3.4cqw;transform:scaleY(-1)}.cdmb-ty .orn.br{right:3.4cqw;bottom:3.4cqw;transform:scale(-1,-1)}
+  .cdmb-ty img{position:relative;width:19cqw;height:auto;display:block;filter:drop-shadow(0 .6cqw 1.2cqw rgba(0,0,0,.6))}
+  .cdmb-ty .tt{position:relative;font-family:"Brush Script MT","Segoe Script","Snell Roundhand","Comic Sans MS",cursive;font-size:12cqw;line-height:1;color:#ffc61a;
+    text-shadow:0 .6cqw 0 rgba(0,0,0,.45);white-space:nowrap}
+  .cdmb-ty .bn{position:relative;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:5.6cqw;font-weight:700;letter-spacing:.06em;color:#8fd19e;text-shadow:0 .4cqw 0 rgba(0,0,0,.4)}
+  .cdmb-ty .chits{position:relative;display:flex;flex-direction:column;gap:3.4cqw;width:100%;align-items:center;margin-top:1.4cqw}
+  .cdmb-ty .chit{position:relative;width:68cqw;align-self:flex-start;margin-left:9cqw;padding:3.6cqw 6cqw;color:#35260f;text-align:center;opacity:0;
+    font-family:"Noto Sans Bengali","Hind Siliguri","Nirmala UI",Vrinda,sans-serif;font-size:3.9cqw;line-height:1.45;font-weight:600;
+    background:linear-gradient(180deg,#f4e6b8,#e8d29a 60%,#dcc384);box-shadow:0 1cqw 2cqw rgba(0,0,0,.5),inset 0 0 3cqw rgba(140,100,30,.28)}
+  .cdmb-ty .chit:nth-child(2){width:78cqw;align-self:center;margin-left:0}
+  .cdmb-ty .chit::before,.cdmb-ty .chit::after{content:"";position:absolute;top:-.9cqw;bottom:-.9cqw;width:4.6cqw;border-radius:2.3cqw/50%;
+    background:linear-gradient(90deg,#8a6a2c,#ecd89f 38%,#c8a65a 70%,#7d5f24);box-shadow:0 .4cqw .8cqw rgba(0,0,0,.4)}
+  .cdmb-ty .chit::before{left:-2.3cqw}.cdmb-ty .chit::after{right:-2.3cqw}
+  .cdmb-ty .chit .pin{position:absolute;top:-2.3cqw;left:50%;width:4.2cqw;height:4.2cqw;margin-left:-2.1cqw;border-radius:50%;z-index:2;
+    background:radial-gradient(circle at 35% 30%,#fff2b8,#e0b43a 45%,#8a6a1f);box-shadow:0 .7cqw 1cqw rgba(0,0,0,.5)}
+  .cdmb-ty .chit .deco{position:absolute;right:-15cqw;bottom:-4.5cqw;width:20cqw;height:auto;z-index:3;filter:drop-shadow(0 .6cqw .8cqw rgba(0,0,0,.45));pointer-events:none}
+  .cdmb-ty .chit:nth-child(1){--r:-.8deg}.cdmb-ty .chit:nth-child(2){--r:.6deg}.cdmb-ty .chit:nth-child(3){--r:-.5deg}
+  .cdmb-ty .hr{position:relative;font-size:5.5cqw;color:#e0302d;line-height:1}
+  .cdmb-ty .tg{position:relative;font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:3.6cqw;letter-spacing:.1em;color:#ffc61a}
+  .cdmb-ty .sp{position:absolute;color:#ffc61a;font-size:3.4cqw;opacity:0;pointer-events:none}
+
+  /* thank-you animations (start when the page is opened) */
+  .cdmb-face.ty.on .cdmb-ty img{animation:cdTyPop .9s cubic-bezier(.2,1.5,.4,1) .9s both}
+  .cdmb-face.ty.on .cdmb-ty .tt{animation:cdTyWipe 1.1s steps(14,end) 1.5s both,cdTyGlow 3s ease-in-out 2.8s infinite}
+  .cdmb-face.ty.on .cdmb-ty .bn{animation:cdTyUp .7s ease-out 2.5s both}
+  .cdmb-face.ty.on .cdmb-ty .orn{animation:cdTyFade 1s ease-out .8s both}
+  .cdmb-face.ty.on .cdmb-ty .chit{animation:cdTyChit .7s cubic-bezier(.2,1.35,.4,1) both,cdTyFloat 5s ease-in-out infinite}
+  .cdmb-face.ty.on .cdmb-ty .chit:nth-child(1){animation-delay:3.1s,4s}
+  .cdmb-face.ty.on .cdmb-ty .chit:nth-child(2){animation-delay:3.9s,5s}
+  .cdmb-face.ty.on .cdmb-ty .chit:nth-child(3){animation-delay:4.7s,6s}
+  .cdmb-face.ty.on .cdmb-ty .hr{animation:cdTyUp .6s ease-out 5.5s both,cdTyBeat 1.3s ease-in-out 6.2s infinite}
+  .cdmb-face.ty.on .cdmb-ty .tg{animation:cdTyUp .8s ease-out 5.8s both}
+  .cdmb-face.ty.on .cdmb-ty .sp{animation:cdTyTwinkle 2.6s ease-in-out infinite}
+  @keyframes cdTyPop{from{opacity:0;transform:scale(.3) rotate(-25deg)}to{opacity:1;transform:none}}
+  @keyframes cdTyWipe{from{opacity:1;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+  @keyframes cdTyGlow{0%,100%{text-shadow:0 .6cqw 0 rgba(0,0,0,.45),0 0 0 rgba(255,198,26,0)}50%{text-shadow:0 .6cqw 0 rgba(0,0,0,.45),0 0 3cqw rgba(255,198,26,.65)}}
+  @keyframes cdTyFade{from{opacity:0}to{opacity:1}}
+  @keyframes cdTyUp{from{opacity:0;transform:translateY(3cqw)}to{opacity:1;transform:none}}
+  @keyframes cdTyGrow{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:none}}
+  @keyframes cdTyChit{from{opacity:0;transform:translateY(14cqw) rotate(calc(var(--r)*4)) scale(.6)}to{opacity:1;transform:rotate(var(--r))}}
+  @keyframes cdTyFloat{0%,100%{opacity:1;transform:rotate(var(--r)) translateY(0)}50%{opacity:1;transform:rotate(calc(var(--r)*-.6)) translateY(-.9cqw)}}
+  @keyframes cdTyBeat{0%,100%{opacity:1;transform:scale(1)}15%{opacity:1;transform:scale(1.35)}30%{opacity:1;transform:scale(1)}45%{opacity:1;transform:scale(1.2)}}
+  @keyframes cdTyTwinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(90deg)}}
+  @media (prefers-reduced-motion:reduce){.cdmb-face.ty.on .cdmb-ty *{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
+  `;
+
 })();
