@@ -207,7 +207,7 @@ function HallTopBar({ user, tabs, active, setActive, onLogout, ui }) {
       <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
           <div className="flex items-center gap-2 shrink-0">
-            <div className="logo-badge w-8 h-8 rounded-full grid place-items-center" style={{ fontSize: 16 }}>🍛</div>
+                       <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
             <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
           </div>
           <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
