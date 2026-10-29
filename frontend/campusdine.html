@@ -897,10 +897,6 @@ const I18N = {
     "pe.match": "New password and confirm password do not match.",
     "cfpw": "Confirm new password",
     "showpw": "Show passwords",
-    "pw.weak": "Weak",
-    "pw.ok": "Okay",
-    "pw.strong": "Strong",
-    "pw.match": "Passwords match",
     "pic.change": "Change photo", "pic.add": "Add photo", "pic.remove": "Remove",
     "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
     "pic.hint": "Click Save to keep your new photo.",
@@ -1358,10 +1354,6 @@ const I18N = {
     "pe.match": "নতুন পাসওয়ার্ড ও নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।",
     "cfpw": "নতুন পাসওয়ার্ড আবার লিখুন",
     "showpw": "পাসওয়ার্ড দেখান",
-    "pw.weak": "দুর্বল",
-    "pw.ok": "মোটামুটি",
-    "pw.strong": "শক্তিশালী",
-    "pw.match": "পাসওয়ার্ড মিলেছে",
     "pic.change": "ছবি বদলান", "pic.add": "ছবি যোগ করুন", "pic.remove": "সরান",
     "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
     "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
@@ -7185,32 +7177,6 @@ function fileToAvatar(file) {
     reader.readAsDataURL(file);
   });
 }
-// Feature: password strength. 0 = empty, 1 = weak, 2 = okay, 3 = strong (length + mix of letters, digits, symbols).
-function passwordStrength(pw) {
-  if (!pw) return 0;
-  let score = 0;
-  if (pw.length >= 6) score++;
-  if (pw.length >= 10) score++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
-  if (/\d/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  if (pw.length < 6) return 1;
-  return score >= 4 ? 3 : score >= 3 ? 2 : 1;
-}
-function PasswordStrengthBar({ password }) {
-  const level = passwordStrength(password);
-  if (!level) return null;
-  const color = ["", "var(--brick)", "var(--gold)", "var(--leaf)"][level];
-  const label = [null, tx("pw.weak"), tx("pw.ok"), tx("pw.strong")][level];
-  return (
-    <div className="flex items-center gap-2" aria-live="polite">
-      <div className="flex gap-1 flex-1">
-        {[1, 2, 3].map(i => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= level ? color : "var(--line)" }} />)}
-      </div>
-      <span className="text-xs font-600" style={{ color }}>{label}</span>
-    </div>
-  );
-}
 function ProfileField({ label, value, placeholder }) {
   return (
     <div>
@@ -7482,12 +7448,8 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                 <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                <PasswordStrengthBar password={newPassword} />
                 <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                {confirmPassword && newPassword === confirmPassword && (
-                  <div className="text-xs font-600" style={{ color: "var(--leaf)" }}>✓ {tx("pw.match")}</div>
-                )}
                 <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
                   <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} /> {tx("showpw")}
                 </label>
