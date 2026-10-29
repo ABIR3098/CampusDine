@@ -127,6 +127,13 @@ Leave this terminal running the whole time you're using the app.
 
 ---
 
+## Order API and tests
+
+- Every order endpoint (config, my stats, paging, admin filters, cancel reason) is listed in [`docs/ORDERS_API.md`](docs/ORDERS_API.md).
+- Unit tests for the order rules: `cd backend && npm test` (uses Node's built-in test runner, no extra packages).
+
+---
+
 ## Troubleshooting
 
 - **`npm run dev` prints a ❌ and exits** — read the 👉 line right under
