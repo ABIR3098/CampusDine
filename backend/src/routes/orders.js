@@ -5,7 +5,7 @@ const catchAsync = require("../utils/catchAsync");
 const { buildPayload, parseCode } = require("../utils/tokenQr");
 const { restaurantOf, isRestaurantId } = require("../catalog");
 const { loadItemRestaurants } = require("../restaurants");
-const { resolvePickupTime } = require("../utils/pickup");
+const { resolvePickupTime, PICKUP_MIN_LEAD_MINUTES, PICKUP_MAX_LEAD_HOURS } = require("../utils/pickup");
 const pricing = require("../pricing");
 const loyalty = require("../loyalty");
 const { assignOrderToBestRider } = require("../utils/riderAssignment");
@@ -15,7 +15,7 @@ const { pingWatchers } = require("../stockAlerts");
 const { recordAuditEvent } = require("../utils/audit");
 
 const router = express.Router();
-const STATUSES = ["Received", "Cooking", "Ready"];
+const { STATUSES, TIP_OPTIONS, AVG_MINUTES_PER_ORDER, validateCartLimits, estimateReadyAt, buildOrderStats, parseListParams, parseAdminFilters, cleanCancelReason, MAX_QTY_PER_ITEM, MAX_CART_LINES } = require("../utils/orderRules");
 
 async function attachItems(orders) {
   if (orders.length === 0) return orders;
@@ -40,8 +40,6 @@ async function attachItems(orders) {
 // Feature: queue position. An ASAP order is ordered by when it was placed; orders
 // scheduled for later don't hold up ASAP ones. Each active ASAP order gets
 // { ahead, position, est_minutes } — everything else gets queue: null.
-const AVG_MINUTES_PER_ORDER = 4;
-
 async function attachQueue(orders) {
   const mine = orders.filter((o) => (o.status === "Received" || o.status === "Cooking") && !o.pickup_time);
   if (mine.length === 0) return orders.map((o) => ({ ...o, queue: null }));
@@ -54,7 +52,8 @@ async function attachQueue(orders) {
     if (!mine.includes(o)) return { ...o, queue: null };
     const t = when(o);
     const ahead = rows.filter((r) => r.id !== o.id && (when(r) < t || (when(r) === t && r.id < o.id))).length;
-    return { ...o, queue: { ahead, position: ahead + 1, est_minutes: (ahead + 1) * AVG_MINUTES_PER_ORDER } };
+    const est = (ahead + 1) * AVG_MINUTES_PER_ORDER;
+    return { ...o, queue: { ahead, position: ahead + 1, est_minutes: est, est_ready_at: estimateReadyAt(est) } };
   });
 }
 
@@ -89,6 +88,8 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     mergedItems.set(id, (mergedItems.get(id) || 0) + Number(item.qty));
   }
   const requestedItems = [...mergedItems].map(([id, qty]) => ({ id, qty }));
+  const limitError = validateCartLimits(requestedItems);
+  if (limitError) return res.status(400).json({ error: limitError });
   if (!["wallet", "cash"].includes(paymentMethod)) {
     return res.status(400).json({ error: "paymentMethod must be wallet or cash" });
   }
@@ -148,7 +149,6 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
     const pointsUsed = priced.reward ? Number(priced.reward.points_cost) : 0;
 
     // Feature: rider tip — a fixed amount, paid from the wallet now, handed to the rider at pickup
-    const TIP_OPTIONS = [0, 5, 10, 20];
     const tip = Number(req.body.tip || 0);
     if (!TIP_OPTIONS.includes(tip)) throw { status: 400, message: "Invalid tip amount" };
     if (tip > 0 && paymentMethod !== "wallet") throw { status: 400, message: "Tips are paid from your wallet" };
@@ -242,9 +242,53 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
   }
 }));
 
+// GET /api/orders/config — the ordering rules the app needs (tip choices, limits, pickup window).
+// Lets the frontend read them from the server instead of hard-coding copies.
+router.get("/config", verifyToken, (req, res) => {
+  res.json({
+    tipOptions: TIP_OPTIONS,
+    maxQtyPerItem: MAX_QTY_PER_ITEM,
+    maxCartLines: MAX_CART_LINES,
+    pickupMinLeadMinutes: PICKUP_MIN_LEAD_MINUTES,
+    pickupMaxLeadHours: PICKUP_MAX_LEAD_HOURS,
+    avgMinutesPerOrder: AVG_MINUTES_PER_ORDER,
+  });
+});
+
+// GET /api/orders/mine/stats  (student/teacher) — a quick summary of my ordering.
+// Cancelled orders are counted separately and never added to what I spent.
+router.get("/mine/stats", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const [[totals]] = await pool.query(
+    `SELECT SUM(status <> 'Cancelled') AS orders,
+            SUM(status = 'Cancelled') AS cancelled,
+            COALESCE(SUM(CASE WHEN status <> 'Cancelled' THEN total END), 0) AS spent,
+            COALESCE(SUM(CASE WHEN status <> 'Cancelled' AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN total END), 0) AS monthSpent
+     FROM orders WHERE user_id = ?`,
+    [req.user.id]
+  );
+  const [[favourite]] = await pool.query(
+    `SELECT oi.name, SUM(oi.qty) AS qty
+     FROM order_items oi JOIN orders o ON o.id = oi.order_id
+     WHERE o.user_id = ? AND o.status <> 'Cancelled'
+     GROUP BY oi.name ORDER BY qty DESC, oi.name LIMIT 1`,
+    [req.user.id]
+  );
+  res.json(buildOrderStats(totals || {}, favourite || null));
+}));
+
 // GET /api/orders/mine  (student/teacher) — my order history
 router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
-  const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
+  // Optional ?status=Ready&limit=20&offset=0. Without them the full history is returned, as before.
+  const list = parseListParams(req.query);
+  if (list.error) return res.status(400).json({ error: list.error });
+  const where = ["user_id = ?"];
+  const args = [req.user.id];
+  if (list.status) { where.push("status = ?"); args.push(list.status); }
+  const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total FROM orders WHERE ${where.join(" AND ")}`, args);
+  res.set("X-Total-Count", String(total));
+  let sql = `SELECT * FROM orders WHERE ${where.join(" AND ")} ORDER BY id DESC`;
+  if (list.limit) { sql += " LIMIT ? OFFSET ?"; args.push(list.limit, list.offset || 0); }
+  const [orders] = await pool.query(sql, args);
   const mine = await attachQueue(await attachFeedback(await attachItems(orders)));
   // Feature: rate your rider — show the rider's name on each order
   const riderIds = [...new Set(mine.map((o) => o.rider_id).filter(Boolean))];
@@ -256,13 +300,37 @@ router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(a
   res.json(mine);
 }));
 
+// GET /api/orders/:id  — one order with items, queue position and feedback.
+// A customer can only open their own order; an admin can open any.
+router.get("/:id(\\d+)", verifyToken, requireRole("student", "teacher", "admin"), catchAsync(async (req, res) => {
+  const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+  if (req.user.role !== "admin" && order.user_id !== req.user.id) {
+    return res.status(403).json({ error: "This isn't your order" });
+  }
+  const [full] = await attachQueue(await attachFeedback(await attachItems([order])));
+  res.json(full);
+}));
+
 // GET /api/orders  (admin) — live queue
 // Optional ?restaurant=<id> keeps only that restaurant's orders.
 router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const restaurant = req.query.restaurant;
   if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
+  // Optional extra filters: ?status=&q=<token>&from=YYYY-MM-DD&to=YYYY-MM-DD
+  const f = parseAdminFilters(req.query);
+  if (f.error) return res.status(400).json({ error: f.error });
+  const where = [];
+  const args = [];
+  if (f.status) { where.push("status = ?"); args.push(f.status); }
+  if (f.q) { where.push("token LIKE ?"); args.push(`%${f.q.replace(/[%_\\]/g, "\\$&")}%`); }
+  if (f.from) { where.push("created_at >= ?"); args.push(`${f.from} 00:00:00`); }
+  if (f.to) { where.push("created_at < DATE_ADD(?, INTERVAL 1 DAY)"); args.push(f.to); }
   // With a restaurant filter, look at more recent orders first, since other restaurants' orders are dropped
-  const [orders] = await pool.query("SELECT * FROM orders ORDER BY id DESC LIMIT ?", [restaurant ? 400 : 100]);
+  const [orders] = await pool.query(
+    `SELECT * FROM orders ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY id DESC LIMIT ?`,
+    [...args, restaurant ? 400 : 100]
+  );
   const withItems = await attachItems(orders);
   const kept = restaurant ? withItems.filter((o) => o.restaurant === restaurant).slice(0, 100) : withItems;
   res.json(await attachFeedback(kept));
@@ -271,6 +339,7 @@ router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) =
 // PATCH /api/orders/:id/cancel  (student/teacher) — cancel while still "Received"
 // Restores stock and, for a wallet-paid order, refunds the wallet.
 router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const cancelReason = cleanCancelReason(req.body && req.body.reason); // optional, only kept in the audit log
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -320,10 +389,11 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
     await recordAuditEvent(conn, req, "ORDER_CANCEL_AND_REFUND", "order", order.id, {
       walletRefund: order.payment_method === "wallet",
       amount: Number(order.total),
+      reason: cancelReason,
     });
     await conn.commit();
 
-    const updated = { ...order, status: "Cancelled" };
+    const updated = { ...order, status: "Cancelled", cancel_reason: cancelReason };
     const io = req.app.get("io");
     io.to("admins").emit("order:update", updated);
     io.to(`user:${order.user_id}`).emit("order:update", updated);

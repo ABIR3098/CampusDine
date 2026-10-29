@@ -692,7 +692,7 @@ const corsOptions = corsOriginSetting.trim() === "*"
   ? { origin: true }
   : { origin: corsOriginSetting.split(",").map((o) => o.trim()) };
 
-app.use(cors(corsOptions));
+app.use(cors({ ...corsOptions, exposedHeaders: ["X-Total-Count"] })); // X-Total-Count: order list paging
 app.use(express.json({ limit: "2mb" })); // profile pictures arrive as small base64 images
 
 const io = new Server(server, { cors: corsOptions });
