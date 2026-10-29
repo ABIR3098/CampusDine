@@ -593,6 +593,10 @@ const CATEGORIES = [
 const STATUSES = ["Received", "Cooking", "Ready"];
 
 /* ---------------- API helper ---------------- */
+// Same limit the server enforces (backend/src/utils/orderRules.js, also served by GET /api/orders/config)
+const MAX_QTY_PER_ITEM = 20;
+const qtyCap = (item) => Math.min(Number(item.stock) || 0, MAX_QTY_PER_ITEM);
+
 async function api(apiBase, path, { method = "GET", body, token } = {}) {
   const res = await fetch(`${apiBase}${path}`, {
     method,
@@ -803,9 +807,23 @@ const I18N = {
     "q.ahead1": "Position #{p} · 1 order ahead",
     "q.aheadN": "Position #{p} · {a} orders ahead",
     "q.est": "≈ {m} min",
+    "q.eta": "Ready around {t}",
+    "ost.title": "Your ordering",
+    "ost.orders": "Orders",
+    "ost.spent": "Spent",
+    "ost.month": "This month",
+    "ost.avg": "Average order",
+    "ost.fav": "Favourite",
     "refunded": "— refunded to wallet",
     "print": "Print receipt",
     "cancelorder": "Cancel order", 
+    "cancel.confirm": "Cancel this order? A wallet payment will be refunded.",
+    "cr.title": "Why are you cancelling? (optional)",
+    "cr.mistake": "Ordered by mistake",
+    "cr.slow": "Taking too long",
+    "cr.changed": "Changed my mind",
+    "cr.confirm": "Yes, cancel order",
+    "cr.keep": "Keep order",
         "reorder": "↻ Order again",
     "reorder.added": "Added to your cart: ",
     "reorder.skipped": " Not available right now: ",
@@ -879,6 +897,10 @@ const I18N = {
     "pe.match": "New password and confirm password do not match.",
     "cfpw": "Confirm new password",
     "showpw": "Show passwords",
+    "pw.weak": "Weak",
+    "pw.ok": "Okay",
+    "pw.strong": "Strong",
+    "pw.match": "Passwords match",
     "pic.change": "Change photo", "pic.add": "Add photo", "pic.remove": "Remove",
     "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
     "pic.hint": "Click Save to keep your new photo.",
@@ -1246,9 +1268,23 @@ const I18N = {
     "q.ahead1": "অবস্থান #{p} · সামনে ১টি অর্ডার",
     "q.aheadN": "অবস্থান #{p} · সামনে {a}টি অর্ডার",
     "q.est": "≈ {m} মিনিট",
+    "q.eta": "প্রায় {t}-এ তৈরি হবে",
+    "ost.title": "আপনার অর্ডার",
+    "ost.orders": "অর্ডার",
+    "ost.spent": "মোট খরচ",
+    "ost.month": "এই মাসে",
+    "ost.avg": "গড় অর্ডার",
+    "ost.fav": "প্রিয় আইটেম",
     "refunded": "— ওয়ালেটে ফেরত দেওয়া হয়েছে",
     "print": "রসিদ প্রিন্ট করুন",
     "cancelorder": "অর্ডার বাতিল করুন", 
+    "cancel.confirm": "এই অর্ডারটি বাতিল করবেন? ওয়ালেটে দেওয়া টাকা ফেরত পাবেন।",
+    "cr.title": "কেন বাতিল করছেন? (ঐচ্ছিক)",
+    "cr.mistake": "ভুলে অর্ডার করেছি",
+    "cr.slow": "অনেক দেরি হচ্ছে",
+    "cr.changed": "মত বদলেছি",
+    "cr.confirm": "হ্যাঁ, বাতিল করুন",
+    "cr.keep": "অর্ডার রাখুন",
         "reorder": "↻ আবার অর্ডার করুন",
     "reorder.added": "কার্টে যোগ হয়েছে: ",
     "reorder.skipped": " এখন পাওয়া যাচ্ছে না: ",
@@ -1322,6 +1358,10 @@ const I18N = {
     "pe.match": "নতুন পাসওয়ার্ড ও নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।",
     "cfpw": "নতুন পাসওয়ার্ড আবার লিখুন",
     "showpw": "পাসওয়ার্ড দেখান",
+    "pw.weak": "দুর্বল",
+    "pw.ok": "মোটামুটি",
+    "pw.strong": "শক্তিশালী",
+    "pw.match": "পাসওয়ার্ড মিলেছে",
     "pic.change": "ছবি বদলান", "pic.add": "ছবি যোগ করুন", "pic.remove": "সরান",
     "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
     "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
@@ -2978,7 +3018,7 @@ function UsualPanel({ pastOrders, menu, cart, add }) {
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {usual.map(({ item, n }) => {
           const inCart = cart.find(c => c.id === item.id);
-          const maxed = !!inCart && inCart.qty >= item.stock;
+          const maxed = !!inCart && inCart.qty >= qtyCap(item);
           return (
             <div key={"usual-" + item.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
               <div className="flex items-center gap-1.5">
@@ -3214,7 +3254,10 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
 
   const add = (item) => setCart(prev => {
     const existing = prev.find(p => p.id === item.id);
-    if (existing) return prev.map(p => p.id === item.id ? { ...p, qty: p.qty + 1 } : p);
+    if (existing) {
+      if (existing.qty >= qtyCap(item)) return prev; // never go past stock or the per-item limit
+      return prev.map(p => p.id === item.id ? { ...p, qty: p.qty + 1 } : p);
+    }
     return [...prev, { ...item, qty: 1 }];
   });
   const dec = (item) => setCart(prev => prev
@@ -3386,7 +3429,7 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border" style={{ borderColor: "var(--line)" }}><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
                       <span className="font-mono w-5 text-center">{inCart.qty}</span>
-                      <button onClick={() => add(item)} className="w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "var(--teal)" }}><Icon path={I.plus} className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => add(item)} disabled={inCart.qty >= qtyCap(item)} className="w-7 h-7 rounded-full grid place-items-center text-white disabled:opacity-40" style={{ background: "var(--teal)" }}><Icon path={I.plus} className="w-3.5 h-3.5" /></button>
                     </div>
                   ) : (
                     <button onClick={() => add(item)} className="btn-primary px-3 py-1.5 rounded-lg text-sm">{tx("add")}</button>
@@ -3985,9 +4028,16 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
   const [planDraft, setPlanDraft] = useState(null); // the order a weekly plan is being made from
   const [plansKey, setPlansKey] = useState(0);
   /* Feature: order history filter */
+  // Feature: remember the history filters (per browser) so they survive a page refresh
+  const savedFilters = (() => { try { return JSON.parse(localStorage.getItem("cd.orderFilters") || "{}"); } catch (e) { return {}; } })();
+  const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
   const [hQuery, setHQuery] = useState("");
-  const [hStatus, setHStatus] = useState("all");
-  const [hRange, setHRange] = useState("all");
+  const [hStatus, setHStatus] = useState(pick(savedFilters.status, ["all", "Received", "Cooking", "Ready", "Cancelled"], "all"));
+  const [hRange, setHRange] = useState(pick(savedFilters.range, ["all", "today", "week", "month"], "all"));
+  const [hSort, setHSort] = useState(pick(savedFilters.sort, ["newest", "oldest", "high", "low"], "newest")); // Feature: sort order history
+  useEffect(() => {
+    try { localStorage.setItem("cd.orderFilters", JSON.stringify({ status: hStatus, range: hRange, sort: hSort })); } catch (e) { /* private mode: just don't remember */ }
+  }, [hStatus, hRange, hSort]);
   /* Feature: order problem report */
   const [issues, setIssues] = useState({});          // order id -> my report
   const [reporting, setReporting] = useState(null);  // order id whose form is open
@@ -4012,6 +4062,18 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
     finally { setRBusy(false); }
   };
   const [copiedId, setCopiedId] = useState(null);
+  /* Feature: cancel reason */
+  const [cancelling, setCancelling] = useState(null); // order id whose cancel box is open
+  const [cancelReason, setCancelReason] = useState("");
+  /* Feature: my ordering stats (count, spend, average, favourite item) */
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    let dead = false;
+    api(apiBase, "/api/orders/mine/stats", { token })
+      .then(r => { if (!dead) setStats(r); })
+      .catch(() => {}); // the card is a nice extra: stay hidden if it cannot load
+    return () => { dead = true; };
+  }, [orders]);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
   // then trigger the browser print dialog; the CSS above hides everything else.
@@ -4042,6 +4104,13 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
     }
     return true;
   });
+  const sorters = {
+    newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+    high: (a, b) => Number(b.total) - Number(a.total),
+    low: (a, b) => Number(a.total) - Number(b.total),
+  };
+  if (hSort !== "newest") filtered.sort(sorters[hSort]); // the server already sends newest first
   return (
     <div className="space-y-6 max-w-2xl">
       {planDraft && <RecurringForm order={planDraft} apiBase={apiBase} token={token} onClose={() => setPlanDraft(null)} onSaved={() => { setPlanDraft(null); setPlansKey(k => k + 1); }} />}
@@ -4085,6 +4154,24 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           </div>
         </div>
       )}
+      {stats && stats.orders > 0 && (
+        <div className="card p-4">
+          <div className="text-xs font-700 mb-3" style={{ color: "var(--ink-soft)", letterSpacing: 1 }}>{tx("ost.title").toUpperCase()}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            {[["ost.orders", num(stats.orders)], ["ost.spent", taka(stats.spent)], ["ost.month", taka(stats.monthSpent)], ["ost.avg", taka(Math.round(stats.averageOrder))]].map(([k, v]) => (
+              <div key={k} className="rounded-lg py-2" style={{ background: "var(--panel-soft)" }}>
+                <div className="font-mono text-lg font-700">{v}</div>
+                <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx(k)}</div>
+              </div>
+            ))}
+          </div>
+          {stats.favouriteItem && (
+            <div className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>
+              ⭐ {tx("ost.fav")}: <span className="font-700" style={{ color: "var(--ink)" }}>{dispName(stats.favouriteItem.name)}</span> ×{num(stats.favouriteItem.qty)}
+            </div>
+          )}
+        </div>
+      )}
       <div className="card p-4 space-y-3">
         <input type="text" value={hQuery} onChange={e => setHQuery(e.target.value)}
           placeholder="Search by token, item, note…"
@@ -4102,12 +4189,19 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           ))}
           <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{filtered.length} / {orders.length}</span>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>Sort:</span>
+          {[["newest", "Newest"], ["oldest", "Oldest"], ["high", "Highest total"], ["low", "Lowest total"]].map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setHSort(v)}
+              className={"chip text-xs px-3 py-1.5 rounded-full" + (hSort === v ? " active-chip" : "")}>{label}</button>
+          ))}
+        </div>
       </div>
       {filtered.length === 0 && (
         <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
           No orders match your filters.
           <div className="mt-3">
-            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); }}>Clear filters</button>
+            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); setHSort("newest"); }}>Clear filters</button>
           </div>
         </div>
       )}
@@ -4143,6 +4237,11 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                         : tx(o.queue.ahead === 1 ? "q.ahead1" : "q.aheadN", { p: num(o.queue.position), a: num(o.queue.ahead) })}
                     </span>
                     <span style={{ color: "var(--ink-soft)" }}>{tx("q.est", { m: num(o.queue.est_minutes) })}</span>
+                    {o.queue.est_ready_at && (
+                      <span className="font-600" style={{ color: "var(--ink-soft)" }}>
+                        · {tx("q.eta", { t: new Date(o.queue.est_ready_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -4257,13 +4356,31 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                     style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>🔁 {tx("rec.repeat")}</button>
                 )}
                 {o.status === "Received" && (
-                  <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
+                  <button disabled={cancelBusy} onClick={() => { setCancelling(cancelling === o.id ? null : o.id); setCancelReason(""); }}
                     className="text-xs px-3 py-1.5 rounded-lg border font-600"
                     style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
                     {tx("cancelorder")}
                   </button>
                 )}
               </div>
+              {cancelling === o.id && o.status === "Received" && (
+                <div className="mt-3 rounded-lg border p-3 text-xs space-y-2" style={{ borderColor: "var(--brick)", background: "var(--panel-soft)" }}>
+                  <div className="font-700">{tx("cancel.confirm")}</div>
+                  <div style={{ color: "var(--ink-soft)" }}>{tx("cr.title")}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {["cr.mistake", "cr.slow", "cr.changed"].map(k => (
+                      <button key={k} type="button" onClick={() => setCancelReason(cancelReason === tx(k) ? "" : tx(k))}
+                        className={"chip text-xs px-3 py-1.5 rounded-full" + (cancelReason === tx(k) ? " active-chip" : "")}>{tx(k)}</button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={cancelBusy} onClick={() => { onCancel(o.id, cancelReason); setCancelling(null); }}
+                      className="px-3 py-1.5 rounded-lg font-700" style={{ background: "var(--brick)", color: "#fff" }}>{tx("cr.confirm")}</button>
+                    <button type="button" onClick={() => setCancelling(null)}
+                      className="px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>{tx("cr.keep")}</button>
+                  </div>
+                </div>
+              )}
               {o.status === "Ready" && (
                 <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
               )}
@@ -7068,6 +7185,32 @@ function fileToAvatar(file) {
     reader.readAsDataURL(file);
   });
 }
+// Feature: password strength. 0 = empty, 1 = weak, 2 = okay, 3 = strong (length + mix of letters, digits, symbols).
+function passwordStrength(pw) {
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+  if (/\d/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (pw.length < 6) return 1;
+  return score >= 4 ? 3 : score >= 3 ? 2 : 1;
+}
+function PasswordStrengthBar({ password }) {
+  const level = passwordStrength(password);
+  if (!level) return null;
+  const color = ["", "var(--brick)", "var(--gold)", "var(--leaf)"][level];
+  const label = [null, tx("pw.weak"), tx("pw.ok"), tx("pw.strong")][level];
+  return (
+    <div className="flex items-center gap-2" aria-live="polite">
+      <div className="flex gap-1 flex-1">
+        {[1, 2, 3].map(i => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= level ? color : "var(--line)" }} />)}
+      </div>
+      <span className="text-xs font-600" style={{ color }}>{label}</span>
+    </div>
+  );
+}
 function ProfileField({ label, value, placeholder }) {
   return (
     <div>
@@ -7339,8 +7482,12 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
                 <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <PasswordStrengthBar password={newPassword} />
                 <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
                   className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                {confirmPassword && newPassword === confirmPassword && (
+                  <div className="text-xs font-600" style={{ color: "var(--leaf)" }}>✓ {tx("pw.match")}</div>
+                )}
                 <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
                   <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} /> {tx("showpw")}
                 </label>
@@ -8198,10 +8345,10 @@ function App() {
     } catch (e) { showError(e); }
   };
 
-  const cancelOrder = async (id) => {
+  const cancelOrder = async (id, reason) => {
     setBusy(true); setError(null); setSuccess(null);
     try {
-      const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
+      const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH", body: reason ? { reason } : undefined });
       await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
       setLoyaltyKey(k => k + 1); // spent points come back on cancel
       showSuccess(
