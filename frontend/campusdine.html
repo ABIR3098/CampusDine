@@ -897,6 +897,14 @@ const I18N = {
     "pe.match": "New password and confirm password do not match.",
     "cfpw": "Confirm new password",
     "showpw": "Show passwords",
+    "pw.weak": "Weak",
+    "pw.ok": "Okay",
+    "pw.strong": "Strong",
+    "pw.match": "Passwords match",
+    "cp.submit": "Change password",
+    "cp.busy": "Changing…",
+    "cp.done": "Password changed. Use the new password next time you log in.",
+    "cp.same": "The new password must be different from the current one.",
     "pic.change": "Change photo", "pic.add": "Add photo", "pic.remove": "Remove",
     "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
     "pic.hint": "Click Save to keep your new photo.",
@@ -1354,6 +1362,14 @@ const I18N = {
     "pe.match": "নতুন পাসওয়ার্ড ও নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।",
     "cfpw": "নতুন পাসওয়ার্ড আবার লিখুন",
     "showpw": "পাসওয়ার্ড দেখান",
+    "pw.weak": "দুর্বল",
+    "pw.ok": "মোটামুটি",
+    "pw.strong": "শক্তিশালী",
+    "pw.match": "পাসওয়ার্ড মিলেছে",
+    "cp.submit": "পাসওয়ার্ড পরিবর্তন করুন",
+    "cp.busy": "পরিবর্তন হচ্ছে…",
+    "cp.done": "পাসওয়ার্ড বদলেছে। পরের বার নতুন পাসওয়ার্ড দিয়ে লগইন করুন।",
+    "cp.same": "নতুন পাসওয়ার্ড বর্তমান পাসওয়ার্ড থেকে আলাদা হতে হবে।",
     "pic.change": "ছবি বদলান", "pic.add": "ছবি যোগ করুন", "pic.remove": "সরান",
     "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
     "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
@@ -7177,6 +7193,32 @@ function fileToAvatar(file) {
     reader.readAsDataURL(file);
   });
 }
+// Feature: password strength. 0 = empty, 1 = weak, 2 = okay, 3 = strong (length + mix of letters, digits, symbols).
+function passwordStrength(pw) {
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+  if (/\d/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (pw.length < 6) return 1;
+  return score >= 4 ? 3 : score >= 3 ? 2 : 1;
+}
+function PasswordStrengthBar({ password }) {
+  const level = passwordStrength(password);
+  if (!level) return null;
+  const color = ["", "var(--brick)", "var(--gold)", "var(--leaf)"][level];
+  const label = [null, tx("pw.weak"), tx("pw.ok"), tx("pw.strong")][level];
+  return (
+    <div className="flex items-center gap-2" aria-live="polite">
+      <div className="flex gap-1 flex-1">
+        {[1, 2, 3].map(i => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= level ? color : "var(--line)" }} />)}
+      </div>
+      <span className="text-xs font-600" style={{ color }}>{label}</span>
+    </div>
+  );
+}
 function ProfileField({ label, value, placeholder }) {
   return (
     <div>
@@ -7196,6 +7238,50 @@ function ProfileInput({ label, value, onChange, placeholder }) {
     </div>
   );
 }
+// Feature: change password on its own. It sends only the password fields, so a problem in some
+// other profile field (bad email, hall name, picture) can never block it, and its message shows right under the button.
+function ChangePasswordCard({ call }) {
+  const [cur, setCur] = useState("");
+  const [next, setNext] = useState("");
+  const [again, setAgain] = useState("");
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // { ok: boolean, text: string }
+  const inputCls = "w-full px-4 py-2.5 rounded-xl border";
+  const submit = async (e) => {
+    e.preventDefault();
+    setMsg(null);
+    if (!cur) return setMsg({ ok: false, text: tx("pe.cur") });
+    if (next.length < 6) return setMsg({ ok: false, text: tx("pe.pw6") });
+    if (next === cur) return setMsg({ ok: false, text: tx("cp.same") });
+    if (next !== again) return setMsg({ ok: false, text: tx("pe.match") });
+    setBusy(true);
+    try {
+      await call("/api/auth/me", { method: "PUT", body: { currentPassword: cur, newPassword: next } });
+      setCur(""); setNext(""); setAgain("");
+      setMsg({ ok: true, text: tx("cp.done") });
+    } catch (err) {
+      setMsg({ ok: false, text: err.message || "Could not change the password" });
+    } finally { setBusy(false); }
+  };
+  return (
+    <form onSubmit={submit} className="card p-6 mt-4 space-y-2" autoComplete="off">
+      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
+      <input value={cur} onChange={e => setCur(e.target.value)} type={show ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password" className={inputCls} style={{ borderColor: "var(--line)" }} />
+      <input value={next} onChange={e => setNext(e.target.value)} type={show ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password" className={inputCls} style={{ borderColor: "var(--line)" }} />
+      <PasswordStrengthBar password={next} />
+      <input value={again} onChange={e => setAgain(e.target.value)} type={show ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password" className={inputCls} style={{ borderColor: "var(--line)" }} />
+      {again && next === again && <div className="text-xs font-600" style={{ color: "var(--leaf)" }}>✓ {tx("pw.match")}</div>}
+      <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
+        <input type="checkbox" checked={show} onChange={e => setShow(e.target.checked)} /> {tx("showpw")}
+      </label>
+      {msg && <p className="text-sm" role="alert" style={{ color: msg.ok ? "var(--leaf)" : "#DC2626" }}>{msg.text}</p>}
+      <button type="submit" disabled={busy || !cur || !next || !again} className="btn-primary w-full py-2.5 rounded-xl disabled:opacity-50">
+        {busy ? tx("cp.busy") : tx("cp.submit")}
+      </button>
+    </form>
+  );
+}
 function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
@@ -7204,10 +7290,6 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
   /* Fix: profile balance = live wallet balance */
   const shownBalance = liveBalance != null ? liveBalance : walletBalance;
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
   const [avatar, setAvatar] = useState(user.avatar || null);
   const [avatarChanged, setAvatarChanged] = useState(false);
   const fileRef = useRef(null);
@@ -7242,9 +7324,6 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const save = async () => {
     setError(null); setSuccess(null);
     if (!profile.name.trim()) { setError(tx("pe.name")); return; }
-    if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
-    if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
-    if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
     setBusy(true);
     try {
       const body = {
@@ -7253,12 +7332,10 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
       };
       if (profile.email.trim()) body.email = profile.email.trim();
       if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
-      if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
       if (avatarChanged) body.avatar = avatar;
       const data = await call("/api/auth/me", { method: "PUT", body });
       onUpdated(data);
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
-      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setAvatarChanged(false);
       setSuccess(tx("pe.ok"));
       setEditing(false);
@@ -7270,7 +7347,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   };
 
   const cancelEdit = () => {
-    setError(null); setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    setError(null);
     setEditing(false);
     loadProfile();
   };
@@ -7440,23 +7517,6 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
             </div>
           )}
 
-          {editing && (
-            <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
-              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
-              <div className="space-y-2">
-                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password"
-                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
-                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
-                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
-                <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
-                  <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} /> {tx("showpw")}
-                </label>
-              </div>
-            </div>
-          )}
-
           {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
           {success && <p className="text-sm" style={{ color: "var(--leaf)" }}>{success}</p>}
 
@@ -7474,6 +7534,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
           )}
         </div>
       </div>
+      <ChangePasswordCard call={call} />
     </div>
   );
 }
