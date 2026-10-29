@@ -54,6 +54,20 @@ router.get("/", verifyToken, requireRole("student", "teacher"), catchAsync(async
     `SELECT COALESCE(SUM(amount), 0) AS total FROM wallet_transactions
      WHERE user_id = ? AND label LIKE 'Wallet top-up%' AND created_at >= ? AND created_at < DATE_ADD(?, INTERVAL 1 MONTH)`,
     [uid, start, start]);
+  // Feature: spending — last 6 months (the selected month and the 5 before it), cancelled orders left out
+  const [monthRows] = await pool.query(
+    `SELECT YEAR(o.created_at) AS y, MONTH(o.created_at) AS m, COALESCE(SUM(o.total), 0) AS spent, COUNT(*) AS orders
+     FROM orders o
+     WHERE o.user_id = ? AND o.status != 'Cancelled'
+       AND o.created_at >= DATE_SUB(?, INTERVAL 5 MONTH) AND o.created_at < DATE_ADD(?, INTERVAL 1 MONTH)
+     GROUP BY y, m`, [uid, start, start]);
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const idx = year * 12 + (month - 1) - i;
+    const y = Math.floor(idx / 12), m = (idx % 12) + 1;
+    const row = monthRows.find((r) => Number(r.y) === y && Number(r.m) === m);
+    months.push({ year: y, month: m, spent: row ? Number(row.spent) : 0, orders: row ? Number(row.orders) : 0 });
+  }
   const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [uid]);
 
   res.json({
@@ -63,9 +77,38 @@ router.get("/", verifyToken, requireRole("student", "teacher"), catchAsync(async
       avgOrder: Number(totals.avgOrder), biggest: Number(totals.biggest), activeDays: Number(totals.activeDays),
     },
     prev: { year: prevYear, month: prevMonth, orders: Number(prev.orders), spent: Number(prev.spent) },
-    byDay, topItems, byCategory, byPayment,
+    byDay, topItems, byCategory, byPayment, months,
     wallet: { topups: Number(topups.total), balance: Number(user.wallet_balance) },
   });
+}));
+
+// Feature: monthly budget — the limit the user set and how much of this month they have spent (same rule as the Spending tab)
+async function budgetInfo(uid) {
+  const now = new Date();
+  const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const [[u]] = await pool.query("SELECT monthly_budget FROM users WHERE id = ?", [uid]);
+  const [[s]] = await pool.query(
+    `SELECT COALESCE(SUM(total), 0) AS spent FROM orders
+     WHERE user_id = ? AND status != 'Cancelled' AND created_at >= ? AND created_at < DATE_ADD(?, INTERVAL 1 MONTH)`, [uid, start, start]);
+  return { limit: u && u.monthly_budget !== null ? Number(u.monthly_budget) : null, spent: Number(s.spent), month: start.slice(0, 7) };
+}
+
+// GET /api/summary/budget
+router.get("/budget", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  res.json(await budgetInfo(req.user.id));
+}));
+
+// PUT /api/summary/budget  { limit: number | null }  — null removes the limit
+router.put("/budget", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
+  const raw = req.body ? req.body.limit : undefined;
+  if (raw === null || raw === "") {
+    await pool.query("UPDATE users SET monthly_budget = NULL WHERE id = ?", [req.user.id]);
+  } else {
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 50 || n > 100000) return res.status(400).json({ error: "Budget must be between ৳50 and ৳100,000" });
+    await pool.query("UPDATE users SET monthly_budget = ? WHERE id = ?", [Math.round(n), req.user.id]);
+  }
+  res.json(await budgetInfo(req.user.id));
 }));
 
 module.exports = router;

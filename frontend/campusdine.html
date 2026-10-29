@@ -583,6 +583,7 @@ const DEFAULT_API_BASE = (window.location.origin && window.location.origin !== "
   ? window.location.origin
   : "http://localhost:5000";
 const LOW_STOCK_THRESHOLD = 10;
+const STUDENT_LOW_STOCK = 5; /* Feature: stock badges */ // students see "Only N left" at or below this
 const LOW_BALANCE_THRESHOLD = 50; // wallet balance (৳) below which students/teachers get a top-up reminder
 const CATEGORIES = [
   { id: "heavy", label: "Heavy meals" },
@@ -1007,6 +1008,40 @@ const I18N = {
     "chip.nosugar": "No sugar",
     "chip.packsep": "Pack separately",
     "note.show": "Note",
+    "bud.title": "Monthly budget",
+    "bud.none": "Set a monthly limit and we'll warn you before you go over it.",
+    "bud.left": "{a} left this month",
+    "bud.overmsg": "You are {a} over your budget this month",
+    "bud.set": "Set budget",
+    "bud.change": "Change",
+    "bud.remove": "Remove",
+    "bud.save": "Save",
+    "bud.ph": "e.g. 3000",
+    "bud.cart.near": "After this order you will have used {p}% of your {l} monthly budget",
+    "bud.cart.over": "This order takes you {o} over your monthly budget of {l}",
+    "bud.near.t": "Budget alert",
+    "bud.near": "You have used {s} of your {l} monthly budget (80% or more).",
+    "bud.over.t": "Budget exceeded",
+    "bud.over": "You have gone over your monthly budget: {s} of {l}.",
+    "rec.repeat": "Repeat weekly",
+    "rec.title": "My weekly orders",
+    "rec.days": "Which days?",
+    "rec.time": "Remind me at",
+    "rec.hint": "You'll get a reminder with an Add-to-cart button. Nothing is ordered or charged automatically.",
+    "rec.save": "Save",
+    "rec.cancel": "Cancel",
+    "rec.pause": "Pause",
+    "rec.resume": "Resume",
+    "rec.delete": "Delete",
+    "rec.paused": "Paused",
+    "rec.due": "Time for your weekly order",
+    "rec.add": "Add to cart",
+    "rec.skip": "Skip today",
+    "rec.nt": "Weekly order reminder",
+    "rec.nm": "Your weekly order is due — add it to your cart from the Menu tab.",
+    "dnote.label": "Delivery instructions (optional)",
+    "dnote.ph": "e.g. leave it at the gate, call when you arrive",
+    "dnote.show": "Delivery",
     "ref.label": "Referral code (optional)",
     "ref.ph": "e.g. CD7K2PQ",
     "ref.hint": "A friend's code — you both get a wallet bonus after your first order.",
@@ -1057,7 +1092,8 @@ const I18N = {
     "tip.none": "No tip",
     "tip.total": "Total with tip: {t}",
     "tip.show": "Rider tip",
-    "soldout": "Sold out"
+    "soldout": "Sold out",
+    "onlyleft": "Only {n} left"
   },
   bn: {
     "ann": "CampusDine-এ স্বাগতম — আপনার ক্যাম্পাস ক্যান্টিন থেকে খাবার অর্ডার করুন",
@@ -1415,6 +1451,40 @@ const I18N = {
     "chip.nosugar": "চিনি ছাড়া",
     "chip.packsep": "আলাদা প্যাকেট",
     "note.show": "নোট",
+    "bud.title": "মাসিক বাজেট",
+    "bud.none": "মাসিক একটি সীমা ঠিক করুন, সীমা পার হওয়ার আগেই আমরা জানিয়ে দেব।",
+    "bud.left": "এই মাসে আর {a} বাকি",
+    "bud.overmsg": "এই মাসে আপনি বাজেটের চেয়ে {a} বেশি খরচ করেছেন",
+    "bud.set": "বাজেট ঠিক করুন",
+    "bud.change": "বদলান",
+    "bud.remove": "মুছুন",
+    "bud.save": "সংরক্ষণ",
+    "bud.ph": "যেমন ৩০০০",
+    "bud.cart.near": "এই অর্ডারের পর আপনার {l} মাসিক বাজেটের {p}% খরচ হয়ে যাবে",
+    "bud.cart.over": "এই অর্ডারে আপনার {l} মাসিক বাজেট {o} ছাড়িয়ে যাবে",
+    "bud.near.t": "বাজেট সতর্কতা",
+    "bud.near": "আপনি {l} মাসিক বাজেটের {s} খরচ করেছেন (৮০% বা তার বেশি)।",
+    "bud.over.t": "বাজেট ছাড়িয়ে গেছে",
+    "bud.over": "আপনি মাসিক বাজেট ছাড়িয়ে গেছেন: {l} এর মধ্যে {s}।",
+    "rec.repeat": "প্রতি সপ্তাহে",
+    "rec.title": "আমার সাপ্তাহিক অর্ডার",
+    "rec.days": "কোন কোন দিন?",
+    "rec.time": "রিমাইন্ডার সময়",
+    "rec.hint": "অ্যাড-টু-কার্ট বোতামসহ একটি রিমাইন্ডার পাবেন। নিজে থেকে কিছু অর্ডার বা চার্জ হবে না।",
+    "rec.save": "সংরক্ষণ",
+    "rec.cancel": "বাতিল",
+    "rec.pause": "বিরতি",
+    "rec.resume": "চালু করুন",
+    "rec.delete": "মুছুন",
+    "rec.paused": "বিরতিতে",
+    "rec.due": "আপনার সাপ্তাহিক অর্ডারের সময় হয়েছে",
+    "rec.add": "কার্টে যোগ করুন",
+    "rec.skip": "আজ বাদ",
+    "rec.nt": "সাপ্তাহিক অর্ডার রিমাইন্ডার",
+    "rec.nm": "আপনার সাপ্তাহিক অর্ডারের সময় হয়েছে — মেনু ট্যাব থেকে কার্টে যোগ করুন।",
+    "dnote.label": "ডেলিভারি নির্দেশনা (ঐচ্ছিক)",
+    "dnote.ph": "যেমন গেটে দিবেন, এসে ফোন করবেন",
+    "dnote.show": "ডেলিভারি",
     "ref.label": "রেফারেল কোড (ঐচ্ছিক)",
     "ref.ph": "যেমন CD7K2PQ",
     "ref.hint": "বন্ধুর কোড — প্রথম অর্ডারের পর দুজনেই ওয়ালেটে বোনাস পাবেন।",
@@ -1465,7 +1535,8 @@ const I18N = {
     "tip.none": "টিপ নয়",
     "tip.total": "টিপসহ মোট: {t}",
     "tip.show": "রাইডার টিপ",
-    "soldout": "বিক্রি শেষ"
+    "soldout": "বিক্রি শেষ",
+    "onlyleft": "মাত্র {n}টি বাকি"
   }
 };
 // ---- Added: sign-up with email / hall residents, QR pickup token, forgot-password check ----
@@ -1588,6 +1659,7 @@ Object.assign(I18N.en, {
   "sp.same": "Same as last month",
   "sp.noprev": "No orders last month to compare",
   "sp.daily": "Spending by day",
+  "sp.months": "Last 6 months (tap a bar to open that month)",
   "sp.top": "Most ordered",
   "sp.cat": "Where it went",
   "sp.cat.heavy": "Main meals",
@@ -1615,6 +1687,7 @@ Object.assign(I18N.bn, {
   "sp.same": "গত মাসের সমান",
   "sp.noprev": "তুলনার জন্য গত মাসে অর্ডার নেই",
   "sp.daily": "দিন অনুযায়ী খরচ",
+  "sp.months": "গত ৬ মাস (বারে চাপ দিলে সেই মাস খুলবে)",
   "sp.top": "সবচেয়ে বেশি অর্ডার",
   "sp.cat": "কোথায় খরচ হলো",
   "sp.cat.heavy": "মূল খাবার",
@@ -3061,7 +3134,7 @@ function greetingFor(h) {
   if (h >= 17 && h < 21) return { key: "evening", icon: "🌆" };
   return { key: "night", icon: "🌙" };
 }
-function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
+function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState(() => {
     const c = mealSlot(new Date().getHours()).cat;
     return menu.some(m => m.category === c) ? c : "heavy";
@@ -3101,15 +3174,19 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
   const [couponActive, setCouponActive] = useState(""); // the code sent to the server with every price quote
   const [couponBusy, setCouponBusy] = useState(false);
   const [orderNote, setOrderNote] = useState("");
+  /* Feature: delivery instructions */
+  const [deliveryNote, setDeliveryNote] = useState("");
   /* Feature: rider tip */
   const [tip, setTip] = useState(0);
   const [rewardId, setRewardId] = useState(null);
   const [quote, setQuote] = useState(null);
+  /* Fix: checkout works even if price preview fails */
+  const [quoteError, setQuoteError] = useState("");
   const [offers, setOffers] = useState({ combos: [], happyHours: [] });
   const [loyalty, setLoyalty] = useState(null);
   const [availCoupons, setAvailCoupons] = useState([]);
   useEffect(() => {
-    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setRewardId(null); setQuote(null); }
+    if (cart.length === 0) { setCouponCode(""); setCouponActive(""); setOrderNote(""); setDeliveryNote(""); setRewardId(null); setQuote(null); }
   }, [cart]);
 
   // Today's offers + my points (refetched after every order / points change)
@@ -3153,8 +3230,8 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
       api(apiBase, "/api/pricing/quote", { method: "POST", token: sessionToken, body: {
         items: cart.map(c => ({ id: c.id, qty: c.qty })), couponCode: couponActive || undefined,
         rewardId: rewardId || undefined, pickupTime: scheduleLater && pickupTime ? pickupTime : undefined,
-      } }).then(q => { if (!dead) { setQuote(q); if (q.rewardError) setRewardId(null); } })
-        .catch(() => { if (!dead) setQuote(null); });
+      } }).then(q => { if (!dead) { setQuote(q); setQuoteError(""); if (q.rewardError) setRewardId(null); } })
+        .catch((e) => { if (!dead) { setQuote(null); setQuoteError((e && e.message) || "Price preview unavailable"); } });
     }, 200);
     return () => { dead = true; clearTimeout(t); };
   }, [quoteKey, loyaltyKey, offers]);
@@ -3234,6 +3311,16 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
             </div>
           );
         })()}
+        {recurringDue.map(p => (
+          <div key={"due-" + p.id} className="mb-4 rounded-2xl border p-4 flex flex-wrap items-center gap-3" style={{ borderColor: "var(--gold)", background: "var(--panel-soft)" }}>
+            <div className="flex-1 min-w-[200px]">
+              <div className="font-display font-700" style={{ color: "var(--gold)" }}>⏰ {tx("rec.due")}</div>
+              <div className="text-sm">{p.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+            </div>
+            <button type="button" onClick={() => onDueAdd(p)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("rec.add")}</button>
+            <button type="button" onClick={() => onDueSkip(p)} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("rec.skip")}</button>
+          </div>
+        ))}
         <PromoSlider slides={slides} />
         <MenuCategoryTabs category={cat} setCategory={setCat} />
         <div className="flex flex-col sm:flex-row gap-2 mb-5">
@@ -3253,7 +3340,13 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
             const inCart = cart.find(c => c.id === item.id);
             return (
               <div key={item.id} className={`card p-4 flex flex-col ${out ? "opacity-50" : ""}`}>
-                <div className="overflow-hidden mb-3" style={{ margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
+                <div className="overflow-hidden mb-3" style={{ position: "relative", margin: "-1rem -1rem 0.75rem", height: 150, borderRadius: "inherit", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, background: "var(--gold-soft)" }}>
+                  {(out || (Number(item.stock) > 0 && Number(item.stock) <= STUDENT_LOW_STOCK)) && (
+                    <span className="absolute top-2 left-2 text-[11px] font-700 px-2.5 py-1 rounded-full"
+                      style={{ background: out ? "#B91C1C" : "#F59E0B", color: "#FFFFFF", zIndex: 1 }}>
+                      {out ? tx("soldout") : tx("onlyleft", { n: num(item.stock) })}
+                    </span>
+                  )}
                   <img src={(apiBase || "") + (item.image || "/images/food/default.svg")} alt={item.name} loading="lazy"
                     onError={(e) => { if (!e.target.dataset.fb) { e.target.dataset.fb = "1"; e.target.src = (apiBase || "") + "/images/food/default.svg"; } }}
                     className="w-full h-full object-cover" />
@@ -3422,6 +3515,11 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
                 <div className="text-[10px] text-right mt-0.5" style={{ color: "var(--ink-soft)" }}>{num(orderNote.length)}/{num(200)}</div>
               </div>
               <div className="mb-4">
+                <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("dnote.label")}</label>
+                <input type="text" value={deliveryNote} onChange={e => setDeliveryNote(e.target.value.slice(0, 200))} maxLength={200}
+                  placeholder={tx("dnote.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+              </div>
+              <div className="mb-4">
                 <label className="flex items-center gap-2 text-sm mb-2">
                   <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
                   {tx("schedule")}
@@ -3462,6 +3560,17 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
                   {tip > 0 && <div className="text-xs mt-1.5 font-600">{tx("tip.total", { t: taka(total + tip) })}</div>}
                 </div>
               )}
+              {budget && budget.limit > 0 && (() => {
+                const after = budget.spent + total;
+                const pct = Math.round((after / budget.limit) * 100);
+                if (pct < 80) return null;
+                const over = after > budget.limit;
+                return (
+                  <div className="mb-3 text-xs rounded-lg px-3 py-2 font-600" style={{ background: over ? "#FEF2F2" : "#FFFBEB", color: over ? "#B91C1C" : "#92400E" }}>
+                    ⚠️ {over ? tx("bud.cart.over", { o: taka(after - budget.limit), l: taka(budget.limit) }) : tx("bud.cart.near", { p: num(pct), l: taka(budget.limit) })}
+                  </div>
+                );
+              })()}
               {payMethod === "wallet" && !canPay && (
                 <div className="mb-3">
                   <p className="text-xs" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
@@ -3473,7 +3582,12 @@ function MenuOrder({ onTopUp, userName, pastOrders = [], menu, cart, setCart, pl
                   )}
                 </div>
               )}
-              <button disabled={!canCheckout || busy || !quote} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId, tip)}
+              {!quote && quoteError && (
+                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>
+                  Price preview unavailable ({quoteError}). The final price is calculated when you place the order.
+                </p>
+              )}
+              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId, deliveryNote, tip)}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? tx("placing") : tx("checkout")}
               </button>
@@ -3787,8 +3901,93 @@ async function copyText(text) {
     return ok;
   } catch (_) { return false; }
 }
+/* Feature: recurring order */
+const REC_DAYS = {
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  bn: ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহ", "শুক্র", "শনি"],
+};
+const recDay = (d) => REC_DAYS[CURRENT_LANG === "bn" ? "bn" : "en"][d];
+
+// the form that opens from an order's "Repeat weekly" button
+function RecurringForm({ order, apiBase, token, onClose, onSaved }) {
+  const [days, setDays] = useState([new Date().getDay()]);
+  const [time, setTime] = useState("12:30");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const toggle = (d) => setDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+  const save = async () => {
+    setBusy(true); setError("");
+    try {
+      await api(apiBase, "/api/recurring", { method: "POST", token, body: {
+        items: order.items.map(it => ({ id: it.menu_item_id, name: it.name, qty: it.qty })), days, time } });
+      onSaved();
+    } catch (e) { setError(e.message || "Could not save"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>🔁 {tx("rec.repeat")} — {order.token}</div>
+      <div className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>{order.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+      <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("rec.days")}</div>
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {[0, 1, 2, 3, 4, 5, 6].map(d => (
+          <button key={d} type="button" onClick={() => toggle(d)} className={"chip text-xs px-3 py-1.5 rounded-full" + (days.includes(d) ? " active-chip" : "")}>{recDay(d)}</button>
+        ))}
+      </div>
+      <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("rec.time")}</div>
+      <input type="time" value={time} onChange={e => setTime(e.target.value)} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("rec.hint")}</p>
+      {error && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="flex gap-2 mt-3">
+        <button type="button" disabled={busy || days.length === 0 || !time} onClick={save} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("rec.save")}</button>
+        <button type="button" onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("rec.cancel")}</button>
+      </div>
+    </div>
+  );
+}
+
+// "My weekly orders" list
+function RecurringPlans({ apiBase, token, reloadKey }) {
+  const [plans, setPlans] = useState([]);
+  const [error, setError] = useState("");
+  const load = () => api(apiBase, "/api/recurring", { token }).then(setPlans).catch(() => {});
+  useEffect(() => { load(); }, [reloadKey]);
+  const toggleActive = async (p) => {
+    try { await api(apiBase, "/api/recurring/" + p.id, { method: "PATCH", token, body: { active: !p.active } }); await load(); }
+    catch (e) { setError(e.message || "Could not update"); }
+  };
+  const remove = async (p) => {
+    try { await api(apiBase, "/api/recurring/" + p.id, { method: "DELETE", token }); await load(); }
+    catch (e) { setError(e.message || "Could not delete"); }
+  };
+  if (plans.length === 0) return null;
+  return (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>🔁 {tx("rec.title")}</div>
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="space-y-2.5">
+        {plans.map(p => (
+          <div key={p.id} className="rounded-lg border p-3 flex flex-wrap items-center gap-2" style={{ borderColor: "var(--line)", opacity: p.active ? 1 : 0.6 }}>
+            <div className="flex-1 min-w-[180px]">
+              <div className="text-sm font-600">{p.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+              <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{p.days.map(recDay).join(", ")} · {p.time}{!p.active && " · " + tx("rec.paused")}</div>
+            </div>
+            <button type="button" onClick={() => toggleActive(p)} className="text-xs px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--line)" }}>{p.active ? tx("rec.pause") : tx("rec.resume")}</button>
+            <button type="button" onClick={() => remove(p)} className="text-xs px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--line)", color: "var(--brick)" }}>{tx("rec.delete")}</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
   const [printOrder, setPrintOrder] = useState(null);
+  const [planDraft, setPlanDraft] = useState(null); // the order a weekly plan is being made from
+  const [plansKey, setPlansKey] = useState(0);
+  /* Feature: order history filter */
+  const [hQuery, setHQuery] = useState("");
+  const [hStatus, setHStatus] = useState("all");
+  const [hRange, setHRange] = useState("all");
   /* Feature: order problem report */
   const [issues, setIssues] = useState({});          // order id -> my report
   const [reporting, setReporting] = useState(null);  // order id whose form is open
@@ -3827,8 +4026,26 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
   if (orders.length === 0) {
     return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>{tx("noorders")}</div>;
   }
+  const hq = hQuery.trim().toLowerCase();
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const filtered = orders.filter(o => {
+    if (hStatus !== "all" && o.status !== hStatus) return false;
+    if (hRange !== "all") {
+      const t = new Date(o.created_at).getTime();
+      const limit = hRange === "today" ? startOfToday.getTime() : Date.now() - (hRange === "week" ? 7 : 30) * 86400000;
+      if (t < limit) return false;
+    }
+    if (hq) {
+      const hay = [o.token, o.status, o.note, o.restaurant, o.payment_method]
+        .concat((o.items || []).map(i => i.name)).join(" ").toLowerCase();
+      if (!hay.includes(hq)) return false;
+    }
+    return true;
+  });
   return (
     <div className="space-y-6 max-w-2xl">
+      {planDraft && <RecurringForm order={planDraft} apiBase={apiBase} token={token} onClose={() => setPlanDraft(null)} onSaved={() => { setPlanDraft(null); setPlansKey(k => k + 1); }} />}
+      <RecurringPlans apiBase={apiBase} token={token} reloadKey={plansKey} />
       {printOrder && (
         <div id="print-area">
           <div className="receipt">
@@ -3849,6 +4066,9 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
             {printOrder.note && (
               <div className="receipt-row"><span>{tx("note.show")}</span><span>{printOrder.note}</span></div>
             )}
+            {printOrder.delivery_note && (
+              <div className="receipt-row"><span>{tx("dnote.show")}</span><span>{printOrder.delivery_note}</span></div>
+            )}
             {printOrder.pickup_time && (
               <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
             )}
@@ -3865,7 +4085,33 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           </div>
         </div>
       )}
-      {orders.map(o => {
+      <div className="card p-4 space-y-3">
+        <input type="text" value={hQuery} onChange={e => setHQuery(e.target.value)}
+          placeholder="Search by token, item, note…"
+          className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+        <div className="flex flex-wrap gap-2">
+          {[["all", "All"], ["Received", "Received"], ["Cooking", "Cooking"], ["Ready", "Ready"], ["Cancelled", "Cancelled"]].map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setHStatus(v)}
+              className={"chip text-xs px-3 py-1.5 rounded-full" + (hStatus === v ? " active-chip" : "")}>{label}</button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {[["all", "Any time"], ["today", "Today"], ["week", "Last 7 days"], ["month", "Last 30 days"]].map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setHRange(v)}
+              className={"chip text-xs px-3 py-1.5 rounded-full" + (hRange === v ? " active-chip" : "")}>{label}</button>
+          ))}
+          <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{filtered.length} / {orders.length}</span>
+        </div>
+      </div>
+      {filtered.length === 0 && (
+        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
+          No orders match your filters.
+          <div className="mt-3">
+            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); }}>Clear filters</button>
+          </div>
+        </div>
+      )}
+      {filtered.map(o => {
         const stepIndex = STATUSES.indexOf(o.status);
         const isCancelled = o.status === "Cancelled";
         return (
@@ -3978,6 +4224,11 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   )}
                 </div>
               )}
+              {o.delivery_note && (
+                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                  🚪 {tx("dnote.show")}: {o.delivery_note}
+                </div>
+              )}
               {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => onReorder(o)}
@@ -4000,6 +4251,11 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   style={{ borderColor: "var(--line)", color: copiedId === o.id ? "var(--leaf)" : "var(--ink-soft)" }}>
                   {copiedId === o.id ? "✓ " + tx("copied") : "📋 " + tx("copytoken")}
                 </button>
+                {o.status !== "Cancelled" && (
+                  <button type="button" onClick={() => { setPlanDraft(o); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                    style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>🔁 {tx("rec.repeat")}</button>
+                )}
                 {o.status === "Received" && (
                   <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
                     className="text-xs px-3 py-1.5 rounded-lg border font-600"
@@ -4143,7 +4399,60 @@ function MealCalendar({ user, role, year, month, calendar, paidDays, bill, onTog
 }
 
 /* ---------------- Spending summary (student / teacher) ---------------- */
-function SpendingTab({ call, user }) {
+/* Feature: monthly budget */
+function BudgetCard({ budget, onSave }) {
+  const [val, setVal] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  if (!budget) return null;
+  const limit = budget.limit;
+  const raw = limit ? (budget.spent / limit) * 100 : 0;
+  const color = raw >= 100 ? "#DC2626" : raw >= 80 ? "#F59E0B" : "var(--leaf)";
+  const save = async (v) => {
+    setBusy(true); setError("");
+    try { await onSave(v); setEditing(false); setVal(""); }
+    catch (e) { setError(e.message || "Could not save"); }
+    finally { setBusy(false); }
+  };
+  const showForm = editing || !limit;
+  return (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>🎯 {tx("bud.title")}</div>
+      {limit ? (
+        <>
+          <div className="flex items-baseline justify-between mb-1.5">
+            <span className="font-mono font-700 text-lg">{taka(budget.spent)} <span className="text-sm font-400" style={{ color: "var(--ink-soft)" }}>/ {taka(limit)}</span></span>
+            <span className="text-sm font-700" style={{ color }}>{num(Math.round(raw))}%</span>
+          </div>
+          <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "var(--line)" }}>
+            <div className="h-full rounded-full" style={{ width: Math.min(100, Math.round(raw)) + "%", background: color }} />
+          </div>
+          <p className="text-xs mt-2 font-600" style={{ color: raw >= 100 ? "#B91C1C" : "var(--ink-soft)" }}>
+            {raw >= 100 ? tx("bud.overmsg", { a: taka(budget.spent - limit) }) : tx("bud.left", { a: taka(limit - budget.spent) })}
+          </p>
+        </>
+      ) : (
+        <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("bud.none")}</p>
+      )}
+      {showForm ? (
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <input type="number" min="50" max="100000" value={val} onChange={e => setVal(e.target.value)} placeholder={tx("bud.ph")}
+            className="w-36 px-3 py-1.5 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <button type="button" disabled={busy || !val} onClick={() => save(Number(val))} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("bud.save")}</button>
+          {limit && <button type="button" onClick={() => { setEditing(false); setError(""); }} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>×</button>}
+        </div>
+      ) : (
+        <div className="flex gap-2 mt-3">
+          <button type="button" onClick={() => { setEditing(true); setVal(String(limit)); }} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("bud.change")}</button>
+          <button type="button" disabled={busy} onClick={() => save(null)} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)", color: "var(--brick)" }}>{tx("bud.remove")}</button>
+        </div>
+      )}
+      {error && <p className="text-xs mt-2" style={{ color: "var(--brick)" }}>{error}</p>}
+    </div>
+  );
+}
+function SpendingTab({ call, user, budget, onSaveBudget }) {
   const now = new Date();
   const [printKey, setPrintKey] = useState(0);
   const [ym, setYm] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 });
@@ -4246,6 +4555,32 @@ function SpendingTab({ call, user }) {
           </div>
         </div>
 
+        {/* Feature: spending last 6 months */}
+        {data.months && (
+          <div className="card p-5">
+            <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("sp.months")}</div>
+            {(() => {
+              const mMax = Math.max(1, ...data.months.map(m => m.spent));
+              return (
+                <div className="flex items-end gap-2 h-40">
+                  {data.months.map(m => {
+                    const sel = m.year === ym.year && m.month === ym.month;
+                    const label = new Date(m.year, m.month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "short" });
+                    return (
+                      <button key={m.year + "-" + m.month} type="button" onClick={() => setYm({ year: m.year, month: m.month })}
+                        className="flex-1 flex flex-col items-center justify-end" title={label + " " + m.year + ": " + taka(m.spent) + " · " + m.orders}>
+                        <div className="text-[10px] font-mono mb-1" style={{ color: "var(--ink-soft)" }}>{m.spent ? taka(Math.round(m.spent)) : ""}</div>
+                        <div className="w-full rounded-t" style={{ height: m.spent ? Math.max(4, (m.spent / mMax) * 110) + "px" : "2px", background: m.spent ? "var(--gold)" : "var(--line)", opacity: sel || !m.spent ? 1 : 0.5 }}></div>
+                        <div className="text-[11px] mt-1" style={{ color: sel ? "var(--gold)" : "var(--ink-soft)", fontWeight: sel ? 700 : 400 }}>{label}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 gap-5">
           <div className="card p-5">
             <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("sp.top")}</div>
@@ -4299,6 +4634,7 @@ function SpendingTab({ call, user }) {
 
   return (
     <div className="space-y-5">
+      <BudgetCard budget={budget} onSave={onSaveBudget} />
       <div className="flex items-center gap-2">
         <button onClick={() => shift(-1)} aria-label={tx("prevm")} className="w-8 h-8 rounded-lg border flex items-center justify-center" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
           <Icon path={I.chevronLeft} className="w-4 h-4" />
@@ -4758,12 +5094,17 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                 <td className="p-3">
                   {(() => {
                     const a = item.availability || "available";
-                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : "Available";
-                    const pillStyle = a === "available"
-                      ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
-                      : a === "sold_out"
+                    const stockNum = Number(item.stock);
+                    const autoOut = a === "available" && stockNum <= 0;
+                    const lowStock = a === "available" && stockNum > 0 && stockNum <= LOW_STOCK_THRESHOLD;
+                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : autoOut ? "Sold out (stock 0)" : lowStock ? "Low stock · " + stockNum + " left" : "Available";
+                    const pillStyle = autoOut
+                      ? { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" }
+                      : lowStock || a === "sold_out"
                         ? { background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }
-                        : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
+                        : a === "available"
+                          ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
+                          : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[11px] font-700 px-2 py-0.5 rounded-full" style={pillStyle}>{pill}</span>
@@ -4917,6 +5258,12 @@ function AdminOrders({ orders, advance, call }) {
               📝 Note: {o.note}
             </div>
           )}
+          {o.delivery_note && (
+            <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
+              style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
+              🚪 Delivery: {o.delivery_note}
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="font-mono text-sm">{taka(o.total)}</span>
             {o.status === "Cancelled" ? (
@@ -5008,7 +5355,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
     </div>
     <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">{[{label:"Active orders",value:summary.total},{label:"Received",value:summary.received},{label:"Cooking",value:summary.cooking},{label:"Ready",value:summary.ready},{label:"Tips earned (today / total)",value:"৳" + (summary.tips_today || 0) + " / ৳" + (summary.tips_total || 0)}].map(x => <div className="card p-5" key={x.label}><div className="text-sm" style={{color:"var(--ink-soft)"}}>{x.label}</div><div className="text-3xl font-display font-800 mt-2">{x.value}</div></div>)}</div>
     {summary.rating_count > 0 && <div className="card p-5"><div className="flex flex-wrap items-center gap-3"><div className="text-lg font-display font-800">Your rating</div><div className="text-2xl font-display font-800">⭐ {Number(summary.rating_avg).toFixed(1)}</div><div className="text-sm" style={{color:"var(--ink-soft)"}}>({summary.rating_count} {summary.rating_count === 1 ? "rating" : "ratings"})</div></div>{(summary.reviews || []).filter(r => r.comment).map((r, i) => <div key={i} className="text-sm mt-2" style={{color:"var(--ink-soft)"}}>{"⭐".repeat(r.rating)} “{r.comment}”</div>)}</div>}
-    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}{Number(o.tip_amount) > 0 && <span className="ml-2 text-xs font-700 px-2 py-0.5 rounded-full" style={{background:"var(--gold-soft)",color:"var(--teal-deep)"}}>🪙 Tip ৳{o.tip_amount}</span>}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
+    <div className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><div className="text-lg font-display font-800">Assigned Deliveries</div><button onClick={optimizeRoute} className="rounded-lg border px-3 py-2 text-sm" style={{borderColor:"var(--line)"}}>Optimize route</button></div>{orderError && <p className="text-sm mb-3" style={{color:"var(--brick)"}}>{orderError}</p>}{summary.orders.length === 0 ? <p className="text-sm" style={{color:"var(--ink-soft)"}}>No active deliveries assigned to you.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-2">Order ID</th><th className="p-2">Status</th><th className="p-2">Placed</th><th className="p-2">Assignment</th></tr></thead><tbody>{summary.orders.map(o => <tr key={o.id} style={{borderTop:"1px solid var(--line)"}}><td className="p-2">#{o.id}{o.delivery_note && <div className="text-xs mt-1" style={{color:"var(--ink-soft)"}}>🚪 {o.delivery_note}</div>}{Number(o.tip_amount) > 0 && <span className="ml-2 text-xs font-700 px-2 py-0.5 rounded-full" style={{background:"var(--gold-soft)",color:"var(--teal-deep)"}}>🪙 Tip ৳{o.tip_amount}</span>}</td><td className="p-2">{o.status}</td><td className="p-2">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</td><td className="p-2">{o.rider_assignment_status === "Assigned" ? <button onClick={() => acceptOrder(o.id)} className="btn-primary rounded px-2 py-1 text-xs">Accept</button> : o.rider_assignment_status}<RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} /></td></tr>)}</tbody></table></div>}{routePlan && <div className="mt-4 rounded-lg p-3" style={{background:"var(--panel-soft)"}}><p className="text-xs mb-2" style={{color:"var(--ink-soft)"}}>Nearest-neighbour distance estimate; actual road routes may differ.</p>{routePlan.route.length ? routePlan.route.map((stop,index)=><div key={stop.id} className="text-sm py-1">{index+1}. Order #{stop.id} · {stop.distanceFromPreviousKm} km from previous stop</div>) : <p className="text-sm">No assigned orders have delivery coordinates.</p>}</div>}</div>
   </div></div>;
 }
 
@@ -5706,6 +6053,7 @@ function AdminVerify({ call, onCollected }) {
             </div>
             <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
             {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
+            {o.delivery_note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>🚪 {o.delivery_note}</div>}
             <div className="flex gap-2">
               {okToHandOver && (
                 <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
@@ -6739,12 +7087,14 @@ function ProfileInput({ label, value, onChange, placeholder }) {
     </div>
   );
 }
-function ProfileTab({ user, call, onUpdated }) {
+function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
     name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
   });
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
+  /* Fix: profile balance = live wallet balance */
+  const shownBalance = liveBalance != null ? liveBalance : walletBalance;
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -6976,7 +7326,7 @@ function ProfileTab({ user, call, onUpdated }) {
             <div className="ticket p-4">
               <div className="perf pl-4">
                 <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
-                <div className="font-mono text-xl font-700">{taka(walletBalance)}</div>
+                <div className="font-mono text-xl font-700">{taka(shownBalance)}</div>
               </div>
             </div>
           )}
@@ -7717,10 +8067,69 @@ function App() {
 
   const [issueTick, setIssueTick] = useState(0); // bumps when a new problem report arrives (admin list reloads)
 
-  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, tip) => {
+  useEffect(() => {
+    if (session && session.user.role !== "admin" && (tab === "wallet" || tab === "profile")) refreshWallet().catch(() => {});
+  }, [tab]);
+
+  /* Feature: recurring order */
+  const [recurringDue, setRecurringDue] = useState([]);
+  const notifiedDueRef = useRef(new Set());
+  const refreshDue = async () => {
+    const list = await call("/api/recurring/due");
+    setRecurringDue(list);
+    for (const p of list) {
+      const key = p.id + ":" + p.today;
+      if (!notifiedDueRef.current.has(key)) { notifiedDueRef.current.add(key); pushNotification("order", tx("rec.nt"), tx("rec.nm")); }
+    }
+  };
+  useEffect(() => {
+    if (!session || (session.user.role !== "student" && session.user.role !== "teacher")) return;
+    refreshDue().catch(() => {});
+    const timer = setInterval(() => refreshDue().catch(() => {}), 60000);
+    return () => clearInterval(timer);
+  }, [session && session.token]);
+  const markDueDone = async (plan) => {
+    await call("/api/recurring/" + plan.id + "/done", { method: "POST" });
+    await refreshDue();
+  };
+  const addDue = async (plan) => {
+    const anyAvailable = plan.items.some(i => { const m = menu.find(x => x.id === i.id); return m && m.stock > 0 && m.availability === "available"; });
+    reorder({ items: plan.items.map(i => ({ menuItemId: i.id, name: i.name, qty: i.qty })) });
+    if (anyAvailable) { try { await markDueDone(plan); } catch (e) { /* the cart is already filled */ } }
+  };
+  const skipDue = async (plan) => { try { await markDueDone(plan); } catch (e) { showError(e); } };
+
+  /* Feature: monthly budget */
+  const [budget, setBudget] = useState(null);
+  const budgetNotifiedRef = useRef({});
+  const refreshBudget = async () => {
+    const b = await call("/api/summary/budget");
+    setBudget(b);
+    if (b.limit) {
+      const pct = (b.spent / b.limit) * 100;
+      const level = pct >= 100 ? 100 : pct >= 80 ? 80 : 0;
+      if (level > (budgetNotifiedRef.current[b.month] || 0)) {
+        budgetNotifiedRef.current[b.month] = level;
+        pushNotification("wallet", tx(level === 100 ? "bud.over.t" : "bud.near.t"),
+          tx(level === 100 ? "bud.over" : "bud.near", { s: taka(b.spent), l: taka(b.limit) }));
+      }
+    }
+  };
+  useEffect(() => {
+    if (!session || (session.user.role !== "student" && session.user.role !== "teacher")) return;
+    refreshBudget().catch(() => {});
+  }, [orders, session && session.token]);
+  const saveBudget = async (limit) => {
+    const b = await call("/api/summary/budget", { method: "PUT", body: { limit } });
+    setBudget(b);
+  };
+
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, deliveryNote, tip) => {
     setBusy(true); setError(null);
     try {
       const deliveryLocation = await new Promise(resolve => {
+        /* Fix: order feedback */
+        setTimeout(() => resolve(undefined), 2500); // give up on the location after 2.5s
         if (!navigator.geolocation) return resolve(undefined);
         navigator.geolocation.getCurrentPosition(
           position => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
@@ -7728,7 +8137,7 @@ function App() {
           { enableHighAccuracy: false, maximumAge: 60000, timeout: 1800 }
         );
       });
-      await call("/api/orders", {
+      const placed = await call("/api/orders", {
         method: "POST",
         body: {
           items: cartItems.map(c => ({ id: c.id, qty: c.qty })),
@@ -7738,6 +8147,7 @@ function App() {
           couponCode: coupon ? coupon.code : undefined,
           note: note && note.trim() ? note.trim() : undefined,
           rewardId: rewardId || undefined,
+          deliveryNote: deliveryNote && deliveryNote.trim() ? deliveryNote.trim() : undefined,
           tip: tip > 0 ? tip : undefined,
           deliveryLocation,
         },
@@ -7746,7 +8156,9 @@ function App() {
       setLoyaltyKey(k => k + 1);
       await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
       setTab("track");
-    } catch (e) { showError(e); } finally { setBusy(false); }
+      showSuccess("✅ Order placed! Your token is " + placed.token + " — you can see it here in the Orders tab.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) { showError(e); window.scrollTo({ top: 0, behavior: "smooth" }); } finally { setBusy(false); }
   }; 
     // Order again: put the items of a past order back into the cart (current prices, capped by stock).
   const reorder = (order) => {
@@ -8020,7 +8432,7 @@ function App() {
         {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
         {session.user.role !== "admin" && tab === "menu" && (
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
-            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} onTopUp={goTopUp} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} budget={budget} recurringDue={recurringDue} onDueAdd={addDue} onDueSkip={skipDue} onTopUp={goTopUp} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
         )}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
@@ -8036,7 +8448,7 @@ function App() {
                         onPay={payMealPlan} onRepeat={repeatLastMonth} planBusy={planBusy}
                         onPrevMonth={goPrevMonth} onNextMonth={goNextMonth} onJumpToday={goToday} isCurrentMonth={isCurrentMonth} />
         )}
-        {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} />}
+        {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} budget={budget} onSaveBudget={saveBudget} />}
         {session.user.role !== "admin" && tab === "wallet" && (
           <WalletTab apiBase={apiBase} token={session.token} balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
             onLookup={lookupRecipient} onSend={sendMoney} />
@@ -8068,7 +8480,7 @@ function App() {
         )}
 
         {tab === "profile" && (
-          <ProfileTab user={session.user} call={call}
+          <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
         )}
         </ErrorBoundary>

@@ -29,6 +29,7 @@ const operationsRoutes = require("./src/routes/operations");
 const groupOrderRoutes = require("./src/routes/groupOrders");
 const walletRoutes = require("./src/routes/wallet");
 const calendarRoutes = require("./src/routes/calendar");
+const recurringRoutes = require("./src/routes/recurring");
 const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
@@ -418,6 +419,27 @@ async function ensureAccountAndQrSchema(db) {
     await addColumn("users", "account_type", "ENUM('regular','hall') NOT NULL DEFAULT 'regular'");
     await addColumn("users", "hall_name", "VARCHAR(60) NULL");
     await addColumn("orders", "picked_up_at", "DATETIME NULL");
+    await addColumn("users", "monthly_budget", "DECIMAL(10,2) NULL");   // the user's own monthly spending limit
+    await db.query(`CREATE TABLE IF NOT EXISTS recurring_orders (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      items TEXT NOT NULL,
+      days VARCHAR(20) NOT NULL,
+      at_time CHAR(5) NOT NULL,
+      active TINYINT(1) NOT NULL DEFAULT 1,
+      last_done VARCHAR(10) NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      KEY idx_recurring_user (user_id)
+    )`);   // weekly order reminders
+    await db.query(`CREATE TABLE IF NOT EXISTS stock_alerts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      menu_item_id INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_stock_alert (user_id, menu_item_id)
+    )`);   // "Notify me" requests for sold-out items
+    await addColumn("orders", "delivery_note", "VARCHAR(255) NULL");   // delivery instructions, e.g. "gate-e dibe"
+    await addColumn("orders", "pickup_time", "DATETIME NULL");   // scheduled pickup (older databases don't have it)
     await addColumn("users", "referral_code", "VARCHAR(12) NULL");       // this user's own code
     await addColumn("users", "referred_by", "INT NULL");                  // whose code they signed up with
     await addColumn("users", "referral_rewarded_at", "DATETIME NULL");    // when the bonus was paid (only once)
@@ -720,6 +742,7 @@ app.use("/api/operations", operationsRoutes);
 app.use("/api/group-orders", groupOrderRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
+app.use("/api/recurring", recurringRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/coupon", couponRoutes);
 app.use("/api/chat", chatRoutes);
