@@ -11,3 +11,4 @@
   // Apply saved theme before first paint — no flash
   (function () {
     try {
+      var t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
