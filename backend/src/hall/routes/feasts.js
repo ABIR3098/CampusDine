@@ -7,8 +7,21 @@ const { parseRsvpStatus, hasSeat } = require("../feastRsvp");
 
 const router = express.Router();
 
-const shape = (r) => ({ id: r.id, date: r.d, slot: r.slot, title: r.title, items: r.items, extraPrice: r.extra_price });
+const shape = (r, x = {}) => ({ id: r.id, date: r.d, slot: r.slot, title: r.title, items: r.items, extraPrice: r.extra_price,
+  capacity: r.capacity ?? null, goingCount: x.goingCount ?? 0, myRsvp: x.myRsvp ?? null });
 const SELECT = "SELECT id, DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, items, extra_price, capacity FROM hall_feasts";
+
+// going count + my own answer for a list of feast ids -> { [feastId]: { goingCount, myRsvp } }
+async function rsvpSummary(ids, userId) {
+  const out = {};
+  ids.forEach((id) => { out[id] = { goingCount: 0, myRsvp: null }; });
+  if (!ids.length) return out;
+  const [counts] = await pool.query("SELECT feast_id, COUNT(*) AS n FROM hall_feast_rsvps WHERE status = 'going' AND feast_id IN (?) GROUP BY feast_id", [ids]);
+  counts.forEach((c) => { out[c.feast_id].goingCount = Number(c.n); });
+  const [mine] = await pool.query("SELECT feast_id, status FROM hall_feast_rsvps WHERE user_id = ? AND feast_id IN (?)", [userId, ids]);
+  mine.forEach((m) => { out[m.feast_id].myRsvp = m.status; });
+  return out;
+}
 
 // GET /api/hall/feasts?from=&to=   (default: today and the next 60 days)
 router.get("/feasts", catchAsync(async (req, res) => {
@@ -17,7 +30,8 @@ router.get("/feasts", catchAsync(async (req, res) => {
   const to = req.query.to || addDays(from, 60);
   if (!isDateKey(from) || !isDateKey(to) || to < from) return res.status(400).json({ error: "from / to must be dates like 2026-10-22" });
   const [rows] = await pool.query(`${SELECT} WHERE the_date >= ? AND the_date <= ? AND (? IS NULL OR university_id=?) ORDER BY the_date, FIELD(slot, 'breakfast', 'lunch', 'dinner')`, [from, to, req.user.universityId || null, req.user.universityId || null]);
-  res.json(rows.map(shape));
+  const summary = await rsvpSummary(rows.map((r) => r.id), req.user.id);
+  res.json(rows.map((r) => shape(r, summary[r.id])));
 }));
 
 // the slot must still be open — once a meal is locked its price can't change under people
@@ -42,7 +56,8 @@ router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
   if (existing.length) await pool.query('UPDATE hall_feasts SET title=?,items=?,extra_price=? WHERE id=?',[t,it,extra,existing[0].id]);
   else await pool.query('INSERT INTO hall_feasts (the_date,slot,title,items,extra_price,university_id) VALUES (?,?,?,?,?,?)',[date,slot,t,it,extra,req.user.universityId||null]);
   const [[row]] = await pool.query(`${SELECT} WHERE the_date = ? AND slot = ? AND (? IS NULL OR university_id=?)`, [date, slot, req.user.universityId || null, req.user.universityId || null]);
-  res.status(201).json(shape(row));
+  const summary = await rsvpSummary([row.id], req.user.id);
+  res.status(201).json(shape(row, summary[row.id]));
 }));
 
 // DELETE /api/hall/feasts/:id (admin)
