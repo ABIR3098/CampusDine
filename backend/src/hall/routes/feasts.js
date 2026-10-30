@@ -3,12 +3,12 @@ const pool = require("../../db");
 const catchAsync = require("../../utils/catchAsync");
 const { requireRole } = require("../../middleware/auth");
 const { SLOTS, nowParts, isDateKey, addDays, isLocked, localStamp } = require("../util");
-const { parseRsvpStatus } = require("../feastRsvp");
+const { parseRsvpStatus, hasSeat } = require("../feastRsvp");
 
 const router = express.Router();
 
 const shape = (r) => ({ id: r.id, date: r.d, slot: r.slot, title: r.title, items: r.items, extraPrice: r.extra_price });
-const SELECT = "SELECT id, DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, items, extra_price FROM hall_feasts";
+const SELECT = "SELECT id, DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, items, extra_price, capacity FROM hall_feasts";
 
 // GET /api/hall/feasts?from=&to=   (default: today and the next 60 days)
 router.get("/feasts", catchAsync(async (req, res) => {
@@ -73,6 +73,11 @@ router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   const feast = await getFeast(req.params.id, req.user.universityId || null);
   if (!feast) return res.status(404).json({ error: "Feast not found" });
   try { await assertRsvpOpen(feast); } catch (e) { if (!e.status) throw e; return res.status(e.status).json({ error: e.message }); }
+  if (status === "going") {
+    const [[mine]] = await pool.query("SELECT status FROM hall_feast_rsvps WHERE feast_id = ? AND user_id = ?", [feast.id, req.user.id]);
+    const [[{ n }]] = await pool.query("SELECT COUNT(*) AS n FROM hall_feast_rsvps WHERE feast_id = ? AND status = 'going'", [feast.id]);
+    if (!hasSeat(feast.capacity, n, mine?.status === "going")) return res.status(409).json({ error: "This feast is full" });
+  }
   await pool.query(
     "INSERT INTO hall_feast_rsvps (feast_id, user_id, status, updated_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE status = VALUES(status), updated_at = VALUES(updated_at)",
     [feast.id, req.user.id, status, localStamp()]);

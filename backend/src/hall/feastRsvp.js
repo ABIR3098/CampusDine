@@ -7,4 +7,12 @@ function parseRsvpStatus(value) {
   return RSVP_STATUSES.includes(s) ? s : null;
 }
 
-module.exports = { RSVP_STATUSES, parseRsvpStatus };
+// Can one more person say going? capacity null/undefined = no limit.
+// goingCount = people already going; alreadyGoing = true when this person is one of them.
+function hasSeat(capacity, goingCount, alreadyGoing = false) {
+  if (capacity == null) return true;
+  if (alreadyGoing) return true;
+  return Number(goingCount) < Number(capacity);
+}
+
+module.exports = { RSVP_STATUSES, parseRsvpStatus, hasSeat };
