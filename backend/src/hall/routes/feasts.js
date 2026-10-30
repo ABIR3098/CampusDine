@@ -110,4 +110,16 @@ router.delete("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// GET /api/hall/feasts/:id/rsvps (admin) — who answered what
+router.get("/feasts/:id/rsvps", requireRole("admin"), catchAsync(async (req, res) => {
+  const feast = await getFeast(req.params.id, req.user.universityId || null);
+  if (!feast) return res.status(404).json({ error: "Feast not found" });
+  const [people] = await pool.query(
+    `SELECT u.name, u.external_id AS externalId, r.status, DATE_FORMAT(r.updated_at, '%Y-%m-%d %H:%i') AS at
+     FROM hall_feast_rsvps r JOIN users u ON u.id = r.user_id
+     WHERE r.feast_id = ? ORDER BY r.status, u.name`, [feast.id]);
+  const going = people.filter((p) => p.status === "going").length;
+  res.json({ feast: shape(feast, { goingCount: going }), going, notGoing: people.length - going, people });
+}));
+
 module.exports = router;
