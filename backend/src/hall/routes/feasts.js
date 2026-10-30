@@ -54,6 +54,12 @@ router.delete("/feasts/:id", requireRole("admin"), catchAsync(async (req, res) =
   res.json({ ok: true });
 }));
 
+// RSVP stays open until the meal's own cut-off, the same moment its price gets fixed
+async function assertRsvpOpen(feast) {
+  const [[slotRow]] = await pool.query("SELECT * FROM hall_slots WHERE slot = ?", [feast.slot]);
+  if (isLocked(slotRow, feast.d)) throw { status: 409, message: `RSVP for ${slotRow.label} on ${feast.d} is closed because the meal has already locked` };
+}
+
 // one feast of the member's own university (null when it does not exist)
 async function getFeast(id, universityId = null) {
   const [[row]] = await pool.query(`${SELECT} WHERE id = ? AND (? IS NULL OR university_id=?)`, [Number(id), universityId, universityId]);
@@ -66,6 +72,7 @@ router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   if (!status) return res.status(400).json({ error: "status must be going or not_going" });
   const feast = await getFeast(req.params.id, req.user.universityId || null);
   if (!feast) return res.status(404).json({ error: "Feast not found" });
+  try { await assertRsvpOpen(feast); } catch (e) { if (!e.status) throw e; return res.status(e.status).json({ error: e.message }); }
   await pool.query(
     "INSERT INTO hall_feast_rsvps (feast_id, user_id, status, updated_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE status = VALUES(status), updated_at = VALUES(updated_at)",
     [feast.id, req.user.id, status, localStamp()]);
