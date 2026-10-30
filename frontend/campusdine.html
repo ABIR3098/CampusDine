@@ -2112,11 +2112,19 @@ function readTheme() {
 function applyTheme(t) {
   const dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  document.documentElement.setAttribute("data-accent", t.accent);
-}
-function ThemeMenu() {
-  const [theme, setTheme] = useState(readTheme);
-  const [open, setOpen] = useState(false);
+    <div className="qr-laser-wrap text-center">
+      <div className="qr-laser-beam" />
+      <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
+        shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
+        <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
+        <path d={qr.d} fill="#000" />
+      </svg>
+      {/* Live dynamic watermark to prevent screenshot fraud */}
+      <div className="mt-1 text-[9px] font-mono font-700 tracking-wider text-emerald-600 flex items-center justify-center gap-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        VALID NOW • ${String(seconds).padStart(2, '0')}s • DO NOT SCREENSHOT
+      </div>
+    </div>
   const boxRef = useRef(null);
 
   // apply + remember the choice; in "auto" mode also follow the device when it switches light/dark
