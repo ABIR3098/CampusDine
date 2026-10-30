@@ -3766,7 +3766,10 @@ function PromoSlider({ slides }) {
   useEffect(() => {
     if (n < 2 || paused) return;
     const t = setInterval(() => setI(x => (x + 1) % n), 5000);
-    return () => clearInterval(t);
+              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => {
+                const finalNote = [orderNote, byob ? "🌱 BYOB Box Discount (-৳5)" : "", splitBill ? `🍕 Split Bill (${splitCount} friends)` : ""].filter(Boolean).join(" · ");
+                placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, finalNote, rewardId, deliveryNote, tip);
+              }}
   }, [n, paused]);
   if (n === 0) return null;
   const go = (d) => setI(x => (x + d + n) % n);
