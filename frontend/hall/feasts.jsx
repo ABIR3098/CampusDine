@@ -22,6 +22,14 @@ function HallFeasts({ call, isAdmin, notify }) {
     catch (e) { notify(e, true); }
   };
 
+  // one CSV row per answer (uses the CSV helpers from billExport.jsx)
+  const downloadCsv = () => {
+    const rows = [["Name", "ID", "Answer", "Answered at"]];
+    list.people.forEach((p) => rows.push([p.name, p.externalId, p.status === "going" ? "Going" : "Not going", p.at]));
+    const csv = "\uFEFF" + rows.map((r) => r.map(hallCsvCell).join(",")).join("\r\n");
+    hallDownloadFile(`feast-${list.feast.date}-${list.feast.slot}.csv`, csv, "text/csv;charset=utf-8");
+  };
+
   const clearRsvp = async (id) => {
     setBusy(id);
     try { await call(`/api/hall/feasts/${id}/rsvp`, { method: "DELETE" }); notify("Answer removed"); await load(); }
@@ -95,7 +103,10 @@ function HallFeasts({ call, isAdmin, notify }) {
                     {isAdmin && <button className="hl-btn sm ghost mt-2" onClick={() => showWho(x.id)}>👥 Who is going</button>}
                     {isAdmin && open === x.id && list && (
                       <div className="mt-2 text-sm">
-                        <div className="hl-muted text-xs mb-1">{list.going} going · {list.notGoing} not going</div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="hl-muted text-xs">{list.going} going · {list.notGoing} not going</span>
+                          {list.people.length > 0 && <button className="hl-btn sm ghost" onClick={downloadCsv}>⬇ CSV</button>}
+                        </div>
                         {list.people.length === 0 ? <div className="hl-empty">Nobody has answered yet.</div> : list.people.map((p, i) => (
                           <div key={i} className="flex justify-between items-center gap-2 py-0.5">
                             <span>{p.name} <span className="hl-muted">{p.externalId}</span></span>
