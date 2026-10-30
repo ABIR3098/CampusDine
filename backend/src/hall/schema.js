@@ -76,6 +76,17 @@ async function ensureHallSchema(db) {
     UNIQUE KEY uniq_feast (the_date, slot)
   )`);
 
+  // Feast RSVP — a student answers "going" or "not going" for one feast
+  await db.query(`CREATE TABLE IF NOT EXISTS hall_feast_rsvps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    feast_id INT NOT NULL,
+    user_id INT NOT NULL,
+    status ENUM('going','not_going') NOT NULL,
+    updated_at DATETIME NOT NULL,                    -- canteen clock
+    FOREIGN KEY (feast_id) REFERENCES hall_feasts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
+
   // Step 8 — guest meals: extra plates a person books for their own guests (billed to that person)
   await db.query(`CREATE TABLE IF NOT EXISTS hall_guests (
     id INT AUTO_INCREMENT PRIMARY KEY,
