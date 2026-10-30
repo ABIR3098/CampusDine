@@ -5,9 +5,6 @@ const { verifyToken, requireRole } = require("../middleware/auth");
 const { ensureHallSchema } = require("./schema");
 const { ensureHallRatingsSchema } = require("./ratingsSchema");
 const { ensureHallAutoPaySchema } = require("./autopaySchema");
-const { ensureHallFinanceSchema } = require("./financeSchema");
-const { ensureHallLastCallSchema } = require("./lastcallSchema");
-const { ensureHallDietSchema } = require("./dietSchema");
 const pool = require("../db");
 
 const router = express.Router();
@@ -37,9 +34,6 @@ router.use("/", require("./routes/ratings")); // meal ratings (student)
 router.use("/", require("./routes/ratingsReport")); // meal ratings summary (admin)
 router.use("/", require("./routes/autopay")); // auto-pay of the monthly bill
 router.use("/", require("./routes/defaulters")); // who still owes money (admin)
-router.use("/", require("./routes/finance")); // mess finance: income, expenses, cost per plate (admin)
-router.use("/", require("./routes/lastcall")); // last-call plates: leftover plates at a low price
-router.use("/", require("./routes/diet")); // diet preferences and allergen warnings
 router.use("/", require("./routes/report")); // step 12
 router.use("/", require("./routes/tokens")); // student meal token and canteen serving queue
 router.use("/", require("./routes/services"));
@@ -57,9 +51,6 @@ async function ensureAllHallSchema(db) {
   await ensureHallSchema(db);
   await ensureHallRatingsSchema(db);
   await ensureHallAutoPaySchema(db);
-  await ensureHallFinanceSchema(db);
-  await ensureHallLastCallSchema(db);
-  await ensureHallDietSchema(db);
 }
 
 module.exports = { router, ensureHallSchema: ensureAllHallSchema, startJobs };

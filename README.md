@@ -127,13 +127,6 @@ Leave this terminal running the whole time you're using the app.
 
 ---
 
-## Order API and tests
-
-- Every order endpoint (config, my stats, paging, admin filters, cancel reason) is listed in [`docs/ORDERS_API.md`](docs/ORDERS_API.md).
-- Unit tests for the order rules: `cd backend && npm test` (uses Node's built-in test runner, no extra packages).
-
----
-
 ## Troubleshooting
 
 - **`npm run dev` prints a ❌ and exits** — read the 👉 line right under
@@ -164,3 +157,7 @@ Leave this terminal running the whole time you're using the app.
 ## Live tracking update
 
 The updated project includes Smart Order Tracking (Received → Cooking → Ready), estimated ready time, status history timestamps, notifications, and Socket.IO refresh/reconnect handling. GPS is restricted to the dedicated Rider role: riders choose when to share their device location, and only authenticated teachers can see active riders on the Rider Tracking tab. Student order pages and customer tracking APIs do not expose GPS coordinates. See [`LIVE_TRACKING_SETUP.md`](LIVE_TRACKING_SETUP.md) and [`RIDER_TRACKING_SETUP.md`](RIDER_TRACKING_SETUP.md) for setup and test instructions. The backend adds the rider role and location table automatically at startup.
+
+## New Campus Command Center features
+
+See [CAMPUSDINE_NEW_FEATURES.md](CAMPUSDINE_NEW_FEATURES.md) for the new Canteen/Hall Command Center role split, Smart Live Order Tracking, Smart Queue Management, Food Waste Challenge, recommendation engine, Lost & Found image uploads, Emergency SOS endpoints and setup instructions.
