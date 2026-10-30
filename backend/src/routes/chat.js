@@ -16,8 +16,6 @@ function ensureChatColumns() {
       await add("deleted_at", "deleted_at DATETIME NULL");
       await add("reply_to_id", "reply_to_id INT NULL");
       await add("image_id", "image_id INT NULL");
-      await add("broadcast_id", "broadcast_id INT NULL");
-      await pool.query("CREATE TABLE IF NOT EXISTS chat_broadcasts (id INT AUTO_INCREMENT PRIMARY KEY, admin_id INT NOT NULL, audience VARCHAR(12) NOT NULL, message TEXT NOT NULL, recipient_count INT NOT NULL DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) DEFAULT CHARSET=utf8mb4");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_reactions (message_id INT NOT NULL, user_id INT NOT NULL, emoji VARCHAR(16) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (message_id, user_id)) DEFAULT CHARSET=utf8mb4");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_images (id INT AUTO_INCREMENT PRIMARY KEY, owner_user_id INT NOT NULL, uploader_id INT NOT NULL, mime VARCHAR(30) NOT NULL, data MEDIUMBLOB NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_chat_images_owner (owner_user_id))");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_presence (user_id INT NOT NULL PRIMARY KEY, last_seen DATETIME NOT NULL)");
@@ -77,7 +75,6 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
     );
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
-              m.broadcast_id,
               CASE WHEN m.deleted_at IS NULL THEN m.image_id ELSE NULL END AS image_id,
               m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
               CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
@@ -127,7 +124,6 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
     );
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
-              m.broadcast_id,
               CASE WHEN m.deleted_at IS NULL THEN m.image_id ELSE NULL END AS image_id,
               m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
               CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
@@ -469,84 +465,6 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
   } catch (error) {
     console.error("Failed to save reaction:", error);
     res.status(500).json({ error: "Failed to save reaction" });
-  }
-});
-
-// ---- Admin announcements: one message to many chats at once ----
-const BROADCAST_ROLES = { students: ["student"], teachers: ["teacher"], all: ["student", "teacher"] };
-const BROADCAST_MAX = Math.min(Number(MAX_MESSAGE_LENGTH) || 1000, 1000);
-
-router.get("/broadcast/audience", verifyToken, requireRole("admin"), async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT role, COUNT(*) AS n FROM users WHERE role IN ('student', 'teacher') GROUP BY role");
-    const out = { students: 0, teachers: 0 };
-    for (const r of rows) out[r.role === "student" ? "students" : "teachers"] = Number(r.n);
-    res.json(out);
-  } catch (error) {
-    console.error("Failed to count announcement audience:", error);
-    res.status(500).json({ error: "Failed to load audience" });
-  }
-});
-
-router.get("/broadcast/history", verifyToken, requireRole("admin"), async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT id, audience, message, recipient_count, TIMESTAMPDIFF(SECOND, created_at, NOW()) AS ago FROM chat_broadcasts ORDER BY id DESC LIMIT 10"
-    );
-    res.json({ broadcasts: rows.map((r) => ({ ...r, ago: Math.max(0, Number(r.ago)) })) });
-  } catch (error) {
-    console.error("Failed to load announcement history:", error);
-    res.status(500).json({ error: "Failed to load history" });
-  }
-});
-
-router.post("/broadcast", verifyToken, requireRole("admin"), async (req, res) => {
-  let connection;
-  try {
-    const message = String((req.body && req.body.message) || "").trim();
-    const audience = String((req.body && req.body.audience) || "");
-    const roles = BROADCAST_ROLES[audience];
-    if (!roles) return res.status(400).json({ error: "Choose who should get the announcement" });
-    if (!message) return res.status(400).json({ error: "Announcement cannot be empty" });
-    if (message.length > BROADCAST_MAX) return res.status(400).json({ error: `Announcement must be ${BROADCAST_MAX} characters or fewer` });
-    const [[dup]] = await pool.query(
-      "SELECT id FROM chat_broadcasts WHERE admin_id = ? AND message = ? AND created_at > (NOW() - INTERVAL 30 SECOND) LIMIT 1",
-      [req.user.id, message]
-    );
-    if (dup) return res.status(429).json({ error: "You just sent this same announcement. Wait a little before sending it again." });
-
-    connection = await pool.getConnection();
-    await connection.beginTransaction();
-    const [bc] = await connection.query("INSERT INTO chat_broadcasts (admin_id, audience, message) VALUES (?, ?, ?)", [req.user.id, audience, message]);
-    await connection.query(
-      "INSERT INTO chat_conversations (user_id) SELECT id FROM users WHERE role IN (?) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP",
-      [roles]
-    );
-    const [sent] = await connection.query(
-      "INSERT INTO chat_messages (conversation_id, sender_id, recipient_id, message, broadcast_id) SELECT c.id, ?, u.id, ?, ? FROM users u JOIN chat_conversations c ON c.user_id = u.id WHERE u.role IN (?)",
-      [req.user.id, message, bc.insertId, roles]
-    );
-    if (!sent.affectedRows) {
-      await connection.rollback();
-      return res.status(400).json({ error: "There is nobody to send this announcement to" });
-    }
-    await connection.query("UPDATE chat_broadcasts SET recipient_count = ? WHERE id = ?", [sent.affectedRows, bc.insertId]);
-    await connection.commit();
-
-    const [people] = await pool.query("SELECT id FROM users WHERE role IN (?)", [roles]);
-    const io = req.app.get("io");
-    if (io) {
-      const payload = { broadcastId: bc.insertId, senderId: req.user.id, senderName: req.user.name, senderRole: "admin", message, createdAt: new Date().toISOString() };
-      io.to(people.map((p) => `user:${p.id}`)).emit("chat:message", payload);
-      io.to(`user:${req.user.id}`).emit("chat:message", payload);
-    }
-    res.status(201).json({ id: bc.insertId, recipients: sent.affectedRows });
-  } catch (error) {
-    if (connection) await connection.rollback().catch(() => {});
-    console.error("Failed to send announcement:", error);
-    res.status(500).json({ error: "Failed to send announcement" });
-  } finally {
-    if (connection) connection.release();
   }
 });
 

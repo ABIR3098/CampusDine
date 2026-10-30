@@ -570,19 +570,6 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-bc-head button{width:30px;height:30px;border-radius:999px;color:var(--ink-soft)}
 .chat-bc-head button:hover{background:var(--hover)}
 .chat-bc-sub{font-size:12.5px;color:var(--ink-soft);margin:4px 0 12px}
-.chat-bc-audience{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-.chat-bc-audience button{padding:7px 14px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--ink);transition:all .15s}
-.chat-bc-audience button b{margin-left:6px;font-size:12px;color:var(--ink-soft)}
-.chat-bc-audience button.on{border-color:var(--gold);background:var(--gold-soft);color:var(--gold)}
-.chat-bc-audience button.on b{color:var(--gold)}
-.chat-bc-templates{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}
-.chat-bc-templates button{flex-shrink:0;padding:5px 11px;border-radius:999px;border:1px dashed var(--line);font-size:12px;color:var(--ink-soft);white-space:nowrap}
-.chat-bc-templates button:hover{border-color:var(--gold);color:var(--gold);border-style:solid}
-.chat-bc-modal textarea{width:100%;min-height:96px;resize:vertical;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:14px;outline:none}
-.chat-bc-modal textarea:focus{border-color:var(--gold)}
-.chat-bc-foot{display:flex;align-items:center;gap:10px;margin-top:10px}
-.chat-bc-foot small{color:var(--ink-soft);font-size:12px}
-.chat-bc-note{flex:1;font-size:13px;font-weight:600;color:#16a34a}
 .chat-bc-note.err{color:var(--brick)}
 .chat-bc-send{padding:9px 18px;border-radius:999px;background:var(--gold);color:#fff;font-size:13px;font-weight:700;transition:opacity .15s}
 .chat-bc-send:disabled{background:var(--disabled-bg);color:var(--disabled-fg);cursor:not-allowed}
@@ -591,6 +578,7 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-bc-history div{padding:6px 0;font-size:13px}
 .chat-bc-history small{display:block;color:var(--ink-soft);font-size:11.5px}
 
+.input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--input-bg);color:var(--ink);width:100%;outline:none}.input:focus{border-color:var(--teal)}
 </style>
 </head>
 <body>
@@ -626,10 +614,6 @@ const CATEGORIES = [
 const STATUSES = ["Received", "Cooking", "Ready"];
 
 /* ---------------- API helper ---------------- */
-// Same limit the server enforces (backend/src/utils/orderRules.js, also served by GET /api/orders/config)
-const MAX_QTY_PER_ITEM = 20;
-const qtyCap = (item) => Math.min(Number(item.stock) || 0, MAX_QTY_PER_ITEM);
-
 async function api(apiBase, path, { method = "GET", body, token } = {}) {
   const res = await fetch(`${apiBase}${path}`, {
     method,
@@ -840,23 +824,9 @@ const I18N = {
     "q.ahead1": "Position #{p} · 1 order ahead",
     "q.aheadN": "Position #{p} · {a} orders ahead",
     "q.est": "≈ {m} min",
-    "q.eta": "Ready around {t}",
-    "ost.title": "Your ordering",
-    "ost.orders": "Orders",
-    "ost.spent": "Spent",
-    "ost.month": "This month",
-    "ost.avg": "Average order",
-    "ost.fav": "Favourite",
     "refunded": "— refunded to wallet",
     "print": "Print receipt",
     "cancelorder": "Cancel order", 
-    "cancel.confirm": "Cancel this order? A wallet payment will be refunded.",
-    "cr.title": "Why are you cancelling? (optional)",
-    "cr.mistake": "Ordered by mistake",
-    "cr.slow": "Taking too long",
-    "cr.changed": "Changed my mind",
-    "cr.confirm": "Yes, cancel order",
-    "cr.keep": "Keep order",
         "reorder": "↻ Order again",
     "reorder.added": "Added to your cart: ",
     "reorder.skipped": " Not available right now: ",
@@ -930,14 +900,6 @@ const I18N = {
     "pe.match": "New password and confirm password do not match.",
     "cfpw": "Confirm new password",
     "showpw": "Show passwords",
-    "pw.weak": "Weak",
-    "pw.ok": "Okay",
-    "pw.strong": "Strong",
-    "pw.match": "Passwords match",
-    "cp.submit": "Change password",
-    "cp.busy": "Changing…",
-    "cp.done": "Password changed. Use the new password next time you log in.",
-    "cp.same": "The new password must be different from the current one.",
     "pic.change": "Change photo", "pic.add": "Add photo", "pic.remove": "Remove",
     "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
     "pic.hint": "Click Save to keep your new photo.",
@@ -1305,23 +1267,9 @@ const I18N = {
     "q.ahead1": "অবস্থান #{p} · সামনে ১টি অর্ডার",
     "q.aheadN": "অবস্থান #{p} · সামনে {a}টি অর্ডার",
     "q.est": "≈ {m} মিনিট",
-    "q.eta": "প্রায় {t}-এ তৈরি হবে",
-    "ost.title": "আপনার অর্ডার",
-    "ost.orders": "অর্ডার",
-    "ost.spent": "মোট খরচ",
-    "ost.month": "এই মাসে",
-    "ost.avg": "গড় অর্ডার",
-    "ost.fav": "প্রিয় আইটেম",
     "refunded": "— ওয়ালেটে ফেরত দেওয়া হয়েছে",
     "print": "রসিদ প্রিন্ট করুন",
     "cancelorder": "অর্ডার বাতিল করুন", 
-    "cancel.confirm": "এই অর্ডারটি বাতিল করবেন? ওয়ালেটে দেওয়া টাকা ফেরত পাবেন।",
-    "cr.title": "কেন বাতিল করছেন? (ঐচ্ছিক)",
-    "cr.mistake": "ভুলে অর্ডার করেছি",
-    "cr.slow": "অনেক দেরি হচ্ছে",
-    "cr.changed": "মত বদলেছি",
-    "cr.confirm": "হ্যাঁ, বাতিল করুন",
-    "cr.keep": "অর্ডার রাখুন",
         "reorder": "↻ আবার অর্ডার করুন",
     "reorder.added": "কার্টে যোগ হয়েছে: ",
     "reorder.skipped": " এখন পাওয়া যাচ্ছে না: ",
@@ -1395,14 +1343,6 @@ const I18N = {
     "pe.match": "নতুন পাসওয়ার্ড ও নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।",
     "cfpw": "নতুন পাসওয়ার্ড আবার লিখুন",
     "showpw": "পাসওয়ার্ড দেখান",
-    "pw.weak": "দুর্বল",
-    "pw.ok": "মোটামুটি",
-    "pw.strong": "শক্তিশালী",
-    "pw.match": "পাসওয়ার্ড মিলেছে",
-    "cp.submit": "পাসওয়ার্ড পরিবর্তন করুন",
-    "cp.busy": "পরিবর্তন হচ্ছে…",
-    "cp.done": "পাসওয়ার্ড বদলেছে। পরের বার নতুন পাসওয়ার্ড দিয়ে লগইন করুন।",
-    "cp.same": "নতুন পাসওয়ার্ড বর্তমান পাসওয়ার্ড থেকে আলাদা হতে হবে।",
     "pic.change": "ছবি বদলান", "pic.add": "ছবি যোগ করুন", "pic.remove": "সরান",
     "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
     "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
@@ -3059,7 +2999,7 @@ function UsualPanel({ pastOrders, menu, cart, add }) {
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {usual.map(({ item, n }) => {
           const inCart = cart.find(c => c.id === item.id);
-          const maxed = !!inCart && inCart.qty >= qtyCap(item);
+          const maxed = !!inCart && inCart.qty >= item.stock;
           return (
             <div key={"usual-" + item.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
               <div className="flex items-center gap-1.5">
@@ -3295,10 +3235,7 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
 
   const add = (item) => setCart(prev => {
     const existing = prev.find(p => p.id === item.id);
-    if (existing) {
-      if (existing.qty >= qtyCap(item)) return prev; // never go past stock or the per-item limit
-      return prev.map(p => p.id === item.id ? { ...p, qty: p.qty + 1 } : p);
-    }
+    if (existing) return prev.map(p => p.id === item.id ? { ...p, qty: p.qty + 1 } : p);
     return [...prev, { ...item, qty: 1 }];
   });
   const dec = (item) => setCart(prev => prev
@@ -3470,7 +3407,7 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
                     <div className="flex items-center gap-2">
                       <button onClick={() => dec(item)} className="w-7 h-7 rounded-full grid place-items-center border" style={{ borderColor: "var(--line)" }}><Icon path={I.minus} className="w-3.5 h-3.5" /></button>
                       <span className="font-mono w-5 text-center">{inCart.qty}</span>
-                      <button onClick={() => add(item)} disabled={inCart.qty >= qtyCap(item)} className="w-7 h-7 rounded-full grid place-items-center text-white disabled:opacity-40" style={{ background: "var(--teal)" }}><Icon path={I.plus} className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => add(item)} className="w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "var(--teal)" }}><Icon path={I.plus} className="w-3.5 h-3.5" /></button>
                     </div>
                   ) : (
                     <button onClick={() => add(item)} className="btn-primary px-3 py-1.5 rounded-lg text-sm">{tx("add")}</button>
@@ -4069,16 +4006,9 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
   const [planDraft, setPlanDraft] = useState(null); // the order a weekly plan is being made from
   const [plansKey, setPlansKey] = useState(0);
   /* Feature: order history filter */
-  // Feature: remember the history filters (per browser) so they survive a page refresh
-  const savedFilters = (() => { try { return JSON.parse(localStorage.getItem("cd.orderFilters") || "{}"); } catch (e) { return {}; } })();
-  const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
   const [hQuery, setHQuery] = useState("");
-  const [hStatus, setHStatus] = useState(pick(savedFilters.status, ["all", "Received", "Cooking", "Ready", "Cancelled"], "all"));
-  const [hRange, setHRange] = useState(pick(savedFilters.range, ["all", "today", "week", "month"], "all"));
-  const [hSort, setHSort] = useState(pick(savedFilters.sort, ["newest", "oldest", "high", "low"], "newest")); // Feature: sort order history
-  useEffect(() => {
-    try { localStorage.setItem("cd.orderFilters", JSON.stringify({ status: hStatus, range: hRange, sort: hSort })); } catch (e) { /* private mode: just don't remember */ }
-  }, [hStatus, hRange, hSort]);
+  const [hStatus, setHStatus] = useState("all");
+  const [hRange, setHRange] = useState("all");
   /* Feature: order problem report */
   const [issues, setIssues] = useState({});          // order id -> my report
   const [reporting, setReporting] = useState(null);  // order id whose form is open
@@ -4103,18 +4033,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
     finally { setRBusy(false); }
   };
   const [copiedId, setCopiedId] = useState(null);
-  /* Feature: cancel reason */
-  const [cancelling, setCancelling] = useState(null); // order id whose cancel box is open
-  const [cancelReason, setCancelReason] = useState("");
-  /* Feature: my ordering stats (count, spend, average, favourite item) */
-  const [stats, setStats] = useState(null);
-  useEffect(() => {
-    let dead = false;
-    api(apiBase, "/api/orders/mine/stats", { token })
-      .then(r => { if (!dead) setStats(r); })
-      .catch(() => {}); // the card is a nice extra: stay hidden if it cannot load
-    return () => { dead = true; };
-  }, [orders]);
 
   // Feature: print receipt — render the chosen order into a hidden #print-area,
   // then trigger the browser print dialog; the CSS above hides everything else.
@@ -4145,13 +4063,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
     }
     return true;
   });
-  const sorters = {
-    newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-    oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
-    high: (a, b) => Number(b.total) - Number(a.total),
-    low: (a, b) => Number(a.total) - Number(b.total),
-  };
-  if (hSort !== "newest") filtered.sort(sorters[hSort]); // the server already sends newest first
   return (
     <div className="space-y-6 max-w-2xl">
       {planDraft && <RecurringForm order={planDraft} apiBase={apiBase} token={token} onClose={() => setPlanDraft(null)} onSaved={() => { setPlanDraft(null); setPlansKey(k => k + 1); }} />}
@@ -4195,24 +4106,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           </div>
         </div>
       )}
-      {stats && stats.orders > 0 && (
-        <div className="card p-4">
-          <div className="text-xs font-700 mb-3" style={{ color: "var(--ink-soft)", letterSpacing: 1 }}>{tx("ost.title").toUpperCase()}</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            {[["ost.orders", num(stats.orders)], ["ost.spent", taka(stats.spent)], ["ost.month", taka(stats.monthSpent)], ["ost.avg", taka(Math.round(stats.averageOrder))]].map(([k, v]) => (
-              <div key={k} className="rounded-lg py-2" style={{ background: "var(--panel-soft)" }}>
-                <div className="font-mono text-lg font-700">{v}</div>
-                <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx(k)}</div>
-              </div>
-            ))}
-          </div>
-          {stats.favouriteItem && (
-            <div className="text-xs mt-3" style={{ color: "var(--ink-soft)" }}>
-              ⭐ {tx("ost.fav")}: <span className="font-700" style={{ color: "var(--ink)" }}>{dispName(stats.favouriteItem.name)}</span> ×{num(stats.favouriteItem.qty)}
-            </div>
-          )}
-        </div>
-      )}
       <div className="card p-4 space-y-3">
         <input type="text" value={hQuery} onChange={e => setHQuery(e.target.value)}
           placeholder="Search by token, item, note…"
@@ -4230,19 +4123,12 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
           ))}
           <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{filtered.length} / {orders.length}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>Sort:</span>
-          {[["newest", "Newest"], ["oldest", "Oldest"], ["high", "Highest total"], ["low", "Lowest total"]].map(([v, label]) => (
-            <button key={v} type="button" onClick={() => setHSort(v)}
-              className={"chip text-xs px-3 py-1.5 rounded-full" + (hSort === v ? " active-chip" : "")}>{label}</button>
-          ))}
-        </div>
       </div>
       {filtered.length === 0 && (
         <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
           No orders match your filters.
           <div className="mt-3">
-            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); setHSort("newest"); }}>Clear filters</button>
+            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); }}>Clear filters</button>
           </div>
         </div>
       )}
@@ -4278,11 +4164,6 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                         : tx(o.queue.ahead === 1 ? "q.ahead1" : "q.aheadN", { p: num(o.queue.position), a: num(o.queue.ahead) })}
                     </span>
                     <span style={{ color: "var(--ink-soft)" }}>{tx("q.est", { m: num(o.queue.est_minutes) })}</span>
-                    {o.queue.est_ready_at && (
-                      <span className="font-600" style={{ color: "var(--ink-soft)" }}>
-                        · {tx("q.eta", { t: new Date(o.queue.est_ready_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })}
-                      </span>
-                    )}
                   </div>
                 </div>
               )}
@@ -4397,31 +4278,13 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                     style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>🔁 {tx("rec.repeat")}</button>
                 )}
                 {o.status === "Received" && (
-                  <button disabled={cancelBusy} onClick={() => { setCancelling(cancelling === o.id ? null : o.id); setCancelReason(""); }}
+                  <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
                     className="text-xs px-3 py-1.5 rounded-lg border font-600"
                     style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
                     {tx("cancelorder")}
                   </button>
                 )}
               </div>
-              {cancelling === o.id && o.status === "Received" && (
-                <div className="mt-3 rounded-lg border p-3 text-xs space-y-2" style={{ borderColor: "var(--brick)", background: "var(--panel-soft)" }}>
-                  <div className="font-700">{tx("cancel.confirm")}</div>
-                  <div style={{ color: "var(--ink-soft)" }}>{tx("cr.title")}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {["cr.mistake", "cr.slow", "cr.changed"].map(k => (
-                      <button key={k} type="button" onClick={() => setCancelReason(cancelReason === tx(k) ? "" : tx(k))}
-                        className={"chip text-xs px-3 py-1.5 rounded-full" + (cancelReason === tx(k) ? " active-chip" : "")}>{tx(k)}</button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button type="button" disabled={cancelBusy} onClick={() => { onCancel(o.id, cancelReason); setCancelling(null); }}
-                      className="px-3 py-1.5 rounded-lg font-700" style={{ background: "var(--brick)", color: "#fff" }}>{tx("cr.confirm")}</button>
-                    <button type="button" onClick={() => setCancelling(null)}
-                      className="px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>{tx("cr.keep")}</button>
-                  </div>
-                </div>
-              )}
               {o.status === "Ready" && (
                 <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
               )}
@@ -6279,80 +6142,6 @@ function ProblemReports({ apiBase, token, refreshKey }) {
     </div>
   );
 }
-/* Feature: admin rider ratings */
-function RiderRatingsTable({ call }) {
-  const [days, setDays] = useState(0);
-  const [rows, setRows] = useState(null);
-  const [open, setOpen] = useState(null);   // the rider whose reviews are showing
-  const [reviews, setReviews] = useState([]);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    setRows(null); setOpen(null); setError("");
-    call("/api/riders/ratings?days=" + days).then(d => setRows(d.riders)).catch(e => setError(e.message || "Could not load rider ratings"));
-  }, [days]);
-  const toggle = async (r) => {
-    if (open === r.id) { setOpen(null); return; }
-    setOpen(r.id); setReviews([]);
-    try { setReviews(await call("/api/riders/ratings/" + r.id + "?days=" + days)); }
-    catch (e) { setError(e.message || "Could not load the reviews"); }
-  };
-  const stars = (n) => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
-  const when = (d) => new Date(d).toLocaleDateString([], { day: "numeric", month: "short" });
-  return (
-    <div className="card p-5 mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="font-display font-700" style={{ color: "var(--gold)" }}>🛵 Rider ratings</div>
-        <select value={days} onChange={e => setDays(Number(e.target.value))} className="px-2 py-1 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
-          <option value={0}>All time</option>
-          <option value={30}>Last 30 days</option>
-          <option value={7}>Last 7 days</option>
-        </select>
-      </div>
-      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
-      {rows === null && !error && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>Loading…</p>}
-      {rows && rows.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No rider accounts yet.</p>}
-      <div className="space-y-2">
-        {(rows || []).map(r => {
-          const low = r.rating_count >= 3 && r.rating_avg !== null && r.rating_avg < 3.5;
-          return (
-            <div key={r.id} className="rounded-lg border" style={{ borderColor: low ? "var(--brick)" : "var(--line)" }}>
-              <button type="button" onClick={() => toggle(r)} className="w-full text-left p-3 flex flex-wrap items-center gap-x-4 gap-y-1">
-                <div className="flex-1 min-w-[150px]">
-                  <div className="text-sm font-700">{r.name} <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>({r.external_id})</span></div>
-                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{r.delivered} deliveries completed</div>
-                </div>
-                {r.rating_count > 0 ? (
-                  <div className="text-sm">
-                    <span style={{ color: "#F59E0B" }}>{stars(r.rating_avg)}</span>{" "}
-                    <strong>{r.rating_avg.toFixed(1)}</strong>{" "}
-                    <span className="text-xs" style={{ color: "var(--ink-soft)" }}>({r.rating_count} {r.rating_count === 1 ? "rating" : "ratings"} · {r.five_star}×5★ · {r.low_star}×1-2★)</span>
-                  </div>
-                ) : (
-                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>No ratings yet</div>
-                )}
-                {low && <span className="text-xs font-700 px-2 py-0.5 rounded-full text-white" style={{ background: "var(--brick)" }}>⚠️ Low</span>}
-                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{open === r.id ? "▲" : "▼"}</span>
-              </button>
-              {open === r.id && (
-                <div className="px-3 pb-3 space-y-2">
-                  {reviews.length === 0 ? (
-                    <p className="text-xs" style={{ color: "var(--ink-soft)" }}>No reviews in this period.</p>
-                  ) : reviews.map((v, i) => (
-                    <div key={i} className="text-sm border-t pt-2" style={{ borderColor: "var(--line)" }}>
-                      <span style={{ color: "#F59E0B" }}>{stars(v.rating)}</span>{" "}
-                      <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{v.token} · {v.student} · {when(v.at)}</span>
-                      {v.comment && <div className="mt-0.5" style={{ color: "var(--ink-soft)" }}>“{v.comment}”</div>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 function AdminFeedback({ summary }) {
   const { average = 0, count = 0, entries = [], distribution = {} } = summary;
   const [filter, setFilter] = useState("all");
@@ -6623,13 +6412,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [matchPos, setMatchPos] = useState(0);
   const searchRef = useRef(null);
   const [reactFor, setReactFor] = useState(null);
-  const [bcOpen, setBcOpen] = useState(false);
-  const [bcAudience, setBcAudience] = useState("students");
-  const [bcText, setBcText] = useState("");
-  const [bcBusy, setBcBusy] = useState(false);
-  const [bcCounts, setBcCounts] = useState({ students: 0, teachers: 0 });
-  const [bcHistory, setBcHistory] = useState([]);
-  const [bcNote, setBcNote] = useState(null);
   const fileRef = useRef(null);
   const [onlineIds, setOnlineIds] = useState([]);
   const [adminOnline, setAdminOnline] = useState(null);
@@ -6884,34 +6666,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const stepMatch = (dir) => { if (matchIds.length) setMatchPos(p => (Math.min(p, matchIds.length - 1) + dir + matchIds.length) % matchIds.length); };
   const closeSearch = () => { setSearchOpen(false); setQuery(""); };
   const toggleSearch = () => { if (searchOpen) closeSearch(); else { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 30); } };
-  // ---- admin announcements (broadcast to many chats at once) ----
-  const bcCount = (k) => (k === "all" ? bcCounts.students + bcCounts.teachers : (bcCounts[k] || 0));
-  const loadBroadcastInfo = async () => {
-    try {
-      const [a, h] = await Promise.all([chatCall("/api/chat/broadcast/audience"), chatCall("/api/chat/broadcast/history")]);
-      setBcCounts({ students: a.students || 0, teachers: a.teachers || 0 });
-      setBcHistory(h.broadcasts || []);
-    } catch (e) { setBcNote({ err: true, text: e.message }); }
-  };
-  const openBroadcast = () => { setBcOpen(true); setBcNote(null); loadBroadcastInfo(); };
-  const sendBroadcast = async () => {
-    const text = bcText.trim(), n = bcCount(bcAudience);
-    if (!text || !n || bcBusy) return;
-    if (!window.confirm(`Send this announcement to ${n} people? It cannot be recalled.`)) return;
-    setBcBusy(true); setBcNote(null);
-    try {
-      const r = await chatCall("/api/chat/broadcast", { method: "POST", body: { message: text, audience: bcAudience } });
-      setBcText(""); setBcNote({ err: false, text: `Sent to ${r.recipients} people ✓` });
-      loadBroadcastInfo(); refreshConversations().catch(() => {});
-    } catch (e) { setBcNote({ err: true, text: e.message }); }
-    finally { setBcBusy(false); }
-  };
-  useEffect(() => {
-    if (!bcOpen) return;
-    const onEsc = (e) => { if (e.key === "Escape" && !bcBusy) setBcOpen(false); };
-    document.addEventListener("keydown", onEsc);
-    return () => document.removeEventListener("keydown", onEsc);
-  }, [bcOpen, bcBusy]);
   // ---- reactions (one per person per message; tap the same emoji again to remove it) ----
   const REACTION_SET = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
   useEffect(() => {
@@ -7046,7 +6800,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
         )}
         {mine && !m.pending && !m.deleted_at && reactControl(m, "mine")}
         <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""} ${!m.deleted_at && m.reactions && m.reactions.length ? "has-react" : ""}`}>
-          {m.broadcast_id && !m.deleted_at && <div className="chat-bc-tag">📢 Announcement</div>}
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
           {m.reply_to_id && !m.deleted_at && (
             <button type="button" className="chat-quote" onClick={() => jumpToMessage(m.reply_to_id)}>
@@ -7098,7 +6851,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
               <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
             </div>
-            <button type="button" className="chat-bc-open" onClick={openBroadcast}>📢 Send announcement</button>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
           </div>
           <div className="chat-inbox-list">
@@ -7245,46 +6997,6 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           </button>
         </form>
       </div>
-      {bcOpen && isAdmin && (
-        <div className="chat-bc-overlay" onClick={() => { if (!bcBusy) setBcOpen(false); }}>
-          <div className="chat-bc-modal" role="dialog" aria-label="Send announcement" onClick={e => e.stopPropagation()}>
-            <div className="chat-bc-head">
-              <h3>📢 Send announcement</h3>
-              <button type="button" aria-label="Close" onClick={() => { if (!bcBusy) setBcOpen(false); }}>✕</button>
-            </div>
-            <p className="chat-bc-sub">It lands in each person's chat as a message from you. They can reply.</p>
-            <div className="chat-bc-audience">
-              {[["students", "All students"], ["teachers", "All teachers"], ["all", "Students + teachers"]].map(([k, label]) => (
-                <button key={k} type="button" className={bcAudience === k ? "on" : ""} onClick={() => setBcAudience(k)}>{label}<b>{bcCount(k)}</b></button>
-              ))}
-            </div>
-            <div className="chat-bc-templates">
-              {["The canteen is closed today.", "Today's special is ready. Come and try it!", "The menu has been updated. Check out the new items.", "The canteen will open late today."].map(t => (
-                <button key={t} type="button" onClick={() => setBcText(t)}>{t}</button>
-              ))}
-            </div>
-            <textarea value={bcText} maxLength={1000} placeholder="Write your announcement…" onChange={e => setBcText(e.target.value)} />
-            <div className="chat-bc-foot">
-              <small>{bcText.length}/1000</small>
-              <span className={`chat-bc-note ${bcNote && bcNote.err ? "err" : ""}`}>{bcNote ? bcNote.text : ""}</span>
-              <button type="button" className="chat-bc-send" disabled={!bcText.trim() || bcBusy || !bcCount(bcAudience)} onClick={sendBroadcast}>
-                {bcBusy ? "Sending…" : `Send to ${bcCount(bcAudience)} people`}
-              </button>
-            </div>
-            {bcHistory.length > 0 && (
-              <div className="chat-bc-history">
-                <h4>Recent announcements</h4>
-                {bcHistory.map(h => (
-                  <div key={h.id}>
-                    <span>{h.message}</span>
-                    <small>{h.audience === "students" ? "Students" : h.audience === "teachers" ? "Teachers" : "Students + teachers"} · {h.recipient_count} people · {agoText(h.ago)}</small>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
       {lightbox && (
         <div className="chat-lightbox" onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="Photo" />
@@ -7377,32 +7089,6 @@ function fileToAvatar(file) {
     reader.readAsDataURL(file);
   });
 }
-// Feature: password strength. 0 = empty, 1 = weak, 2 = okay, 3 = strong (length + mix of letters, digits, symbols).
-function passwordStrength(pw) {
-  if (!pw) return 0;
-  let score = 0;
-  if (pw.length >= 6) score++;
-  if (pw.length >= 10) score++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
-  if (/\d/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  if (pw.length < 6) return 1;
-  return score >= 4 ? 3 : score >= 3 ? 2 : 1;
-}
-function PasswordStrengthBar({ password }) {
-  const level = passwordStrength(password);
-  if (!level) return null;
-  const color = ["", "var(--brick)", "var(--gold)", "var(--leaf)"][level];
-  const label = [null, tx("pw.weak"), tx("pw.ok"), tx("pw.strong")][level];
-  return (
-    <div className="flex items-center gap-2" aria-live="polite">
-      <div className="flex gap-1 flex-1">
-        {[1, 2, 3].map(i => <div key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i <= level ? color : "var(--line)" }} />)}
-      </div>
-      <span className="text-xs font-600" style={{ color }}>{label}</span>
-    </div>
-  );
-}
 function ProfileField({ label, value, placeholder }) {
   return (
     <div>
@@ -7422,50 +7108,6 @@ function ProfileInput({ label, value, onChange, placeholder }) {
     </div>
   );
 }
-// Feature: change password on its own. It sends only the password fields, so a problem in some
-// other profile field (bad email, hall name, picture) can never block it, and its message shows right under the button.
-function ChangePasswordCard({ call }) {
-  const [cur, setCur] = useState("");
-  const [next, setNext] = useState("");
-  const [again, setAgain] = useState("");
-  const [show, setShow] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState(null); // { ok: boolean, text: string }
-  const inputCls = "w-full px-4 py-2.5 rounded-xl border";
-  const submit = async (e) => {
-    e.preventDefault();
-    setMsg(null);
-    if (!cur) return setMsg({ ok: false, text: tx("pe.cur") });
-    if (next.length < 6) return setMsg({ ok: false, text: tx("pe.pw6") });
-    if (next === cur) return setMsg({ ok: false, text: tx("cp.same") });
-    if (next !== again) return setMsg({ ok: false, text: tx("pe.match") });
-    setBusy(true);
-    try {
-      await call("/api/auth/me", { method: "PUT", body: { currentPassword: cur, newPassword: next } });
-      setCur(""); setNext(""); setAgain("");
-      setMsg({ ok: true, text: tx("cp.done") });
-    } catch (err) {
-      setMsg({ ok: false, text: err.message || "Could not change the password" });
-    } finally { setBusy(false); }
-  };
-  return (
-    <form onSubmit={submit} className="card p-6 mt-4 space-y-2" autoComplete="off">
-      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
-      <input value={cur} onChange={e => setCur(e.target.value)} type={show ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password" className={inputCls} style={{ borderColor: "var(--line)" }} />
-      <input value={next} onChange={e => setNext(e.target.value)} type={show ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password" className={inputCls} style={{ borderColor: "var(--line)" }} />
-      <PasswordStrengthBar password={next} />
-      <input value={again} onChange={e => setAgain(e.target.value)} type={show ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password" className={inputCls} style={{ borderColor: "var(--line)" }} />
-      {again && next === again && <div className="text-xs font-600" style={{ color: "var(--leaf)" }}>✓ {tx("pw.match")}</div>}
-      <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
-        <input type="checkbox" checked={show} onChange={e => setShow(e.target.checked)} /> {tx("showpw")}
-      </label>
-      {msg && <p className="text-sm" role="alert" style={{ color: msg.ok ? "var(--leaf)" : "#DC2626" }}>{msg.text}</p>}
-      <button type="submit" disabled={busy || !cur || !next || !again} className="btn-primary w-full py-2.5 rounded-xl disabled:opacity-50">
-        {busy ? tx("cp.busy") : tx("cp.submit")}
-      </button>
-    </form>
-  );
-}
 function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState({
@@ -7474,6 +7116,10 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [walletBalance, setWalletBalance] = useState(user.walletBalance);
   /* Fix: profile balance = live wallet balance */
   const shownBalance = liveBalance != null ? liveBalance : walletBalance;
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [avatar, setAvatar] = useState(user.avatar || null);
   const [avatarChanged, setAvatarChanged] = useState(false);
   const fileRef = useRef(null);
@@ -7508,6 +7154,9 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const save = async () => {
     setError(null); setSuccess(null);
     if (!profile.name.trim()) { setError(tx("pe.name")); return; }
+    if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
+    if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
+    if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
     setBusy(true);
     try {
       const body = {
@@ -7516,10 +7165,12 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
       };
       if (profile.email.trim()) body.email = profile.email.trim();
       if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
+      if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
       if (avatarChanged) body.avatar = avatar;
       const data = await call("/api/auth/me", { method: "PUT", body });
       onUpdated(data);
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setAvatarChanged(false);
       setSuccess(tx("pe.ok"));
       setEditing(false);
@@ -7531,7 +7182,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   };
 
   const cancelEdit = () => {
-    setError(null);
+    setError(null); setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
     setEditing(false);
     loadProfile();
   };
@@ -7701,6 +7352,23 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
             </div>
           )}
 
+          {editing && (
+            <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
+              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
+              <div className="space-y-2">
+                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
+                  <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} /> {tx("showpw")}
+                </label>
+              </div>
+            </div>
+          )}
+
           {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
           {success && <p className="text-sm" style={{ color: "var(--leaf)" }}>{success}</p>}
 
@@ -7718,7 +7386,6 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
           )}
         </div>
       </div>
-      <ChangePasswordCard call={call} />
     </div>
   );
 }
@@ -8153,6 +7820,33 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+function CampusHub({apiBase,token,orders,role}) {
+  const [recs,setRecs]=useState([]),[queue,setQueue]=useState(null),[liveOrders,setLiveOrders]=useState([]),[posts,setPosts]=useState([]),[challenge,setChallenge]=useState(null),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
+  const [form,setForm]=useState({item_type:'lost',title:'',description:'',location:'',contact:'',image_data:''});
+  const [sos,setSos]=useState({emergency_type:'Medical emergency',location:'',details:'',contact:''});
+  const load=async()=>{try{const [r,q,p,c]=await Promise.all([api(apiBase,'/api/campus/recommendations',{token}),api(apiBase,'/api/campus/queue',{token}),api(apiBase,'/api/campus/lost-found',{token}),api(apiBase,'/api/campus/waste-challenge',{token})]);setRecs(r);setQueue(q);setPosts(p);setChallenge(c);if(role==='teacher'){setLiveOrders(await api(apiBase,'/api/campus/live-tracking',{token}))}else{setLiveOrders([])}}catch(e){setMsg(e.message)}};
+  useEffect(()=>{load();const t=setInterval(load,15000);return()=>clearInterval(t)},[]);
+  const submitPost=async()=>{setBusy(true);setMsg('');try{await api(apiBase,'/api/campus/lost-found',{method:'POST',token,body:form});setForm({item_type:'lost',title:'',description:'',location:'',contact:'',image_data:''});setMsg('Your Lost & Found post has been published.');await load()}catch(e){setMsg(e.message)}finally{setBusy(false)}};
+  const submitSOS=async()=>{setBusy(true);setMsg('');try{const r=await api(apiBase,'/api/campus/emergency',{method:'POST',token,body:sos});setMsg(r.message);setSos({...sos,details:''})}catch(e){setMsg(e.message)}finally{setBusy(false)}};
+  const imagePick=async e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>2*1024*1024){setMsg('Choose PNG/JPG/WEBP image under 2 MB.');return}const reader=new FileReader();reader.onload=()=>setForm(x=>({...x,image_data:String(reader.result)}));reader.readAsDataURL(f)};
+  return <div className="space-y-5">
+    <section className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Campus Live Queue</h2><p className="text-sm" style={{color:'var(--ink-soft)'}}>Refreshes automatically every 15 seconds</p></div><button className="btn-primary rounded-lg px-3 py-2" onClick={load}>Refresh</button></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">{[['Active',queue?.summary?.active_orders||0],['Received',queue?.summary?.received||0],['Cooking',queue?.summary?.cooking||0],['Ready',queue?.summary?.ready||0]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><p className="text-sm mt-3">Estimated wait for a new order: {queue?.summary?.est_wait_for_new_order||0} minutes</p></section>
+    {role==='teacher'&&<section className="card p-5"><h2 className="text-xl font-bold">Smart Live Order Tracking</h2><p className="text-sm mb-3">Teacher delivery orders only. Rider GPS status refreshes every 15 seconds.</p>{liveOrders.length?liveOrders.map(o=><div className="border rounded-xl p-3 mb-3" style={{borderColor:'var(--line)'}}><div className="flex justify-between gap-2"><b>Order #{o.id} · {o.token}</b><span>{o.status}</span></div><p className="text-sm mt-1">{o.rider_name?`Rider: ${o.rider_name}`:'Waiting for rider assignment'} · {o.rider_live?'GPS live':'GPS not currently updating'}</p>{o.latitude!=null&&o.longitude!=null?<><p className="text-xs mt-1">Location: {o.latitude.toFixed(5)}, {o.longitude.toFixed(5)}</p><a className="text-sm underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${o.latitude}&mlon=${o.longitude}#map=17/${o.latitude}/${o.longitude}`}>Open rider location map</a></>:null}</div>):<p className="text-sm">No active teacher delivery orders to track.</p>}</section>}
+    <section className="card p-5"><h2 className="text-xl font-bold">Campus Food Waste Challenge</h2><p className="text-sm mt-1">Help your campus reduce leftovers and build a more sustainable canteen.</p><div className="flex flex-wrap items-center gap-4 mt-3"><div><b className="text-2xl">{challenge?.participants||0}</b><div className="text-xs">Students joined</div></div><div><b className="text-2xl">{challenge?.totals?.leftover||0}</b><div className="text-xs">Leftover portions logged (30 days)</div></div><button disabled={challenge?.joined} className="btn-primary rounded-lg px-3 py-2" onClick={async()=>{try{await api(apiBase,'/api/campus/waste-challenge/join',{method:'POST',token,body:{}});await load();setMsg('You joined the Campus Food Waste Challenge!')}catch(e){setMsg(e.message)}}}>{challenge?.joined?'Joined ✓':'Join the challenge'}</button></div><div className="text-xs mt-2">{challenge?.joined?`Your no-waste pledges: ${challenge.my_saved_meals||0}`:'Make mindful meal choices and avoid unnecessary food waste.'} {challenge?.joined&&!challenge?.pledged_today&&<button className="underline ml-2" onClick={async()=>{try{await api(apiBase,'/api/campus/waste-challenge/pledge',{method:'POST',token,body:{}});await load();setMsg('Your no-waste pledge was recorded!')}catch(e){setMsg(e.message)}}}>I finished my meal without waste today</button>}{challenge?.pledged_today?' · Today’s pledge recorded':''}</div></section>
+    <section className="card p-5"><h2 className="text-xl font-bold mb-3">AI-style Food Recommendations</h2><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{recs.map(x=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}><div className="font-semibold">{x.name}</div><div className="text-sm">৳{x.price} · {x.stock} left</div><div className="text-xs mt-2" style={{color:'var(--ink-soft)'}}>{x.reason}</div></div>)}</div>{!recs.length&&<p className="text-sm">No recommendations available right now.</p>}</section>
+    <section className="card p-5"><h2 className="text-xl font-bold">Lost & Found</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Post a lost item or something you found on campus.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={form.item_type} onChange={e=>setForm({...form,item_type:e.target.value})}><option value="lost">I lost something</option><option value="found">I found something</option></select><input className="input" placeholder="Item title" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/><input className="input" placeholder="Where was it lost/found?" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input className="input" placeholder="Contact information (optional)" value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><div className="flex flex-wrap items-center gap-3 mt-3"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={imagePick}/>{form.image_data&&<span className="text-xs">Image attached</span>}<button disabled={busy} className="btn-primary rounded-lg px-3 py-2" onClick={submitPost}>Publish post</button></div><div className="grid md:grid-cols-2 gap-3 mt-4">{posts.map(p=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}>{p.image_data&&<img src={p.image_data} alt="Lost or found item" className="w-full h-36 object-cover rounded-lg mb-2"/>}<div className="flex justify-between gap-2"><b>{p.title}</b><span className="text-xs">{p.item_type} · {p.status}</span></div><p className="text-sm">{p.description}</p><p className="text-xs mt-2">{p.location} · Posted by {p.posted_by}</p></div>)}</div></section>
+    <section className="card p-5"><h2 className="text-xl font-bold">Emergency SOS & Campus Help</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Use for urgent campus assistance. For immediate danger, contact local emergency services as well.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={sos.emergency_type} onChange={e=>setSos({...sos,emergency_type:e.target.value})}><option>Medical emergency</option><option>Safety / security</option><option>Fire / accident</option><option>Other urgent help</option></select><input className="input" placeholder="Your current location / landmark" value={sos.location} onChange={e=>setSos({...sos,location:e.target.value})}/><input className="input" placeholder="Contact number" value={sos.contact} onChange={e=>setSos({...sos,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="What happened?" value={sos.details} onChange={e=>setSos({...sos,details:e.target.value})}/><button disabled={busy} className="btn-primary rounded-lg px-3 py-2 mt-3" style={{background:'#b91c1c',color:'white'}} onClick={submitSOS}>Send Emergency SOS</button></section>
+    {msg&&<div className="card p-3 text-sm">{msg}</div>}
+  </div>
+}
+function CanteenCommandCenter({apiBase,token,orders,restaurantId}) {
+  const [queue,setQueue]=useState(null),[waste,setWaste]=useState(null),[form,setForm]=useState({meal_name:'',cooked_portions:'',leftover_portions:'',notes:''}),[msg,setMsg]=useState('');
+  const load=async()=>{try{const [q,w]=await Promise.all([api(apiBase,`/api/campus/queue?restaurant=${encodeURIComponent(restaurantId||'')}`,{token}),api(apiBase,`/api/campus/waste-challenge?restaurant=${encodeURIComponent(restaurantId||'')}`,{token})]);setQueue(q);setWaste(w)}catch(e){setMsg(e.message)}};
+  useEffect(()=>{load();const t=setInterval(load,12000);return()=>clearInterval(t)},[]);
+  const save=async()=>{try{const r=await api(apiBase,'/api/campus/waste-challenge',{method:'POST',token,body:{...form,cooked_portions:Number(form.cooked_portions),leftover_portions:Number(form.leftover_portions),restaurant_id:restaurantId}});setMsg(`Waste logged. Today's meal waste: ${r.waste_percent}%`);setForm({meal_name:'',cooked_portions:'',leftover_portions:'',notes:''});await load()}catch(e){setMsg(e.message)}};
+  return <div className="space-y-5"><section className="card p-5"><div className="flex justify-between gap-3"><div><h2 className="text-xl font-bold">Canteen Command Center</h2><p className="text-sm" style={{color:'var(--ink-soft)'}}>Live operations overview for your canteen</p></div><button className="btn-primary rounded-lg px-3 py-2" onClick={load}>Refresh</button></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">{[['Active orders',queue?.summary?.active_orders||0],['Received',queue?.summary?.received||0],['Cooking',queue?.summary?.cooking||0],['Ready',queue?.summary?.ready||0]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><h3 className="font-semibold mt-5 mb-2">Live order queue</h3><div className="space-y-2">{(queue?.orders||[]).slice(0,12).map(o=><div className="flex justify-between border rounded-lg p-3" style={{borderColor:'var(--line)'}}><span>Order #{o.id} · {o.item_lines} item lines</span><b>{o.status}</b></div>)}</div></section><section className="card p-5"><h2 className="text-xl font-bold">Campus Food Waste Challenge</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Record cooked and leftover portions after each meal service.</p><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[['Cooked portions',waste?.totals?.cooked||0],['Leftover portions',waste?.totals?.leftover||0],['Waste logs',waste?.totals?.logs||0],['Waste rate',`${waste?.totals?.cooked?Math.round(100*waste.totals.leftover/waste.totals.cooked):0}%`]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><div className="grid md:grid-cols-2 gap-3 mt-4"><input className="input" placeholder="Meal name" value={form.meal_name} onChange={e=>setForm({...form,meal_name:e.target.value})}/><input className="input" type="number" min="1" placeholder="Cooked portions" value={form.cooked_portions} onChange={e=>setForm({...form,cooked_portions:e.target.value})}/><input className="input" type="number" min="0" placeholder="Leftover portions" value={form.leftover_portions} onChange={e=>setForm({...form,leftover_portions:e.target.value})}/><input className="input" placeholder="Notes (optional)" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/></div><button className="btn-primary rounded-lg px-3 py-2 mt-3" onClick={save}>Log food waste</button><h3 className="font-semibold mt-5">7-day waste trend</h3><div className="space-y-2 mt-2">{(waste?.days||[]).map(d=><div className="flex justify-between text-sm border-b py-2" style={{borderColor:'var(--line)'}}><span>{new Date(d.log_date).toLocaleDateString()}</span><span>{d.leftover} / {d.cooked} portions · {d.waste_percent||0}% waste</span></div>)}</div></section>{msg&&<div className="card p-3 text-sm">{msg}</div>}</div>
+}
+
 function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
   const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
@@ -8552,10 +8246,10 @@ function App() {
     } catch (e) { showError(e); }
   };
 
-  const cancelOrder = async (id, reason) => {
+  const cancelOrder = async (id) => {
     setBusy(true); setError(null); setSuccess(null);
     try {
-      const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH", body: reason ? { reason } : undefined });
+      const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
       await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
       setLoyaltyKey(k => k + 1); // spent points come back on cancel
       showSuccess(
@@ -8699,6 +8393,7 @@ function App() {
     { key: "menu", label: tx("nav.menu"), icon: I.menu },
     { key: "groupOrders", label: "Group orders", icon: I.ticket },
     { key: "track", label: tx("nav.track"), icon: I.clock },
+    { key: "campusHub", label: "Campus Hub", icon: I.dashboard },
     { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
     { key: "rewards", label: tx("nav.rewards"), icon: I.gift },
@@ -8710,6 +8405,7 @@ function App() {
   const teacherTabs = [...userTabs, { key: "riderTracking", label: "Rider Tracking", icon: I.ticket }];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
+    { key: "commandCenter", label: "Command Center", icon: I.chart },
     { key: "adminMenu", label: "Menu", icon: I.box },
     { key: "hallFood", label: "Hall Food", icon: I.calendar },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
@@ -8788,6 +8484,7 @@ function App() {
           <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
             onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} budget={budget} recurringDue={recurringDue} onDueAdd={addDue} onDueSkip={skipDue} onTopUp={goTopUp} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
         )}
+        {session.user.role !== "admin" && tab === "campusHub" && <CampusHub apiBase={apiBase} token={session.token} orders={orders} role={session.user.role} />}
         {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
         {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
         {session.user.role !== "admin" && tab === "track" && (
@@ -8812,6 +8509,7 @@ function App() {
             sessionToken={session.token} refreshKey={chatRefreshKey} />
         )}
 
+        {session.user.role === "admin" && tab === "commandCenter" && <CanteenCommandCenter apiBase={apiBase} token={session.token} orders={restaurantOrders} restaurantId={restaurant?.id} />}
         {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={restaurantOrders} />}
         {session.user.role === "admin" && tab === "adminMenu" && (
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
@@ -8829,7 +8527,6 @@ function App() {
         {session.user.role === "admin" && tab === "feedback" && (
           <>
             <ProblemReports apiBase={apiBase} token={session.token} refreshKey={issueTick} />
-            <RiderRatingsTable call={call} />
             <AdminFeedback summary={feedbackSummary} />
           </>
         )}
