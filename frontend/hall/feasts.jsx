@@ -47,7 +47,7 @@ function HallFeasts({ call, isAdmin, notify }) {
             {feasts.map((x) => {
               const dt = new Date(x.date + "T00:00:00Z");
               return (
-                <div key={x.id} className="hl-feast">
+                <div key={x.id} className={`hl-feast ${x.myRsvp === "going" ? "going" : ""}`}>
                   <div className="hl-feast-date">
                     <div className="d font-display">{dt.getUTCDate()}</div>
                     <div className="m">{dt.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" })}</div>
