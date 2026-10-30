@@ -5828,6 +5828,8 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                 </td>
                 <td className="p-3">
                   {(() => {
+
+      {showSos && <RiderEmergencyModal onClose={() => setShowSos(false)} />}
                     const a = item.availability || "available";
                     const stockNum = Number(item.stock);
                     const autoOut = a === "available" && stockNum <= 0;
