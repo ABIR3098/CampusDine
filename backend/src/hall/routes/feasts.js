@@ -79,4 +79,13 @@ router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   res.json({ feastId: feast.id, status });
 }));
 
+// DELETE /api/hall/feasts/:id/rsvp   — take my answer back
+router.delete("/feasts/:id/rsvp", catchAsync(async (req, res) => {
+  const feast = await getFeast(req.params.id, req.user.universityId || null);
+  if (!feast) return res.status(404).json({ error: "Feast not found" });
+  try { await assertRsvpOpen(feast); } catch (e) { if (!e.status) throw e; return res.status(e.status).json({ error: e.message }); }
+  await pool.query("DELETE FROM hall_feast_rsvps WHERE feast_id = ? AND user_id = ?", [feast.id, req.user.id]);
+  res.json({ ok: true });
+}));
+
 module.exports = router;
