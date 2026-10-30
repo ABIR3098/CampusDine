@@ -3698,6 +3698,67 @@ function RiderEmergencyModal({ onClose }) {
 // slides: [{ key, tag, title, text, cta?, onCta?, img?, tone? }]
 function PromoSlider({ slides }) {
   const [i, setI] = useState(0);
+              {/* Feature: Class-Break Quick Pre-Order Slots */}
+              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
+                <div className="text-xs font-700 flex items-center justify-between">
+                  <span>⏰ Class-Break Pickup Slots</span>
+                  <span className="text-[10px] opacity-70">Ready on break</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "11:15 AM (Break 1)", val: "11:15" },
+                    { label: "1:20 PM (Lunch)", val: "13:20" },
+                    { label: "3:45 PM (Break 2)", val: "15:45" },
+                    { label: "5:15 PM (Evening)", val: "17:15" }
+                  ].map(s => (
+                    <button key={s.val} type="button" onClick={() => { setScheduleLater(true); setPickupTime(s.val); }}
+                      className={`p-1.5 rounded-lg text-[11px] font-700 border text-left flex items-center gap-1 ${scheduleLater && pickupTime === s.val ? "btn-primary" : ""}`}
+                      style={scheduleLater && pickupTime === s.val ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+                      <span>🔔</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature: Bring Your Own Box (BYOB) Eco Discount */}
+              <label className="mb-3 p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer"
+                style={{ background: byob ? "rgba(22,163,74,0.08)" : "var(--panel)", borderColor: byob ? "var(--leaf)" : "var(--line)" }}>
+                <input type="checkbox" checked={byob} onChange={e => setByob(e.target.checked)} className="rounded accent-emerald-600" />
+                <div className="text-xs">
+                  <div className="font-700">🌱 Bring Your Own Box / Mug</div>
+                  <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>Reduce single-use plastic & get <strong>৳5 Eco-Discount</strong></div>
+                </div>
+              </label>
+
+              {/* Feature: Bill Splitter with Friends */}
+              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-700 flex items-center gap-1.5">
+                    <span>🍕</span> Split Bill with Friends
+                  </span>
+                  <input type="checkbox" checked={splitBill} onChange={e => setSplitBill(e.target.checked)} className="rounded accent-emerald-600" />
+                </label>
+                {splitBill && (
+                  <div className="pt-2 border-t space-y-2 text-xs" style={{ borderColor: "var(--line)" }}>
+                    <div className="flex items-center justify-between">
+                      <span>Total Split Among:</span>
+                      <div className="flex items-center gap-2">
+                        {[2, 3, 4].map(n => (
+                          <button key={n} type="button" onClick={() => setSplitCount(n)}
+                            className={`px-2.5 py-0.5 rounded font-700 border ${splitCount === n ? "btn-primary" : ""}`}
+                            style={splitCount === n ? {} : { borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                            {n} Friends
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-lg font-700 text-center" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                      ৳{Math.ceil(Math.max(0, total - (byob ? 5 : 0) + tip) / splitCount)} per person
+                    </div>
+                  </div>
+                )}
+              </div>
+
   const [paused, setPaused] = useState(false);
   const touchX = useRef(null);
   const n = slides.length;
