@@ -3774,6 +3774,23 @@ function PromoSlider({ slides }) {
   if (n === 0) return null;
   const go = (d) => setI(x => (x + d + n) % n);
   const tones = {
+
+      {/* Floating Lucky Reward Wheel/Scratch Trigger */}
+      <button type="button" onClick={() => setShowScratch(true)} className="floating-reward-btn">
+        <span>🎁</span>
+        <span>Daily Lucky Scratch</span>
+      </button>
+
+      {/* Modals for Smart Features */}
+      {showPlanner && (
+        <BudgetMealPlannerModal menu={menu} onAddToCart={add} onClose={() => setShowPlanner(false)} />
+      )}
+      {showScratch && (
+        <DailyScratchModal onClose={() => setShowScratch(false)} />
+      )}
+      {showBadges && (
+        <FoodieBadgesModal onClose={() => setShowBadges(false)} />
+      )}
     green: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)",
     warm: "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)",
     rose: "linear-gradient(135deg, #E11D48 0%, #881337 100%)",
