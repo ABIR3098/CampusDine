@@ -5779,7 +5779,7 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
           <input placeholder="Price ৳" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
           <div className="flex gap-2">
             <input placeholder="Stock" type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className="w-full px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
-            <button disabled={busy} onClick={submit} className="btn-gold px-3 rounded-lg"><Icon path={I.check} className="w-4 h-4" /></button>
+                    <div className="flex items-center gap-2 self-start flex-wrap">
           </div>
         </div>
       )}
