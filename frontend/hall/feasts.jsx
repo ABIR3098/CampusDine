@@ -61,6 +61,10 @@ function HallFeasts({ call, isAdmin, notify }) {
                       <span className="hl-chip">{HALL_SLOT_EMOJI[x.slot]} {HALL_SLOT_LABEL[x.slot]}</span>
                       {x.date === today && <span className="hl-chip warn">Today</span>}
                       <span className={`hl-chip ${x.extraPrice > 0 ? "plain" : "ok"}`}>{x.extraPrice > 0 ? `+${hallTaka(x.extraPrice)}` : "No extra charge"}</span>
+                      <span className="hl-chip plain">👥 {x.goingCount} going</span>
+                      {x.capacity != null && (x.goingCount >= x.capacity
+                        ? <span className="hl-chip warn">Full</span>
+                        : <span className="hl-chip ok">{x.capacity - x.goingCount} seat{x.capacity - x.goingCount === 1 ? "" : "s"} left</span>)}
                     </div>
                     <div className="text-sm mt-2">{x.items}</div>
                     <div className="flex gap-2 mt-3">
