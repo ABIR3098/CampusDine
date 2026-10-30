@@ -5786,6 +5786,13 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
 
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
+                      <button type="button" onClick={() => {
+                        const note = prompt("Enter Proof of Drop-off Note (e.g., Left at Faculty Room #204 with lab assistant):");
+                        if (note) setDeliveryProof(p => ({ ...p, [o.id]: { note, time: new Date().toLocaleTimeString() } }));
+                      }} className="px-3 py-1.5 rounded-xl border text-xs font-700 flex items-center gap-1"
+                        style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                        <span>📸</span> {deliveryProof[o.id] ? "Drop-off Verified" : "Drop-off Proof"}
+                      </button>
           <thead>
             <tr style={{ background: "var(--gold-soft)" }}>
               <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Item</th>
