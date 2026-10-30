@@ -3480,13 +3480,36 @@ function DailyScratchModal({ onClose }) {
   const [scratched, setScratched] = useState(() => !!savedData);
   const [reward, setReward] = useState(() => {
     if (savedData && savedData.reward) return savedData.reward;
-    const prizes = [
-      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
-      { text: "☕ Free Student Chai", code: "FREECHAI" },
-      { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
-      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
-    ];
-    return prizes[Math.floor(Math.random() * prizes.length)];
+        {/* Smart Campus Header & Live Busy-o-Meter */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          {userName && (() => {
+            const h = new Date().getHours();
+            const g = greetingFor(h);
+            return (
+              <div>
+                <div className="font-display font-800 text-xl" style={{ color: "var(--ink)" }}>{g.icon} {tx("greet." + g.key)}, {String(userName).split(" ")[0]}!</div>
+                <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("meal." + mealSlot(h).meal)}</div>
+              </div>
+            );
+          })()}
+          <div className="flex items-center gap-2">
+            <CanteenBusyOMeter />
+            <button type="button" onClick={() => setShowBadges(true)}
+              className="px-3 py-1.5 rounded-full border text-xs font-700 flex items-center gap-1.5"
+              style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+              <span>🏆</span> Badges
+            </button>
+          </div>
+        </div>
+
+        {/* Feature: Smart Budget Meal Planner Banner */}
+        <div className="mb-4 p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-3"
+          style={{ background: "linear-gradient(135deg, rgba(79,127,95,0.08), rgba(245,158,11,0.06))", borderColor: "var(--accent-border)" }}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🤖</span>
+            <div>
+              <div className="text-sm font-display font-800">Smart Budget Meal Planner</div>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Tight on budget? Let AI calculate the best food combos under your pocket limit!</p>
   });
 
   const handleScratch = () => {
