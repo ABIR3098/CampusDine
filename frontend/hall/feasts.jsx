@@ -2,7 +2,7 @@
 function HallFeasts({ call, isAdmin, notify }) {
   const [feasts, setFeasts] = useState(null);
   const [today, setToday] = useState("");
-  const [f, setF] = useState({ date: "", slot: "dinner", title: "", items: "", extraPrice: "" });
+  const [f, setF] = useState({ date: "", slot: "dinner", title: "", items: "", extraPrice: "", capacity: "" });
   const load = async () => {
     try {
       const [list, info] = await Promise.all([call("/api/hall/feasts"), call("/api/hall/info")]);
@@ -48,9 +48,9 @@ function HallFeasts({ call, isAdmin, notify }) {
 
   const add = async () => {
     try {
-      await call("/api/hall/feasts", { method: "POST", body: { ...f, extraPrice: Number(f.extraPrice || 0) } });
+      await call("/api/hall/feasts", { method: "POST", body: { ...f, extraPrice: Number(f.extraPrice || 0), capacity: f.capacity === "" ? null : Number(f.capacity) } });
       notify("Feast saved");
-      setF({ date: "", slot: "dinner", title: "", items: "", extraPrice: "" });
+      setF({ date: "", slot: "dinner", title: "", items: "", extraPrice: "", capacity: "" });
       await load();
     } catch (e) { notify(e, true); }
   };
@@ -133,10 +133,11 @@ function HallFeasts({ call, isAdmin, notify }) {
               </select></div>
             <div><label className="hl-label">Feast name</label><input className="hl-input" placeholder="e.g. Eid dinner" maxLength={80} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
             <div><label className="hl-label">Extra price (৳)</label><input type="number" min="0" className="hl-input" placeholder="0" value={f.extraPrice} onChange={(e) => setF({ ...f, extraPrice: e.target.value })} /></div>
+            <div><label className="hl-label">Seats (optional)</label><input type="number" min="1" className="hl-input" placeholder="No limit" value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value })} /></div>
             <div className="sm:col-span-2"><label className="hl-label">What is served</label><input className="hl-input" placeholder="e.g. Polao, Beef roast, Firni" maxLength={255} value={f.items} onChange={(e) => setF({ ...f, items: e.target.value })} /></div>
           </div>
           <button className="hl-btn mt-4" disabled={!f.date || !f.title || !f.items} onClick={add}>Save feast</button>
-          <p className="text-xs mt-3 hl-muted">A feast on a date + meal that already has one replaces it. It can't be added once that meal has closed.</p>
+          <p className="text-xs mt-3 hl-muted">A feast on a date + meal that already has one replaces it. It can't be added once that meal has closed. Leave Seats empty for no limit.</p>
         </HallCard>
       )}
     </>
