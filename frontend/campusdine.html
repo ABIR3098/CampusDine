@@ -2097,6 +2097,11 @@ const THEME_ACCENTS = [
 ];
 function readTheme() {
   try {
+  const [seconds, setSeconds] = useState(() => new Date().getSeconds());
+  useEffect(() => {
+    const t = setInterval(() => setSeconds(new Date().getSeconds()), 1000);
+    return () => clearInterval(t);
+  }, []);
     const t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
     return {
       mode: ["light", "dark", "auto"].includes(t.mode) ? t.mode : "light",
