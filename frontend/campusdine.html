@@ -558,6 +558,39 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-pill-react.mine{border-color:var(--gold);background:var(--gold-soft)}
 .chat-pill-react b{font-size:11px;font-weight:600;color:var(--ink-soft)}
 
+/*chat-ui15*/
+.chat-bc-open{display:block;width:100%;margin-top:10px;padding:8px 12px;border-radius:999px;background:var(--gold-soft);color:var(--gold);font-size:13px;font-weight:600;text-align:center;transition:background .15s,color .15s}
+.chat-bc-open:hover{background:var(--gold);color:#fff}
+.chat-bc-tag{display:inline-block;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--gold)}
+.chat-bubble.mine .chat-bc-tag{color:#fff;opacity:.92}
+.chat-bc-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;animation:chatIn .15s ease}
+.chat-bc-modal{width:min(560px,100%);max-height:calc(100vh - 32px);overflow-y:auto;background:var(--panel);color:var(--ink);border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.chat-bc-head{display:flex;align-items:center;justify-content:space-between}
+.chat-bc-head h3{font-size:17px;font-weight:700;margin:0}
+.chat-bc-head button{width:30px;height:30px;border-radius:999px;color:var(--ink-soft)}
+.chat-bc-head button:hover{background:var(--hover)}
+.chat-bc-sub{font-size:12.5px;color:var(--ink-soft);margin:4px 0 12px}
+.chat-bc-audience{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chat-bc-audience button{padding:7px 14px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--ink);transition:all .15s}
+.chat-bc-audience button b{margin-left:6px;font-size:12px;color:var(--ink-soft)}
+.chat-bc-audience button.on{border-color:var(--gold);background:var(--gold-soft);color:var(--gold)}
+.chat-bc-audience button.on b{color:var(--gold)}
+.chat-bc-templates{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}
+.chat-bc-templates button{flex-shrink:0;padding:5px 11px;border-radius:999px;border:1px dashed var(--line);font-size:12px;color:var(--ink-soft);white-space:nowrap}
+.chat-bc-templates button:hover{border-color:var(--gold);color:var(--gold);border-style:solid}
+.chat-bc-modal textarea{width:100%;min-height:96px;resize:vertical;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--input-bg);color:var(--ink);font-size:14px;outline:none}
+.chat-bc-modal textarea:focus{border-color:var(--gold)}
+.chat-bc-foot{display:flex;align-items:center;gap:10px;margin-top:10px}
+.chat-bc-foot small{color:var(--ink-soft);font-size:12px}
+.chat-bc-note{flex:1;font-size:13px;font-weight:600;color:#16a34a}
+.chat-bc-note.err{color:var(--brick)}
+.chat-bc-send{padding:9px 18px;border-radius:999px;background:var(--gold);color:#fff;font-size:13px;font-weight:700;transition:opacity .15s}
+.chat-bc-send:disabled{background:var(--disabled-bg);color:var(--disabled-fg);cursor:not-allowed}
+.chat-bc-history{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
+.chat-bc-history h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:0 0 6px}
+.chat-bc-history div{padding:6px 0;font-size:13px}
+.chat-bc-history small{display:block;color:var(--ink-soft);font-size:11.5px}
+
 </style>
 </head>
 <body>
@@ -6516,6 +6549,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [matchPos, setMatchPos] = useState(0);
   const searchRef = useRef(null);
   const [reactFor, setReactFor] = useState(null);
+  const [bcOpen, setBcOpen] = useState(false);
+  const [bcAudience, setBcAudience] = useState("students");
+  const [bcText, setBcText] = useState("");
+  const [bcBusy, setBcBusy] = useState(false);
+  const [bcCounts, setBcCounts] = useState({ students: 0, teachers: 0 });
+  const [bcHistory, setBcHistory] = useState([]);
+  const [bcNote, setBcNote] = useState(null);
   const fileRef = useRef(null);
   const [onlineIds, setOnlineIds] = useState([]);
   const [adminOnline, setAdminOnline] = useState(null);
@@ -6770,6 +6810,34 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const stepMatch = (dir) => { if (matchIds.length) setMatchPos(p => (Math.min(p, matchIds.length - 1) + dir + matchIds.length) % matchIds.length); };
   const closeSearch = () => { setSearchOpen(false); setQuery(""); };
   const toggleSearch = () => { if (searchOpen) closeSearch(); else { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 30); } };
+  // ---- admin announcements (broadcast to many chats at once) ----
+  const bcCount = (k) => (k === "all" ? bcCounts.students + bcCounts.teachers : (bcCounts[k] || 0));
+  const loadBroadcastInfo = async () => {
+    try {
+      const [a, h] = await Promise.all([chatCall("/api/chat/broadcast/audience"), chatCall("/api/chat/broadcast/history")]);
+      setBcCounts({ students: a.students || 0, teachers: a.teachers || 0 });
+      setBcHistory(h.broadcasts || []);
+    } catch (e) { setBcNote({ err: true, text: e.message }); }
+  };
+  const openBroadcast = () => { setBcOpen(true); setBcNote(null); loadBroadcastInfo(); };
+  const sendBroadcast = async () => {
+    const text = bcText.trim(), n = bcCount(bcAudience);
+    if (!text || !n || bcBusy) return;
+    if (!window.confirm(`Send this announcement to ${n} people? It cannot be recalled.`)) return;
+    setBcBusy(true); setBcNote(null);
+    try {
+      const r = await chatCall("/api/chat/broadcast", { method: "POST", body: { message: text, audience: bcAudience } });
+      setBcText(""); setBcNote({ err: false, text: `Sent to ${r.recipients} people ✓` });
+      loadBroadcastInfo(); refreshConversations().catch(() => {});
+    } catch (e) { setBcNote({ err: true, text: e.message }); }
+    finally { setBcBusy(false); }
+  };
+  useEffect(() => {
+    if (!bcOpen) return;
+    const onEsc = (e) => { if (e.key === "Escape" && !bcBusy) setBcOpen(false); };
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [bcOpen, bcBusy]);
   // ---- reactions (one per person per message; tap the same emoji again to remove it) ----
   const REACTION_SET = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
   useEffect(() => {
@@ -6904,6 +6972,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
         )}
         {mine && !m.pending && !m.deleted_at && reactControl(m, "mine")}
         <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""} ${!m.deleted_at && m.reactions && m.reactions.length ? "has-react" : ""}`}>
+          {m.broadcast_id && !m.deleted_at && <div className="chat-bc-tag">📢 Announcement</div>}
           {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
           {m.reply_to_id && !m.deleted_at && (
             <button type="button" className="chat-quote" onClick={() => jumpToMessage(m.reply_to_id)}>
@@ -6955,6 +7024,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
               <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
             </div>
+            <button type="button" className="chat-bc-open" onClick={openBroadcast}>📢 Send announcement</button>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
           </div>
           <div className="chat-inbox-list">
@@ -7101,6 +7171,46 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           </button>
         </form>
       </div>
+      {bcOpen && isAdmin && (
+        <div className="chat-bc-overlay" onClick={() => { if (!bcBusy) setBcOpen(false); }}>
+          <div className="chat-bc-modal" role="dialog" aria-label="Send announcement" onClick={e => e.stopPropagation()}>
+            <div className="chat-bc-head">
+              <h3>📢 Send announcement</h3>
+              <button type="button" aria-label="Close" onClick={() => { if (!bcBusy) setBcOpen(false); }}>✕</button>
+            </div>
+            <p className="chat-bc-sub">It lands in each person's chat as a message from you. They can reply.</p>
+            <div className="chat-bc-audience">
+              {[["students", "All students"], ["teachers", "All teachers"], ["all", "Students + teachers"]].map(([k, label]) => (
+                <button key={k} type="button" className={bcAudience === k ? "on" : ""} onClick={() => setBcAudience(k)}>{label}<b>{bcCount(k)}</b></button>
+              ))}
+            </div>
+            <div className="chat-bc-templates">
+              {["The canteen is closed today.", "Today's special is ready. Come and try it!", "The menu has been updated. Check out the new items.", "The canteen will open late today."].map(t => (
+                <button key={t} type="button" onClick={() => setBcText(t)}>{t}</button>
+              ))}
+            </div>
+            <textarea value={bcText} maxLength={1000} placeholder="Write your announcement…" onChange={e => setBcText(e.target.value)} />
+            <div className="chat-bc-foot">
+              <small>{bcText.length}/1000</small>
+              <span className={`chat-bc-note ${bcNote && bcNote.err ? "err" : ""}`}>{bcNote ? bcNote.text : ""}</span>
+              <button type="button" className="chat-bc-send" disabled={!bcText.trim() || bcBusy || !bcCount(bcAudience)} onClick={sendBroadcast}>
+                {bcBusy ? "Sending…" : `Send to ${bcCount(bcAudience)} people`}
+              </button>
+            </div>
+            {bcHistory.length > 0 && (
+              <div className="chat-bc-history">
+                <h4>Recent announcements</h4>
+                {bcHistory.map(h => (
+                  <div key={h.id}>
+                    <span>{h.message}</span>
+                    <small>{h.audience === "students" ? "Students" : h.audience === "teachers" ? "Teachers" : "Students + teachers"} · {h.recipient_count} people · {agoText(h.ago)}</small>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {lightbox && (
         <div className="chat-lightbox" onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="Photo" />
