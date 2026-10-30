@@ -44,7 +44,7 @@ async function assertOpen(date, slot, universityId = null) {
 
 // POST /api/hall/feasts (admin) body: { date, slot, title, items, extraPrice } — adds, or replaces the feast of that date + meal
 router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
-  const { date, slot, title, items, extraPrice } = req.body || {};
+  const { date, slot, title, items, extraPrice, capacity: rawCapacity } = req.body || {};
   if (!isDateKey(date)) return res.status(400).json({ error: "Date must look like 2026-10-24" });
   if (!SLOTS.includes(slot)) return res.status(400).json({ error: "Choose breakfast, lunch or dinner" });
   const t = String(title || "").trim(), it = String(items || "").trim();
@@ -52,11 +52,21 @@ router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
   if (!it || it.length > 255) return res.status(400).json({ error: "Write what is served (up to 255 characters)" });
   const extra = Number(extraPrice || 0);
   if (!(extra >= 0 && extra <= 10000)) return res.status(400).json({ error: "Extra price must be between 0 and 10000" });
+  let capacity = null; // empty = no seat limit
+  if (rawCapacity !== undefined && rawCapacity !== null && rawCapacity !== "") {
+    capacity = Number(rawCapacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 5000) return res.status(400).json({ error: "Seats must be a whole number from 1 to 5000 (leave empty for no limit)" });
+  }
   try { await assertOpen(date, slot, req.user.universityId); } catch (e) { return res.status(e.status).json({ error: e.message }); }
 
   const [existing] = await pool.query('SELECT id FROM hall_feasts WHERE the_date=? AND slot=? AND university_id <=> ? LIMIT 1',[date,slot,req.user.universityId||null]);
-  if (existing.length) await pool.query('UPDATE hall_feasts SET title=?,items=?,extra_price=? WHERE id=?',[t,it,extra,existing[0].id]);
-  else await pool.query('INSERT INTO hall_feasts (the_date,slot,title,items,extra_price,university_id) VALUES (?,?,?,?,?,?)',[date,slot,t,it,extra,req.user.universityId||null]);
+  if (existing.length) {
+    if (capacity != null) {
+      const [[{ n }]] = await pool.query("SELECT COUNT(*) AS n FROM hall_feast_rsvps WHERE feast_id = ? AND status = 'going'", [existing[0].id]);
+      if (n > capacity) return res.status(409).json({ error: `${n} students are already going, so seats can't be fewer than that` });
+    }
+    await pool.query('UPDATE hall_feasts SET title=?,items=?,extra_price=?,capacity=? WHERE id=?',[t,it,extra,capacity,existing[0].id]);
+  } else await pool.query('INSERT INTO hall_feasts (the_date,slot,title,items,extra_price,capacity,university_id) VALUES (?,?,?,?,?,?,?)',[date,slot,t,it,extra,capacity,req.user.universityId||null]);
   const [[row]] = await pool.query(`${SELECT} WHERE the_date = ? AND slot = ? AND (? IS NULL OR university_id=?)`, [date, slot, req.user.universityId || null, req.user.universityId || null]);
   const summary = await rsvpSummary([row.id], req.user.id);
   res.status(201).json(shape(row, summary[row.id]));
