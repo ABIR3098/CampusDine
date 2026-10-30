@@ -85,11 +85,11 @@ router.get("/riders/shifts", verifyToken, requireRole("teacher", "admin"), catch
 
 router.get("/riders/assignable-orders", verifyToken, requireRole("teacher", "admin"), catchAsync(async (_req, res) => {
   const [orders] = await pool.query(`
-    SELECT id, token, status, created_at, rider_id, rider_assignment_status
-    FROM orders
-    WHERE status IN ('Received', 'Cooking', 'Ready')
-      AND (rider_id IS NULL OR rider_assignment_status = 'Assigned')
-    ORDER BY created_at ASC LIMIT 200
+    SELECT o.id, o.token, o.status, o.created_at, o.rider_id, o.rider_assignment_status
+    FROM orders o JOIN users u ON u.id = o.user_id
+    WHERE u.role = 'teacher' AND o.status IN ('Received', 'Cooking', 'Ready')
+      AND (o.rider_id IS NULL OR o.rider_assignment_status = 'Assigned')
+    ORDER BY o.created_at ASC LIMIT 200
   `);
   res.json(orders);
 }));
@@ -105,12 +105,16 @@ router.post("/orders/:id/assign-rider", verifyToken, requireRole("teacher", "adm
   try {
     await connection.beginTransaction();
     const [[order]] = await connection.query(
-      "SELECT id, status, rider_id, rider_assignment_status FROM orders WHERE id = ? FOR UPDATE",
+      "SELECT o.id, o.status, o.rider_id, o.rider_assignment_status, u.role AS customer_role FROM orders o JOIN users u ON u.id = o.user_id WHERE o.id = ? FOR UPDATE",
       [orderId]
     );
     if (!order) {
       await connection.rollback();
       return res.status(404).json({ error: "Order not found" });
+    }
+    if (order.customer_role !== "teacher") {
+      await connection.rollback();
+      return res.status(403).json({ error: "Rider delivery is only available for teacher orders" });
     }
     if (!["Received", "Cooking", "Ready"].includes(order.status)
       || (order.rider_id != null && order.rider_assignment_status !== "Assigned")) {

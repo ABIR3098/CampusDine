@@ -41,6 +41,7 @@ const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
 const hall = require("./src/hall"); // Hall (meal system)
 const hallAdminRoutes = require("./src/routes/hallAdmin");
+const campusFeatureRoutes = require("./src/routes/campusFeatures");
 const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
 const { ensureHallAdvancedSchema } = require("./src/hall/advancedSchema");
 
@@ -692,8 +693,8 @@ const corsOptions = corsOriginSetting.trim() === "*"
   ? { origin: true }
   : { origin: corsOriginSetting.split(",").map((o) => o.trim()) };
 
-app.use(cors({ ...corsOptions, exposedHeaders: ["X-Total-Count"] })); // X-Total-Count: order list paging
-app.use(express.json({ limit: "2mb" })); // profile pictures arrive as small base64 images
+app.use(cors({ ...corsOptions, exposedHeaders: ["X-Total-Count"] }));
+app.use(express.json({ limit: "4mb" })); // profile pictures arrive as small base64 images
 
 const io = new Server(server, { cors: corsOptions });
 app.set("io", io);
@@ -729,6 +730,7 @@ io.on("connection", (socket) => {
   });
   socket.join(`user:${socket.user.id}`);
   if (socket.user.role === "admin") socket.join("admins");
+  if (socket.user.role === "hall_admin") socket.join("hall_admins");
   if (socket.user.role === "teacher") socket.join("teachers");
   if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
 });
@@ -753,6 +755,7 @@ app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
 app.use("/api/hall", hall.router);
 app.use("/api/hall-admin", hallAdminRoutes);
+app.use("/api/campus", campusFeatureRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
