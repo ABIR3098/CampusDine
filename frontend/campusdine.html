@@ -381,6 +381,97 @@
     box-shadow: 0 10px 24px -2px var(--accent-glow);
   }
 
+  /* ---- Innovative Smart Campus Dining Features CSS ---- */
+  /* Anti-fraud live laser scan on QR */
+  .qr-laser-wrap {
+    position: relative; overflow: hidden; display: inline-block;
+    border-radius: 14px; padding: 6px; background: #fff;
+    border: 2px solid var(--accent-border); box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .qr-laser-beam {
+    position: absolute; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #22c55e, #16a34a, transparent);
+    box-shadow: 0 0 10px #22c55e;
+    animation: qrScan 2.2s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 2;
+  }
+  @keyframes qrScan { 0% { top: 6px; } 100% { top: calc(100% - 22px); } }
+
+  /* Busy-o-Meter Styles */
+  .busy-meter-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 700;
+  }
+  .busy-low { background: rgba(34, 197, 94, 0.12); color: #15803d; border: 1px solid rgba(34, 197, 94, 0.3); }
+  .busy-mod { background: rgba(245, 158, 11, 0.14); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.35); }
+  .busy-peak { background: rgba(239, 68, 68, 0.14); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+  /* Scratch Card Box */
+  .scratch-card-box {
+    background: linear-gradient(135deg, var(--gold-soft), var(--panel));
+    border: 2px dashed var(--gold);
+    border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .scratch-card-box:hover { transform: scale(1.02); box-shadow: 0 10px 25px var(--accent-glow); }
+  .scratch-cover {
+    background: linear-gradient(135deg, #334155, #1e293b);
+    color: #fff;
+    border-radius: 14px;
+    padding: 28px 16px;
+    font-weight: 800;
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.1);
+  }
+
+  /* Foodie Badges */
+  .badge-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 14px;
+    border: 1.5px solid var(--line);
+    background: var(--panel);
+    transition: all .2s ease;
+  }
+  .badge-chip.unlocked {
+    border-color: var(--gold);
+    background: var(--gold-soft);
+  }
+  .badge-chip.locked { opacity: 0.45; filter: grayscale(1); }
+
+  /* Emergency SOS Pulse */
+  @keyframes sosPulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
+    70% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+  }
+  .btn-sos {
+    background: #dc2626; color: #fff;
+    animation: sosPulse 1.8s infinite;
+    font-weight: 800; font-size: 13px;
+    padding: 8px 16px; border-radius: 12px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    border: none; transition: transform .15s ease;
+  }
+  .btn-sos:hover { transform: scale(1.05); }
+
+  /* Floating Reward Button */
+  .floating-reward-btn {
+    position: fixed; right: 20px; bottom: 85px; z-index: 40;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff; font-weight: 800; font-size: 13px;
+    padding: 10px 18px; border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(217,119,6,0.35);
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; border: 2px solid #fff;
+    transition: all .22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .floating-reward-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 28px rgba(217,119,6,0.5); }
+  @media (max-width: 640px) { .floating-reward-btn { bottom: 70px; right: 14px; padding: 8px 14px; font-size: 11.5px; } }
+
   /* ---- Innovative Rider Dashboard & Real-time Styles ---- */
   .rider-metric-card {
     background: var(--panel);
