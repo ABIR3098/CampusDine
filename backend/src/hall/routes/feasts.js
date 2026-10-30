@@ -8,7 +8,7 @@ const { parseRsvpStatus, hasSeat } = require("../feastRsvp");
 const router = express.Router();
 
 const shape = (r, x = {}) => ({ id: r.id, date: r.d, slot: r.slot, title: r.title, items: r.items, extraPrice: r.extra_price,
-  capacity: r.capacity ?? null, goingCount: x.goingCount ?? 0, myRsvp: x.myRsvp ?? null });
+  capacity: r.capacity ?? null, goingCount: x.goingCount ?? 0, myRsvp: x.myRsvp ?? null, rsvpOpen: x.rsvpOpen ?? true });
 const SELECT = "SELECT id, DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, items, extra_price, capacity FROM hall_feasts";
 
 // going count + my own answer for a list of feast ids -> { [feastId]: { goingCount, myRsvp } }
@@ -31,7 +31,9 @@ router.get("/feasts", catchAsync(async (req, res) => {
   if (!isDateKey(from) || !isDateKey(to) || to < from) return res.status(400).json({ error: "from / to must be dates like 2026-10-22" });
   const [rows] = await pool.query(`${SELECT} WHERE the_date >= ? AND the_date <= ? AND (? IS NULL OR university_id=?) ORDER BY the_date, FIELD(slot, 'breakfast', 'lunch', 'dinner')`, [from, to, req.user.universityId || null, req.user.universityId || null]);
   const summary = await rsvpSummary(rows.map((r) => r.id), req.user.id);
-  res.json(rows.map((r) => shape(r, summary[r.id])));
+  const [slotRows] = await pool.query("SELECT * FROM hall_slots");
+  const slotOf = Object.fromEntries(slotRows.map((s) => [s.slot, s]));
+  res.json(rows.map((r) => shape(r, { ...summary[r.id], rsvpOpen: !isLocked(slotOf[r.slot], r.d) })));
 }));
 
 // the slot must still be open — once a meal is locked its price can't change under people
