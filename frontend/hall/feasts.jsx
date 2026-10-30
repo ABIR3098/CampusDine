@@ -11,6 +11,18 @@ function HallFeasts({ call, isAdmin, notify }) {
   };
   useEffect(() => { load(); }, []);
 
+  // Going / Not going for one feast
+  const [busy, setBusy] = useState(null);
+  const rsvp = async (id, status) => {
+    setBusy(id);
+    try {
+      await call(`/api/hall/feasts/${id}/rsvp`, { method: "POST", body: { status } });
+      notify(status === "going" ? "See you at the feast!" : "Marked as not going");
+      await load();
+    } catch (e) { notify(e, true); }
+    setBusy(null);
+  };
+
   const add = async () => {
     try {
       await call("/api/hall/feasts", { method: "POST", body: { ...f, extraPrice: Number(f.extraPrice || 0) } });
@@ -51,6 +63,10 @@ function HallFeasts({ call, isAdmin, notify }) {
                       <span className={`hl-chip ${x.extraPrice > 0 ? "plain" : "ok"}`}>{x.extraPrice > 0 ? `+${hallTaka(x.extraPrice)}` : "No extra charge"}</span>
                     </div>
                     <div className="text-sm mt-2">{x.items}</div>
+                    <div className="flex gap-2 mt-3">
+                      <button className={`hl-btn sm ${x.myRsvp === "going" ? "" : "ghost"}`} disabled={busy === x.id} onClick={() => rsvp(x.id, "going")}>✅ Going</button>
+                      <button className={`hl-btn sm ${x.myRsvp === "not_going" ? "" : "ghost"}`} disabled={busy === x.id} onClick={() => rsvp(x.id, "not_going")}>🚫 Not going</button>
+                    </div>
                   </div>
                 </div>
               );
