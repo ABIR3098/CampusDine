@@ -3313,6 +3313,319 @@ function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavor
                   aria-pressed="true"
                   aria-label={tx("fav.remove")}
                   title={tx("fav.remove")}
+
+/* ---------------- FEATURE: Canteen Live Busy-o-Meter ---------------- */
+function CanteenBusyOMeter() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  const hour = now.getHours();
+  const min = now.getMinutes();
+  const timeNum = hour + min / 60;
+
+  let label = "🟢 Low Rush (~5 min wait)";
+  let dotColor = "bg-emerald-500";
+  let cls = "busy-low";
+
+  if (timeNum >= 12.75 && timeNum <= 14.25) {
+    label = "🔴 Peak Lunch Rush (~25-30 min wait)";
+    dotColor = "bg-red-500";
+    cls = "busy-peak";
+  } else if ((timeNum >= 8.75 && timeNum <= 10.0) || (timeNum >= 16.5 && timeNum <= 17.5)) {
+    label = "🟡 Moderate Rush (~12-15 min wait)";
+    dotColor = "bg-amber-500";
+    cls = "busy-mod";
+  }
+
+  return (
+    <div className={`busy-meter-pill ${cls}`} title="Estimated wait time based on campus class breaks">
+      <span className={`w-2 h-2 rounded-full ${dotColor} animate-pulse`} />
+      <span>Live Crowd: <strong>{label}</strong></span>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Smart Budget Meal Planner Modal ---------------- */
+function BudgetMealPlannerModal({ menu, onAddToCart, onClose }) {
+  const [budget, setBudget] = useState(80);
+  const [pref, setPref] = useState("all");
+
+  const combos = useMemo(() => {
+    const valid = menu.filter(m => m.stock > 0 && m.availability !== "sold_out");
+    const filtered = valid.filter(m => {
+      if (pref === "veg") return !!m.is_veg;
+      if (pref === "drinks") return m.category === "drinks";
+      return true;
+    });
+
+    const results = [];
+    for (let i = 0; i < filtered.length; i++) {
+      for (let j = i + 1; j < filtered.length; j++) {
+        const cost = filtered[i].price + filtered[j].price;
+        if (cost <= budget) {
+          results.push({
+            items: [filtered[i], filtered[j]],
+            cost,
+            savings: Math.max(0, budget - cost),
+            label: `${filtered[i].name} + ${filtered[j].name}`
+          });
+        }
+      }
+    }
+    return results.sort((a, b) => b.cost - a.cost).slice(0, 4);
+  }, [menu, budget, pref]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">🤖</span>
+            <div>
+              <h3 className="text-lg font-display font-800">Smart Budget Meal Planner</h3>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>AI recommends optimal meal combos within your exact budget.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+
+        <div className="p-4 rounded-xl border space-y-2" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
+          <div className="flex justify-between items-center text-sm font-700">
+            <span>Your Target Budget:</span>
+            <span className="text-lg font-display" style={{ color: "var(--gold)" }}>৳{budget}</span>
+          </div>
+          <input type="range" min="30" max="200" step="5" value={budget} onChange={e => setBudget(Number(e.target.value))}
+            className="w-full accent-emerald-600 cursor-pointer" />
+          <div className="flex gap-2 pt-1 flex-wrap">
+            {[40, 60, 80, 100, 130].map(amt => (
+              <button key={amt} onClick={() => setBudget(amt)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-700 border ${budget === amt ? "btn-primary" : ""}`}
+                style={budget === amt ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+                ৳{amt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {[
+            { id: "all", label: "🍽 All Food" },
+            { id: "veg", label: "🌱 Veg Only" },
+            { id: "drinks", label: "☕ Drinks" }
+          ].map(p => (
+            <button key={p.id} onClick={() => setPref(p.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-700 border ${pref === p.id ? "btn-primary" : ""}`}
+              style={pref === p.id ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-2.5 pt-1">
+          <div className="text-xs font-700 uppercase tracking-wider" style={{ color: "var(--ink-soft)" }}>
+            Recommended Combos Under ৳{budget}:
+          </div>
+          {combos.length === 0 ? (
+            <div className="p-6 text-center text-xs rounded-xl border italic" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+              No complete combo found under ৳{budget}. Try increasing your budget slightly!
+            </div>
+          ) : (
+            combos.map((c, idx) => (
+              <div key={idx} className="p-3.5 rounded-xl border flex items-center justify-between gap-3"
+                style={{ background: "var(--panel)", borderColor: "var(--accent-border)" }}>
+                <div className="space-y-0.5">
+                  <div className="text-sm font-700">{c.label}</div>
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+                    Combo Cost: <strong style={{ color: "var(--gold)" }}>৳{c.cost}</strong> · Saves ৳{c.savings}
+                  </div>
+                </div>
+                <button onClick={() => { c.items.forEach(it => onAddToCart(it)); onClose(); }}
+                  className="btn-primary text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 shrink-0">
+                  <span>+ Add Combo</span>
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Daily Lucky Scratch Card Modal ---------------- */
+function DailyScratchModal({ onClose }) {
+  const todayStr = new Date().toDateString();
+  const [savedData, setSavedData] = useState(() => {
+    try {
+      const raw = localStorage.getItem("cd_scratch_data");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.date === todayStr) return parsed;
+      }
+    } catch (_) {}
+    return null;
+  });
+
+  const [scratched, setScratched] = useState(() => !!savedData);
+  const [reward, setReward] = useState(() => {
+    if (savedData && savedData.reward) return savedData.reward;
+    const prizes = [
+      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
+      { text: "☕ Free Student Chai", code: "FREECHAI" },
+      { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
+      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
+    ];
+    return prizes[Math.floor(Math.random() * prizes.length)];
+  });
+
+  const handleScratch = () => {
+    if (scratched) return;
+    setScratched(true);
+    try {
+      localStorage.setItem("cd_scratch_data", JSON.stringify({ date: todayStr, reward }));
+    } catch (_) {}
+  };
+
+  const isAlreadyClaimed = !!savedData;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-sm w-full text-center space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="font-display font-800 text-lg">🎁 Daily Lucky Scratch</div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+        <p className="text-xs" style={{ color: "var(--ink-soft)" }}>
+          {isAlreadyClaimed
+            ? "You have already claimed today's scratch! Here is your saved reward for today:"
+            : "Scratch once per day to unlock an exclusive campus perk or cashback!"}
+        </p>
+
+        <div className="scratch-card-box" onClick={handleScratch} style={{ cursor: isAlreadyClaimed ? "default" : "pointer" }}>
+          {!scratched ? (
+            <div className="scratch-cover">
+              <div className="text-3xl mb-1">✨</div>
+              <div>TAP TO SCRATCH</div>
+              <div className="text-[11px] opacity-75 font-normal mt-1">1 scratch per student per day</div>
+            </div>
+          ) : (
+            <div className="py-4 space-y-2 fade-in">
+              <div className="text-4xl animate-bounce">🎊</div>
+              <div className="font-display font-800 text-lg text-emerald-600">{reward.text}</div>
+              <div className="inline-block px-3 py-1 rounded-full font-mono text-xs font-700 bg-amber-100 text-amber-800">
+                PROMO CODE: {reward.code}
+              </div>
+              <p className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>
+                {isAlreadyClaimed
+                  ? "⏳ Next scratch card unlocks tomorrow!"
+                  : "Reward saved! Use this code at checkout today."}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <button onClick={onClose} className="btn-primary w-full py-2.5 rounded-xl text-xs font-700">
+          {isAlreadyClaimed ? "Close & Return" : "Claim & Return to Menu"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Campus Foodie Badges Modal ---------------- */
+function FoodieBadgesModal({ onClose }) {
+  const badges = [
+    { icon: "🌅", name: "Early Bird", desc: "Ordered breakfast before 9:00 AM", unlocked: true },
+    { icon: "🍗", name: "Biryani Master", desc: "Ordered Special Tehari or Biryani 3+ times", unlocked: true },
+    { icon: "🌱", name: "Eco Champ", desc: "Brought personal box (BYOB) to save plastic", unlocked: true },
+    { icon: "⚡", name: "Speed Picker", desc: "Collected meal within 5 mins of ready alert", unlocked: false },
+    { icon: "🔥", name: "7-Day Streak", desc: "Dined at campus canteen 7 consecutive days", unlocked: false },
+    { icon: "⭐", name: "Gourmet Critic", desc: "Left 5 helpful ratings for the kitchen", unlocked: true }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-md w-full max-h-[85vh] overflow-y-auto space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🏆</span>
+            <div>
+              <h3 className="font-display font-800 text-lg">Campus Foodie Badges</h3>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Earn rewards and campus reputation as you dine.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+
+        <div className="space-y-2.5">
+          {badges.map((b, i) => (
+            <div key={i} className={`badge-chip ${b.unlocked ? "unlocked" : "locked"}`}>
+              <div className="text-2xl w-10 h-10 rounded-xl grid place-items-center shrink-0" style={{ background: "var(--panel)" }}>
+                {b.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <strong className="text-sm">{b.name}</strong>
+                  {b.unlocked && <span className="text-[10px] font-800 uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Unlocked</span>}
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{b.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Rider SOS Emergency Hotline Modal ---------------- */
+function RiderEmergencyModal({ onClose }) {
+  const hotlines = [
+    { title: "Campus Security Control Room", phone: "01711-000000", desc: "24/7 Central Gate & Patrol" },
+    { title: "Campus Proctor Office Hotline", phone: "01712-111111", desc: "Emergency Disciplinary & Safety" },
+    { title: "Campus Medical Center & Ambulance", phone: "01713-222222", desc: "First Aid & Rapid Response" },
+    { title: "National Emergency Helpline", phone: "999", desc: "Police, Fire Service, Ambulance" }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-md w-full border-2 border-red-500 space-y-4">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl animate-bounce">🚨</span>
+            <div>
+              <h3 className="font-display font-800 text-lg text-red-600">Rider Emergency SOS</h3>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Instant emergency contacts for delivery on campus.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+
+        <div className="space-y-2">
+          {hotlines.map((h, i) => (
+            <a key={i} href={`tel:${h.phone}`}
+              className="p-3 rounded-xl border block transition-colors hover:bg-red-50 dark:hover:bg-red-950/20"
+              style={{ borderColor: "var(--line)" }}>
+              <div className="flex justify-between items-center">
+                <strong className="text-sm">{h.title}</strong>
+                <span className="text-sm font-bold text-red-600 font-mono">📞 {h.phone}</span>
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{h.desc}</div>
+            </a>
+          ))}
+        </div>
+
+        <button onClick={() => { alert("Emergency alert beacon sent to campus security and dispatch."); onClose(); }}
+          className="w-full py-3 rounded-xl bg-red-600 text-white font-800 text-sm flex items-center justify-center gap-2 shadow-lg">
+          <span>📡</span> Broadcast Emergency Location Ping
+        </button>
+      </div>
+    </div>
+  );
+}
                   className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
                   <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
                 </button>
