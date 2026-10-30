@@ -13,6 +13,12 @@ function HallFeasts({ call, isAdmin, notify }) {
 
   // Going / Not going for one feast
   const [busy, setBusy] = useState(null);
+  const clearRsvp = async (id) => {
+    setBusy(id);
+    try { await call(`/api/hall/feasts/${id}/rsvp`, { method: "DELETE" }); notify("Answer removed"); await load(); }
+    catch (e) { notify(e, true); }
+    setBusy(null);
+  };
   const rsvp = async (id, status) => {
     setBusy(id);
     try {
@@ -73,6 +79,7 @@ function HallFeasts({ call, isAdmin, notify }) {
                     <div className="flex gap-2 mt-3">
                       <button className={`hl-btn sm ${x.myRsvp === "going" ? "" : "ghost"}`} disabled={busy === x.id || !x.rsvpOpen || isFull(x)} onClick={() => rsvp(x.id, "going")}>✅ Going</button>
                       <button className={`hl-btn sm ${x.myRsvp === "not_going" ? "" : "ghost"}`} disabled={busy === x.id || !x.rsvpOpen} onClick={() => rsvp(x.id, "not_going")}>🚫 Not going</button>
+                      {x.myRsvp && x.rsvpOpen && <button className="hl-btn sm ghost" disabled={busy === x.id} onClick={() => clearRsvp(x.id)}>Clear</button>}
                     </div>
                     {!x.rsvpOpen ? <div className="text-xs mt-1.5 hl-muted">RSVP is closed, this meal has locked.</div>
                       : isFull(x) && <div className="text-xs mt-1.5 hl-muted">This feast is full.</div>}
