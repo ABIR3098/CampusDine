@@ -2,7 +2,8 @@ const express = require("express");
 const pool = require("../../db");
 const catchAsync = require("../../utils/catchAsync");
 const { requireRole } = require("../../middleware/auth");
-const { SLOTS, nowParts, isDateKey, addDays, isLocked } = require("../util");
+const { SLOTS, nowParts, isDateKey, addDays, isLocked, localStamp } = require("../util");
+const { parseRsvpStatus } = require("../feastRsvp");
 
 const router = express.Router();
 
@@ -51,6 +52,24 @@ router.delete("/feasts/:id", requireRole("admin"), catchAsync(async (req, res) =
   try { await assertOpen(row.d, row.slot); } catch (e) { return res.status(e.status).json({ error: e.message }); }
   await pool.query("DELETE FROM hall_feasts WHERE id = ? AND (? IS NULL OR university_id=?)", [row.id, req.user.universityId || null, req.user.universityId || null]);
   res.json({ ok: true });
+}));
+
+// one feast of the member's own university (null when it does not exist)
+async function getFeast(id, universityId = null) {
+  const [[row]] = await pool.query(`${SELECT} WHERE id = ? AND (? IS NULL OR university_id=?)`, [Number(id), universityId, universityId]);
+  return row || null;
+}
+
+// POST /api/hall/feasts/:id/rsvp   body: { status: "going" | "not_going" }   (any Hall member)
+router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
+  const status = parseRsvpStatus((req.body || {}).status);
+  if (!status) return res.status(400).json({ error: "status must be going or not_going" });
+  const feast = await getFeast(req.params.id, req.user.universityId || null);
+  if (!feast) return res.status(404).json({ error: "Feast not found" });
+  await pool.query(
+    "INSERT INTO hall_feast_rsvps (feast_id, user_id, status, updated_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE status = VALUES(status), updated_at = VALUES(updated_at)",
+    [feast.id, req.user.id, status, localStamp()]);
+  res.json({ feastId: feast.id, status });
 }));
 
 module.exports = router;
