@@ -2097,11 +2097,6 @@ const THEME_ACCENTS = [
 ];
 function readTheme() {
   try {
-  const [seconds, setSeconds] = useState(() => new Date().getSeconds());
-  useEffect(() => {
-    const t = setInterval(() => setSeconds(new Date().getSeconds()), 1000);
-    return () => clearInterval(t);
-  }, []);
     const t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
     return {
       mode: ["light", "dark", "auto"].includes(t.mode) ? t.mode : "light",
@@ -2112,19 +2107,11 @@ function readTheme() {
 function applyTheme(t) {
   const dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-    <div className="qr-laser-wrap text-center">
-      <div className="qr-laser-beam" />
-      <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
-        shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
-        <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
-        <path d={qr.d} fill="#000" />
-      </svg>
-      {/* Live dynamic watermark to prevent screenshot fraud */}
-      <div className="mt-1 text-[9px] font-mono font-700 tracking-wider text-emerald-600 flex items-center justify-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-        VALID NOW • ${String(seconds).padStart(2, '0')}s • DO NOT SCREENSHOT
-      </div>
-    </div>
+  document.documentElement.setAttribute("data-accent", t.accent);
+}
+function ThemeMenu() {
+  const [theme, setTheme] = useState(readTheme);
+  const [open, setOpen] = useState(false);
   const boxRef = useRef(null);
 
   // apply + remember the choice; in "auto" mode also follow the device when it switches light/dark
@@ -2201,6 +2188,11 @@ const ID_RE = /^[A-Za-z0-9._-]{3,50}$/;
 // Draws a QR code as inline SVG (black on white, so scanners work in dark theme too).
 // Uses the small "qrcode-generator" library loaded in <head>; if it failed to load we show the plain token instead.
 function QrCode({ value, size = 120, dim = false }) {
+  const [seconds, setSeconds] = useState(() => new Date().getSeconds());
+  useEffect(() => {
+    const t = setInterval(() => setSeconds(new Date().getSeconds()), 1000);
+    return () => clearInterval(t);
+  }, []);
   const qr = useMemo(() => {
     try {
       if (typeof window.qrcode !== "function" || !value) return null;
@@ -2216,11 +2208,19 @@ function QrCode({ value, size = 120, dim = false }) {
   if (!qr) return null;
   const pad = 4;
   return (
-    <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
-      shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
-      <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
-      <path d={qr.d} fill="#000" />
-    </svg>
+    <div className="qr-laser-wrap text-center">
+      <div className="qr-laser-beam" />
+      <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
+        shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
+        <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
+        <path d={qr.d} fill="#000" />
+      </svg>
+      {/* Live dynamic watermark to prevent screenshot fraud */}
+      <div className="mt-1 text-[9px] font-mono font-700 tracking-wider text-emerald-600 flex items-center justify-center gap-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        VALID NOW • ${String(seconds).padStart(2, '0')}s • DO NOT SCREENSHOT
+      </div>
+    </div>
   );
 }
 
@@ -3313,6 +3313,110 @@ function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavor
                   aria-pressed="true"
                   aria-label={tx("fav.remove")}
                   title={tx("fav.remove")}
+                  className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+                  <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                {out ? (
+                  <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                ) : inCart ? (
+                  <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
+                    {tx("plus1")}
+                  </button>
+                ) : (
+                  <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">{tx("quick")}</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Promo slider: today's offers, new items, coupons, points ---------------- */
+// slides: [{ key, tag, title, text, cta?, onCta?, img?, tone? }]
+function PromoSlider({ slides }) {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchX = useRef(null);
+  const n = slides.length;
+  useEffect(() => { if (i >= n) setI(0); }, [n]);
+  useEffect(() => {
+    if (n < 2 || paused) return;
+    const t = setInterval(() => setI(x => (x + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [n, paused]);
+  if (n === 0) return null;
+  const go = (d) => setI(x => (x + d + n) % n);
+  const tones = {
+    green: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)",
+    warm: "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)",
+    rose: "linear-gradient(135deg, #E11D48 0%, #881337 100%)",
+    blue: "linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)",
+    violet: "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
+  };
+  return (
+    <div className="mb-5 relative overflow-hidden rounded-2xl select-none" style={{ height: 160 }}
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => { if (touchX.current == null) return; const dx = e.changedTouches[0].clientX - touchX.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); touchX.current = null; }}>
+      <div className="flex h-full" style={{ width: `${n * 100}%`, transform: `translateX(-${(i * 100) / n}%)`, transition: "transform .5s ease" }}>
+        {slides.map(sl => (
+          <div key={sl.key} className="h-full flex items-center justify-between gap-4 px-6 text-white" style={{ width: `${100 / n}%`, background: tones[sl.tone] || tones.green }}>
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase tracking-widest font-700 px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>{sl.tag}</span>
+              <div className="font-display font-800 text-xl sm:text-2xl mt-2 leading-tight">{sl.title}</div>
+              <div className="text-sm opacity-90 mt-1 line-clamp-2">{sl.text}</div>
+              {sl.cta && <button onClick={sl.onCta} className="mt-3 px-3 py-1.5 rounded-lg text-xs font-700" style={{ background: "#fff", color: "#111" }}>{sl.cta}</button>}
+            </div>
+            {sl.img && <img src={sl.img} alt="" className="hidden sm:block rounded-xl object-cover shrink-0" style={{ width: 110, height: 110, background: "rgba(255,255,255,0.15)" }}
+              onError={e => { e.target.style.display = "none"; }} />}
+          </div>
+        ))}
+      </div>
+      {n > 1 && (
+        <>
+          <button aria-label="Previous" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronLeft} className="w-4 h-4" /></button>
+          <button aria-label="Next" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronRight} className="w-4 h-4" /></button>
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+            {slides.map((sl, k) => <button key={sl.key} aria-label={"Slide " + (k + 1)} onClick={() => setI(k)} className="rounded-full" style={{ width: k === i ? 18 : 6, height: 6, background: "#fff", opacity: k === i ? 1 : 0.5, transition: "all .3s" }} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* Feature: kitchen note chips */
+const NOTE_CHIPS = ["chip.lessspicy", "chip.noonion", "chip.extrasauce", "chip.lessoil", "chip.nosugar", "chip.packsep"];
+function noteHas(note, text) {
+  return note.split(",").some(p => p.trim().toLowerCase() === text.toLowerCase());
+}
+function noteToggle(note, text) {
+  const parts = note.split(",").map(p => p.trim()).filter(Boolean);
+  const i = parts.findIndex(p => p.toLowerCase() === text.toLowerCase());
+  if (i >= 0) { parts.splice(i, 1); return parts.join(", "); }
+  const added = parts.concat(text).join(", ");
+  return added.length > 200 ? note : added; // no room left: leave the note as it is
+}
+/* Feature: time greeting */
+function mealSlot(h) {
+  if (h >= 5 && h < 11) return { meal: "breakfast", cat: "snacks" };
+  if (h >= 11 && h < 15) return { meal: "lunch", cat: "heavy" };
+  if (h >= 15 && h < 18) return { meal: "snack", cat: "snacks" };
+  if (h >= 18 && h < 22) return { meal: "dinner", cat: "heavy" };
+  return { meal: "late", cat: "drinks" };
+}
+function greetingFor(h) {
+  if (h >= 5 && h < 12) return { key: "morning", icon: "☀️" };
+  if (h >= 12 && h < 17) return { key: "afternoon", icon: "🌤️" };
+  if (h >= 17 && h < 21) return { key: "evening", icon: "🌆" };
+  return { key: "night", icon: "🌙" };
+}
 
 /* ---------------- FEATURE: Canteen Live Busy-o-Meter ---------------- */
 function CanteenBusyOMeter() {
@@ -3347,14 +3451,6 @@ function CanteenBusyOMeter() {
     </div>
   );
 }
-
-  /* ---- Added: Smart Campus Features State ---- */
-  const [showPlanner, setShowPlanner] = useState(false);
-  const [showScratch, setShowScratch] = useState(false);
-  const [showBadges, setShowBadges] = useState(false);
-  const [byob, setByob] = useState(false); // Bring Your Own Box discount (-৳5)
-  const [splitBill, setSplitBill] = useState(false); // Bill Splitter
-  const [splitCount, setSplitCount] = useState(2);
 
 /* ---------------- FEATURE: Smart Budget Meal Planner Modal ---------------- */
 function BudgetMealPlannerModal({ menu, onAddToCart, onClose }) {
@@ -3480,49 +3576,13 @@ function DailyScratchModal({ onClose }) {
   const [scratched, setScratched] = useState(() => !!savedData);
   const [reward, setReward] = useState(() => {
     if (savedData && savedData.reward) return savedData.reward;
-        {/* Smart Campus Header & Live Busy-o-Meter */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          {userName && (() => {
-            const h = new Date().getHours();
-            const g = greetingFor(h);
-            return (
-              <div>
-                <div className="font-display font-800 text-xl" style={{ color: "var(--ink)" }}>{g.icon} {tx("greet." + g.key)}, {String(userName).split(" ")[0]}!</div>
-          </div>
-          <button type="button" onClick={() => setShowPlanner(true)} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
-            <span>✨ Find Budget Combos</span>
-          </button>
-        </div>
-
-        {/* Feature: Surplus Food Flash Deals */}
-        <div className="mb-4 px-4 py-3 rounded-2xl border flex items-center justify-between gap-3 text-xs"
-          style={{ background: "rgba(22,163,74,0.06)", borderColor: "rgba(22,163,74,0.25)", color: "var(--teal-deep)" }}>
-          <div className="flex items-center gap-2">
-            <span className="text-base">⚡</span>
-            <span><strong>Last-Hour Surplus Flash Deals:</strong> Save 20% on freshly prepared meals before closing!</span>
-          </div>
-          <span className="font-mono font-700 bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md">⏳ Ends in 42m</span>
-        </div>
-            );
-          })()}
-          <div className="flex items-center gap-2">
-            <CanteenBusyOMeter />
-            <button type="button" onClick={() => setShowBadges(true)}
-              className="px-3 py-1.5 rounded-full border text-xs font-700 flex items-center gap-1.5"
-              style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
-              <span>🏆</span> Badges
-            </button>
-          </div>
-        </div>
-
-        {/* Feature: Smart Budget Meal Planner Banner */}
-        <div className="mb-4 p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-3"
-          style={{ background: "linear-gradient(135deg, rgba(79,127,95,0.08), rgba(245,158,11,0.06))", borderColor: "var(--accent-border)" }}>
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🤖</span>
-            <div>
-              <div className="text-sm font-display font-800">Smart Budget Meal Planner</div>
-              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Tight on budget? Let AI calculate the best food combos under your pocket limit!</p>
+    const prizes = [
+      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
+      { text: "☕ Free Student Chai", code: "FREECHAI" },
+      { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
+      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
+    ];
+    return prizes[Math.floor(Math.random() * prizes.length)];
   });
 
   const handleScratch = () => {
@@ -3670,191 +3730,6 @@ function RiderEmergencyModal({ onClose }) {
     </div>
   );
 }
-                  className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
-                  <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
-                </button>
-              </div>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
-                {out ? (
-                  <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
-                ) : inCart ? (
-                  <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
-                    {tx("plus1")}
-                  </button>
-                ) : (
-                  <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">{tx("quick")}</button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- Promo slider: today's offers, new items, coupons, points ---------------- */
-// slides: [{ key, tag, title, text, cta?, onCta?, img?, tone? }]
-function PromoSlider({ slides }) {
-  const [i, setI] = useState(0);
-              {/* Feature: Class-Break Quick Pre-Order Slots */}
-              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
-                <div className="text-xs font-700 flex items-center justify-between">
-                  <span>⏰ Class-Break Pickup Slots</span>
-                  <span className="text-[10px] opacity-70">Ready on break</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { label: "11:15 AM (Break 1)", val: "11:15" },
-                    { label: "1:20 PM (Lunch)", val: "13:20" },
-                    { label: "3:45 PM (Break 2)", val: "15:45" },
-                    { label: "5:15 PM (Evening)", val: "17:15" }
-                  ].map(s => (
-                    <button key={s.val} type="button" onClick={() => { setScheduleLater(true); setPickupTime(s.val); }}
-                      className={`p-1.5 rounded-lg text-[11px] font-700 border text-left flex items-center gap-1 ${scheduleLater && pickupTime === s.val ? "btn-primary" : ""}`}
-                      style={scheduleLater && pickupTime === s.val ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
-                      <span>🔔</span> {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Feature: Bring Your Own Box (BYOB) Eco Discount */}
-              <label className="mb-3 p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer"
-                style={{ background: byob ? "rgba(22,163,74,0.08)" : "var(--panel)", borderColor: byob ? "var(--leaf)" : "var(--line)" }}>
-                <input type="checkbox" checked={byob} onChange={e => setByob(e.target.checked)} className="rounded accent-emerald-600" />
-                <div className="text-xs">
-                  <div className="font-700">🌱 Bring Your Own Box / Mug</div>
-                  <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>Reduce single-use plastic & get <strong>৳5 Eco-Discount</strong></div>
-                </div>
-              </label>
-
-              {/* Feature: Bill Splitter with Friends */}
-              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-xs font-700 flex items-center gap-1.5">
-                    <span>🍕</span> Split Bill with Friends
-                  </span>
-                  <input type="checkbox" checked={splitBill} onChange={e => setSplitBill(e.target.checked)} className="rounded accent-emerald-600" />
-                </label>
-                {splitBill && (
-                  <div className="pt-2 border-t space-y-2 text-xs" style={{ borderColor: "var(--line)" }}>
-                    <div className="flex items-center justify-between">
-                      <span>Total Split Among:</span>
-                      <div className="flex items-center gap-2">
-                        {[2, 3, 4].map(n => (
-                          <button key={n} type="button" onClick={() => setSplitCount(n)}
-                            className={`px-2.5 py-0.5 rounded font-700 border ${splitCount === n ? "btn-primary" : ""}`}
-                            style={splitCount === n ? {} : { borderColor: "var(--line)", background: "var(--panel-soft)" }}>
-                            {n} Friends
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="p-2 rounded-lg font-700 text-center" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
-                      ৳{Math.ceil(Math.max(0, total - (byob ? 5 : 0) + tip) / splitCount)} per person
-                    </div>
-                  </div>
-                )}
-              </div>
-
-  const [paused, setPaused] = useState(false);
-  const touchX = useRef(null);
-  const n = slides.length;
-  useEffect(() => { if (i >= n) setI(0); }, [n]);
-  useEffect(() => {
-    if (n < 2 || paused) return;
-    const t = setInterval(() => setI(x => (x + 1) % n), 5000);
-              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => {
-                const finalNote = [orderNote, byob ? "🌱 BYOB Box Discount (-৳5)" : "", splitBill ? `🍕 Split Bill (${splitCount} friends)` : ""].filter(Boolean).join(" · ");
-                placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, finalNote, rewardId, deliveryNote, tip);
-              }}
-  }, [n, paused]);
-  if (n === 0) return null;
-  const go = (d) => setI(x => (x + d + n) % n);
-  const tones = {
-
-      {/* Floating Lucky Reward Wheel/Scratch Trigger */}
-      <button type="button" onClick={() => setShowScratch(true)} className="floating-reward-btn">
-        <span>🎁</span>
-        <span>Daily Lucky Scratch</span>
-      </button>
-
-      {/* Modals for Smart Features */}
-      {showPlanner && (
-        <BudgetMealPlannerModal menu={menu} onAddToCart={add} onClose={() => setShowPlanner(false)} />
-      )}
-      {showScratch && (
-        <DailyScratchModal onClose={() => setShowScratch(false)} />
-      )}
-      {showBadges && (
-        <FoodieBadgesModal onClose={() => setShowBadges(false)} />
-      )}
-    green: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)",
-    warm: "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)",
-    rose: "linear-gradient(135deg, #E11D48 0%, #881337 100%)",
-    blue: "linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)",
-    violet: "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
-  };
-  return (
-    <div className="mb-5 relative overflow-hidden rounded-2xl select-none" style={{ height: 160 }}
-      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-      onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
-      onTouchEnd={e => { if (touchX.current == null) return; const dx = e.changedTouches[0].clientX - touchX.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); touchX.current = null; }}>
-      <div className="flex h-full" style={{ width: `${n * 100}%`, transform: `translateX(-${(i * 100) / n}%)`, transition: "transform .5s ease" }}>
-        {slides.map(sl => (
-          <div key={sl.key} className="h-full flex items-center justify-between gap-4 px-6 text-white" style={{ width: `${100 / n}%`, background: tones[sl.tone] || tones.green }}>
-            <div className="min-w-0">
-              <span className="text-[10px] uppercase tracking-widest font-700 px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>{sl.tag}</span>
-              <div className="font-display font-800 text-xl sm:text-2xl mt-2 leading-tight">{sl.title}</div>
-              <div className="text-sm opacity-90 mt-1 line-clamp-2">{sl.text}</div>
-              {sl.cta && <button onClick={sl.onCta} className="mt-3 px-3 py-1.5 rounded-lg text-xs font-700" style={{ background: "#fff", color: "#111" }}>{sl.cta}</button>}
-            </div>
-            {sl.img && <img src={sl.img} alt="" className="hidden sm:block rounded-xl object-cover shrink-0" style={{ width: 110, height: 110, background: "rgba(255,255,255,0.15)" }}
-              onError={e => { e.target.style.display = "none"; }} />}
-          </div>
-        ))}
-      </div>
-      {n > 1 && (
-        <>
-          <button aria-label="Previous" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronLeft} className="w-4 h-4" /></button>
-          <button aria-label="Next" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronRight} className="w-4 h-4" /></button>
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
-            {slides.map((sl, k) => <button key={sl.key} aria-label={"Slide " + (k + 1)} onClick={() => setI(k)} className="rounded-full" style={{ width: k === i ? 18 : 6, height: 6, background: "#fff", opacity: k === i ? 1 : 0.5, transition: "all .3s" }} />)}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/* Feature: kitchen note chips */
-const NOTE_CHIPS = ["chip.lessspicy", "chip.noonion", "chip.extrasauce", "chip.lessoil", "chip.nosugar", "chip.packsep"];
-function noteHas(note, text) {
-  return note.split(",").some(p => p.trim().toLowerCase() === text.toLowerCase());
-}
-function noteToggle(note, text) {
-  const parts = note.split(",").map(p => p.trim()).filter(Boolean);
-  const i = parts.findIndex(p => p.toLowerCase() === text.toLowerCase());
-  if (i >= 0) { parts.splice(i, 1); return parts.join(", "); }
-  const added = parts.concat(text).join(", ");
-  return added.length > 200 ? note : added; // no room left: leave the note as it is
-}
-/* Feature: time greeting */
-function mealSlot(h) {
-  if (h >= 5 && h < 11) return { meal: "breakfast", cat: "snacks" };
-  if (h >= 11 && h < 15) return { meal: "lunch", cat: "heavy" };
-  if (h >= 15 && h < 18) return { meal: "snack", cat: "snacks" };
-  if (h >= 18 && h < 22) return { meal: "dinner", cat: "heavy" };
-  return { meal: "late", cat: "drinks" };
-}
-function greetingFor(h) {
-  if (h >= 5 && h < 12) return { key: "morning", icon: "☀️" };
-  if (h >= 12 && h < 17) return { key: "afternoon", icon: "🌤️" };
-  if (h >= 17 && h < 21) return { key: "evening", icon: "🌆" };
-  return { key: "night", icon: "🌙" };
-}
 function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
   const [cat, setCat] = useState(() => {
     const c = mealSlot(new Date().getHours()).cat;
@@ -3889,6 +3764,14 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
     });
   const starredItems = menu.filter(item => item.is_favorite);
   const [payMethod, setPayMethod] = useState("wallet");
+
+  /* ---- Added: Smart Campus Features State ---- */
+  const [showPlanner, setShowPlanner] = useState(false);
+  const [showScratch, setShowScratch] = useState(false);
+  const [showBadges, setShowBadges] = useState(false);
+  const [byob, setByob] = useState(false); // Bring Your Own Box discount (-৳5)
+  const [splitBill, setSplitBill] = useState(false); // Bill Splitter
+  const [splitCount, setSplitCount] = useState(2);
   const [scheduleLater, setScheduleLater] = useState(false);
   const [pickupTime, setPickupTime] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -4022,16 +3905,52 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        {userName && (() => {
-          const h = new Date().getHours();
-          const g = greetingFor(h);
-          return (
-            <div className="mb-4">
-              <div className="font-display font-800 text-xl" style={{ color: "var(--ink)" }}>{g.icon} {tx("greet." + g.key)}, {String(userName).split(" ")[0]}!</div>
-              <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("meal." + mealSlot(h).meal)}</div>
+        {/* Smart Campus Header & Live Busy-o-Meter */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          {userName && (() => {
+            const h = new Date().getHours();
+            const g = greetingFor(h);
+            return (
+              <div>
+                <div className="font-display font-800 text-xl" style={{ color: "var(--ink)" }}>{g.icon} {tx("greet." + g.key)}, {String(userName).split(" ")[0]}!</div>
+                <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("meal." + mealSlot(h).meal)}</div>
+              </div>
+            );
+          })()}
+          <div className="flex items-center gap-2">
+            <CanteenBusyOMeter />
+            <button type="button" onClick={() => setShowBadges(true)}
+              className="px-3 py-1.5 rounded-full border text-xs font-700 flex items-center gap-1.5"
+              style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+              <span>🏆</span> Badges
+            </button>
+          </div>
+        </div>
+
+        {/* Feature: Smart Budget Meal Planner Banner */}
+        <div className="mb-4 p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-3"
+          style={{ background: "linear-gradient(135deg, rgba(79,127,95,0.08), rgba(245,158,11,0.06))", borderColor: "var(--accent-border)" }}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🤖</span>
+            <div>
+              <div className="text-sm font-display font-800">Smart Budget Meal Planner</div>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Tight on budget? Let AI calculate the best food combos under your pocket limit!</p>
             </div>
-          );
-        })()}
+          </div>
+          <button type="button" onClick={() => setShowPlanner(true)} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+            <span>✨ Find Budget Combos</span>
+          </button>
+        </div>
+
+        {/* Feature: Surplus Food Flash Deals */}
+        <div className="mb-4 px-4 py-3 rounded-2xl border flex items-center justify-between gap-3 text-xs"
+          style={{ background: "rgba(22,163,74,0.06)", borderColor: "rgba(22,163,74,0.25)", color: "var(--teal-deep)" }}>
+          <div className="flex items-center gap-2">
+            <span className="text-base">⚡</span>
+            <span><strong>Last-Hour Surplus Flash Deals:</strong> Save 20% on freshly prepared meals before closing!</span>
+          </div>
+          <span className="font-mono font-700 bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md">⏳ Ends in 42m</span>
+        </div>
         {recurringDue.map(p => (
           <div key={"due-" + p.id} className="mb-4 rounded-2xl border p-4 flex flex-wrap items-center gap-3" style={{ borderColor: "var(--gold)", background: "var(--panel-soft)" }}>
             <div className="flex-1 min-w-[200px]">
@@ -4240,6 +4159,67 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
                 <input type="text" value={deliveryNote} onChange={e => setDeliveryNote(e.target.value.slice(0, 200))} maxLength={200}
                   placeholder={tx("dnote.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
               </div>
+              {/* Feature: Class-Break Quick Pre-Order Slots */}
+              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
+                <div className="text-xs font-700 flex items-center justify-between">
+                  <span>⏰ Class-Break Pickup Slots</span>
+                  <span className="text-[10px] opacity-70">Ready on break</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "11:15 AM (Break 1)", val: "11:15" },
+                    { label: "1:20 PM (Lunch)", val: "13:20" },
+                    { label: "3:45 PM (Break 2)", val: "15:45" },
+                    { label: "5:15 PM (Evening)", val: "17:15" }
+                  ].map(s => (
+                    <button key={s.val} type="button" onClick={() => { setScheduleLater(true); setPickupTime(s.val); }}
+                      className={`p-1.5 rounded-lg text-[11px] font-700 border text-left flex items-center gap-1 ${scheduleLater && pickupTime === s.val ? "btn-primary" : ""}`}
+                      style={scheduleLater && pickupTime === s.val ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+                      <span>🔔</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature: Bring Your Own Box (BYOB) Eco Discount */}
+              <label className="mb-3 p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer"
+                style={{ background: byob ? "rgba(22,163,74,0.08)" : "var(--panel)", borderColor: byob ? "var(--leaf)" : "var(--line)" }}>
+                <input type="checkbox" checked={byob} onChange={e => setByob(e.target.checked)} className="rounded accent-emerald-600" />
+                <div className="text-xs">
+                  <div className="font-700">🌱 Bring Your Own Box / Mug</div>
+                  <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>Reduce single-use plastic & get <strong>৳5 Eco-Discount</strong></div>
+                </div>
+              </label>
+
+              {/* Feature: Bill Splitter with Friends */}
+              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-700 flex items-center gap-1.5">
+                    <span>🍕</span> Split Bill with Friends
+                  </span>
+                  <input type="checkbox" checked={splitBill} onChange={e => setSplitBill(e.target.checked)} className="rounded accent-emerald-600" />
+                </label>
+                {splitBill && (
+                  <div className="pt-2 border-t space-y-2 text-xs" style={{ borderColor: "var(--line)" }}>
+                    <div className="flex items-center justify-between">
+                      <span>Total Split Among:</span>
+                      <div className="flex items-center gap-2">
+                        {[2, 3, 4].map(n => (
+                          <button key={n} type="button" onClick={() => setSplitCount(n)}
+                            className={`px-2.5 py-0.5 rounded font-700 border ${splitCount === n ? "btn-primary" : ""}`}
+                            style={splitCount === n ? {} : { borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                            {n} Friends
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-lg font-700 text-center" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                      ৳{Math.ceil(Math.max(0, total - (byob ? 5 : 0) + tip) / splitCount)} per person
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="mb-4">
                 <label className="flex items-center gap-2 text-sm mb-2">
                   <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
@@ -4308,7 +4288,10 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
                   Price preview unavailable ({quoteError}). The final price is calculated when you place the order.
                 </p>
               )}
-              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, orderNote, rewardId, deliveryNote, tip)}
+              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => {
+                const finalNote = [orderNote, byob ? "🌱 BYOB Box Discount (-৳5)" : "", splitBill ? `🍕 Split Bill (${splitCount} friends)` : ""].filter(Boolean).join(" · ");
+                placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, finalNote, rewardId, deliveryNote, tip);
+              }}
                 className="btn-primary w-full py-2.5 rounded-xl">
                 {busy ? tx("placing") : tx("checkout")}
               </button>
@@ -4316,6 +4299,23 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
           )}
         </div>
       </div>
+
+      {/* Floating Lucky Reward Wheel/Scratch Trigger */}
+      <button type="button" onClick={() => setShowScratch(true)} className="floating-reward-btn">
+        <span>🎁</span>
+        <span>Daily Lucky Scratch</span>
+      </button>
+
+      {/* Modals for Smart Features */}
+      {showPlanner && (
+        <BudgetMealPlannerModal menu={menu} onAddToCart={add} onClose={() => setShowPlanner(false)} />
+      )}
+      {showScratch && (
+        <DailyScratchModal onClose={() => setShowScratch(false)} />
+      )}
+      {showBadges && (
+        <FoodieBadgesModal onClose={() => setShowBadges(false)} />
+      )}
     </div>
   );
 }
@@ -5474,8 +5474,6 @@ function PaymentModal({ amount, onClose, onConfirm, busy }) {
             {category.options.map(o => (
               <button key={o.key} onClick={() => pickMethod(o)}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-500"
-  const [showSos, setShowSos] = useState(false);
-  const [deliveryProof, setDeliveryProof] = useState({});
                 style={{ borderColor: "var(--line)" }}>
                 <span className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full" style={{ background: o.color }} />
@@ -5610,15 +5608,10 @@ function WalletTab({ apiBase, token, balance, topUp, transactions, busy, onLooku
                   {t.amount > 0 ? "+" : ""}{taka(t.amount)}
                 </span>
               </div>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setShowSos(true)} className="btn-sos">
-                <span>🚨</span> SOS Emergency
-              </button>
-              <button onClick={onLogout} className="cd-logout">
-                <Icon path={I.logout} className="w-4 h-4" />
-                <span className="cd-logout-text">Log out</span>
-              </button>
-            </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -5779,20 +5772,13 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
           <input placeholder="Price ৳" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
           <div className="flex gap-2">
             <input placeholder="Stock" type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className="w-full px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
-                    <div className="flex items-center gap-2 self-start flex-wrap">
+            <button disabled={busy} onClick={submit} className="btn-gold px-3 rounded-lg"><Icon path={I.check} className="w-4 h-4" /></button>
           </div>
         </div>
       )}
 
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
-                      <button type="button" onClick={() => {
-                        const note = prompt("Enter Proof of Drop-off Note (e.g., Left at Faculty Room #204 with lab assistant):");
-                        if (note) setDeliveryProof(p => ({ ...p, [o.id]: { note, time: new Date().toLocaleTimeString() } }));
-                      }} className="px-3 py-1.5 rounded-xl border text-xs font-700 flex items-center gap-1"
-                        style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
-                        <span>📸</span> {deliveryProof[o.id] ? "Drop-off Verified" : "Drop-off Proof"}
-                      </button>
           <thead>
             <tr style={{ background: "var(--gold-soft)" }}>
               <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Item</th>
@@ -5828,8 +5814,6 @@ function AdminMenu({ menu, updateItem, addItem, busy }) {
                 </td>
                 <td className="p-3">
                   {(() => {
-
-      {showSos && <RiderEmergencyModal onClose={() => setShowSos(false)} />}
                     const a = item.availability || "available";
                     const stockNum = Number(item.stock);
                     const autoOut = a === "available" && stockNum <= 0;
@@ -6032,6 +6016,8 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [maxOrders, setMaxOrders] = useState(3);
   const [orderError, setOrderError] = useState("");
   const [acceptingId, setAcceptingId] = useState(null);
+  const [showSos, setShowSos] = useState(false);
+  const [deliveryProof, setDeliveryProof] = useState({});
 
   const refreshOrders = async () => {
     try {
@@ -6168,10 +6154,15 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
                 </p>
               </div>
             </div>
-            <button onClick={onLogout} className="cd-logout">
-              <Icon path={I.logout} className="w-4 h-4" />
-              <span className="cd-logout-text">Log out</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setShowSos(true)} className="btn-sos">
+                <span>🚨</span> SOS Emergency
+              </button>
+              <button onClick={onLogout} className="cd-logout">
+                <Icon path={I.logout} className="w-4 h-4" />
+                <span className="cd-logout-text">Log out</span>
+              </button>
+            </div>
           </div>
 
           {/* GPS Radar Status */}
@@ -6337,13 +6328,20 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-start">
+                    <div className="flex items-center gap-2 self-start flex-wrap">
                       {o.rider_assignment_status === "Assigned" && (
                         <button disabled={acceptingId === o.id} onClick={() => acceptOrder(o.id)}
                           className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1 shadow-sm">
                           {acceptingId === o.id ? "Accepting…" : "✓ Accept Delivery"}
                         </button>
                       )}
+                      <button type="button" onClick={() => {
+                        const note = prompt("Enter Proof of Drop-off Note (e.g., Left at Faculty Room #204 with lab assistant):");
+                        if (note) setDeliveryProof(p => ({ ...p, [o.id]: { note, time: new Date().toLocaleTimeString() } }));
+                      }} className="px-3 py-1.5 rounded-xl border text-xs font-700 flex items-center gap-1"
+                        style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                        <span>📸</span> {deliveryProof[o.id] ? "Drop-off Verified" : "Drop-off Proof"}
+                      </button>
                     </div>
                   </div>
 
@@ -6386,6 +6384,8 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
         </div>
 
       </div>
+
+      {showSos && <RiderEmergencyModal onClose={() => setShowSos(false)} />}
     </div>
   );
 }
