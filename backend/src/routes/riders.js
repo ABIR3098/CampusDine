@@ -117,4 +117,50 @@ router.get("/locations", verifyToken, requireRole("teacher"), catchAsync(async (
     FROM users u LEFT JOIN rider_locations l ON l.rider_id = u.id WHERE u.role = 'rider' ORDER BY u.name`);
   res.json(rows.map(r => ({ ...r, latitude: r.latitude == null ? null : Number(r.latitude), longitude: r.longitude == null ? null : Number(r.longitude), accuracy_m: r.accuracy_m == null ? null : Number(r.accuracy_m), active: Boolean(r.active) })));
 }));
+// Feature: admin rider ratings
+const RATING_DAYS = [0, 7, 30]; // 0 = all time
+const ratingDays = (v) => (RATING_DAYS.includes(Number(v)) ? Number(v) : 0);
+
+// GET /api/riders/ratings?days=0|7|30  (admin) — one row per rider
+router.get("/ratings", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const days = ratingDays(req.query.days);
+  const [rows] = await pool.query(
+    `SELECT u.id, u.name, u.external_id,
+            COUNT(o.rider_rating) AS rating_count,
+            AVG(o.rider_rating) AS rating_avg,
+            COALESCE(SUM(o.rider_rating = 5), 0) AS five_star,
+            COALESCE(SUM(o.rider_rating <= 2), 0) AS low_star,
+            (SELECT COUNT(*) FROM orders d WHERE d.rider_id = u.id AND d.picked_up_at IS NOT NULL) AS delivered
+     FROM users u
+     LEFT JOIN orders o ON o.rider_id = u.id AND o.rider_rating IS NOT NULL${days ? " AND o.rider_rated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)" : ""}
+     WHERE u.role = 'rider'
+     GROUP BY u.id, u.name, u.external_id
+     ORDER BY (COUNT(o.rider_rating) = 0), AVG(o.rider_rating) DESC, COUNT(o.rider_rating) DESC, u.name`,
+    days ? [days] : []);
+  res.json({
+    days,
+    riders: rows.map((r) => ({
+      id: r.id, name: r.name, external_id: r.external_id,
+      rating_count: Number(r.rating_count),
+      rating_avg: r.rating_avg === null ? null : Math.round(Number(r.rating_avg) * 10) / 10,
+      five_star: Number(r.five_star), low_star: Number(r.low_star),
+      delivered: Number(r.delivered),
+    })),
+  });
+}));
+
+// GET /api/riders/ratings/:id?days=...  (admin) — that rider's latest reviews
+router.get("/ratings/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid rider" });
+  const days = ratingDays(req.query.days);
+  const [rows] = await pool.query(
+    `SELECT o.rider_rating AS rating, o.rider_comment AS comment, o.rider_rated_at AS at, o.token, u.name AS student
+     FROM orders o JOIN users u ON u.id = o.user_id
+     WHERE o.rider_id = ? AND o.rider_rating IS NOT NULL${days ? " AND o.rider_rated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)" : ""}
+     ORDER BY o.rider_rated_at DESC LIMIT 20`,
+    days ? [id, days] : [id]);
+  res.json(rows);
+}));
+
 module.exports = router;

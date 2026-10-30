@@ -6279,6 +6279,80 @@ function ProblemReports({ apiBase, token, refreshKey }) {
     </div>
   );
 }
+/* Feature: admin rider ratings */
+function RiderRatingsTable({ call }) {
+  const [days, setDays] = useState(0);
+  const [rows, setRows] = useState(null);
+  const [open, setOpen] = useState(null);   // the rider whose reviews are showing
+  const [reviews, setReviews] = useState([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    setRows(null); setOpen(null); setError("");
+    call("/api/riders/ratings?days=" + days).then(d => setRows(d.riders)).catch(e => setError(e.message || "Could not load rider ratings"));
+  }, [days]);
+  const toggle = async (r) => {
+    if (open === r.id) { setOpen(null); return; }
+    setOpen(r.id); setReviews([]);
+    try { setReviews(await call("/api/riders/ratings/" + r.id + "?days=" + days)); }
+    catch (e) { setError(e.message || "Could not load the reviews"); }
+  };
+  const stars = (n) => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
+  const when = (d) => new Date(d).toLocaleDateString([], { day: "numeric", month: "short" });
+  return (
+    <div className="card p-5 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="font-display font-700" style={{ color: "var(--gold)" }}>🛵 Rider ratings</div>
+        <select value={days} onChange={e => setDays(Number(e.target.value))} className="px-2 py-1 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+          <option value={0}>All time</option>
+          <option value={30}>Last 30 days</option>
+          <option value={7}>Last 7 days</option>
+        </select>
+      </div>
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      {rows === null && !error && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>Loading…</p>}
+      {rows && rows.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No rider accounts yet.</p>}
+      <div className="space-y-2">
+        {(rows || []).map(r => {
+          const low = r.rating_count >= 3 && r.rating_avg !== null && r.rating_avg < 3.5;
+          return (
+            <div key={r.id} className="rounded-lg border" style={{ borderColor: low ? "var(--brick)" : "var(--line)" }}>
+              <button type="button" onClick={() => toggle(r)} className="w-full text-left p-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div className="flex-1 min-w-[150px]">
+                  <div className="text-sm font-700">{r.name} <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>({r.external_id})</span></div>
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{r.delivered} deliveries completed</div>
+                </div>
+                {r.rating_count > 0 ? (
+                  <div className="text-sm">
+                    <span style={{ color: "#F59E0B" }}>{stars(r.rating_avg)}</span>{" "}
+                    <strong>{r.rating_avg.toFixed(1)}</strong>{" "}
+                    <span className="text-xs" style={{ color: "var(--ink-soft)" }}>({r.rating_count} {r.rating_count === 1 ? "rating" : "ratings"} · {r.five_star}×5★ · {r.low_star}×1-2★)</span>
+                  </div>
+                ) : (
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>No ratings yet</div>
+                )}
+                {low && <span className="text-xs font-700 px-2 py-0.5 rounded-full text-white" style={{ background: "var(--brick)" }}>⚠️ Low</span>}
+                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{open === r.id ? "▲" : "▼"}</span>
+              </button>
+              {open === r.id && (
+                <div className="px-3 pb-3 space-y-2">
+                  {reviews.length === 0 ? (
+                    <p className="text-xs" style={{ color: "var(--ink-soft)" }}>No reviews in this period.</p>
+                  ) : reviews.map((v, i) => (
+                    <div key={i} className="text-sm border-t pt-2" style={{ borderColor: "var(--line)" }}>
+                      <span style={{ color: "#F59E0B" }}>{stars(v.rating)}</span>{" "}
+                      <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{v.token} · {v.student} · {when(v.at)}</span>
+                      {v.comment && <div className="mt-0.5" style={{ color: "var(--ink-soft)" }}>“{v.comment}”</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 function AdminFeedback({ summary }) {
   const { average = 0, count = 0, entries = [], distribution = {} } = summary;
   const [filter, setFilter] = useState("all");
@@ -8755,6 +8829,7 @@ function App() {
         {session.user.role === "admin" && tab === "feedback" && (
           <>
             <ProblemReports apiBase={apiBase} token={session.token} refreshKey={issueTick} />
+            <RiderRatingsTable call={call} />
             <AdminFeedback summary={feedbackSummary} />
           </>
         )}
