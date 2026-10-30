@@ -13,6 +13,15 @@ function HallFeasts({ call, isAdmin, notify }) {
 
   // Going / Not going for one feast
   const [busy, setBusy] = useState(null);
+  // admin: who answered what (opens / closes a small list under the feast)
+  const [open, setOpen] = useState(null);
+  const [list, setList] = useState(null);
+  const showWho = async (id) => {
+    if (open === id) { setOpen(null); return; }
+    try { setList(await call(`/api/hall/feasts/${id}/rsvps`)); setOpen(id); }
+    catch (e) { notify(e, true); }
+  };
+
   const clearRsvp = async (id) => {
     setBusy(id);
     try { await call(`/api/hall/feasts/${id}/rsvp`, { method: "DELETE" }); notify("Answer removed"); await load(); }
@@ -83,6 +92,18 @@ function HallFeasts({ call, isAdmin, notify }) {
                     </div>
                     {!x.rsvpOpen ? <div className="text-xs mt-1.5 hl-muted">RSVP is closed, this meal has locked.</div>
                       : isFull(x) && <div className="text-xs mt-1.5 hl-muted">This feast is full.</div>}
+                    {isAdmin && <button className="hl-btn sm ghost mt-2" onClick={() => showWho(x.id)}>👥 Who is going</button>}
+                    {isAdmin && open === x.id && list && (
+                      <div className="mt-2 text-sm">
+                        <div className="hl-muted text-xs mb-1">{list.going} going · {list.notGoing} not going</div>
+                        {list.people.length === 0 ? <div className="hl-empty">Nobody has answered yet.</div> : list.people.map((p, i) => (
+                          <div key={i} className="flex justify-between items-center gap-2 py-0.5">
+                            <span>{p.name} <span className="hl-muted">{p.externalId}</span></span>
+                            <span className={`hl-chip ${p.status === "going" ? "ok" : "plain"}`}>{p.status === "going" ? "Going" : "Not going"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
