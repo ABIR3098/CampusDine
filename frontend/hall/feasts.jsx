@@ -37,6 +37,9 @@ function HallFeasts({ call, isAdmin, notify }) {
     catch (e) { notify(e, true); }
   };
 
+  // I can't say going when the feast is full (unless I am already in) or when the meal has locked
+  const isFull = (x) => x.capacity != null && x.goingCount >= x.capacity && x.myRsvp !== "going";
+
   return (
     <>
       <HallCard title="Upcoming feasts" icon="🎉">
@@ -68,9 +71,11 @@ function HallFeasts({ call, isAdmin, notify }) {
                     </div>
                     <div className="text-sm mt-2">{x.items}</div>
                     <div className="flex gap-2 mt-3">
-                      <button className={`hl-btn sm ${x.myRsvp === "going" ? "" : "ghost"}`} disabled={busy === x.id} onClick={() => rsvp(x.id, "going")}>✅ Going</button>
-                      <button className={`hl-btn sm ${x.myRsvp === "not_going" ? "" : "ghost"}`} disabled={busy === x.id} onClick={() => rsvp(x.id, "not_going")}>🚫 Not going</button>
+                      <button className={`hl-btn sm ${x.myRsvp === "going" ? "" : "ghost"}`} disabled={busy === x.id || !x.rsvpOpen || isFull(x)} onClick={() => rsvp(x.id, "going")}>✅ Going</button>
+                      <button className={`hl-btn sm ${x.myRsvp === "not_going" ? "" : "ghost"}`} disabled={busy === x.id || !x.rsvpOpen} onClick={() => rsvp(x.id, "not_going")}>🚫 Not going</button>
                     </div>
+                    {!x.rsvpOpen ? <div className="text-xs mt-1.5 hl-muted">RSVP is closed, this meal has locked.</div>
+                      : isFull(x) && <div className="text-xs mt-1.5 hl-muted">This feast is full.</div>}
                   </div>
                 </div>
               );
