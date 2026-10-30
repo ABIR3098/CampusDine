@@ -3488,8 +3488,21 @@ function DailyScratchModal({ onClose }) {
             return (
               <div>
                 <div className="font-display font-800 text-xl" style={{ color: "var(--ink)" }}>{g.icon} {tx("greet." + g.key)}, {String(userName).split(" ")[0]}!</div>
-                <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("meal." + mealSlot(h).meal)}</div>
-              </div>
+          </div>
+          <button type="button" onClick={() => setShowPlanner(true)} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+            <span>✨ Find Budget Combos</span>
+          </button>
+        </div>
+
+        {/* Feature: Surplus Food Flash Deals */}
+        <div className="mb-4 px-4 py-3 rounded-2xl border flex items-center justify-between gap-3 text-xs"
+          style={{ background: "rgba(22,163,74,0.06)", borderColor: "rgba(22,163,74,0.25)", color: "var(--teal-deep)" }}>
+          <div className="flex items-center gap-2">
+            <span className="text-base">⚡</span>
+            <span><strong>Last-Hour Surplus Flash Deals:</strong> Save 20% on freshly prepared meals before closing!</span>
+          </div>
+          <span className="font-mono font-700 bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded-md">⏳ Ends in 42m</span>
+        </div>
             );
           })()}
           <div className="flex items-center gap-2">
