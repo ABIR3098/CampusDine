@@ -3348,6 +3348,14 @@ function CanteenBusyOMeter() {
   );
 }
 
+  /* ---- Added: Smart Campus Features State ---- */
+  const [showPlanner, setShowPlanner] = useState(false);
+  const [showScratch, setShowScratch] = useState(false);
+  const [showBadges, setShowBadges] = useState(false);
+  const [byob, setByob] = useState(false); // Bring Your Own Box discount (-৳5)
+  const [splitBill, setSplitBill] = useState(false); // Bill Splitter
+  const [splitCount, setSplitCount] = useState(2);
+
 /* ---------------- FEATURE: Smart Budget Meal Planner Modal ---------------- */
 function BudgetMealPlannerModal({ menu, onAddToCart, onClose }) {
   const [budget, setBudget] = useState(80);
