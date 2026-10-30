@@ -119,3 +119,292 @@
     display: flex; align-items: center; gap: 10px;
     text-decoration: none; color: inherit;
   }
+  .logo-img {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fffdf7 url(/images/landing/logo-green.png) center/cover no-repeat;
+  }
+  html[data-accent="blue"]   .logo-img { background-image: url(/images/landing/logo-blue.png); }
+  html[data-accent="purple"] .logo-img { background-image: url(/images/landing/logo-purple.png); }
+  html[data-accent="rose"]   .logo-img { background-image: url(/images/landing/logo-rose.png); }
+  html[data-accent="orange"] .logo-img { background-image: url(/images/landing/logo.png); }
+  .topbar-name {
+    font-weight: 700; font-size: 16px; letter-spacing: -0.02em;
+    color: var(--gold);
+  }
+  .topbar-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; color: var(--ink-soft);
+    text-decoration: none; padding: 7px 14px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--panel);
+    transition: all 0.15s ease;
+  }
+  .topbar-back:hover { color: var(--gold); border-color: var(--accent-border); background: var(--gold-soft); }
+
+  /* ---- Theme toggle ---- */
+  .theme-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--panel);
+    display: grid; place-items: center; cursor: pointer;
+    color: var(--ink-soft); font-size: 16px;
+    transition: all 0.15s ease;
+  }
+  .theme-btn:hover { border-color: var(--accent-border); color: var(--gold); }
+
+  /* ---- Hero ---- */
+  .hero {
+    text-align: center;
+    padding: 56px 24px 40px;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold);
+    background: var(--gold-soft);
+    padding: 4px 14px; border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800; letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .hero h1 span { color: var(--gold); }
+  .hero p {
+    font-size: 15px; color: var(--ink-soft); max-width: 440px; margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ---- Role grid ---- */
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+  }
+  @media (min-width: 700px) {
+    .roles-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 960px) {
+    .roles-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .role-card {
+    display: flex; flex-direction: column; align-items: flex-start;
+    gap: 12px;
+    padding: 22px 22px 20px;
+    border-radius: 18px;
+    background: var(--panel);
+    border: 1.5px solid var(--line);
+    cursor: pointer; text-align: left;
+    text-decoration: none; color: inherit;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 8px rgba(16,24,40,0.05);
+    position: relative; overflow: hidden;
+  }
+  .role-card::before {
+    content: "";
+    position: absolute;
+    inset: 0; border-radius: inherit;
+    background: linear-gradient(135deg, var(--accent-glow), transparent 60%);
+    opacity: 0; transition: opacity 0.25s ease;
+  }
+  .role-card:hover {
+    border-color: var(--gold);
+    box-shadow: 0 12px 32px var(--accent-glow);
+    transform: translateY(-4px) scale(1.015);
+  }
+  .role-card:hover::before { opacity: 1; }
+  .role-card:active { transform: translateY(-2px) scale(1.01); }
+
+  .role-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 24px;
+    background: var(--gold-soft);
+    border: 1px solid var(--accent-border);
+    flex-shrink: 0;
+    transition: transform 0.22s ease;
+    position: relative; z-index: 1;
+  }
+  .role-card:hover .role-icon { transform: scale(1.1) rotate(-3deg); }
+
+  .role-content { position: relative; z-index: 1; }
+  .role-name {
+    font-size: 15px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--ink); margin-bottom: 4px;
+  }
+  .role-desc {
+    font-size: 12.5px; color: var(--ink-soft); line-height: 1.5;
+  }
+  .role-arrow {
+    margin-left: auto; margin-top: auto;
+    width: 32px; height: 32px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: var(--gold-soft); color: var(--gold);
+    font-size: 14px; font-weight: 700;
+    transition: all 0.22s ease;
+    align-self: flex-end; position: relative; z-index: 1;
+    flex-shrink: 0;
+  }
+  .role-card:hover .role-arrow {
+    background: var(--gold); color: #fff;
+    transform: translateX(3px);
+  }
+
+  /* Span last odd card across 2 cols on 2-col layout */
+  @media (min-width: 700px) and (max-width: 959px) {
+    .role-card:last-child:nth-child(odd) {
+      grid-column: span 2;
+      max-width: 300px; margin: 0 auto; width: 100%;
+    }
+  }
+  @media (min-width: 960px) {
+    /* 5 cards: first row 3, second row 2 centered */
+    .roles-grid { grid-template-columns: repeat(3, 1fr); }
+    .role-card:nth-child(4) { grid-column: 1; }
+    .role-card:nth-child(5) { grid-column: 2; }
+  }
+
+  /* ---- Footer ---- */
+  footer {
+    padding: 24px;
+    text-align: center;
+    font-size: 12px; color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ---- Animations ---- */
+  .fade-up {
+    opacity: 0; transform: translateY(16px);
+    animation: fadeUp 0.5s ease forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .role-card:nth-child(1) { animation-delay: 0.05s; }
+  .role-card:nth-child(2) { animation-delay: 0.10s; }
+  .role-card:nth-child(3) { animation-delay: 0.15s; }
+  .role-card:nth-child(4) { animation-delay: 0.20s; }
+  .role-card:nth-child(5) { animation-delay: 0.25s; }
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="page-wrap">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <a href="/" class="topbar-logo">
+      <div class="logo-img"></div>
+      <span class="topbar-name">CampusDine</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="theme-btn" id="themeBtn" title="Toggle dark/light mode" aria-label="Toggle dark mode">
+        <span id="themeIcon">🌙</span>
+      </button>
+      <a href="/" class="topbar-back">
+        ← Back to Home
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main>
+    <section class="hero fade-up" style="animation-delay:0s;">
+      <span class="hero-eyebrow">Smart Campus Dining</span>
+      <h1>Welcome to<br><span>CampusDine</span></h1>
+      <p>Choose your role to continue. Each role has a tailored experience built for your needs.</p>
+    </section>
+
+    <!-- Roles -->
+    <div class="roles-grid">
+      <button class="role-card fade-up" onclick="selectRole('student')">
+        <div class="role-icon">🎓</div>
+        <div class="role-content">
+          <div class="role-name">Student</div>
+          <div class="role-desc">Browse menu, place orders, track deliveries, manage your wallet & rewards.</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </button>
+
+      <button class="role-card fade-up" onclick="selectRole('teacher')">
+        <div class="role-icon">👩‍🏫</div>
+        <div class="role-content">
+          <div class="role-name">Teacher / Faculty</div>
+          <div class="role-desc">Order food and track all campus delivery riders in real-time.</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </button>
+
+      <button class="role-card fade-up" onclick="selectRole('admin')">
+        <div class="role-icon">⚙️</div>
+        <div class="role-content">
+          <div class="role-name">Canteen Admin</div>
+          <div class="role-desc">Manage menus, orders, coupons, reports & canteen operations.</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </button>
+
+      <button class="role-card fade-up" onclick="selectRole('rider')">
+        <div class="role-icon">🛵</div>
+        <div class="role-content">
+          <div class="role-name">Delivery Rider</div>
+          <div class="role-desc">Manage your duty shift, share GPS location & handle deliveries.</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </button>
+
+      <button class="role-card fade-up" onclick="selectRole('hall_admin')">
+        <div class="role-icon">🏢</div>
+        <div class="role-content">
+          <div class="role-name">Hall Admin</div>
+          <div class="role-desc">Oversee hall food services, notices, complaints & operations.</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </button>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 CampusDine — CSE 3208 Software Development Project I &nbsp;·&nbsp; <a href="/">Home</a></p>
+  </footer>
+</div>
+
+<script>
+  function selectRole(role) {
+    if (role === 'hall_admin') {
+      window.location.href = '/hall-admin.html';
+      return;
+    }
+    window.location.href = '/campusdine.html?role=' + role;
+  }
+
+  // Theme toggle
+  function isDark() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+  }
+  function updateThemeIcon() {
+    document.getElementById('themeIcon').textContent = isDark() ? '☀️' : '🌙';
+  }
+  updateThemeIcon();
+  document.getElementById('themeBtn').addEventListener('click', function() {
+    try {
+      var t = JSON.parse(localStorage.getItem('cd_theme') || '{}');
+      t.mode = isDark() ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t.mode);
+      localStorage.setItem('cd_theme', JSON.stringify(t));
+      updateThemeIcon();
+    } catch(e) {}
+  });
+</script>
+</body>
+</html>
