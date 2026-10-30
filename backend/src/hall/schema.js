@@ -5,6 +5,11 @@ async function addColumnIfMissing(db, table, column, definition) {
   if (cols.length === 0) await db.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
+async function addIndexIfMissing(db, table, indexName, definition) {
+  const [idx] = await db.query(`SHOW INDEX FROM ${table} WHERE Key_name = ?`, [indexName]);
+  if (idx.length === 0) await db.query(`ALTER TABLE ${table} ADD ${definition}`);
+}
+
 async function ensureHallSchema(db) {
   // Step 2 — the three meal slots: when each one closes for changes, and what it costs
   await db.query(`CREATE TABLE IF NOT EXISTS hall_slots (
@@ -86,6 +91,9 @@ async function ensureHallSchema(db) {
     FOREIGN KEY (feast_id) REFERENCES hall_feasts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
   )`);
+
+  await addIndexIfMissing(db, "hall_feast_rsvps", "uniq_feast_rsvp", "UNIQUE KEY uniq_feast_rsvp (feast_id, user_id)");
+  await addIndexIfMissing(db, "hall_feast_rsvps", "idx_rsvp_feast_status", "KEY idx_rsvp_feast_status (feast_id, status)");
 
   // Step 8 — guest meals: extra plates a person books for their own guests (billed to that person)
   await db.query(`CREATE TABLE IF NOT EXISTS hall_guests (
