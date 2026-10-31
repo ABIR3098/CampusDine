@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const { verifyToken } = require("../middleware/auth");
 const { recordFraudEvent } = require("../utils/fraud");
+const { couponUnusable, validateNewCoupon } = require("../utils/couponRules");
 
 const router = express.Router();
 
@@ -144,6 +145,7 @@ router.post("/validate", verifyToken, async (req, res) => {
 
 // Apply coupon to order
 router.post("/apply", verifyToken, async (req, res) => {
+  let db;
   try {
     const { couponId, orderId } = req.body;
 
@@ -151,20 +153,33 @@ router.post("/apply", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Missing coupon ID or order ID" });
     }
 
-    const db = await pool.getConnection();
-
+    db = await pool.getConnection();
     await db.beginTransaction();
 
     try {
       const [coupon] = await db.query(
-        "SELECT discount_type, discount_value, max_discount, applies_to_all_items FROM coupons WHERE id = ?",
+        `SELECT id, discount_type, discount_value, min_order_amount, max_discount, usage_limit, used_count,
+                expiry_date, is_active, applies_to_all_items
+         FROM coupons WHERE id = ? FOR UPDATE`,
         [couponId]
       );
+      const [order] = await db.query(
+        "SELECT total, user_id, status, discount_applied FROM orders WHERE id = ? AND user_id = ? FOR UPDATE",
+        [orderId, req.user.id]
+      );
+      if (!coupon.length) throw { status: 404, message: "Coupon not found" };
+      if (!order.length) throw { status: 404, message: "Order not found" };
+      if (order[0].status !== "Received") throw { status: 400, message: "Order is not eligible for a coupon" };
+      if (order[0].discount_applied) throw { status: 400, message: "This order already has a discount" };
 
-      const [order] = await db.query("SELECT total, user_id, status FROM orders WHERE id = ? AND user_id = ?", [orderId, req.user.id]);
-      if (!coupon.length) throw new Error("Coupon not found");
-      if (!order.length) throw new Error("Order not found");
-      if (order[0].status !== "Received") throw new Error("Order is not eligible for a coupon");
+      // Same rules the cart uses, so this route cannot be used to skip them.
+      const unusable = couponUnusable(coupon[0]);
+      if (unusable) throw { status: 400, message: unusable };
+      if (Number(order[0].total) < Number(coupon[0].min_order_amount || 0)) {
+        throw { status: 400, message: `Minimum order amount required: ৳${coupon[0].min_order_amount || 0}` };
+      }
+      const [used] = await db.query("SELECT id FROM coupon_usage WHERE user_id = ? AND coupon_id = ?", [req.user.id, couponId]);
+      if (used.length > 0) throw { status: 400, message: "You have already used this coupon" };
 
       if (!coupon[0].applies_to_all_items) {
         const [itemMatches] = await db.query(
@@ -176,7 +191,7 @@ router.post("/apply", verifyToken, async (req, res) => {
         );
 
         if (itemMatches.length === 0) {
-          throw new Error("This coupon does not apply to any item in this order");
+          throw { status: 400, message: "This coupon does not apply to any item in this order" };
         }
       }
 
@@ -192,6 +207,7 @@ router.post("/apply", verifyToken, async (req, res) => {
       if (coupon[0].max_discount && discount > Number(coupon[0].max_discount)) {
         discount = Number(coupon[0].max_discount);
       }
+      discount = Math.min(discount, Number(order[0].total)); // never more than the order costs
 
       const newAmount = Math.max(0, Number(order[0].total) - discount);
 
@@ -201,7 +217,6 @@ router.post("/apply", verifyToken, async (req, res) => {
       );
 
       await db.commit();
-      db.release();
 
       res.json({
         success: true,
@@ -211,19 +226,22 @@ router.post("/apply", verifyToken, async (req, res) => {
       });
     } catch (error) {
       await db.rollback();
-      db.release();
       throw error;
     }
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
     console.error("Error applying coupon:", error);
     res.status(500).json({ error: "Failed to apply coupon" });
+  } finally {
+    if (db) db.release();
   }
 });
 
 // Get available coupons
 router.get("/available", verifyToken, async (req, res) => {
+  let db;
   try {
-    const db = await pool.getConnection();
+    db = await pool.getConnection();
 
     const [coupons] = await db.query(
       `SELECT c.id, c.code, c.discount_type, c.discount_value, c.min_order_amount,
@@ -238,81 +256,59 @@ router.get("/available", verifyToken, async (req, res) => {
        ORDER BY c.expiry_date ASC`
     );
 
-    db.release();
-
     res.json({ coupons });
   } catch (error) {
     console.error("Error fetching coupons:", error);
     res.status(500).json({ error: "Failed to fetch coupons" });
+  } finally {
+    if (db) db.release();
   }
 });
 
 // Admin: Create new coupon
 router.post("/", verifyToken, async (req, res) => {
+  let db;
   try {
     // Check if user is admin
     if (req.user.role !== "admin") {
       return res.status(403).json({ error: "Only admins can create coupons" });
     }
 
-    const {
-      code,
-      discountType,
-      discountValue,
-      minOrderAmount,
-      maxDiscount,
-      usageLimit,
-      expiryDate,
-      description,
-    } = req.body;
+    const checked = validateNewCoupon(req.body);
+    if (checked.error) return res.status(400).json({ error: checked.error });
+    const c = checked.value;
 
-    // Validate input
-    if (!code || !discountType || !discountValue) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    if (!["PERCENTAGE", "FIXED"].includes(discountType)) {
-      return res.status(400).json({ error: "Invalid discount type" });
-    }
-
-    const db = await pool.getConnection();
+    db = await pool.getConnection();
 
     await db.query(
-      `INSERT INTO coupons (code, discount_type, discount_value, min_order_amount, 
+      `INSERT INTO coupons (code, discount_type, discount_value, min_order_amount,
                            max_discount, usage_limit, expiry_date, description, is_active)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-      [
-        code.toUpperCase(),
-        discountType,
-        discountValue,
-        minOrderAmount || 0,
-        maxDiscount || null,
-        usageLimit || null,
-        expiryDate || null,
-        description || null,
-      ]
+      [c.code, c.discountType, c.discountValue, c.minOrderAmount, c.maxDiscount, c.usageLimit, c.expiryDate, c.description]
     );
-
-    db.release();
 
     res.json({
       success: true,
       message: "Coupon created successfully",
     });
   } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") return res.status(409).json({ error: "That coupon code is already in use" });
     console.error("Error creating coupon:", error);
     res.status(500).json({ error: "Failed to create coupon" });
+  } finally {
+    if (db) db.release();
   }
 });
 
 // Admin: List all coupons
 router.get("/", verifyToken, async (req, res) => {
+  let db;
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ error: "Only admins can view all coupons" });
     }
 
-    const db = await pool.getConnection();
+    db = await pool.getConnection();
 
     const [coupons] = await db.query(`
       SELECT id, code, discount_type, discount_value, min_order_amount, 
@@ -322,12 +318,12 @@ router.get("/", verifyToken, async (req, res) => {
       ORDER BY created_at DESC
     `);
 
-    db.release();
-
     res.json({ coupons });
   } catch (error) {
     console.error("Error fetching coupons:", error);
     res.status(500).json({ error: "Failed to fetch coupons" });
+  } finally {
+    if (db) db.release();
   }
 });
 
