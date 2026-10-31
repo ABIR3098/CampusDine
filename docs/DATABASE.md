@@ -318,3 +318,19 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `room_type` | VARCHAR(60) |
 | `status` | ENUM('available','maintenance','inactive') |
 | `created_at` | TIMESTAMP |
+
+## `hall_room_applications`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `room_id` | BIGINT UNSIGNED |
+| `preferred_hall` | VARCHAR(180) |
+| `notes` | TEXT |
+| `status` | ENUM('pending','approved','rejected','withdrawn') |
+| `reviewed_by` | INT |
+| `review_note` | VARCHAR(500) |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
