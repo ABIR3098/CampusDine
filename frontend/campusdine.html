@@ -3323,17 +3323,23 @@ function TopBar({
           </div>
           <button
             type="button"
-            <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
-          </div>
-          <div className="hidden sm:block" title={`${name} · ${tx("r." + role)}`}><Avatar src={avatar} name={name} size={34} /></div>
-          <ThemeMenu />
-          {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
-          <span className="cd-divider hidden sm:block" />
-          <button onClick={onLogout} title="Log out" aria-label="Log out" className="cd-logout">
-            <Icon path={I.logout} className="w-4 h-4" />
-            <span className="cd-logout-text">Log out</span>
+            onClick={() => setSidebarCollapsed(c => !c)}
+            title={sidebarCollapsed ? "Expand Menu" : "Collapse Menu"}
+            className="w-8 h-8 rounded-xl border grid place-items-center text-xs hover:bg-black/5 transition-colors shrink-0"
+            style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+            {sidebarCollapsed ? "▶" : "◀"}
           </button>
         </div>
+
+        {/* Sidebar Search Bar (like 'Search menu...' in BUP screenshot) */}
+        {!sidebarCollapsed && (
+          <div className="portal-search-box">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-50">🔍</span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
       </div>
     </div>
     <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
