@@ -267,3 +267,7 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `GET /api/hall/menu`
 - `PUT /api/hall/menu/:dow/:slot`
+
+## `/api/hall` — `src/hall/routes/range.js`
+
+- `PUT /api/hall/meals-range`
