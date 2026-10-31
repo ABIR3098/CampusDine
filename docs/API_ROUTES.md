@@ -97,3 +97,13 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `PATCH /api/recurring/:id`
 - `DELETE /api/recurring/:id`
 - `POST /api/recurring/:id/done`
+
+## `/api/admin` — `src/routes/admin.js`
+
+- `GET /api/admin/overview`
+- `GET /api/admin/reports/revenue-trend`
+- `GET /api/admin/reports/forecast`
+- `GET /api/admin/reports/summary`
+- `GET /api/admin/reports/export`
+- `GET /api/admin/feedback`
+- `POST /api/admin/announcement`
