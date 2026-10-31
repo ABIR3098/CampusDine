@@ -239,3 +239,7 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `GET /api/hall/guests`
 - `PUT /api/hall/guests/:date/:slot`
+
+## `/api/hall` — `src/hall/routes/info.js`
+
+- `GET /api/hall/info`
