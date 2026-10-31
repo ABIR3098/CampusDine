@@ -47,6 +47,7 @@ No database change is needed:
 - Items an admin adds later are remembered in the existing `app_meta` table (`item_restaurant_<id>`).
 - An order's restaurant is worked out from its items; a single order can only hold one restaurant's items.
 - Reports (revenue trend, summary, CSV) are still campus-wide.
+- `backend/more_menu_items.sql` adds 132 more items across the four restaurants (see [docs/MENU_ITEMS_SQL.md](docs/MENU_ITEMS_SQL.md)).
 
 ---
 
