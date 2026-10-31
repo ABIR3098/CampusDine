@@ -5128,7 +5128,7 @@ function RecurringPlans({ apiBase, token, reloadKey }) {
     </div>
   );
 }
-function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token, onShowPosSlip })  {
   const [printOrder, setPrintOrder] = useState(null);
   const [planDraft, setPlanDraft] = useState(null); // the order a weekly plan is being made from
   const [plansKey, setPlansKey] = useState(0);
@@ -5389,6 +5389,13 @@ function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBu
                   <Icon path={I.printer} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
                   {tx("print")}
                 </button>
+                {onShowPosSlip && o.status !== "Cancelled" && (
+                  <button onClick={() => onShowPosSlip(o)}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                    style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                    🧾 POS Slip
+                  </button>
+                )}
                 <button type="button"
                   onClick={async () => {
                     const ok = await copyText(o.token);
@@ -6360,7 +6367,31 @@ function AdminHallFood({ call }) {
 }
 
 /* ---------------- Admin: Orders queue ---------------- */
-function AdminOrders({ orders, advance, call }) {
+/* Web Audio API Sound Chime for KDS and Spin Wheel */
+function playChimeSound(type = "chime") {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") ctx.resume();
+
+    if (type === "chime") {
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(880, now);
+      gain1.gain.setValueAtTime(0.3, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.4);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1760, now + 0.15);
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
