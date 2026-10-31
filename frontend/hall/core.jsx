@@ -332,9 +332,13 @@ function HallPortalHeader({
         {ThemeMenu && <ThemeMenu />}
 
         <button onClick={onLogout} title="Log out" className="btn-outline px-3 py-2 rounded-xl text-xs font-bold text-red-600 border-red-200 hover:bg-red-50 flex items-center gap-1.5">
+          <span>🚪</span>
+          <span className="hidden sm:inline">Logout</span>
+        </button>
+      </div>
+    </header>
   );
 }
-
 // ---------- Home tab ----------
 function HallMemberHome({ call, user, notify, goTab }) {
   const m = useHallMeals(call, notify);
@@ -419,7 +423,11 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
   const tabs = Hall.tabs.filter((t) => !t.roles || t.roles.includes(user.role));
   const [tab, setTab] = useState(tabs[0].key);
   const [toast, setToast] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarSearch, setSidebarSearch] = useState("");
   const toastTimer = useRef(null);
+
   const notify = (message, isError) => {
     setToast({ message: String(message && message.message ? message.message : message), isError: !!isError });
     clearTimeout(toastTimer.current);
@@ -429,8 +437,15 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
   const slides = useHallHeroSlides(call, user, setTab, tab);
 
   return (
-    <div className="min-h-screen hl" style={{ color: "var(--ink)" }}>
-      <HallTopBar user={user} tabs={tabs} active={tab} setActive={setTab} onLogout={onLogout} ui={ui} />
+    <div className="portal-shell hl" style={{ color: "var(--ink)" }}>
+      {/* ─── Vertical Left Sidebar for Hall ─── */}
+      <HallTopBar
+        user={user}
+        tabs={tabs}
+        active={tab}
+        setActive={setTab}
+        onLogout={onLogout}
+        ui={ui}
 
       {toast && (
         <div className="fixed top-[76px] right-4 z-50 w-[min(90vw,340px)]">
