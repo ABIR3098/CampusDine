@@ -1,3 +1,238 @@
+      if (text.startsWith("HALL|")) {
+    try {
+    setBusy(true); setError(null); setResult(null); setHallResult(null);
+    if (!text) return;
+    const text = String(raw === undefined ? code : raw).trim();
+  const check = async (raw) => {
+
+  const streamRef = useRef(null);
+  const videoRef = useRef(null);
+  const [scanning, setScanning] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [hallResult, setHallResult] = useState(null); // verified Hall meal QR
+  const [result, setResult] = useState(null);   // regular canteen order result
+  const [code, setCode] = useState("");
+function AdminVerify({ call, onCollected }) {
+/* ---------------- Admin: Scan / verify a pickup token ---------------- */
+
+}
+  );
+    </div>
+      </div>
+      </div>
+        <p className="text-xs mt-4" style={{ color: "var(--ink-soft)" }}>Use this to plan how much khichuri and tehari to prepare.</p>
+        </div>
+          </div>
+            <div className="font-mono text-3xl font-700">{forecast.predictedMealCount ?? 0}</div>
+            <div className="text-xs opacity-70">Predicted meal count</div>
+          <div className="perf pl-4">
+        <div className="ticket p-5">
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Based on subscription-calendar data</p>
+        <div className="font-display font-700 mb-2" style={{ color: "var(--gold)" }}>Tomorrow's forecast</div>
+      <div className="card p-5">
+      </div>
+        )}
+          </div>
+            ))}
+              </div>
+                <div className="text-xs font-600">{monthLabel(r.ym)}</div>
+                <div className="w-full rounded-t-lg" style={{ height: `${(r.revenue / max) * 140}px`, background: "var(--gold)" }}></div>
+                <div className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{Math.round(r.revenue / 1000)}k</div>
+              <div key={r.ym} className="flex-1 flex flex-col items-center gap-2">
+            {trend.map(r => (
+          <div className="flex items-end gap-4 h-48">
+        ) : (
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No order history yet this window.</p>
+        {trend.length === 0 ? (
+        <div className="font-display font-700 mb-5" style={{ color: "var(--gold)" }}>Revenue trend — last 6 months</div>
+      <div className="lg:col-span-2 card p-5">
+      <div className="grid lg:grid-cols-3 gap-6 no-print">
+      {/* ---------- Existing trend + forecast ---------- */}
+
+      )}
+        </div>
+            rows={report.hallResidents.map(h => [`${h.name} (${h.externalId})`, `${h.hallName || "—"} · ${h.roomNumber || "—"}`, h.hallId || "—", h.orders, taka(h.spent)])} />
+            empty="No hall residents have signed up yet."
+          <Table title={`Hall residents (${report.hallResidents.length})`} head={["Name", "Hall · Room", "Hall ID", "Orders", "Spent"]}
+
+          </div>
+              rows={report.byRole.map(r => [r.role, r.orders, taka(r.revenue)])} />
+            <Table title="Students vs teachers" head={["Role", "Orders", "Revenue"]}
+              rows={report.byPayment.map(p => [p.method === "wallet" ? "Wallet" : "Cash", p.orders, taka(p.revenue)])} />
+            <Table title="Payment method" head={["Method", "Orders", "Revenue"]}
+              rows={report.byResidence.map(r => [nice(r.type), r.customers, r.orders, taka(r.revenue)])} />
+            <Table title="Hall residents vs regular" head={["Group", "Customers", "Orders", "Revenue"]}
+            <Table title="Top selling items" head={["Item", "Qty", "Revenue"]} rows={report.topItems.map(i => [i.name, i.qty, taka(i.revenue)])} />
+          <div className="grid md:grid-cols-2 gap-5">
+
+          </div>
+            )}
+              </div>
+                </div>
+                  ))}
+                    </div>
+                      <div className="text-[9px] mt-1 font-mono" style={{ color: "var(--ink-soft)" }}>{d.day.slice(8)}</div>
+                      <div className="w-full rounded-t" style={{ height: `${Math.max(2, (d.revenue / dayMax) * 130)}px`, background: "var(--gold)" }}></div>
+                    <div key={d.day} className="flex-1 flex flex-col items-center justify-end" title={`${d.day}: ${taka(d.revenue)} · ${d.orders} orders`}>
+                  {report.byDay.map(d => (
+                <div className="flex items-end gap-1 h-40" style={{ minWidth: report.byDay.length * 14 }}>
+              <div className="overflow-x-auto">
+            {report.byDay.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No orders in this period.</p> : (
+            <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Revenue by day</div>
+          <div className="card p-5">
+
+          </div>
+            <Tile label="Wallet top-ups" value={taka(report.wallet.topups)} sub={`${taka(report.wallet.balanceHeld)} held in wallets`} />
+            <Tile label="Avg. rating" value={report.feedback.count ? report.feedback.average.toFixed(1) + " ★" : "—"} sub={`${report.feedback.count} feedback`} />
+            <Tile label="New sign-ups" value={report.users.joined} sub={`${report.users.total} users, ${report.users.hall} in halls`} />
+            <Tile label="Cancelled" value={t.cancelledOrders} sub={`${taka(t.cancelledAmount)} refunded / not counted`} />
+            <Tile label="Collected" value={`${t.collected} / ${t.orders}`} sub="handed over by QR scan" />
+            <Tile label="Average order" value={taka(Math.round(t.avgOrder))} />
+            <Tile label="Revenue" value={taka(t.revenue)} sub={`after ${taka(t.discounts)} in discounts`} />
+            <Tile label="Orders" value={t.orders} sub={`${t.customers} customer${t.customers === 1 ? "" : "s"}`} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          </div>
+            </div>
+              {report.range.from} to {report.range.to} ({report.range.days} day{report.range.days === 1 ? "" : "s"}) · generated {new Date(report.generatedAt).toLocaleString()}
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>
+            <div className="font-display font-800 text-xl">CampusDine — Sales report</div>
+          <div>
+        <div id="report-area" className="space-y-5">
+      {report && (
+      {/* ---------- The generated report ---------- */}
+
+      </div>
+        </div>
+          {report && <button onClick={() => setPrintKey(k => k + 1)} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Print / Save as PDF</button>}
+          <button onClick={() => download("hall")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download hall residents (CSV)</button>
+          <button onClick={() => download("orders")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download orders (CSV)</button>
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+        </div>
+          <button onClick={() => { const d = new Date(); preset(iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(d)); }} className="chip text-xs px-3 py-1.5 rounded-full">This month</button>
+          ))}
+            <button key={label} onClick={() => preset(daysAgo(a), daysAgo(b))} className="chip text-xs px-3 py-1.5 rounded-full">{label}</button>
+          {[["Today", 0, 0], ["Last 7 days", 6, 0], ["Last 30 days", 29, 0], ["Last 90 days", 89, 0]].map(([label, a, b]) => (
+        <div className="flex flex-wrap gap-2 mt-3">
+        </div>
+          <button onClick={generate} disabled={busy || !from || !to} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">{busy ? "Generating…" : "Generate report"}</button>
+          </div>
+            <input type="date" value={to} min={from} onChange={e => setTo(e.target.value)} className="px-3 py-2 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+            <label className="text-xs uppercase tracking-wide block mb-1" style={{ color: "var(--ink-soft)" }}>To</label>
+          <div>
+          </div>
+            <input type="date" value={from} max={to} onChange={e => setFrom(e.target.value)} className="px-3 py-2 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+            <label className="text-xs uppercase tracking-wide block mb-1" style={{ color: "var(--ink-soft)" }}>From</label>
+          <div>
+        <div className="flex flex-wrap items-end gap-3">
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Pick a period (up to one year), then generate it on screen, print / save as PDF, or download it as a spreadsheet (CSV).</p>
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Generate report</div>
+      <div className="card p-5 no-print">
+      {/* ---------- Generate a report ---------- */}
+
+      )}
+        </PrintSheet>
+            rows={report.hallResidents.map(h => [`${h.name} (${h.externalId})`, `${h.hallName || "—"} · ${h.roomNumber || "—"}`, h.hallId || "—", h.orders, taka(h.spent)])} />
+          <PsTable head={["Name", "Hall · Room", "Hall ID", "Orders", "Spent"]} numCols={[3, 4]} empty="No hall residents have signed up yet."
+          <h2>{`Hall residents (${report.hallResidents.length})`}</h2>
+            rows={report.byRole.map(r => [r.role, r.orders, taka(r.revenue)])} />
+          <PsTable head={["Role", "Orders", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+          <h2>Students vs teachers</h2>
+            rows={report.byPayment.map(p => [p.method === "wallet" ? "Wallet" : "Cash", p.orders, taka(p.revenue)])} />
+          <PsTable head={["Method", "Orders", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+          <h2>Payment method</h2>
+            rows={report.byResidence.map(r => [nice(r.type), r.customers, r.orders, taka(r.revenue)])} />
+          <PsTable head={["Group", "Customers", "Orders", "Revenue"]} numCols={[1, 2, 3]} empty="No orders in this period."
+          <h2>Hall residents vs regular</h2>
+            rows={report.topItems.map(i => [i.name, i.qty, taka(i.revenue)])} />
+          <PsTable head={["Item", "Qty", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+          <h2>Top selling items</h2>
+            rows={report.byDay.map(d => [d.day, d.orders, taka(d.revenue), <div className="ps-bar" style={{ width: `${(d.revenue / dayMax) * 100}%` }}></div>])} />
+          <PsTable head={["Date", "Orders", "Revenue", ""]} numCols={[1, 2]} empty="No orders in this period."
+          <h2>Revenue by day</h2>
+          </div>
+            ].map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+              ["Wallet top-ups", taka(report.wallet.topups)],
+              ["New sign-ups", report.users.joined], ["Avg. rating", report.feedback.count ? report.feedback.average.toFixed(1) + " / 5" : "—"],
+              ["Collected", `${t.collected} / ${t.orders}`], ["Cancelled", `${t.cancelledOrders} (${taka(t.cancelledAmount)})`],
+              ["Orders", t.orders], ["Revenue", taka(t.revenue)], ["Average order", taka(Math.round(t.avgOrder))],
+            {[
+          <div className="ps-grid">
+          meta={`${report.range.from} to ${report.range.to} (${report.range.days} day${report.range.days === 1 ? "" : "s"}) · generated ${new Date(report.generatedAt).toLocaleString()}`}>
+        <PrintSheet key={printKey} title="Sales report"
+      {printKey > 0 && report && (
+      <AdminOperationsAnalytics apiBase={apiBase} token={token} />
+    <div className="space-y-6">
+  return (
+
+  const nice = (s) => s === "hall" ? "Hall residents" : s === "regular" ? "Regular" : s;
+  const dayMax = report ? Math.max(1, ...report.byDay.map(d => d.revenue)) : 1;
+  const t = report && report.totals;
+
+  );
+    </div>
+      )}
+        </div>
+          </table>
+            ))}</tbody>
+              </tr>
+                {r.map((c, i) => <td key={i} className={`py-1.5 pr-3 ${i > 0 ? "text-right font-mono" : ""}`}>{c}</td>)}
+              <tr key={ri} className="border-t" style={{ borderColor: "var(--line)" }}>
+            <tbody>{rows.map((r, ri) => (
+            </tr></thead>
+              {head.map((h, i) => <th key={i} className={`py-1.5 pr-3 font-600 ${i > 0 ? "text-right" : ""}`}>{h}</th>)}
+            <thead><tr className="text-left text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>
+          <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+      {rows.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{empty || "Nothing in this period."}</p> : (
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{title}</div>
+    <div className="card p-5">
+  const Table = ({ title, head, rows, empty }) => (
+  );
+    </div>
+      {sub && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{sub}</div>}
+      <div className="font-mono text-xl font-700 mt-1">{value}</div>
+      <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</div>
+    <div className="card p-4">
+  const Tile = ({ label, value, sub }) => (
+
+  };
+    } catch (e) { setError(e.message); }
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      document.body.appendChild(a); a.click(); a.remove();
+      a.href = url; a.download = `campusdine-${type}-${from}_to_${to}.csv`;
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(await res.blob());
+      }
+        throw new Error(msg);
+        try { msg = (await res.json()).error || msg; } catch (_) {}
+        let msg = `Download failed (${res.status})`;
+      if (!res.ok) {
+      const res = await fetch(`${apiBase}/api/admin/reports/export?type=${type}&from=${from}&to=${to}`, { headers: { Authorization: `Bearer ${token}` } });
+    try {
+    setError(null);
+  const download = async (type) => {
+  };
+    finally { setBusy(false); }
+    catch (e) { setError(e.message); }
+    try { setReport(await call(`/api/admin/reports/summary?from=${from}&to=${to}`)); }
+    setBusy(true); setError(null);
+  const generate = async () => {
+  const preset = (f, t) => { setFrom(f); setTo(t); };
+
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [printKey, setPrintKey] = useState(0);
+  const [report, setReport] = useState(null);
+  const [to, setTo] = useState(() => iso(new Date()));
+  const [from, setFrom] = useState(() => daysAgo(29));
+  const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const max = Math.max(1, ...trend.map(r => r.revenue));
+function AdminReports({ trend, forecast, call, apiBase, token }) {
+
+}
   </section>;
     ])}
       row => new Date(row.created_at).toLocaleString(),
