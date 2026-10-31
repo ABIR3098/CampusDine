@@ -176,3 +176,9 @@ Every route registered in the backend, grouped by the file that defines it. Path
 ## `/api/pricing` — `src/routes/offers.js`
 
 - `POST /api/pricing/quote`
+
+## `/api/loyalty` — `src/routes/offers.js`
+
+- `GET /api/loyalty/me`
+- `GET /api/loyalty/settings`
+- `PUT /api/loyalty/settings`
