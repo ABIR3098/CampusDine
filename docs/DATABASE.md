@@ -649,3 +649,17 @@ Created in `backend/src/hall/lastcallSchema.js`.
 | `created_by` | INT |
 | `university_id` | BIGINT UNSIGNED |
 | `created_at` | DATETIME |
+
+## `hall_lastcall_claims`
+Created in `backend/src/hall/lastcallSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `lastcall_id` | INT |
+| `user_id` | INT |
+| `code` | VARCHAR(12) |
+| `price` | DECIMAL(10,2) |
+| `status` | VARCHAR(10) |
+| `created_at` | DATETIME |
+| `served_at` | DATETIME |
