@@ -157,3 +157,15 @@ Created in `backend/schema.sql`.
 | `group_id` | INT |
 | `user_id` | INT |
 | `joined_at` | TIMESTAMP |
+
+## `group_order_items`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `group_id` | INT |
+| `user_id` | INT |
+| `menu_item_id` | INT |
+| `qty` | INT |
+| `created_at` | TIMESTAMP |
