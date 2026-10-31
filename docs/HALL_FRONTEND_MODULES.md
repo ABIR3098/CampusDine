@@ -52,3 +52,6 @@ Home: a warning when a meal that is ON for you in the next 3 days contains somet
 
 ## `feasts.jsx`
 Step 7 — "Feasts" tab: special meals on a given date. Everyone sees the list; admin can add / remove.
+
+## `finance.jsx`
+Finance (admin): how the mess is doing this month — what was billed and collected, what was spent,
