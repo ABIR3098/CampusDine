@@ -102,3 +102,9 @@ test("parseListParams accepts the largest page size", () => {
   const { parseListParams } = require("../src/utils/orderRules");
   assert.equal(parseListParams({ limit: "100" }).limit, 100);
 });
+
+test("parseListParams rejects a page size that is too big or zero", () => {
+  const { parseListParams } = require("../src/utils/orderRules");
+  assert.ok(parseListParams({ limit: "101" }).error);
+  assert.ok(parseListParams({ limit: "0" }).error);
+});
