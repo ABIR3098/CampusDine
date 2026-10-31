@@ -42,3 +42,9 @@ test("checkDailyTopup accepts numbers written as text", () => {
   assert.strictEqual(r.ok, true);
   assert.strictEqual(r.remaining, 19899.5);
 });
+
+test("dailyTopupLimit ignores Infinity and reads exponent notation", () => {
+  const { dailyTopupLimit, DEFAULT_DAILY_TOPUP_LIMIT } = require("../src/utils/money");
+  assert.strictEqual(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "Infinity" }), DEFAULT_DAILY_TOPUP_LIMIT);
+  assert.strictEqual(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "1e3" }), 1000);
+});
