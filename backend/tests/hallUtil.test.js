@@ -63,3 +63,8 @@ test("isLocked looks at the date first", () => {
   assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-23", minutes: 0 }), true);
   assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-21", minutes: 1400 }), false);
 });
+
+test("a breakfast is locked the evening before", () => {
+  assert.equal(isLocked(breakfast, "2026-10-22", { dateKey: "2026-10-21", minutes: 1261 }), true);
+  assert.equal(isLocked(breakfast, "2026-10-22", { dateKey: "2026-10-21", minutes: 600 }), false);
+});
