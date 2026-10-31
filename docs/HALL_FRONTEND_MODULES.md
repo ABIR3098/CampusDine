@@ -37,3 +37,6 @@ Hall core: shared helpers + small UI pieces (card, ON/OFF switch, hero slider), 
 
 ## `cutoffReminder.jsx`
 Home: reminder for meals that are about to close ("Dinner closes in 40m — it is ON").
+
+## `defaulters.jsx`
+Dues (admin): who still owes money for a month, how much, whether their wallet can cover it,
