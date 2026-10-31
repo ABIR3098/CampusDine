@@ -797,3 +797,17 @@ Created in `backend/src/offersSchema.js`.
 | `best_streak` | INT |
 | `last_order_date` | DATE |
 | `updated_at` | TIMESTAMP |
+
+## `loyalty_ledger`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `kind` | VARCHAR(20) |
+| `points` | INT |
+| `balance_after` | INT |
+| `label` | VARCHAR(150) |
+| `order_id` | INT |
+| `created_at` | TIMESTAMP |
