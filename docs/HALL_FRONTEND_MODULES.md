@@ -100,3 +100,6 @@ Step 12 — admin "Reports" tab: plates per day and meal, who is off, who change
 
 ## `reportCsv.jsx`
 Reports: download what is on the screen as a spreadsheet (CSV).
+
+## `reportPrint.jsx`
+Reports: print the page, or choose "Save as PDF" in the print window. The top bar, tabs and buttons are hidden while printing.
