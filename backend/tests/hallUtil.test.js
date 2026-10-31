@@ -41,3 +41,7 @@ test("isDateKey rejects dates that do not exist", () => {
 test("isDateKey rejects wrong formats and empty input", () => {
   for (const bad of ["2026-1-5", "31-10-2026", "abcd-ef-gh", "", null, undefined]) assert.equal(isDateKey(bad), false);
 });
+
+test("addDays crosses the year end", () => {
+  assert.equal(addDays("2026-12-31", 1), "2027-01-01");
+});
