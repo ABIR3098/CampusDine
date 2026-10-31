@@ -1,3 +1,237 @@
+    return () => mq.removeEventListener("change", onChange);
+    mq.addEventListener("change", onChange);
+    const onChange = () => applyTheme(theme);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (theme.mode !== "auto" || !window.matchMedia) return;
+    try { localStorage.setItem("cd_theme", JSON.stringify(theme)); } catch (e) {}
+    applyTheme(theme);
+  useEffect(() => {
+  // apply + remember the choice; in "auto" mode also follow the device when it switches light/dark
+
+  const boxRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [theme, setTheme] = useState(readTheme);
+function ThemeMenu() {
+}
+  document.documentElement.setAttribute("data-accent", t.accent);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  const dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+function applyTheme(t) {
+}
+  } catch (e) { return { mode: "light", accent: "green" }; }
+    };
+      accent: THEME_ACCENTS.some(a => a.key === t.accent) ? t.accent : "green",
+      mode: ["light", "dark", "auto"].includes(t.mode) ? t.mode : "light",
+    return {
+    const t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
+  try {
+function readTheme() {
+];
+  { key: "purple", color: "#7A5CA8" }, { key: "rose", color: "#D0537A" },
+  { key: "green", color: "#4F7F5F" }, { key: "blue", color: "#2F76B8" }, { key: "orange", color: "#EA580C" },
+const THEME_ACCENTS = [
+/* ---------------- Theme (light / dark / auto + accent colour) ---------------- */
+
+}
+  return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
+  const [y, m] = ym.split("-");
+function monthLabel(ym) {
+function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); } // month is 1-12 here
+const taka = (n) => `৳${Number(n || 0).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-BD")}`;
+};
+  return label;
+  if (m) return tx("tx.mealrefund", { d: m[1] });
+  m = /^Meal plan refund (\d{4}-\d{2}-\d{2})$/.exec(label);
+  if (m) return tx("tx.mealpay", { m: m[1], f: num(m[2]), h: num(m[3]) });
+  m = /^Meal plan (\d{4}-\d{2}) \((\d+) full, (\d+) half\)$/.exec(label);
+  if (m) return tx("tx.received", { n: m[1] });
+  m = /^Received from (.+)$/.exec(label);
+  if (m) return tx("tx.sent", { n: m[1] });
+  m = /^Sent to (.+)$/.exec(label);
+  if (m) return tx("tx.topup", { m: m[1] });
+  m = /^Wallet top-up via (.+)$/.exec(label);
+  if (m) return tx("tx.refund", { t: m[1] });
+  let m = /^Refund — Order (\S+) cancelled$/.exec(label);
+  if (label === "Order payment") return tx("tx.order");
+  if (label === "Welcome bonus") return tx("tx.welcome");
+  if (CURRENT_LANG !== "bn") return label;
+const txLabel = (label) => {
+// Wallet labels are stored in English by the server; map the known ones.
+const dispName = (name) => (CURRENT_LANG === "bn" && MENU_BN[name]) ? MENU_BN[name] : name;
+const itemName = (item) => (CURRENT_LANG === "bn" && item.bn) ? item.bn : item.name;
+const num = (n) => Number(n).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-US", { useGrouping: false });
+};
+  return I18N.en[k] !== undefined ? I18N.en[k] : val;
+  if (str !== undefined) return str;
+  const str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][k] : undefined;
+  const k = prefix + "." + val;
+const lookup = (prefix, val) => {
+// lookup("status", "Ready") -> translated label, or the raw value if there is no translation
+};
+  return str;
+  if (vars) Object.keys(vars).forEach(k => { str = str.split("{" + k + "}").join(vars[k]); });
+  if (str === undefined) str = key;
+  if (str === undefined) str = I18N.en[key];
+  let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
+const tx = (key, vars) => {
+});
+  "n.received": "{n} আপনাকে {a} পাঠিয়েছে।"
+  "n.received.t": "টাকা পেয়েছেন",
+  "tx.received": "{n}-এর কাছ থেকে পাওয়া",
+  "tx.sent": "{n}-কে পাঠানো",
+  "xfer.limit": "প্রতি ট্রান্সফারে সর্বোচ্চ ৳২,০০০ এবং দিনে ৳৫,০০০।",
+  "xfer.ok": "{n}-কে {a} পাঠানো হয়েছে।",
+  "xfer.confirm": "{n}-কে {a} পাঠাবেন?",
+  "xfer.short": "আপনার ওয়ালেটে যথেষ্ট ব্যালেন্স নেই।",
+  "xfer.sending": "পাঠানো হচ্ছে…",
+  "xfer.send": "টাকা পাঠান",
+  "xfer.note.ph": "যেমন লাঞ্চ",
+  "xfer.note": "নোট (ঐচ্ছিক)",
+  "xfer.amount": "পরিমাণ",
+  "xfer.change": "বদলান",
+  "xfer.find": "খুঁজুন",
+  "xfer.id": "তার আইডি নম্বর",
+  "xfer.sub": "আইডি দিয়ে অন্য শিক্ষার্থী বা শিক্ষককে ওয়ালেট থেকে টাকা পাঠান।",
+  "xfer.title": "টাকা পাঠান",
+Object.assign(I18N.bn, {
+});
+  "n.received": "{n} sent you {a}."
+  "n.received.t": "Money received",
+  "tx.received": "Received from {n}",
+  "tx.sent": "Sent to {n}",
+  "xfer.limit": "Up to ৳2,000 per transfer and ৳5,000 per day.",
+  "xfer.ok": "Sent {a} to {n}.",
+  "xfer.confirm": "Send {a} to {n}?",
+  "xfer.short": "Not enough balance in your wallet.",
+  "xfer.sending": "Sending…",
+  "xfer.send": "Send money",
+  "xfer.note.ph": "e.g. lunch",
+  "xfer.note": "Note (optional)",
+  "xfer.amount": "Amount",
+  "xfer.change": "Change",
+  "xfer.find": "Find",
+  "xfer.id": "Their ID number",
+  "xfer.sub": "Send wallet money to another student or teacher using their ID.",
+  "xfer.title": "Send money",
+Object.assign(I18N.en, {
+// ---- Added: wallet transfer ----
+});
+  "pr.fullmeals": "পূর্ণ মিল", "pr.halfmeals": "অর্ধেক মিল"
+  "pr.nofb": "এখনো কিছু নেই।",
+  "pr.nodays": "এই মাসে কোনো মিল দিন চিহ্নিত নেই।",
+  "pr.paid": "পরিশোধিত", "pr.unpaid": "অপরিশোধিত",
+  "pr.avgrating": "গড় রেটিং", "pr.totalrated": "মোট রেটিং",
+  "pr.orderfb": "অর্ডারের রেটিং", "pr.generalfb": "সাধারণ ফিডব্যাক",
+  "pr.day": "বার", "pr.meal": "মিল", "pr.rate": "রেট", "pr.status": "অবস্থা", "pr.method": "পদ্ধতি", "pr.orders": "অর্ডার",
+  "pr.order": "অর্ডার", "pr.rating": "রেটিং", "pr.comment": "মন্তব্য", "pr.category": "ধরন",
+  "pr.date": "তারিখ", "pr.item": "আইটেম", "pr.items": "আইটেম", "pr.qty": "পরিমাণ", "pr.amount": "টাকা",
+  "pr.bill": "মিল প্ল্যান বিল",
+  "pr.feedback": "আমার ফিডব্যাক",
+  "pr.spending": "খরচের সারসংক্ষেপ",
+  "pr.generated": "তৈরি: {t}",
+  "pr.print": "প্রিন্ট",
+Object.assign(I18N.bn, {
+});
+  "pr.fullmeals": "Full meals", "pr.halfmeals": "Half meals"
+  "pr.nofb": "Nothing yet.",
+  "pr.nodays": "No meal days are marked this month.",
+  "pr.paid": "Paid", "pr.unpaid": "Unpaid",
+  "pr.avgrating": "Average rating", "pr.totalrated": "Total ratings",
+  "pr.orderfb": "Order ratings", "pr.generalfb": "General feedback",
+  "pr.day": "Day", "pr.meal": "Meal", "pr.rate": "Rate", "pr.status": "Status", "pr.method": "Method", "pr.orders": "Orders",
+  "pr.order": "Order", "pr.rating": "Rating", "pr.comment": "Comment", "pr.category": "Category",
+  "pr.date": "Date", "pr.item": "Item", "pr.items": "Items", "pr.qty": "Qty", "pr.amount": "Amount",
+  "pr.bill": "Meal plan bill",
+  "pr.feedback": "My feedback",
+  "pr.spending": "Spending summary",
+  "pr.generated": "Generated {t}",
+  "pr.print": "Print",
+Object.assign(I18N.en, {
+// ---- Added: printable student reports ----
+});
+  "tx.mealrefund": "মিল প্ল্যান ফেরত {d}"
+  "tx.mealpay": "মিল প্ল্যান {m} ({f} পূর্ণ, {h} অর্ধেক)",
+  "mp.note": "ওয়ালেট থেকে মাসের টাকা দিন। আজকের পরের পরিশোধিত দিন বদলানো যায় (টাকা ফেরত আসে); আজকের ও আগের দিন বদলানো যায় না।",
+  "mp.legend": "✓ = পরিশোধিত",
+  "mp.confirm": "এই দিনটি পরিশোধ করা। বদলালে টাকা ওয়ালেটে ফেরত যাবে এবং দিনটি অপরিশোধিত হবে। চালিয়ে যাবেন?",
+  "mp.paid.ok": "মিল প্ল্যান পরিশোধিত: {d} দিনের জন্য {a}।",
+  "mp.repeat.ok": "গত মাসের ধরন থেকে {n} দিন যোগ হয়েছে।",
+  "mp.repeat.d": "আজ থেকে চিহ্নহীন দিনগুলো গত মাসের সাধারণ সপ্তাহের ধরন অনুযায়ী ভরবে। আপনি পরিশোধ না করা পর্যন্ত কিছু কাটা হবে না।",
+  "mp.repeat": "গত মাসের ধরন আবার ব্যবহার করুন",
+  "mp.short": "ওয়ালেটে {a} কম আছে — আগে ওয়ালেট ট্যাবে টাকা যোগ করুন।",
+  "mp.balance": "ওয়ালেট ব্যালেন্স",
+  "mp.nothing": "যা চিহ্নিত আছে সবই পরিশোধিত",
+  "mp.paying": "পরিশোধ হচ্ছে…",
+  "mp.pay": "ওয়ালেট থেকে মিল প্ল্যানের টাকা দিন",
+  "mp.paidamt": "ইতিমধ্যে পরিশোধ",
+  "mp.due": "এখনো দিতে হবে",
+  "mp.paid": "পরিশোধিত",
+Object.assign(I18N.bn, {
+});
+  "tx.mealrefund": "Meal plan refund {d}"
+  "tx.mealpay": "Meal plan {m} ({f} full, {h} half)",
+  "mp.note": "Pay the month from your wallet. Paid days after today can still be changed (refunded); today's and past days are locked.",
+  "mp.legend": "✓ = paid",
+  "mp.confirm": "This day is already paid. Changing it refunds the money to your wallet and the day becomes unpaid. Continue?",
+  "mp.paid.ok": "Meal plan paid: {a} for {d} day(s).",
+  "mp.repeat.ok": "Added {n} day(s) from last month's pattern.",
+  "mp.repeat.d": "Fills the unmarked days from today using last month's usual weekdays. Nothing is charged until you pay.",
+  "mp.repeat": "Repeat last month's pattern",
+  "mp.short": "Wallet is {a} short — add money in the Wallet tab first.",
+  "mp.balance": "Wallet balance",
+  "mp.nothing": "Everything marked is paid",
+  "mp.paying": "Paying…",
+  "mp.pay": "Pay meal plan from wallet",
+  "mp.paidamt": "Already paid",
+  "mp.due": "Still to pay",
+  "mp.paid": "Paid",
+Object.assign(I18N.en, {
+// ---- Added: meal plan (pay the calendar from the wallet) ----
+});
+  "sp.topups": "এই মাসে যোগ হয়েছে"
+  "sp.wallet": "ওয়ালেট",
+  "sp.norders": "{n}টি অর্ডার",
+  "sp.pay": "কীভাবে পরিশোধ করেছেন",
+  "sp.cat.other": "অন্যান্য",
+  "sp.cat.drinks": "পানীয়",
+  "sp.cat.snacks": "স্ন্যাক্স",
+  "sp.cat.heavy": "মূল খাবার",
+  "sp.cat": "কোথায় খরচ হলো",
+  "sp.top": "সবচেয়ে বেশি অর্ডার",
+  "sp.months": "গত ৬ মাস (বারে চাপ দিলে সেই মাস খুলবে)",
+  "sp.daily": "দিন অনুযায়ী খরচ",
+  "sp.noprev": "তুলনার জন্য গত মাসে অর্ডার নেই",
+  "sp.same": "গত মাসের সমান",
+  "sp.less": "গত মাসের চেয়ে {p}% কম",
+  "sp.more": "গত মাসের চেয়ে {p}% বেশি",
+  "sp.saved.d": "কুপন দিয়ে",
+  "sp.saved": "সাশ্রয়",
+  "sp.biggest": "সর্বোচ্চ: {a}",
+  "sp.avg": "গড় অর্ডার",
+  "sp.activedays": "{d} দিনে",
+  "sp.orders": "অর্ডার",
+  "sp.spent": "খরচ",
+  "sp.empty": "এই মাসে এখনো কোনো অর্ডার নেই — অর্ডার করলে আপনার খরচের সারসংক্ষেপ এখানে দেখা যাবে।",
+  "sp.loading": "আপনার সারসংক্ষেপ লোড হচ্ছে…",
+  "nav.spending": "খরচ",
+Object.assign(I18N.bn, {
+});
+  "sp.topups": "Added this month"
+  "sp.wallet": "Wallet",
+  "sp.norders": "{n} order(s)",
+  "sp.pay": "How you paid",
+  "sp.cat.other": "Other",
+  "sp.cat.drinks": "Drinks",
+  "sp.cat.snacks": "Snacks",
+  "sp.cat.heavy": "Main meals",
+  "sp.cat": "Where it went",
+  "sp.top": "Most ordered",
+  "sp.months": "Last 6 months (tap a bar to open that month)",
+  "sp.daily": "Spending by day",
+  "sp.noprev": "No orders last month to compare",
+  "sp.same": "Same as last month",
+  "sp.less": "{p}% less than last month",
+  "sp.more": "{p}% more than last month",
   "sp.saved.d": "with coupons",
   "sp.saved": "Saved",
   "sp.biggest": "Biggest: {a}",
