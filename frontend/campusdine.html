@@ -3435,10 +3435,26 @@ function PortalTopHeader({
               </div>
               <button onClick={onSwitchRestaurant} className="text-[11px] font-bold text-amber-700 hover:underline">
                 ⇄ Switch canteen
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-    <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
-    </>
+
+      {/* Right: Actions, Notification, User Pill (like in BUP screenshot) */}
+      <div className="flex items-center gap-2.5">
+        {/* Notification Bell */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={onToggleNotifications}
+            title={tx("notif")}
+            className="w-10 h-10 rounded-xl border grid place-items-center hover:bg-black/5 transition-colors relative"
+            style={{ borderColor: "var(--line)" }}>
+            <Icon path={I.bell} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-800 grid place-items-center text-white" style={{ background: "var(--brick)" }}>
+                {notificationCount > 9 ? "9+" : notificationCount}
   );
 }
 
