@@ -29,6 +29,7 @@ More documentation lives in [`docs/`](docs/):
 - [Environment variables](docs/ENVIRONMENT.md)
 - [FAQ](docs/FAQ.md)
 - [Database tables](docs/DATABASE.md)
+- [Hall frontend modules](docs/HALL_FRONTEND_MODULES.md)
 
 ---
 
