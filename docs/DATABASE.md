@@ -362,3 +362,19 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `actor_id` | INT |
 | `note` | VARCHAR(500) |
 | `created_at` | TIMESTAMP |
+
+## `hall_visitors`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `visitor_name` | VARCHAR(180) |
+| `visitor_phone` | VARCHAR(40) |
+| `purpose` | VARCHAR(500) |
+| `visit_date` | DATE |
+| `expected_time` | TIME |
+| `status` | ENUM('pending','approved','rejected','checked_in','checked_out','cancelled') |
+| `reviewed_by` | INT |
+| `created_at` | TIMESTAMP |
