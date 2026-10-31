@@ -20,7 +20,11 @@ function HallReports({ call, notify }) {
   return (
     <>
       <HallCard title="Meals per day" icon="📊" right={
-        <input type="date" className="hl-input" style={{ width: "auto" }} value={date} onChange={(e) => { setDate(e.target.value); if (e.target.value) load(e.target.value); }} />
+        <div className="flex gap-1.5 flex-wrap items-center">
+          <HallDayCsvButton day={day} />
+          <HallReportPrintButton />
+          <input type="date" className="hl-input" style={{ width: "auto" }} value={date} onChange={(e) => { setDate(e.target.value); if (e.target.value) load(e.target.value); }} />
+        </div>
       }>
         {!day ? <div className="hl-empty">Loading…</div> : (
           <div className="hl-grid3">
@@ -62,7 +66,7 @@ function HallReports({ call, notify }) {
         )}
       </HallCard>
 
-      <HallCard title="Next 7 days — plates" icon="📅">
+      <HallCard title="Next 7 days — plates" icon="📅" right={<HallRangeCsvButton range={range} />}>
         <div className="hl-scroll">
           <table className="hl-table">
             <thead><tr><th>Day</th>{HALL_SLOTS.map((x) => <th key={x}>{HALL_SLOT_EMOJI[x]} {HALL_SLOT_LABEL[x]}</th>)}<th>Total</th></tr></thead>
