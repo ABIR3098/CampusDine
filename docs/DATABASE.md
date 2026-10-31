@@ -633,3 +633,19 @@ Created in `backend/src/hall/financeSchema.js`.
 | `created_by` | INT |
 | `university_id` | BIGINT UNSIGNED |
 | `created_at` | DATETIME |
+
+## `hall_lastcalls`
+Created in `backend/src/hall/lastcallSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `plates` | INT |
+| `price` | DECIMAL(10,2) |
+| `note` | VARCHAR(160) |
+| `status` | VARCHAR(8) |
+| `created_by` | INT |
+| `university_id` | BIGINT UNSIGNED |
+| `created_at` | DATETIME |
