@@ -260,3 +260,12 @@ Created in `backend/schema.sql`.
 | `applies_to_all_items` | TINYINT(1) |
 | `is_active` | TINYINT(1) |
 | `created_at` | TIMESTAMP |
+
+## `coupon_items`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `coupon_id` | INT |
+| `item_id` | INT |
