@@ -1,3 +1,238 @@
+          </div>
+            </button>
+              {sending ? "…" : "Send"}
+              className="btn-primary rounded-xl px-4 py-2 text-xs font-700 disabled:opacity-50">
+            <button disabled={sending || !draft.trim()} onClick={send}
+              style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+              className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-xs"
+              placeholder="Type delivery update or question…"
+              onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } }}
+            <input value={draft} maxLength={1000} onChange={event => setDraft(event.target.value)}
+          <div className="flex gap-2 pt-1">
+
+          )}
+            </div>
+              <div ref={messagesEndRef} />
+              ))}
+                </div>
+                  <p className="leading-relaxed whitespace-pre-wrap">{message.message}</p>
+                  </div>
+                    </span>
+                      {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <span className="text-[10px] font-mono" style={{ color: "var(--ink-soft)" }}>
+                    <strong className="font-700" style={{ color: "var(--gold)" }}>{message.sender_name}</strong>
+                  <div className="flex justify-between items-center gap-2 mb-1">
+                  style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                <div key={message.id} className="rounded-xl p-2.5 text-xs border"
+              {messages.map(message => (
+            <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+          ) : (
+            </div>
+              No messages exchanged yet. Send a note to the teacher or canteen.
+            <div className="text-center py-4 text-xs italic" style={{ color: "var(--ink-soft)" }}>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-4 text-xs font-600" style={{ color: "var(--ink-soft)" }}>Loading messages…</div>
+          {loading ? (
+          )}
+            </div>
+              {error}
+            <div className="p-2 rounded-lg text-xs" style={{ background: "var(--danger-bg)", color: "var(--danger-fg)" }}>
+          {error && (
+        <div className="mt-2.5 rounded-xl border p-3 space-y-2.5" style={{ background: "var(--bg)", borderColor: "var(--line)" }}>
+      {open && (
+
+      </button>
+        <span>💬</span> {open ? "Hide Order Chat ▲" : "Chat with Customer / Kitchen ▼"}
+        style={{ color: "var(--gold)" }}>
+        className="inline-flex items-center gap-1.5 text-xs font-700 transition-colors"
+      <button onClick={() => setOpen(value => !value)}
+    <div className="mt-3 border-t pt-3" style={{ borderColor: "var(--line)" }}>
+  return (
+
+  };
+    }
+      setSending(false);
+    } finally {
+      setError(e.message || "Could not send message.");
+    } catch (e) {
+      setError("");
+      setDraft("");
+        : [...current, result.message].sort((a, b) => Number(a.id) - Number(b.id)));
+        ? current
+      setMessages(current => current.some(item => item.id === result.message.id)
+      });
+        method: "POST", token, body: { message },
+      const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, {
+    try {
+    setSending(true);
+    if (!message || sending) return;
+    const message = draft.trim();
+  const send = async () => {
+
+  }, [messages, open]);
+    }
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (open && messagesEndRef.current) {
+  useEffect(() => {
+
+  }, [open, apiBase, token, orderId]);
+    return () => { active = false; socket.disconnect(); };
+    load();
+    });
+        : [...current, message].sort((a, b) => Number(a.id) - Number(b.id)));
+        ? current
+      setMessages(current => current.some(item => item.id === message.id)
+      if (Number(message.orderId) !== Number(orderId)) return;
+    socket.on("order-chat:message", message => {
+    const socket = io(apiBase, { auth: { token } });
+    };
+      }
+        if (active) setLoading(false);
+      } finally {
+        if (active) setError(e.message || "Could not load order chat.");
+      } catch (e) {
+        if (active) setMessages(result.messages || []);
+        const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, { token });
+      try {
+    const load = async () => {
+    setLoading(true);
+    let active = true;
+    if (!open) return undefined;
+  useEffect(() => {
+
+  const messagesEndRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [open, setOpen] = useState(false);
+function RiderOrderChat({ apiBase, token, orderId }) {
+
+}
+  </div>;
+    </div>}
+      {detail.items.length ? <div className="space-y-2">{detail.items.map(item => <div key={item.id} className="flex justify-between border-b pb-2 text-sm" style={{ borderColor: "var(--line)" }}><span>{item.itemName} × {item.qty} <span style={{ color: "var(--ink-soft)" }}>by {item.addedBy}</span></span><strong>৳{(Number(item.price) * Number(item.qty)).toFixed(2)}</strong></div>)}</div> : <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No items added yet.</p>}
+      {detail.group.status === "OPEN" && <div className="grid sm:grid-cols-[1fr_auto_auto] gap-2"><select value={menuItemId} onChange={e => setMenuItemId(e.target.value)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}><option value="">Choose food</option>{menu.filter(item => item.stock > 0 && item.availability === "available").map(item => <option key={item.id} value={item.id}>{item.name} — ৳{item.price}</option>)}</select><input type="number" min="1" max="20" value={quantity} onChange={e => setQuantity(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="w-20 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} /><button disabled={busy || !menuItemId} onClick={addItem} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Add food</button></div>}
+      <div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-800 text-lg">{detail.group.title}</h3><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share code: <strong>{detail.group.joinCode}</strong> · {detail.members.length} members · closes {new Date(detail.group.closesAt).toLocaleString()}</p></div><div className="flex gap-2">{detail.group.status === "OPEN" && Number(detail.group.hostUserId) === Number(userId) && <button onClick={closeGroup} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Close group</button>}<button onClick={loadCombinedCart} className="btn-primary rounded-lg px-3 py-2 text-sm">Load combined cart</button></div></div>
+    {detail && <div className="rounded-xl border p-4 space-y-3" style={{ borderColor: "var(--line)" }}>
+    {groups.length > 0 && <div><h3 className="font-700 mb-2">Your open groups</h3><div className="flex flex-wrap gap-2">{groups.map(group => <button key={group.id} onClick={() => openGroup(group.id)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: activeGroupId === group.id ? "var(--gold)" : "var(--line)" }}>{group.title} · {group.members} members · {group.joinCode}</button>)}</div></div>}
+    </div>
+      </div>
+        <button disabled={busy || !joinCode.trim()} onClick={joinGroup} className="rounded-lg border px-3 py-2 mt-2 text-sm" style={{ borderColor: "var(--line)" }}>Join group</button>
+        <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={12} placeholder="Join code" className="w-full rounded-lg border px-3 py-2 text-sm uppercase" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+        <label className="text-sm font-700 block mb-2">Join a group</label>
+      <div className="rounded-xl p-3" style={{ background: "var(--panel-soft)" }}>
+      </div>
+        <button disabled={busy || !title.trim()} onClick={createGroup} className="btn-primary rounded-lg px-3 py-2 mt-2 text-sm">Create group</button>
+        <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+        <label className="text-sm font-700 block mb-2">Create a group</label>
+      <div className="rounded-xl p-3" style={{ background: "var(--panel-soft)" }}>
+    <div className="grid md:grid-cols-2 gap-3">
+    {error && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--gold-soft)" }}>{error}</div>}
+    <div><h2 className="font-display font-800 text-xl">Group orders</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share a join code, collect menu choices, and let the host place one combined order.</p></div>
+  return <div className="card p-5 space-y-4">
+
+  };
+    setError("Group items loaded. Review the cart and place one order to pay.");
+    setCart([...combined.values()]);
+    }
+      return;
+      setError("Add available menu items before loading the group cart.");
+    if (!combined.size) {
+    }
+      combined.set(menuItem.id, { ...menuItem, qty: combinedQuantity });
+      }
+        return;
+        setError(`${item.itemName} exceeds the remaining stock for the combined order.`);
+      if (combinedQuantity > Number(menuItem.stock)) {
+      const combinedQuantity = Number(item.qty) + (current ? current.qty : 0);
+      const current = combined.get(menuItem.id);
+      }
+        return;
+        setError(`${item.itemName} is no longer available in the requested quantity.`);
+      if (!menuItem || menuItem.availability !== "available" || Number(menuItem.stock) < Number(item.qty)) {
+      const menuItem = menu.find(entry => Number(entry.id) === Number(item.menuItemId));
+    for (const item of detail.items) {
+    const combined = new Map();
+    if (cart.length && !window.confirm("Replace your current cart with the group order?")) return;
+    }
+      return;
+      setError("Only the group host can load and check out the combined cart.");
+    if (!detail || Number(detail.group.hostUserId) !== Number(userId)) {
+  const loadCombinedCart = () => {
+  };
+    }
+      setError(e.message || "Could not close this group.");
+    } catch (e) {
+      await loadGroups();
+      await openGroup(activeGroupId);
+      await api(apiBase, `/api/group-orders/${activeGroupId}/close`, { method: "POST", token });
+    try {
+  const closeGroup = async () => {
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message || "Could not add this item.");
+    } catch (e) {
+      await openGroup(activeGroupId);
+      });
+        method: "POST", token, body: { menuItemId: Number(menuItemId), qty: quantity },
+      await api(apiBase, `/api/group-orders/${activeGroupId}/items`, {
+    try {
+    setBusy(true);
+    if (!activeGroupId || !menuItemId) return;
+  const addItem = async () => {
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message || "Could not join group.");
+    } catch (e) {
+      await openGroup(group.groupId);
+      await loadGroups();
+      const group = await api(apiBase, "/api/group-orders/join", { method: "POST", token, body: { joinCode } });
+    try {
+    setBusy(true);
+  const joinGroup = async () => {
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message || "Could not create group.");
+    } catch (e) {
+      await openGroup(group.id);
+      await loadGroups();
+      const group = await api(apiBase, "/api/group-orders", { method: "POST", token, body: { title } });
+    try {
+    setBusy(true);
+  const createGroup = async () => {
+
+  useEffect(() => { loadGroups(); }, [apiBase, token]);
+  };
+    }
+      setError(e.message || "Could not open this group.");
+    } catch (e) {
+      setError("");
+      setActiveGroupId(id);
+      setDetail(await api(apiBase, `/api/group-orders/${id}`, { token }));
+    try {
+  const openGroup = async (id) => {
+  };
+    }
+      setError(e.message || "Could not load group orders.");
+    } catch (e) {
+      setError("");
+      setGroups(await api(apiBase, "/api/group-orders", { token }));
+    try {
+  const loadGroups = async () => {
+
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [menuItemId, setMenuItemId] = useState("");
+  const [joinCode, setJoinCode] = useState("");
   const [title, setTitle] = useState("Study group order");
   const [detail, setDetail] = useState(null);
   const [activeGroupId, setActiveGroupId] = useState(null);
