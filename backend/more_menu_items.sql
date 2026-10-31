@@ -77,6 +77,7 @@ SELECT v.name, v.name_bn, v.category, v.price, v.stock, v.tag, v.is_veg, v.image
   UNION ALL SELECT 'Dim Bhuna & Porota', 'ডিম ভুনা-পরোটা', 'heavy', 60, 40, NULL, 0, '/images/food/porota-vaji.svg'
   UNION ALL SELECT 'Alu Porota', 'আলু পরোটা', 'snacks', 25, 50, NULL, 1, '/images/food/porota-vaji.svg'
   UNION ALL SELECT 'Chicken Khichuri', 'চিকেন খিচুড়ি', 'heavy', 95, 25, NULL, 0, '/images/food/khichuri.svg'
+  UNION ALL SELECT 'Beef Khichuri', 'বিফ খিচুড়ি', 'heavy', 110, 20, NULL, 0, '/images/food/khichuri.svg'
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM menu_items m WHERE m.name = v.name);
 
@@ -150,6 +151,7 @@ JOIN (
   UNION ALL SELECT 'Dim Bhuna & Porota', 'staff'
   UNION ALL SELECT 'Alu Porota', 'vista'
   UNION ALL SELECT 'Chicken Khichuri', 'staff'
+  UNION ALL SELECT 'Beef Khichuri', 'thirdplace'
 ) AS r ON r.name = m.name
 ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value);
 
