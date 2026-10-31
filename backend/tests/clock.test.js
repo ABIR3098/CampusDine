@@ -14,3 +14,9 @@ test("toMinutes accepts seconds and ignores them", () => {
 test("toMinutes rejects invalid values", () => {
   for (const bad of ["24:00", "9:30", "12:60", "", null, undefined, "abc"]) assert.equal(toMinutes(bad), null);
 });
+
+test("dayDiff counts whole days in both directions", () => {
+  assert.equal(dayDiff("2026-10-30", "2026-10-31"), 1);
+  assert.equal(dayDiff("2026-10-31", "2026-10-30"), -1);
+  assert.equal(dayDiff("2026-10-31", "2026-10-31"), 0);
+});
