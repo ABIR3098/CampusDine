@@ -65,9 +65,9 @@ No database change is needed:
    collation `utf8mb4_general_ci` → **Create**.
 3. With `campusdine` selected, click the **Import** tab → **Choose File**
    → select `backend/schema.sql` → **Go**.
-4. You should see "Import has been successfully finished" and 7 tables
+4. You should see "Import has been successfully finished" and 21 tables
    listed on the left (users, menu_items, orders, order_items,
-   wallet_transactions, meal_calendar, meal_rates).
+   wallet_transactions, meal_calendar, meal_rates and more).
 
 (Prefer the command line instead? `mysql -u root -p campusdine < schema.sql` works the same way.)
 
