@@ -201,8 +201,39 @@ function HallServices({call,user,isAdmin,notify}) {
           const savedPhoto = (() => {
             try { return localStorage.getItem("cd_photo_" + r.id) || (photoPreview && localStorage.getItem("cd_maint_recent_photo")); }
             catch(_) { return null; }
-          <div className="flex gap-2 flex-wrap mt-3">{isAdmin?<><select className="hl-input" value={r.status} onChange={e=>updateStatus(r.id,e.target.value)}>{Object.entries(HALL_STATUS_LABEL).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>{r.status!=="resolved"&&<button className="hl-btn ghost" onClick={()=>updateStatus(r.id,"resolved")}>Mark resolved</button>}</>:["submitted","approved"].includes(r.status)&&<button className="hl-btn ghost" onClick={()=>cancel(r.id)}>Cancel request</button>}</div>
-        </div>)}</div>}
+          })();
+
+          return (
+            <div key={r.id} className="hl-tile bg-white rounded-2xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-all">
+              <div className="flex flex-wrap justify-between items-start gap-2">
+                <div>
+                  <div className="font-bold text-base text-slate-900 flex items-center gap-2">
+                    <span>#{r.id} · {r.title}</span>
+                  </div>
+                  <div className="text-xs hl-muted mt-0.5">
+                    {(HALL_SERVICE_TYPES.find(x=>x[0]===r.type)||[r.type,r.type])[1]} · {r.student_name||"Student"} · {new Date(r.created_at).toLocaleString()}
+                  </div>
+                </div>
+                <span className={"text-xs font-bold px-3 py-1 rounded-full " + (
+                  r.status === "resolved" ? "bg-emerald-100 text-emerald-800" :
+                  r.status === "in_progress" ? "bg-purple-100 text-purple-800" :
+                  r.status === "approved" ? "bg-blue-100 text-blue-800" :
+                  "bg-amber-100 text-amber-800"
+                )}>
+                  ● {HALL_STATUS_LABEL[r.status]||r.status}
+                </span>
+              </div>
+
+              {/* Visual 4-Step Progress Tracker */}
+              <div className="my-4 py-2 border-y border-slate-100">
+                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Live Status Tracking</div>
+                <div className="grid grid-cols-4 gap-1 text-center">
+                  <div className={"p-1.5 rounded-lg text-xs font-bold " + (step >= 1 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400")}>
+                    1. Submitted
+                  </div>
+                  <div className={"p-1.5 rounded-lg text-xs font-bold " + (step >= 2 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400")}>
+                    2. Assigned
+                  </div>
       </HallCard>
     </>}
     {section==="notices"&&<HallCard title="Hall notice board" icon="📢" sub="Official hall announcements and important updates.">
