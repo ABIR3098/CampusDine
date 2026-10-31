@@ -1,5 +1,7 @@
 # CampusDine Enhancement - Completion Status Report
 
+> **Note:** this report describes `server-enhanced.js`, a separate branch. The running app is `server.js` (see README, "Legacy files").
+
 **Project:** CampusDine Bug Fixes & Feature Implementation  
 **Status:** ✅ **100% COMPLETE**  
 **Date:** September 3, 2026  
@@ -42,12 +44,12 @@ All 5 critical bug fixes and 9 new features have been **successfully implemented
 **Status:** COMPLETE  
 **File:** `backend/src/routes/wallet-enhanced.js`  
 **Changes:**
-- Maximum ৳9,999 per transaction enforced
+- Maximum ৳10,000 per transaction enforced
 - Validation at API level
 - Configurable via `.env` (MAX_WALLET_TOPUP)
 
 **Endpoint:**
-- `POST /api/wallet/topup` - Limited to ৳9,999
+- `POST /api/wallet/topup` - Limited to ৳10,000
 
 **Testing:**
 ```bash
