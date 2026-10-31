@@ -35,3 +35,4 @@
 - Repo: `.editorconfig`, `.gitattributes`, `npm test` script and a corrected `.gitignore`.
 - Docs: hall menu guide, menu SQL guide, environment variables table, FAQ and contributing guide.
 - Tests: new unit tests for the clock helpers, signed token QR codes and happy-hour pricing.
+- Tests: more unit tests for diet tags, Hall date/cut-off helpers and order rules.
