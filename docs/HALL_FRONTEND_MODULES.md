@@ -31,3 +31,6 @@ Step 10 — "My bill" tab: what each meal costs, day by day, and the month's tot
 
 ## `billExport.jsx`
 "Download CSV" and "Print / PDF" buttons for the My bill tab.
+
+## `core.jsx`
+Hall core: shared helpers + small UI pieces (card, ON/OFF switch, hero slider), the page shell
