@@ -241,3 +241,22 @@ Created in `backend/schema.sql`.
 | `rating` | TINYINT |
 | `comment` | TEXT |
 | `created_at` | TIMESTAMP |
+
+## `coupons`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `code` | VARCHAR(50) |
+| `discount_type` | ENUM('PERCENTAGE','FIXED') |
+| `discount_value` | DECIMAL(10,2) |
+| `min_order_amount` | DECIMAL(10,2) |
+| `max_discount` | DECIMAL(10,2) |
+| `usage_limit` | INT |
+| `used_count` | INT |
+| `expiry_date` | DATETIME |
+| `description` | VARCHAR(255) |
+| `applies_to_all_items` | TINYINT(1) |
+| `is_active` | TINYINT(1) |
+| `created_at` | TIMESTAMP |
