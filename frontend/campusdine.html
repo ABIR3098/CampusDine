@@ -737,6 +737,25 @@
   }
   .portal-nav-label {
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  .portal-sidebar.collapsed .portal-nav-label,
+  .portal-sidebar.collapsed .portal-nav-badge,
+  .portal-sidebar.collapsed .portal-search-box {
+    display: none !important;
+  }
+  .portal-sidebar.collapsed .portal-nav-item {
+    justify-content: center;
+    padding: 12px;
+    transform: none !important;
+  }
+
+  .portal-nav-badge {
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 10px;
 
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
