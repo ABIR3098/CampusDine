@@ -64,3 +64,6 @@ Finance: how this month compares with the one before ("↑ 12% vs last month").
 
 ## `financeExpenses.jsx`
 Mess finance: add an expense, and the list of this month's expenses.
+
+## `homeExtras.jsx`
+The alerts that sit at the top of the member Home tab: closing-soon reminder and low-wallet warning.
