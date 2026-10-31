@@ -1052,3 +1052,18 @@ Created in `backend/server.js`.
 | `active` | TINYINT(1) |
 | `last_done` | VARCHAR(10) |
 | `created_at` | TIMESTAMP |
+
+## `order_issues`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `order_id` | INT |
+| `user_id` | INT |
+| `reason` | VARCHAR(20) |
+| `details` | VARCHAR(300) |
+| `status` | ENUM('Open','Resolved') |
+| `admin_reply` | VARCHAR(500) |
+| `created_at` | TIMESTAMP |
+| `resolved_at` | DATETIME |
