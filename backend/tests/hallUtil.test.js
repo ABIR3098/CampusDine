@@ -49,3 +49,7 @@ test("addDays crosses the year end", () => {
 test("cutoffOf for a same-day cut-off", () => {
   assert.deepEqual(cutoffOf(dinner, "2026-10-22"), { dateKey: "2026-10-22", minutes: 900 });
 });
+
+test("cutoffOf for a cut-off the evening before", () => {
+  assert.deepEqual(cutoffOf(breakfast, "2026-10-22"), { dateKey: "2026-10-21", minutes: 1260 });
+});
