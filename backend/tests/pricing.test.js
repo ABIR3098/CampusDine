@@ -22,3 +22,7 @@ test("happy hour window start is inclusive and end is exclusive", () => {
   assert.equal(isHappyHourActive(hh(), at("2026-10-31T10:00:00Z")), false);
   assert.equal(isHappyHourActive(hh(), at("2026-10-31T07:59:00Z")), false);
 });
+
+test("an inactive happy hour never runs", () => {
+  assert.equal(isHappyHourActive(hh({ is_active: 0 }), at("2026-10-31T09:00:00Z")), false);
+});
