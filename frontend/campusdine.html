@@ -6658,6 +6658,40 @@ function ThermalReceiptModal({ order, onClose }) {
             </div>
             <div className="text-left text-[10px] text-slate-600 mt-0.5">
               Cashier: Counter #1 · POS-04
+            </div>
+          </div>
+
+          <div className="my-2 p-2 bg-slate-100 rounded-lg text-center border border-slate-300">
+            <div className="text-[10px] uppercase font-bold text-slate-500">Order Token</div>
+            <div className="text-2xl font-black tracking-widest text-slate-900 mt-0.5">{order.token}</div>
+          </div>
+
+          <div className="border-t border-dashed border-slate-400 py-1 flex justify-between font-bold text-[10px]">
+            <span>ITEM</span>
+            <span>QTY  PRICE  TOTAL</span>
+          </div>
+          <div className="border-b border-dashed border-slate-400 pb-1 mb-2 space-y-1">
+            {order.items.map((i, idx) => (
+              <div key={idx} className="flex justify-between text-[11px]">
+                <span className="font-medium truncate max-w-[140px]">{i.name}</span>
+                <span>{i.qty}  ×  ৳{i.price} = ৳{i.qty * i.price}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-1 text-right text-[11px] pb-2 border-b border-dashed border-slate-400">
+            <div className="flex justify-between"><span>Subtotal:</span><span>৳{order.total}</span></div>
+            <div className="flex justify-between text-emerald-700"><span>BYOB Eco Discount:</span><span>-৳0</span></div>
+            <div className="flex justify-between font-black text-sm pt-1 border-t border-slate-300">
+              <span>GRAND TOTAL:</span>
+              <span>৳{order.total}</span>
+            </div>
+          </div>
+
+          <div className="py-2 text-[10px] text-slate-600 space-y-0.5">
+            <div>Payment Method: <strong>{order.payment_method === "wallet" ? "CAMPUS WALLET (PAID)" : "CASH ON PICKUP"}</strong></div>
+            <div>Order Status: <strong>{order.status}</strong></div>
+            {order.note && <div>Kitchen Note: <i>{order.note}</i></div>}
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
