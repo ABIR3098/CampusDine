@@ -143,3 +143,9 @@ test("buildOrderStats converts the favourite quantity to a number", () => {
   assert.deepEqual(s.favouriteItem, { name: "Tehari", qty: 3 });
   assert.equal(s.averageOrder, 150);
 });
+
+test("estimateReadyAt with zero minutes is the start time", () => {
+  const { estimateReadyAt } = require("../src/utils/orderRules");
+  const start = new Date("2026-10-31T10:00:00Z");
+  assert.equal(estimateReadyAt(0, start), start.toISOString());
+});
