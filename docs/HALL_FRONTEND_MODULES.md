@@ -25,3 +25,6 @@ Auto-pay, admin side: run it right now for one month (it also runs by itself bet
 
 ## `balanceAlert.jsx`
 Home: warns when the wallet can't cover the Hall bill.
+
+## `bill.jsx`
+Step 10 — "My bill" tab: what each meal costs, day by day, and the month's total.
