@@ -1,3 +1,238 @@
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      </div>
+        </button>
+          {tx("viewfav")}
+        <button onClick={() => setFavoritesOnly(true)} className="text-xs px-2.5 py-1.5 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+        </div>
+          <h3 className="font-display font-700 text-base" style={{ color: "var(--gold)" }}>{tx("starred")}</h3>
+          <Icon path={I.star} className="w-4 h-4" style={{ color: "var(--gold)" }} fill="currentColor" />
+        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
+  return (
+  if (items.length === 0) return null;
+function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavoritesOnly }) {
+}
+  );
+    </div>
+      </div>
+        })}
+          );
+            </div>
+              </div>
+                </button>
+                  {inCart ? tx("plus1") : tx("add")}
+                  style={{ background: inCart ? "var(--teal)" : "var(--gold)" }}>
+                  className="text-xs px-2.5 py-1.5 rounded-lg text-white disabled:opacity-50"
+                <button type="button" disabled={maxed} onClick={() => add(item)}
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+              <div className="mt-2 flex items-center justify-between">
+              <div className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>{tx("usual.times", { n: num(n) })}</div>
+              </div>
+                <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{itemName(item)}</span>
+                <DietMark isVeg={!!item.is_veg} />
+              <div className="flex items-center gap-1.5">
+            <div key={"usual-" + item.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+          return (
+          const maxed = !!inCart && inCart.qty >= item.stock;
+          const inCart = cart.find(c => c.id === item.id);
+        {usual.map(({ item, n }) => {
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="font-display font-700 text-base mb-3" style={{ color: "var(--gold)" }}>🔁 {tx("usual.title")}</div>
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
+  return (
+  if (usual.length === 0) return null;
+  const usual = pickUsual(pastOrders, menu);
+function UsualPanel({ pastOrders, menu, cart, add }) {
+}
+    .slice(0, 3);
+    .filter(x => x.item && x.item.availability === "available" && Number(x.item.stock) > 0)
+    .map(([name, n]) => ({ item: menu.find(m => m.name === name), n }))
+    .sort((a, b) => b[1] - a[1])
+  return [...counts.entries()]
+  }
+    for (const name of new Set((o.items || []).map(i => i.name))) counts.set(name, (counts.get(name) || 0) + 1);
+    if (o.status === "Cancelled") continue;
+  for (const o of pastOrders || []) {
+  const counts = new Map();
+function pickUsual(pastOrders, menu) {
+// the (up to) 3 menu items this student has ordered in the most separate orders; unavailable items are skipped
+/* Feature: your usual */
+
+}
+  );
+    </div>
+      )}
+        </span>
+          {tx("nut.none")}
+          style={{ borderColor: "#16A34A", color: "#16A34A" }}>
+        <span className="text-[11px] font-600 px-2 py-0.5 rounded-full border"
+      {hasCalories && allergens.length === 0 && (
+      ))}
+        </span>
+          {lookup("allergen", a)}
+          style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+        <span key={a} className="text-[11px] font-600 px-2 py-0.5 rounded-full border"
+      {allergens.map(a => (
+      )}
+        <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("nut.contains")}:</span>
+      {allergens.length > 0 && (
+      )}
+        </span>
+          ~{num(item.calories)} {tx("nut.kcal")}
+          style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+        <span title={tx("nut.approx")} className="text-[11px] font-mono px-2 py-1 rounded-full"
+      {hasCalories && (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+  return (
+  if (!hasCalories && allergens.length === 0) return null;
+  const hasCalories = typeof item.calories === "number";
+  const allergens = Array.isArray(item.allergens) ? item.allergens : [];
+function NutritionInfo({ item }) {
+// Renders nothing for items that have no nutrition data (e.g. items added later by the admin).
+// Feature: approximate calories + allergen chips shown on a menu card.
+
+}
+  );
+    </button>
+        style={{ color: isFavorite ? "var(--gold)" : "var(--ink-soft)" }} />
+      <Icon path={I.star} className="w-4 h-4" fill={isFavorite ? "currentColor" : "none"}
+      className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+      title={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
+      aria-label={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
+      aria-pressed={isFavorite}
+      type="button"
+    <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+  return (
+  const isFavorite = Boolean(item.is_favorite);
+function FavoriteStarButton({ item, onToggleFavorite }) {
+
+}
+  );
+    </label>
+      {tx("fav")}
+      <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
+      <input type="checkbox" checked={favoritesOnly} onChange={onChange} />
+      style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
+    <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
+  return (
+function FavoritesFilterToggle({ favoritesOnly, onChange }) {
+
+}
+  );
+    </div>
+      ))}
+        </button>
+          {label}
+          style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
+        <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
+      {[["all", tx("diet.all")], ["veg", tx("diet.veg")], ["nonveg", tx("diet.nonveg")]].map(([key, label]) => (
+    <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
+  return (
+function MenuDietFilter({ diet, setDiet }) {
+
+}
+  );
+    </>
+      </select>
+        <option value="name">{tx("sort.name")}</option>
+        <option value="priceDesc">{tx("sort.priceDesc")}</option>
+        <option value="priceAsc">{tx("sort.priceAsc")}</option>
+        <option value="default">{tx("sort.default")}</option>
+        className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+      <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+        className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+        placeholder={tx("search.ph")}
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+    <>
+  return (
+function MenuSearchSortControls({ search, setSearch, sortBy, setSortBy }) {
+
+}
+  );
+    </div>
+      ))}
+        </button>
+          {tx("cat." + item.id)}
+          className={`tab-btn px-4 py-2 rounded-full text-sm ${category === item.id ? "active" : ""}`}>
+        <button key={item.id} onClick={() => setCategory(item.id)}
+      {CATEGORIES.map(item => (
+    <div className="flex gap-2 mb-5">
+  return (
+function MenuCategoryTabs({ category, setCategory }) {
+
+}
+  );
+    </span>
+      <span className="w-2 h-2 rounded-full" style={{ background: c }} />
+      style={{ borderColor: c, borderRadius: 3 }}>
+      className="inline-grid place-items-center w-4 h-4 border-2 shrink-0"
+    <span title={isVeg ? tx("diet.veg") : tx("diet.nonveg")}
+  return (
+  const c = isVeg ? "#16A34A" : "#B91C1C";
+function DietMark({ isVeg }) {
+/* Veg / non-veg marker: green dot = vegetarian, red dot = non-vegetarian */
+/* ---------------- Menu & Order tab ---------------- */
+
+}
+  );
+    </>
+    <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
+    </div>
+      </div>
+        </div>
+          </button>
+            <span className="cd-logout-text">Log out</span>
+            <Icon path={I.logout} className="w-4 h-4" />
+          <button onClick={onLogout} title="Log out" aria-label="Log out" className="cd-logout">
+          <span className="cd-divider hidden sm:block" />
+          {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
+          <ThemeMenu />
+          <div className="hidden sm:block" title={`${name} · ${tx("r." + role)}`}><Avatar src={avatar} name={name} size={34} /></div>
+          </div>
+            <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
+            <div className="text-sm font-600 leading-tight">{name}</div>
+          <div className="hidden min-[1400px]:block text-right mr-1">
+          </div>
+            )}
+              </div>
+                )}
+                  </div>
+                    ))}
+                      </div>
+                        </div>
+                          </div>
+                            <div className="text-sm mt-1 leading-relaxed break-words" style={{ color: "var(--ink)" }}>{item.message}</div>
+                            </div>
+                              {!item.read && <span className="w-2 h-2 rounded-full" style={{ background: "var(--brick)" }} />}
+                              <div className="text-[10px] uppercase tracking-wide font-700" style={{ color: item.kind === "announcement" ? "var(--teal-deep)" : "var(--gold)" }}>{item.title}</div>
+                            <div className="flex items-center justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                          <span className="mt-1.5 w-2 h-2 rounded-full shrink-0" style={{ background: item.kind === "announcement" ? "var(--leaf)" : "var(--gold)" }} />
+                        <div className="flex items-start gap-2">
+                      <div key={item.id} className="px-4 py-3 border-b last:border-b-0 transition-colors" style={{ borderColor: "var(--line)", background: item.read ? "transparent" : "rgba(245,179,0,0.05)" }}>
+                    {notifications.map(item => (
+                  <div className="max-h-80 overflow-y-auto">
+                ) : (
+                  <div className="p-4 text-sm" style={{ color: "var(--ink-soft)" }}>{tx("notif.none")}</div>
+                {notifications.length === 0 ? (
+                </div>
+                  </div>
+                    )}
+                      </button>
+                        {tx("notif.clear")}
+                      <button type="button" onClick={onClearNotifications} className="px-2 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--brick)" }}>
+                    {notifications.length > 0 && (
+                    )}
+                      </button>
+                        {tx("notif.markall")}
+                      <button type="button" onClick={onMarkAllRead} className="px-2 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                    {notificationCount > 0 && (
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide">
+                  <div className="font-display font-700" style={{ color: "var(--gold)" }}>{tx("notif")}</div>
+                <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--line)", background: "rgba(245,179,0,0.08)" }}>
+                className="absolute right-0 top-full mt-3 w-[min(92vw,360px)] rounded-2xl border shadow-2xl overflow-hidden" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+              <div id="notification-panel" role="region" aria-label={tx("notif")}
             {notificationOpen && (
             </button>
               )}
