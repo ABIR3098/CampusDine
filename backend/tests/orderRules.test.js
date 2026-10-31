@@ -93,3 +93,7 @@ test("validateCartLimits explains the too-many-lines error", () => {
   const items = Array.from({ length: 16 }, (_, i) => ({ id: i, qty: 1 }));
   assert.equal(validateCartLimits(items), "An order can have at most 15 different items");
 });
+
+test("validateCartLimits explains the too-many-of-one-item error", () => {
+  assert.equal(validateCartLimits([{ id: 1, qty: 21 }]), "You can order at most 20 of one item");
+});
