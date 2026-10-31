@@ -590,3 +590,18 @@ Created in `backend/src/hall/extraSchema.js`.
 | `served_by` | INT |
 | `created_at` | TIMESTAMP |
 | `served_at` | DATETIME |
+
+## `hall_food_waste`
+Created in `backend/src/hall/extraSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `waste_date` | DATE |
+| `slot` | ENUM('breakfast','lunch','dinner') |
+| `prepared_plates` | INT |
+| `served_plates` | INT |
+| `wasted_plates` | INT |
+| `notes` | VARCHAR(500) |
+| `recorded_by` | INT |
+| `created_at` | TIMESTAMP |
