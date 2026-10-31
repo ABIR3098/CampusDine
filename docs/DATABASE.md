@@ -205,3 +205,15 @@ Created in `backend/schema.sql`.
 | `label` | VARCHAR(150) |
 | `amount` | DECIMAL(10,2) |
 | `created_at` | TIMESTAMP |
+
+## `meal_calendar`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `the_date` | DATE |
+| `status` | ENUM('off','full','half') |
+| `paid_amount` | DECIMAL(10,2) |
+| `paid_at` | DATETIME |
