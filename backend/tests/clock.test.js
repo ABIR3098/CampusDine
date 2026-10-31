@@ -29,3 +29,8 @@ test("addDays handles leap day and negative numbers", () => {
   assert.equal(addDays("2028-02-28", 1), "2028-02-29");
   assert.equal(addDays("2026-03-01", -1), "2026-02-28");
 });
+
+test("localParts gives the Dhaka wall clock", () => {
+  const p = localParts(new Date("2026-10-31T03:17:00Z"), "Asia/Dhaka");
+  assert.deepEqual(p, { dateKey: "2026-10-31", dow: 6, minutes: 557 });
+});
