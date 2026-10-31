@@ -8395,6 +8395,472 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
             <ProfileField label={tx("address")} value={profile.address} />
           )}
 
+          {editing ? (
+            <ProfileInput label={tx("dept")} value={profile.department} placeholder={tx("dept.ph")}
+              onChange={e => setProfile({ ...profile, department: e.target.value })} />
+          ) : (
+            <ProfileField label={tx("dept")} value={profile.department} />
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("id")}</label>
+              <input value={user.externalId} disabled
+                className="w-full px-4 py-2.5 rounded-xl border opacity-60" style={{ borderColor: "var(--line)" }} />
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("role")}</label>
+              <input value={tx("r." + user.role)} disabled
+                className="w-full px-4 py-2.5 rounded-xl border opacity-60 capitalize" style={{ borderColor: "var(--line)" }} />
+            </div>
+          </div>
+
+          {user.role === "admin" && (
+            <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
+              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>Admin announcement</div>
+              <textarea value={announcementText} onChange={e => setAnnouncementText(e.target.value)} rows={4}
+                placeholder="Type a campus-wide announcement..."
+                className="w-full px-4 py-3 rounded-xl border resize-none" style={{ borderColor: "var(--line)" }} />
+              <div className="mt-3 flex justify-end">
+                <button onClick={sendAnnouncement} disabled={!announcementText.trim() || busy}
+                  className="btn-primary px-4 py-2 rounded-lg text-sm disabled:opacity-50">Send announcement</button>
+              </div>
+            </div>
+          )}
+
+          {user.role !== "admin" && (
+            <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
+              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("hall")}</div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs px-2.5 py-1 rounded-full font-700"
+                  style={profile.accountType === "hall" ? { background: "var(--gold-soft)", color: "var(--teal-deep)" } : { background: "var(--bg)", color: "var(--ink-soft)", border: "1px solid var(--line)" }}>
+                  {profile.accountType === "hall" ? tx("acct.badge.hall") : tx("acct.badge.regular")}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {editing ? (
+                  <>
+                    <ProfileInput label={tx("hallname")} value={profile.hallName} placeholder={tx("hallname.ph")}
+                      onChange={e => setProfile({ ...profile, hallName: e.target.value })} />
+                    <ProfileInput label={tx("room")} value={profile.roomNumber} placeholder={tx("room.ph")}
+                      onChange={e => setProfile({ ...profile, roomNumber: e.target.value })} />
+                  </>
+                ) : (
+                  <>
+                    <ProfileField label={tx("hallname")} value={profile.hallName} placeholder={tx("notres")} />
+                    <ProfileField label={tx("room")} value={profile.roomNumber} placeholder={tx("notres")} />
+                  </>
+                )}
+                <div className="col-span-2">
+                  <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("hallid")}</label>
+                  <input value={profile.hallId || "—"} disabled
+                    className="w-full px-4 py-2.5 rounded-xl border opacity-60 font-mono" style={{ borderColor: "var(--line)" }} />
+                </div>
+              </div>
+              {!profile.hallId && (
+                <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("hallhint")}</p>
+              )}
+            </div>
+          )}
+
+          {user.role !== "admin" && (
+            <div className="ticket p-4">
+              <div className="perf pl-4">
+                <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
+                <div className="font-mono text-xl font-700">{taka(shownBalance)}</div>
+              </div>
+            </div>
+          )}
+
+          {editing && (
+            <div className="border-t pt-4" style={{ borderColor: "var(--line)" }}>
+              <div className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--ink-soft)" }}>{tx("chpw")}</div>
+              <div className="space-y-2">
+                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
+                  className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                <label className="flex items-center gap-2 text-xs cursor-pointer select-none" style={{ color: "var(--ink-soft)" }}>
+                  <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} /> {tx("showpw")}
+                </label>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
+          {success && <p className="text-sm" style={{ color: "var(--leaf)" }}>{success}</p>}
+
+          {editing && (
+            <div className="flex gap-2">
+              <button disabled={busy} onClick={save} className="btn-primary flex-1 py-2.5 rounded-xl">
+                {busy ? tx("saving") : tx("save")}
+              </button>
+              <button disabled={busy} onClick={cancelEdit}
+                className="px-5 py-2.5 rounded-xl border font-600 text-sm"
+                style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                {tx("cancel")}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- App root ---------------- */
+// The four campus restaurants. Everyone (student, teacher, staff and admin) picks one after
+// login. The ids match backend/src/catalog.js, which decides which items each restaurant sells.
+const RESTAURANTS = [
+  { id: "amitie", name: "Amitié", subtitle: "Friendship", logo: "/images/restaurants/amitie.svg",
+    desc: "Coffee, sandwiches, burgers & sweet drinks", descBn: "কফি, স্যান্ডউইচ, বার্গার ও মিষ্টি পানীয়" },
+  { id: "vista", name: "Vista Cafeteria", subtitle: "", logo: "/images/restaurants/vista.svg",
+    desc: "Fuchka, chotpoti, singara & street snacks", descBn: "ফুচকা, চটপটি, সিঙ্গারা ও স্ট্রিট স্ন্যাকস" },
+  { id: "thirdplace", name: "Third Place", subtitle: "", logo: "/images/restaurants/thirdplace.svg",
+    desc: "Biryani, tehari, fried rice & noodles", descBn: "বিরিয়ানি, তেহারি, ফ্রাইড রাইস ও নুডলস" },
+  { id: "staff", name: "Staff Canteen", subtitle: "", logo: "/images/restaurants/staff.svg",
+    desc: "Home-style rice meals, curries & porota", descBn: "ঘরোয়া ভাত, তরকারি ও পরোটা" },
+];
+
+// The Hall (meal system) sits next to the four restaurants on the picker. It is not a restaurant:
+// no cart, no riders, no offers. Its code lives in frontend/hall/ and backend/src/hall/.
+const HALL_ENTRY = { id: "hall", isHall: true, name: "Hall", desc: "Meal schedule, weekly menu, hall services & notices", descBn: "মিল শিডিউল, সাপ্তাহিক মেনু, হল সার্ভিস ও নোটিশ" };
+
+// Waits for hall/loader.js to finish compiling the Hall files, then shows the Hall.
+function HallGate(props) {
+  const [ready, setReady] = useState(!!window.HallApp);
+  useEffect(() => {
+    if (ready) return;
+    const t = setInterval(() => { if (window.HallApp || window.HallLoadError) { setReady(true); clearInterval(t); } }, 150);
+    return () => clearInterval(t);
+  }, [ready]);
+  if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
+  if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
+  const Hall = window.HallApp;
+  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab }} />;
+}
+
+/* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
+function RewardsTab({ call, refreshKey, onGoMenu }) {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let dead = false;
+    call("/api/loyalty/me").then(d => { if (!dead) setData(d); }).catch(e => { if (!dead) setErr(e.message); });
+    return () => { dead = true; };
+  }, [refreshKey]);
+  if (err) return <div className="card p-6 text-sm" style={{ color: "var(--brick)" }}>{err}</div>;
+  if (!data) return <div className="card p-6 text-sm" style={{ color: "var(--ink-soft)" }}>…</div>;
+  const s = data.streak;
+  const dots = Array.from({ length: s.target }, (_, i) => i < s.cycleDays);
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <div className="card p-6">
+          <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("rw.balance")}</div>
+          <div className="font-display font-800 text-4xl mt-1" style={{ color: "var(--gold)" }}>{num(data.points)} <span className="text-base font-600">{tx("q.points")}</span></div>
+          <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("rw.how", { n: num(data.settings.earnPer) })}</p>
+          {s.pendingOrders > 0 && <p className="text-xs mt-1" style={{ color: "var(--teal-deep)" }}>{tx("rw.pending", { n: num(s.pendingOrders) })}</p>}
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-display font-700" style={{ color: "var(--gold)" }}>🔥 {tx("rw.streak")}</div>
+            <div className="text-sm font-600">{tx("rw.days", { n: num(s.current) })}</div>
+          </div>
+          <div className="flex gap-2 mb-3">
+            {dots.map((on, i) => (
+              <div key={i} className="flex-1 h-9 rounded-lg grid place-items-center text-sm font-700"
+                style={{ background: on ? "var(--teal)" : "var(--gold-soft)", color: on ? "#fff" : "var(--ink-soft)" }}>
+                {on ? "✓" : num(i + 1)}
+              </div>
+            ))}
+          </div>
+          <p className="text-sm">{tx("rw.bonus", { n: num(s.daysToBonus), b: num(s.bonus) })}</p>
+          <p className="text-xs mt-1" style={{ color: s.orderedToday ? "var(--leaf)" : "var(--ink-soft)" }}>
+            {s.orderedToday ? tx("rw.today.done") : tx("rw.today.todo")} · {tx("rw.best", { n: num(s.best) })}
+          </p>
+        </div>
+
+        <div className="card p-6">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("rw.history")}</div>
+          {data.ledger.length === 0 ? (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("rw.empty")}</p>
+          ) : (
+            <div className="divide-y" style={{ borderColor: "var(--line)" }}>
+              {data.ledger.map(l => (
+                <div key={l.id} className="flex justify-between py-2 text-sm" style={{ borderColor: "var(--line)" }}>
+                  <div>
+                    <div>{l.label}</div>
+                    <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(l.created_at).toLocaleString()}</div>
+                  </div>
+                  <div className="font-mono font-600" style={{ color: l.points >= 0 ? "var(--leaf)" : "var(--brick)" }}>
+                    {l.points >= 0 ? "+" : "−"}{num(Math.abs(l.points))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <div className="card p-5 sticky top-20">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("rw.rewards")}</div>
+          <div className="space-y-3">
+            {data.rewards.map(r => (
+              <div key={r.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                <div className="font-600 text-sm">{CURRENT_LANG === "bn" && r.name_bn ? r.name_bn : r.name}</div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="font-mono text-sm">{num(r.points_cost)} {tx("q.points")}</span>
+                  <span className="text-xs" style={{ color: r.affordable ? "var(--leaf)" : "var(--ink-soft)" }}>
+                    {r.affordable ? "✓" : tx("q.need", { n: num(r.points_cost - data.points) })}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full mt-2" style={{ background: "var(--gold-soft)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.round((data.points / r.points_cost) * 100))}%`, background: "var(--teal)" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={onGoMenu} className="btn-primary w-full py-2 rounded-xl mt-4 text-sm">{tx("rw.use")}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: combos, happy hours, loyalty rewards ---------------- */
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const inputCls = "px-3 py-2 rounded-lg border text-sm w-full";
+const lineStyle = { borderColor: "var(--line)" };
+
+function OfferField({ label, children }) {
+  return <label className="block text-xs"><span className="uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</span><div className="mt-1">{children}</div></label>;
+}
+
+function ComboForm({ menu, initial, onSave, onCancel }) {
+  const [d, setD] = useState(initial || { name: "", name_bn: "", price: "", isActive: true, items: [{ itemId: "", qty: 1 }, { itemId: "", qty: 1 }] });
+  const price = (id) => { const m = menu.find(x => x.id === Number(id)); return m ? Number(m.price) : 0; };
+  const full = d.items.reduce((s, i) => s + price(i.itemId) * (Number(i.qty) || 0), 0);
+  const setItem = (idx, patch) => setD({ ...d, items: d.items.map((it, i) => i === idx ? { ...it, ...patch } : it) });
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="Khichuri + Egg + Drink" /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Combo price (৳)"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.price} onChange={e => setD({ ...d, price: e.target.value })} /></OfferField>
+      </div>
+      <div className="space-y-2">
+        {d.items.map((it, idx) => (
+          <div key={idx} className="flex gap-2 items-center">
+            <select className={inputCls} style={lineStyle} value={it.itemId} onChange={e => setItem(idx, { itemId: e.target.value })}>
+              <option value="">Choose item…</option>
+              {menu.map(m => <option key={m.id} value={m.id}>{m.name} — ৳{Number(m.price)}</option>)}
+            </select>
+            <input type="number" min="1" max="20" className="px-3 py-2 rounded-lg border text-sm w-20" style={lineStyle} value={it.qty} onChange={e => setItem(idx, { qty: e.target.value })} />
+            {d.items.length > 2 && <button onClick={() => setD({ ...d, items: d.items.filter((_, i) => i !== idx) })} className="text-xs px-2" style={{ color: "var(--brick)" }}>✕</button>}
+          </div>
+        ))}
+        <button onClick={() => setD({ ...d, items: [...d.items, { itemId: "", qty: 1 }] })} className="text-xs underline">+ Add item</button>
+      </div>
+      <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+        Normal price ৳{full}{Number(d.price) > 0 && full > 0 ? ` → customer saves ৳${full - Number(d.price)}` : ""}{Number(d.price) >= full && full > 0 ? " (combo price must be lower than the normal price to apply)" : ""}
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      <div className="flex gap-2">
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, price: Number(d.price), items: d.items.filter(i => i.itemId).map(i => ({ itemId: Number(i.itemId), qty: Number(i.qty) })) })}>Save combo</button>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function HappyHourForm({ menu, initial, onSave, onCancel }) {
+  const [d, setD] = useState(initial || { name: "", name_bn: "", startTime: "15:00", endTime: "17:00", days: [], category: "snacks", itemIds: [], discountType: "PERCENTAGE", discountValue: "15", isActive: true });
+  const toggleDay = (i) => setD({ ...d, days: d.days.includes(i) ? d.days.filter(x => x !== i) : [...d.days, i] });
+  const toggleItem = (id) => setD({ ...d, itemIds: d.itemIds.includes(id) ? d.itemIds.filter(x => x !== id) : [...d.itemIds, id] });
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="Snacks happy hour" /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Applies to">
+          <select className={inputCls} style={lineStyle} value={d.category || ""} onChange={e => setD({ ...d, category: e.target.value || null })}>
+            <option value="">Everything</option><option value="heavy">Meals</option><option value="snacks">Snacks</option><option value="drinks">Drinks</option>
+          </select>
+        </OfferField>
+      </div>
+      <div className="grid sm:grid-cols-4 gap-3">
+        <OfferField label="From"><input type="time" className={inputCls} style={lineStyle} value={d.startTime} onChange={e => setD({ ...d, startTime: e.target.value })} /></OfferField>
+        <OfferField label="Until"><input type="time" className={inputCls} style={lineStyle} value={d.endTime} onChange={e => setD({ ...d, endTime: e.target.value })} /></OfferField>
+        <OfferField label="Discount type">
+          <select className={inputCls} style={lineStyle} value={d.discountType} onChange={e => setD({ ...d, discountType: e.target.value })}>
+            <option value="PERCENTAGE">Percent off</option><option value="FIXED">৳ off each item</option>
+          </select>
+        </OfferField>
+        <OfferField label={d.discountType === "PERCENTAGE" ? "Percent" : "Taka"}><input type="number" min="1" className={inputCls} style={lineStyle} value={d.discountValue} onChange={e => setD({ ...d, discountValue: e.target.value })} /></OfferField>
+      </div>
+      <div>
+        <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Days (none selected = every day)</div>
+        <div className="flex gap-1.5 flex-wrap">
+          {DAY_LABELS.map((l, i) => (
+            <button key={i} onClick={() => toggleDay(i)} className={`px-2.5 py-1 rounded-lg border text-xs ${d.days.includes(i) ? "text-white" : ""}`}
+              style={d.days.includes(i) ? { background: "var(--teal)", borderColor: "var(--teal)" } : lineStyle}>{l}</button>
+          ))}
+        </div>
+      </div>
+      <details>
+        <summary className="text-xs cursor-pointer" style={{ color: "var(--ink-soft)" }}>Only specific items ({d.itemIds.length} chosen — overrides “Applies to”)</summary>
+        <div className="grid sm:grid-cols-3 gap-1 mt-2 max-h-40 overflow-auto">
+          {menu.map(m => <label key={m.id} className="text-xs flex items-center gap-1.5"><input type="checkbox" checked={d.itemIds.includes(m.id)} onChange={() => toggleItem(m.id)} />{m.name}</label>)}
+        </div>
+      </details>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      <div className="flex gap-2">
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, discountValue: Number(d.discountValue) })}>Save happy hour</button>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function RewardForm({ menu, initial, onSave, onCancel }) {
+  const [d, setD] = useState(initial || { name: "", name_bn: "", type: "DISCOUNT", pointsCost: "100", discountValue: "20", itemId: "", isActive: true });
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="grid sm:grid-cols-4 gap-3">
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="৳20 off" /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Points needed"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.pointsCost} onChange={e => setD({ ...d, pointsCost: e.target.value })} /></OfferField>
+        <OfferField label="Reward">
+          <select className={inputCls} style={lineStyle} value={d.type} onChange={e => setD({ ...d, type: e.target.value })}>
+            <option value="DISCOUNT">Discount (৳)</option><option value="FREE_ITEM">Free item</option>
+          </select>
+        </OfferField>
+      </div>
+      {d.type === "DISCOUNT"
+        ? <OfferField label="Taka off"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.discountValue} onChange={e => setD({ ...d, discountValue: e.target.value })} /></OfferField>
+        : <OfferField label="Free item (one unit)">
+            <select className={inputCls} style={lineStyle} value={d.itemId} onChange={e => setD({ ...d, itemId: e.target.value })}>
+              <option value="">Choose item…</option>{menu.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </OfferField>}
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      <div className="flex gap-2">
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, pointsCost: Number(d.pointsCost), discountValue: Number(d.discountValue), itemId: d.itemId ? Number(d.itemId) : null })}>Save reward</button>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function AdminOffers({ call, menu, notify }) {
+  const [data, setData] = useState(null);
+  const [form, setForm] = useState(null); // { kind: "combos"|"happy-hours"|"rewards", row? }
+  const [settings, setSettings] = useState(null);
+  const menuIds = new Set(menu.map(m => m.id));
+  const load = async () => { const d = await call("/api/offers/admin"); setData(d); setSettings(d.settings); };
+  useEffect(() => { load().catch(e => notify(e, true)); }, []);
+  if (!data) return <div className="card p-6 text-sm">…</div>;
+
+  const save = async (kind, id, body) => {
+    try {
+      await call(`/api/offers/admin/${kind}${id ? "/" + id : ""}`, { method: id ? "PUT" : "POST", body });
+      setForm(null); await load(); notify("Saved.");
+    } catch (e) { notify(e, true); }
+  };
+  const remove = async (kind, id, name) => {
+    if (!window.confirm(`Delete “${name}”?`)) return;
+    try { await call(`/api/offers/admin/${kind}/${id}`, { method: "DELETE" }); await load(); } catch (e) { notify(e, true); }
+  };
+  const saveSettings = async () => {
+    try {
+      const s = await call("/api/loyalty/settings", { method: "PUT", body: { earnPer: Number(settings.earnPer), streakDays: Number(settings.streakDays), streakBonus: Number(settings.streakBonus) } });
+      setSettings(s); notify("Loyalty settings saved.");
+    } catch (e) { notify(e, true); }
+  };
+  // Combos belong to one restaurant: show the ones made of this restaurant's items
+  const combos = data.combos.filter(c => c.items.every(i => menuIds.has(i.item_id)));
+  const rewardItemOk = (r) => !r.item_id || menuIds.has(r.item_id);
+  const Row = ({ kind, row, title, sub, on }) => (
+    <div className="card p-3 flex items-center justify-between gap-3" style={{ opacity: row.is_active ? 1 : 0.55 }}>
+      <div className="min-w-0">
+        <div className="font-600 text-sm">{title} {!row.is_active && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>(off)</span>} {on && <span className="text-[10px] px-2 py-0.5 rounded-full ml-1" style={{ background: "var(--teal)", color: "#fff" }}>running now</span>}</div>
+        <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{sub}</div>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setForm({ kind, row })}>Edit</button>
+        <button className="px-3 py-1.5 rounded-lg text-xs border" style={{ borderColor: "var(--brick)", color: "var(--brick)" }} onClick={() => remove(kind, row.id, row.name)}>Delete</button>
+      </div>
+    </div>
+  );
+  const hhSub = (h) => `${String(h.start_time).slice(0, 5)}–${String(h.end_time).slice(0, 5)} · ${h.days.length ? h.days.map(d => DAY_LABELS[d]).join(", ") : "every day"} · ${h.itemIds.length ? h.itemIds.length + " items" : h.category || "everything"} · ${h.discount_type === "PERCENTAGE" ? Number(h.discount_value) + "% off" : "৳" + Number(h.discount_value) + " off each"}`;
+  const Section = ({ title, kind, children }) => (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{title}</h3>
+        <button className="btn-primary px-3 py-1.5 rounded-lg text-xs" onClick={() => setForm({ kind })}>+ New</button>
+      </div>
+      {form && form.kind === kind && (
+        kind === "combos" ? <ComboForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, price: String(Number(form.row.price)), isActive: !!form.row.is_active, items: form.row.items.map(i => ({ itemId: String(i.item_id), qty: i.qty })) }} /> :
+        kind === "happy-hours" ? <HappyHourForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, startTime: String(form.row.start_time).slice(0, 5), endTime: String(form.row.end_time).slice(0, 5), days: form.row.days, category: form.row.category, itemIds: form.row.itemIds, discountType: form.row.discount_type, discountValue: String(Number(form.row.discount_value)), isActive: !!form.row.is_active }} /> :
+        <RewardForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, type: form.row.type, pointsCost: String(form.row.points_cost), discountValue: String(Number(form.row.discount_value || 0)), itemId: form.row.item_id ? String(form.row.item_id) : "", isActive: !!form.row.is_active }} />
+      )}
+      <div className="space-y-2 mt-2">{children}</div>
+    </section>
+  );
+
+  return (
+    <div className="space-y-8 max-w-3xl">
+      <h2 className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Offers & loyalty</h2>
+
+      <section className="card p-4">
+        <h3 className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Points & streak rules</h3>
+        <div className="grid sm:grid-cols-3 gap-3">
+          <OfferField label="Taka per 1 point"><input type="number" min="1" className={inputCls} style={lineStyle} value={settings.earnPer} onChange={e => setSettings({ ...settings, earnPer: e.target.value })} /></OfferField>
+          <OfferField label="Streak length (days)"><input type="number" min="2" className={inputCls} style={lineStyle} value={settings.streakDays} onChange={e => setSettings({ ...settings, streakDays: e.target.value })} /></OfferField>
+          <OfferField label="Streak bonus (points)"><input type="number" min="0" className={inputCls} style={lineStyle} value={settings.streakBonus} onChange={e => setSettings({ ...settings, streakBonus: e.target.value })} /></OfferField>
+        </div>
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm mt-3" onClick={saveSettings}>Save rules</button>
+      </section>
+
+      <Section title="Happy hours" kind="happy-hours">
+        {data.happyHours.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No happy hours yet.</p>}
+        {data.happyHours.map(h => <Row key={h.id} kind="happy-hours" row={h} title={h.name} sub={hhSub(h)} on={h.activeNow} />)}
+      </Section>
+
+      <Section title="Combo deals" kind="combos">
+        {combos.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No combos for this restaurant yet.</p>}
+        {combos.map(c => <Row key={c.id} kind="combos" row={c} title={`${c.name} — ৳${Number(c.price)}`} sub={`${c.items.map(i => `${i.name}${i.qty > 1 ? " ×" + i.qty : ""}`).join(" + ")} · normal ৳${c.fullPrice}${c.saving > 0 ? ` · saves ৳${c.saving}` : " · not cheaper than normal, won't apply"}`} />)}
+      </Section>
+
+      <Section title="Point rewards" kind="rewards">
+        {data.rewards.filter(rewardItemOk).map(r => <Row key={r.id} kind="rewards" row={r} title={r.name} sub={`${r.points_cost} points · ${r.type === "DISCOUNT" ? "৳" + Number(r.discount_value) + " off" : "free " + (r.item_name || "item")}`} />)}
+      </Section>
+    </div>
+  );
+}
+
+function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
+  const bn = lang === "bn" && role !== "admin";
+  return (
+    <div className="min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-6xl fade-in">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-3">
+            <span role="img" aria-label="CampusDine logo" className="cd-logo cd-logo-lg"></span>
+            <span className="font-display gold-text text-3xl font-800">CampusDine</span>
+          </div>
+          <h1 className="font-display text-xl font-700 mt-3">{bn ? "স্বাগতম" : "Welcome"}, {userName}</h1>
+          <p className="text-sm opacity-70 mt-1">
+            {role === "admin"
+              ? "Which restaurant do you want to manage?"
 
   const unreadNotifications = notifications.filter(item => !item.read).length;
 
