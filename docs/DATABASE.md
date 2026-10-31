@@ -217,3 +217,15 @@ Created in `backend/schema.sql`.
 | `status` | ENUM('off','full','half') |
 | `paid_amount` | DECIMAL(10,2) |
 | `paid_at` | DATETIME |
+
+## `order_feedback`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `order_id` | INT |
+| `user_id` | INT |
+| `rating` | TINYINT |
+| `comment` | TEXT |
+| `created_at` | TIMESTAMP |
