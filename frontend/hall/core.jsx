@@ -252,6 +252,25 @@ function HallTopBar({
                 }}
                 title={t.label}
                 aria-label={t.label}
+                className={`portal-nav-item ${isActive ? "active" : ""}`}>
+                <span className="portal-nav-icon font-emoji" style={{ fontSize: 16 }}>
+                  {t.icon || "•"}
+                </span>
+                <span className="portal-nav-label">{t.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Sidebar Bottom Status */}
+        {!sidebarCollapsed && (
+          <div className="p-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+            <div className="flex items-center gap-1.5 font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Hall Resident</span>
+            </div>
+            <span className="text-[10px] font-mono opacity-60">Meal Active</span>
+          </div>
             </button>
           </div>
         </div>
