@@ -496,3 +496,12 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `blood_group` | VARCHAR(8) |
 | `department` | VARCHAR(120) |
 | `updated_at` | TIMESTAMP |
+
+## `hall_autopay`
+Created in `backend/src/hall/autopaySchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `user_id` | INT |
+| `enabled` | TINYINT(1) |
+| `updated_at` | DATETIME |
