@@ -40,6 +40,7 @@ function HallMenu({ call, isAdmin, notify }) {
         <div className="hl-week">
           {HALL_WEEK_ORDER.map((dow) => {
             const day = menu.find((d) => d.dow === dow);
+            if (!day) return null; // skip a weekday the server did not send
             return (
               <div key={dow} className={`hl-dayc ${dow === today ? "today" : ""}`}>
                 <div className="hl-dayc-head font-display">
