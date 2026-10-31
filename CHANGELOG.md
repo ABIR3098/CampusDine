@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Menu: 15 more items in `more_menu_items.sql` (Waffle, Hot Dog, Chilli Chicken and others) and calories for 3 of them.
 - Docs and tests: group orders, weekly orders, Hall meal states and fraud events.
 - Fix: Hall pickup-token routes use the canteen date between 00:00 and 06:00.
 - Fix: changing the account e-mail now requires the current password.
