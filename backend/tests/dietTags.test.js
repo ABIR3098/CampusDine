@@ -26,3 +26,7 @@ test("matchesFor: allergy wins over avoid", () => {
 test("tagsOf finds chicken", () => {
   assert.deepEqual(tagsOf("Rice, Chicken curry"), ["chicken"]);
 });
+
+test("tagsOf finds mutton by its Banglish name", () => {
+  assert.deepEqual(tagsOf("Khashi bhuna, Polao"), ["mutton"]);
+});
