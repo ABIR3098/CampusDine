@@ -194,3 +194,9 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/offers/admin/rewards`
 - `PUT /api/offers/admin/rewards/:id`
 - `DELETE /api/offers/admin/:kind/:id`
+
+## `/api/hall` — `src/hall/routes/autopay.js`
+
+- `GET /api/hall/autopay`
+- `PUT /api/hall/autopay`
+- `POST /api/hall/autopay/run`
