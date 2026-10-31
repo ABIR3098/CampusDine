@@ -1,4 +1,4 @@
--- CampusDine: 72 more menu items, spread over the four restaurants.
+-- CampusDine: 132 more menu items, spread over the four restaurants.
 -- Safe to run more than once: an item is only inserted if no item with that name exists yet.
 -- Run it against the campusdine database AFTER schema.sql (see the steps in the chat).
 --   mysql --default-character-set=utf8mb4 -u root -p campusdine < more_menu_items.sql
