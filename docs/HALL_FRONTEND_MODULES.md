@@ -19,3 +19,6 @@ Step 5 — admin tab: the cut-off job. It runs by itself every minute; "Run now"
 
 ## `autopay.jsx`
 Auto-pay, member side: one switch on My bill.
+
+## `autopayAdmin.jsx`
+Auto-pay, admin side: run it right now for one month (it also runs by itself between the 1st and the 10th).
