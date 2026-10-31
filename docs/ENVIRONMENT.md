@@ -13,3 +13,5 @@ Copy `backend/.env.example` to `backend/.env` and fill in your own values. Never
 | `EMAIL_OTP_REQUIRED` | Require an email code on sign-up and password reset | `true` |
 | `LOGIN_OTP` | Login 2FA: `all`, `admin` or `off` | `all` |
 | `CANTEEN_TZ` | Timezone for pickup times, the meal calendar and reports | `Asia/Dhaka` |
+| `SMTP_SECURE` | Use TLS from the start of the SMTP connection (Hall emails) | `false` |
+| `SMTP_FROM` | Sender name and address for Hall emails | unset |
