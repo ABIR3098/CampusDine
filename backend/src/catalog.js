@@ -75,6 +75,7 @@ const NUTRITION_BY_NAME = {
   "Egg Khichuri": { calories: 480, allergens: ["egg", "milk"] },
   "Luchi & Alur Dom": { calories: 450, allergens: ["gluten"] },
   "Mishti Doi": { calories: 200, allergens: ["milk"] },
+  "Payesh": { calories: 280, allergens: ["milk", "nuts"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
