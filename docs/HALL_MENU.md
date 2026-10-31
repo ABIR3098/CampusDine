@@ -14,3 +14,14 @@ To change the *starting* menu for a fresh database, edit the `INSERT IGNORE INTO
 ## Editing the menu
 Hall admins edit it in the app: open the **Menu** tab, click a meal, change the text and click outside the box to save.
 The **Copy to all days** button writes one meal to the same slot on every other day.
+
+## Weekday numbers
+| `dow` | Day |
+| --- | --- |
+| 0 | Sunday |
+| 1 | Monday |
+| 2 | Tuesday |
+| 3 | Wednesday |
+| 4 | Thursday |
+| 5 | Friday |
+| 6 | Saturday |
