@@ -135,3 +135,9 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `POST /api/feedback`
 - `GET /api/feedback/mine`
+
+## `/api/summary` — `src/routes/summary.js`
+
+- `GET /api/summary`
+- `GET /api/summary/budget`
+- `PUT /api/summary/budget`
