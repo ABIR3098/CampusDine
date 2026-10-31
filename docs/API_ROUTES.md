@@ -15,3 +15,14 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/auth/me`
 - `PUT /api/auth/me`
 - `POST /api/auth/reset-password`
+
+## `/api/menu` — `src/routes/menu.js`
+
+- `GET /api/menu`
+- `POST /api/menu/:id/favorite`
+- `DELETE /api/menu/:id/favorite`
+- `POST /api/menu`
+- `PUT /api/menu/:id`
+- `GET /api/menu/alerts`
+- `POST /api/menu/:id/notify`
+- `DELETE /api/menu/:id/notify`
