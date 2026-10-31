@@ -1,3 +1,238 @@
+                  ) : (
+                    </div>
+                      </div>
+                        <button type="button" onClick={() => { setReporting(null); setRError(""); }} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("iss.cancel")}</button>
+                        <button type="button" disabled={rBusy || !rForm.reason} onClick={() => submitIssue(o.id)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("iss.send")}</button>
+                      <div className="flex gap-2 mt-2">
+                      {rError && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{rError}</p>}
+                        placeholder={tx("iss.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                      <input type="text" value={rForm.details} onChange={e => setRForm(f => ({ ...f, details: e.target.value.slice(0, 300) }))}
+                      </div>
+                        ))}
+                            className={"chip text-xs px-2.5 py-1 rounded-full" + (rForm.reason === r ? " active-chip" : "")}>{tx("iss.r." + r)}</button>
+                          <button key={r} type="button" onClick={() => setRForm(f => ({ ...f, reason: r }))}
+                        {["cold", "wrong", "missing", "late", "quality", "other"].map(r => (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>⚠️ {tx("iss.title")}</div>
+                    <div className="rounded-lg border p-3" style={{ borderColor: "var(--line)" }}>
+                  ) : reporting === o.id ? (
+                    </div>
+                      {issues[o.id].admin_reply && <div className="mt-1.5 font-600">💬 {tx("iss.reply")}: {issues[o.id].admin_reply}</div>}
+                      {issues[o.id].details && <div className="mt-1" style={{ color: "var(--ink-soft)" }}>“{issues[o.id].details}”</div>}
+                      <div className="font-700">{issues[o.id].status === "Resolved" ? "✅ " + tx("iss.resolved") : "⏳ " + tx("iss.open")} — {tx("iss.r." + issues[o.id].reason)}</div>
+                    <div className="rounded-lg border p-3 text-xs" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                  {issues[o.id] ? (
+                <div className="mt-3">
+              {(o.status === "Ready" || o.picked_up_at) && o.status !== "Cancelled" && (
+              )}
+                <div className="text-xs mt-2 font-600" style={{ color: "var(--ink-soft)" }}>🪙 {tx("tip.show")}: ৳{o.tip_amount}{o.status === "Cancelled" && " " + tx("refunded")}</div>
+              {Number(o.tip_amount) > 0 && (
+              )}
+                </div>
+                  {tx("note.show")}: {o.note}
+                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+              {o.note && (
+              </div>
+                {o.items.map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
+              <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
+              )}
+                </div>
+                  </div>
+                    </p>
+                      {o.picked_up_at ? new Date(o.picked_up_at).toLocaleString() : tx("qr.hint", { t: o.token })}
+                    <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                    </div>
+                      {o.picked_up_at ? tx("qr.collected") : tx("qr.title")}
+                    <div className="text-sm font-700" style={{ color: o.picked_up_at ? "var(--leaf)" : "var(--ink)" }}>
+                  <div className="min-w-0">
+                  <QrCode value={o.qr} size={112} dim={!!o.picked_up_at} />
+                <div className="flex items-center gap-4 mt-4 p-3 rounded-xl border" style={{ borderColor: "var(--line)" }}>
+              {!isCancelled && o.qr && (
+              )}
+                </div>
+                  ))}
+                    </React.Fragment>
+                      {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-5" style={{ background: i < stepIndex ? "var(--gold)" : "var(--line)" }} />}
+                      </div>
+                        <span className="text-xs text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{lookup("status", s)}</span>
+                        <div className={`stepper-dot ${i < stepIndex ? "done" : i === stepIndex ? "current" : ""}`}></div>
+                      <div className="flex flex-col items-center gap-1.5 flex-1">
+                    <React.Fragment key={s}>
+                  {STATUSES.map((s, i) => (
+                <div className="flex items-center justify-between mb-2">
+              ) : (
+                </div>
+                  )}
+                    <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>{tx("refunded")}</span>
+                  {o.payment_method === "wallet" && (
+                  {lookup("status", "Cancelled")}
+                  <Icon path={I.x} className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-sm font-600" style={{ color: "var(--brick)" }}>
+              {isCancelled ? (
+              )}
+                </div>
+                  </div>
+                    <span style={{ color: "var(--ink-soft)" }}>{tx("q.est", { m: num(o.queue.est_minutes) })}</span>
+                    </span>
+                        : tx(o.queue.ahead === 1 ? "q.ahead1" : "q.aheadN", { p: num(o.queue.position), a: num(o.queue.ahead) })}
+                        ? (o.status === "Cooking" ? tx("q.now") : tx("q.next"))
+                      {o.queue.ahead === 0
+                    <span className="font-700">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                  <Icon path={I.clock} className="w-4 h-4 shrink-0" />
+                  style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-lg text-sm"
+              {o.queue && (
+              )}
+                </div>
+                  {tx("sched")}: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <div className="text-xs mb-3 font-600" style={{ color: "var(--teal)" }}>
+              {o.pickup_time && (
+            <div className="p-5">
+            </div>
+              </div>
+                <div className="font-mono text-lg">{taka(o.total)}</div>
+                <div className="text-xs opacity-70">{tx("total")}</div>
+              <div className="text-right">
+              </div>
+                <div className="font-mono text-2xl font-700 tracking-wide">{o.token}</div>
+                <div className="text-xs opacity-70">{tx("ticket.token")}</div>
+              <div className="perf pl-4">
+            <div className="ticket p-5 flex items-center justify-between">
+          <div key={o.token} className="card-elevated overflow-hidden p-0 border-2 shadow-sm mb-4" style={{ borderColor: isCancelled ? "var(--danger-border)" : stepIndex === 2 ? "var(--ok-border)" : "var(--accent-border)" }}>
+        return (
+        const isCancelled = o.status === "Cancelled";
+        const stepIndex = STATUSES.indexOf(o.status);
+      {filtered.map(o => {
+      )}
+        </div>
+          </div>
+            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); }}>Clear filters</button>
+          <div className="mt-3">
+          No orders match your filters.
+        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
+      {filtered.length === 0 && (
+      </div>
+        </div>
+          ))}
+              className={"chip text-xs px-3.5 py-1.5 rounded-full font-bold transition-all" + (hRange === v ? " active-chip shadow-sm" : "")}>{label}</button>
+            <button key={v} type="button" onClick={() => setHRange(v)}
+          {[["all", "Any time"], ["today", "Today"], ["week", "Past 7 days"], ["month", "Past 30 days"]].map(([v, label]) => (
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+        </div>
+          ))}
+              className={"chip text-xs px-3.5 py-1.5 rounded-full font-bold transition-all" + (hStatus === v ? " active-chip shadow-sm" : "")}>{label}</button>
+            <button key={v} type="button" onClick={() => setHStatus(v)}
+          {[["all", "All Statuses"], ["Received", "Received"], ["Cooking", "Cooking 🔥"], ["Ready", "Ready ✓"], ["Cancelled", "Cancelled"]].map(([v, label]) => (
+        <div className="flex flex-wrap gap-2">
+          className="form-input text-sm" />
+          placeholder="Search by token (#A12), food item, or special instructions…"
+        <input type="text" value={hQuery} onChange={e => setHQuery(e.target.value)}
+        </div>
+          </span>
+            Showing {filtered.length} of {orders.length} orders
+          <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+          <div className="font-display font-800 text-sm" style={{ color: "var(--gold)" }}>🔍 Search &amp; Filter Order History</div>
+        <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: "var(--line)" }}>
+      <div className="card-elevated space-y-4 shadow-sm">
+      )}
+        </div>
+          </div>
+            </div>
+              {tx("rc.thanks")}
+            <div className="text-center" style={{ marginTop: 16, fontSize: 11, color: "#6B7280" }}>
+            <div className="receipt-row" style={{ fontSize: 15, fontWeight: 800 }}><span>{tx("total")}</span><span>{taka(printOrder.total)}</span></div>
+            <div className="receipt-divider" />
+            ))}
+              <div key={idx} className="receipt-row"><span>{dispName(i.name)} ×{num(i.qty)}</span><span>{taka(i.price * i.qty)}</span></div>
+            {printOrder.items.map((i, idx) => (
+            <div className="receipt-divider" />
+            <div className="receipt-row"><span>{tx("rc.printed")}</span><span>{new Date().toLocaleString()}</span></div>
+            )}
+              <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
+            {printOrder.pickup_time && (
+            )}
+              <div className="receipt-row"><span>{tx("dnote.show")}</span><span>{printOrder.delivery_note}</span></div>
+            {printOrder.delivery_note && (
+            )}
+              <div className="receipt-row"><span>{tx("note.show")}</span><span>{printOrder.note}</span></div>
+            {printOrder.note && (
+            <div className="receipt-row"><span>{tx("rc.payment")}</span><span>{printOrder.payment_method === "wallet" ? tx("pay.wallet") : tx("pay.cash")}</span></div>
+            <div className="receipt-row"><span>{tx("rc.status")}</span><span style={{ fontWeight: 600 }}>{lookup("status", printOrder.status)}</span></div>
+            )}
+              <div className="flex justify-center" style={{ marginBottom: 10 }}><QrCode value={printOrder.qr} size={120} /></div>
+            {printOrder.qr && (
+            </div>
+              <div className="font-mono font-800" style={{ fontSize: 30, letterSpacing: 2 }}>{printOrder.token}</div>
+              <div style={{ fontSize: 10, color: "#6B7280" }}>{tx("rc.token")}</div>
+            <div className="text-center" style={{ marginBottom: 10 }}>
+            <div className="receipt-divider" />
+            </div>
+              <div style={{ fontSize: 11, color: "#6B7280", letterSpacing: 1 }}>{tx("rc.title")}</div>
+              <div className="font-display font-800" style={{ fontSize: 18 }}>🍽 CampusDine</div>
+            <div className="text-center mb-1">
+          <div className="receipt">
+        <div id="print-area">
+      {printOrder && (
+      <RecurringPlans apiBase={apiBase} token={token} reloadKey={plansKey} />
+      {planDraft && <RecurringForm order={planDraft} apiBase={apiBase} token={token} onClose={() => setPlanDraft(null)} onSaved={() => { setPlanDraft(null); setPlansKey(k => k + 1); }} />}
+    <div className="space-y-6 max-w-2xl">
+  return (
+  });
+    return true;
+    }
+      if (!hay.includes(hq)) return false;
+        .concat((o.items || []).map(i => i.name)).join(" ").toLowerCase();
+      const hay = [o.token, o.status, o.note, o.restaurant, o.payment_method]
+    if (hq) {
+    }
+      if (t < limit) return false;
+      const limit = hRange === "today" ? startOfToday.getTime() : Date.now() - (hRange === "week" ? 7 : 30) * 86400000;
+      const t = new Date(o.created_at).getTime();
+    if (hRange !== "all") {
+    if (hStatus !== "all" && o.status !== hStatus) return false;
+  const filtered = orders.filter(o => {
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const hq = hQuery.trim().toLowerCase();
+  }
+    return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>{tx("noorders")}</div>;
+  if (orders.length === 0) {
+
+  }, [printOrder]);
+    return () => { clearTimeout(t); window.removeEventListener("afterprint", clear); };
+    const t = setTimeout(() => window.print(), 50);
+    window.addEventListener("afterprint", clear);
+    const clear = () => setPrintOrder(null);
+    if (!printOrder) return;
+  useEffect(() => {
+  // then trigger the browser print dialog; the CSS above hides everything else.
+  // Feature: print receipt — render the chosen order into a hidden #print-area,
+
+  const [copiedId, setCopiedId] = useState(null);
+  };
+    finally { setRBusy(false); }
+    } catch (e) { setRError(e.message || "Could not send your report"); }
+      setReporting(null); setRForm({ reason: "", details: "" });
+      setIssues(prev => ({ ...prev, [orderId]: r.issue }));
+      const r = await api(apiBase, "/api/orders/" + orderId + "/report", { method: "POST", token, body: { reason: rForm.reason, details: rForm.details } });
+    try {
+    setRBusy(true); setRError("");
+    if (!rForm.reason) return;
+  const submitIssue = async (orderId) => {
+  }, [orders]);
+    return () => { dead = true; };
+      .catch(() => {});
+      .then(list => { if (!dead) setIssues(Object.fromEntries(list.map(i => [i.order_id, i]))); })
+    api(apiBase, "/api/orders/issues/mine", { token })
+    let dead = false;
+  useEffect(() => {
+  const [rError, setRError] = useState("");
+  const [rBusy, setRBusy] = useState(false);
+  const [rForm, setRForm] = useState({ reason: "", details: "" });
+  const [reporting, setReporting] = useState(null);  // order id whose form is open
+  const [issues, setIssues] = useState({});          // order id -> my report
+  /* Feature: order problem report */
+  const [hRange, setHRange] = useState("all");
   const [hStatus, setHStatus] = useState("all");
   const [hQuery, setHQuery] = useState("");
   /* Feature: order history filter */
