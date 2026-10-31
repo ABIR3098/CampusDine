@@ -34,3 +34,20 @@ Created in `backend/schema.sql`.
 | `role` | ENUM('student','teacher') |
 | `full_rate` | DECIMAL(10,2) |
 | `half_rate` | DECIMAL(10,2) |
+
+## `menu_items`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `name` | VARCHAR(100) |
+| `name_bn` | VARCHAR(100) |
+| `category` | ENUM('heavy','snacks','drinks') |
+| `price` | DECIMAL(10,2) |
+| `stock` | INT |
+| `tag` | VARCHAR(30) |
+| `is_veg` | TINYINT(1) |
+| `availability` | VARCHAR(12) |
+| `image` | VARCHAR(200) |
+| `created_at` | TIMESTAMP |
