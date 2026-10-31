@@ -1,5 +1,7 @@
 # CampusDine Backend - Implementation Guide
 
+> **Legacy document.** It describes the older `*-enhanced.js` branch. Several of those route files (`auth-enhanced`, `orders-enhanced`, `wallet-enhanced`, `menu-enhanced`, `profile`, `ratings`, `favorites`, `notifications`, `payment`) do not load today, and `npm start` runs `server.js`, which does not use them. Treat the "complete / tested" claims below as historical.
+
 **Version:** 2.0.0 Enhanced  
 **Last Updated:** September 3, 2026  
 **Status:** All features implemented ✓
