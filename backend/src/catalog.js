@@ -63,6 +63,7 @@ const NUTRITION_BY_NAME = {
   "Egg Chop": { calories: 220, allergens: ["egg", "gluten"] },
   "Haleem": { calories: 380, allergens: ["gluten"] },
   "Sugarcane Juice": { calories: 180, allergens: [] },
+  "Chicken Fried Rice": { calories: 520, allergens: ["egg", "soy"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
