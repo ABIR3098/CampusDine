@@ -13,6 +13,7 @@ All routes need `Authorization: Bearer <token>`. Base path: `/api/wallet`.
 ## Top-up
 - `method` is one of `bkash`, `nagad`, `dbbl`, `brac`, `city`, `islami`, `sonali`, `card`.
 - At most ৳10,000 per top-up, with at most 2 decimal places.
+- At most ৳20,000 added per day per account (`WALLET_TOPUP_DAILY_LIMIT` in `.env` changes it). Over the limit answers `400`.
 - The payment is simulated. No real gateway is called.
 
 ## Transfer
