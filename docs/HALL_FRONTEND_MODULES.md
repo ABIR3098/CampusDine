@@ -4,3 +4,6 @@ The Hall screens live in `frontend/hall/`, one `.jsx` file per feature. This lis
 
 ## `account.jsx`
 Hall profile tab. Payment and wallet features are intentionally excluded from Hall.
+
+## `adminChips.jsx`
+Admin Home: what needs attention right now, one tap away.
