@@ -30,3 +30,12 @@ test("accepts a time inside the window and returns a Date", () => {
   const diff = (d.getTime() - Date.now()) / 60000;
   assert.ok(diff > 50 && diff < 70, `unexpected lead time ${diff}`);
 });
+
+test("a valid pickup time comes back with its seconds set to zero", () => {
+  const { resolvePickupTime } = require("../src/utils/pickup");
+  const t = new Date(Date.now() + 30 * 60000);
+  const hhmm = String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0");
+  const got = resolvePickupTime(hhmm);
+  assert.ok(got instanceof Date);
+  assert.strictEqual(got.getSeconds(), 0);
+});
