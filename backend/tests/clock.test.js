@@ -10,3 +10,7 @@ test("toMinutes reads HH:MM", () => {
 test("toMinutes accepts seconds and ignores them", () => {
   assert.equal(toMinutes("23:59:59"), 1439);
 });
+
+test("toMinutes rejects invalid values", () => {
+  for (const bad of ["24:00", "9:30", "12:60", "", null, undefined, "abc"]) assert.equal(toMinutes(bad), null);
+});
