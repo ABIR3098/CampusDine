@@ -28,3 +28,8 @@ test("isLocked: earlier day is open, later day is locked", () => {
   assert.strictEqual(isLocked(lunch, "2026-10-22", { dateKey: "2026-10-21", minutes: 1400 }), false);
   assert.strictEqual(isLocked(lunch, "2026-10-22", { dateKey: "2026-10-23", minutes: 0 }), true);
 });
+
+test("cutoffOf reads a cut-off time that has seconds", () => {
+  const { cutoffOf } = require("../src/hall/util");
+  assert.deepStrictEqual(cutoffOf({ cutoff_time: "21:30:00", cutoff_days_before: 1 }, "2026-10-22"), { dateKey: "2026-10-21", minutes: 1290 });
+});
