@@ -1,3 +1,238 @@
+              <option value="">Choose item…</option>
+            <select className={inputCls} style={lineStyle} value={it.itemId} onChange={e => setItem(idx, { itemId: e.target.value })}>
+          <div key={idx} className="flex gap-2 items-center">
+        {d.items.map((it, idx) => (
+      <div className="space-y-2">
+      </div>
+        <OfferField label="Combo price (৳)"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.price} onChange={e => setD({ ...d, price: e.target.value })} /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="Khichuri + Egg + Drink" /></OfferField>
+      <div className="grid sm:grid-cols-3 gap-3">
+    <div className="card p-4 space-y-3">
+  return (
+  const setItem = (idx, patch) => setD({ ...d, items: d.items.map((it, i) => i === idx ? { ...it, ...patch } : it) });
+  const full = d.items.reduce((s, i) => s + price(i.itemId) * (Number(i.qty) || 0), 0);
+  const price = (id) => { const m = menu.find(x => x.id === Number(id)); return m ? Number(m.price) : 0; };
+  const [d, setD] = useState(initial || { name: "", name_bn: "", price: "", isActive: true, items: [{ itemId: "", qty: 1 }, { itemId: "", qty: 1 }] });
+function ComboForm({ menu, initial, onSave, onCancel }) {
+
+}
+  return <label className="block text-xs"><span className="uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</span><div className="mt-1">{children}</div></label>;
+function OfferField({ label, children }) {
+
+const lineStyle = { borderColor: "var(--line)" };
+const inputCls = "px-3 py-2 rounded-lg border text-sm w-full";
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+/* ---------------- Admin: combos, happy hours, loyalty rewards ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        </div>
+          <button onClick={onGoMenu} className="btn-primary w-full py-2 rounded-xl mt-4 text-sm">{tx("rw.use")}</button>
+          </div>
+            ))}
+              </div>
+                </div>
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.round((data.points / r.points_cost) * 100))}%`, background: "var(--teal)" }} />
+                <div className="h-1.5 rounded-full mt-2" style={{ background: "var(--gold-soft)" }}>
+                </div>
+                  </span>
+                    {r.affordable ? "✓" : tx("q.need", { n: num(r.points_cost - data.points) })}
+                  <span className="text-xs" style={{ color: r.affordable ? "var(--leaf)" : "var(--ink-soft)" }}>
+                  <span className="font-mono text-sm">{num(r.points_cost)} {tx("q.points")}</span>
+                <div className="flex items-center justify-between mt-1">
+                <div className="font-600 text-sm">{CURRENT_LANG === "bn" && r.name_bn ? r.name_bn : r.name}</div>
+              <div key={r.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+            {data.rewards.map(r => (
+          <div className="space-y-3">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("rw.rewards")}</div>
+        <div className="card p-5 sticky top-20">
+      <div>
+
+      </div>
+        </div>
+          )}
+            </div>
+              ))}
+                </div>
+                  </div>
+                    {l.points >= 0 ? "+" : "−"}{num(Math.abs(l.points))}
+                  <div className="font-mono font-600" style={{ color: l.points >= 0 ? "var(--leaf)" : "var(--brick)" }}>
+                  </div>
+                    <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(l.created_at).toLocaleString()}</div>
+                    <div>{l.label}</div>
+                  <div>
+                <div key={l.id} className="flex justify-between py-2 text-sm" style={{ borderColor: "var(--line)" }}>
+              {data.ledger.map(l => (
+            <div className="divide-y" style={{ borderColor: "var(--line)" }}>
+          ) : (
+            <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("rw.empty")}</p>
+          {data.ledger.length === 0 ? (
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("rw.history")}</div>
+        <div className="card p-6">
+
+        </div>
+          </p>
+            {s.orderedToday ? tx("rw.today.done") : tx("rw.today.todo")} · {tx("rw.best", { n: num(s.best) })}
+          <p className="text-xs mt-1" style={{ color: s.orderedToday ? "var(--leaf)" : "var(--ink-soft)" }}>
+          <p className="text-sm">{tx("rw.bonus", { n: num(s.daysToBonus), b: num(s.bonus) })}</p>
+          </div>
+            ))}
+              </div>
+                {on ? "✓" : num(i + 1)}
+                style={{ background: on ? "var(--teal)" : "var(--gold-soft)", color: on ? "#fff" : "var(--ink-soft)" }}>
+              <div key={i} className="flex-1 h-9 rounded-lg grid place-items-center text-sm font-700"
+            {dots.map((on, i) => (
+          <div className="flex gap-2 mb-3">
+          </div>
+            <div className="text-sm font-600">{tx("rw.days", { n: num(s.current) })}</div>
+            <div className="font-display font-700" style={{ color: "var(--gold)" }}>🔥 {tx("rw.streak")}</div>
+          <div className="flex items-center justify-between mb-3">
+        <div className="card p-6">
+
+        </div>
+          {s.pendingOrders > 0 && <p className="text-xs mt-1" style={{ color: "var(--teal-deep)" }}>{tx("rw.pending", { n: num(s.pendingOrders) })}</p>}
+          <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("rw.how", { n: num(data.settings.earnPer) })}</p>
+          <div className="font-display font-800 text-4xl mt-1" style={{ color: "var(--gold)" }}>{num(data.points)} <span className="text-base font-600">{tx("q.points")}</span></div>
+          <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("rw.balance")}</div>
+        <div className="card p-6">
+      <div className="lg:col-span-2 space-y-6">
+    <div className="grid lg:grid-cols-3 gap-6">
+  return (
+  const dots = Array.from({ length: s.target }, (_, i) => i < s.cycleDays);
+  const s = data.streak;
+  if (!data) return <div className="card p-6 text-sm" style={{ color: "var(--ink-soft)" }}>…</div>;
+  if (err) return <div className="card p-6 text-sm" style={{ color: "var(--brick)" }}>{err}</div>;
+  }, [refreshKey]);
+    return () => { dead = true; };
+    call("/api/loyalty/me").then(d => { if (!dead) setData(d); }).catch(e => { if (!dead) setErr(e.message); });
+    let dead = false;
+  useEffect(() => {
+  const [err, setErr] = useState("");
+  const [data, setData] = useState(null);
+function RewardsTab({ call, refreshKey, onGoMenu }) {
+/* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
+
+}
+  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab }} />;
+  const Hall = window.HallApp;
+  if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
+  if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
+  }, [ready]);
+    return () => clearInterval(t);
+    const t = setInterval(() => { if (window.HallApp || window.HallLoadError) { setReady(true); clearInterval(t); } }, 150);
+    if (ready) return;
+  useEffect(() => {
+  const [ready, setReady] = useState(!!window.HallApp);
+function HallGate(props) {
+// Waits for hall/loader.js to finish compiling the Hall files, then shows the Hall.
+
+const HALL_ENTRY = { id: "hall", isHall: true, name: "Hall", desc: "Meal schedule, weekly menu, hall services & notices", descBn: "মিল শিডিউল, সাপ্তাহিক মেনু, হল সার্ভিস ও নোটিশ" };
+// no cart, no riders, no offers. Its code lives in frontend/hall/ and backend/src/hall/.
+// The Hall (meal system) sits next to the four restaurants on the picker. It is not a restaurant:
+
+];
+    desc: "Home-style rice meals, curries & porota", descBn: "ঘরোয়া ভাত, তরকারি ও পরোটা" },
+  { id: "staff", name: "Staff Canteen", subtitle: "", logo: "/images/restaurants/staff.svg",
+    desc: "Biryani, tehari, fried rice & noodles", descBn: "বিরিয়ানি, তেহারি, ফ্রাইড রাইস ও নুডলস" },
+  { id: "thirdplace", name: "Third Place", subtitle: "", logo: "/images/restaurants/thirdplace.svg",
+    desc: "Fuchka, chotpoti, singara & street snacks", descBn: "ফুচকা, চটপটি, সিঙ্গারা ও স্ট্রিট স্ন্যাকস" },
+  { id: "vista", name: "Vista Cafeteria", subtitle: "", logo: "/images/restaurants/vista.svg",
+    desc: "Coffee, sandwiches, burgers & sweet drinks", descBn: "কফি, স্যান্ডউইচ, বার্গার ও মিষ্টি পানীয়" },
+  { id: "amitie", name: "Amitié", subtitle: "Friendship", logo: "/images/restaurants/amitie.svg",
+const RESTAURANTS = [
+// login. The ids match backend/src/catalog.js, which decides which items each restaurant sells.
+// The four campus restaurants. Everyone (student, teacher, staff and admin) picks one after
+/* ---------------- App root ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        </div>
+          )}
+            </div>
+              </button>
+                {tx("cancel")}
+                className="btn-outline px-6 py-2.5 rounded-xl font-bold text-sm">
+              <button disabled={busy} onClick={cancelEdit}
+              </button>
+                {busy ? tx("saving") : tx("save")}
+              <button disabled={busy} onClick={save} className="btn-primary flex-1 py-2.5 rounded-xl font-bold shadow-md">
+            <div className="flex gap-2.5 pt-2">
+          {editing && (
+
+          {success && <div className="success-banner rounded-xl p-3 text-sm font-semibold">✓ {success}</div>}
+          {error && <div className="error-banner rounded-xl p-3 text-sm font-semibold">{error}</div>}
+
+          )}
+            </div>
+              </div>
+                </label>
+                  <input type="checkbox" checked={showPw} onChange={e => setShowPw(e.target.checked)} className="rounded" /> {tx("showpw")}
+                <label className="flex items-center gap-2 text-xs cursor-pointer select-none font-medium mt-1" style={{ color: "var(--ink-soft)" }}>
+                  className="form-input text-sm" />
+                <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("cfpw")} autoComplete="new-password"
+                  className="form-input text-sm" />
+                <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("newpw2")} autoComplete="new-password"
+                  className="form-input text-sm" />
+                <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("curpw")} autoComplete="current-password"
+              <div className="space-y-2.5">
+              <div className="font-display font-800 text-sm mb-3" style={{ color: "var(--gold)" }}>🔐 {tx("chpw")}</div>
+            <div className="card p-4 border" style={{ borderColor: "var(--line)" }}>
+          {editing && (
+
+          )}
+            </div>
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-white shadow-sm border" style={{ borderColor: "var(--accent-border)" }}>Instant Ready</span>
+              </div>
+                <div className="font-mono text-2xl font-800 mt-0.5">{taka(shownBalance)}</div>
+                <div className="text-xs uppercase font-bold tracking-wider" style={{ color: "var(--ink-soft)" }}>{tx("wallet.bal")}</div>
+              <div>
+            <div className="card-accent p-4 flex items-center justify-between">
+          {user.role !== "admin" && (
+
+          )}
+            </div>
+              )}
+                <p className="text-[11px] mt-2 text-slate-500">ℹ️ {tx("hallhint")}</p>
+              {!profile.hallId && (
+              </div>
+                </div>
+                  <div className="font-mono text-xs font-bold">{profile.hallId || "—"}</div>
+                  <label className="form-label">{tx("hallid")}</label>
+                <div className="col-span-2 p-3 rounded-lg border bg-white/50" style={{ borderColor: "var(--line)" }}>
+                )}
+                  </>
+                    </div>
+                      <ProfileField label={tx("room")} value={profile.roomNumber} placeholder={tx("notres")} />
+                    <div className="p-3 rounded-lg border bg-white/50" style={{ borderColor: "var(--line)" }}>
+                    </div>
+                      <ProfileField label={tx("hallname")} value={profile.hallName} placeholder={tx("notres")} />
+                    <div className="p-3 rounded-lg border bg-white/50" style={{ borderColor: "var(--line)" }}>
+                  <>
+                ) : (
+                  </>
+                      onChange={e => setProfile({ ...profile, roomNumber: e.target.value })} />
+                    <ProfileInput label={tx("room")} value={profile.roomNumber} placeholder={tx("room.ph")}
+                      onChange={e => setProfile({ ...profile, hallName: e.target.value })} />
+                    <ProfileInput label={tx("hallname")} value={profile.hallName} placeholder={tx("hallname.ph")}
+                  <>
+                {editing ? (
+              <div className="grid grid-cols-2 gap-3">
+              </div>
+                </span>
+                  {profile.accountType === "hall" ? tx("acct.badge.hall") : tx("acct.badge.regular")}
+                  style={profile.accountType === "hall" ? { background: "var(--gold-soft)", color: "var(--teal-deep)" } : { background: "var(--hover)", color: "var(--ink-soft)" }}>
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full uppercase"
+                <div className="font-display font-800 text-sm" style={{ color: "var(--gold)" }}>🏛️ {tx("hall")} Residency</div>
+              <div className="flex items-center justify-between mb-3">
+            <div className="card-glass rounded-xl p-4 border" style={{ borderColor: "var(--line)" }}>
+          {user.role !== "admin" && (
+
+          )}
             </div>
               </div>
                   className="btn-primary px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-50 shadow-sm">Post Announcement</button>
