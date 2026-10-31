@@ -31,7 +31,7 @@ const PAY_METHOD_LABELS = {
 // POST /api/wallet/topup  body: { amount, method } — method is one of the keys in PAY_METHOD_LABELS
 // NOTE: this is a simulated payment confirmation (no real bKash/Nagad/bank gateway call).
 // It just requires a valid method key so the wallet can't be credited without picking one.
-router.post("/topup", verifyToken, catchAsync(async (req, res) => {
+router.post("/topup", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { method } = req.body;
   const amount = Number(req.body.amount);
   if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: "amount must be a positive number" });
