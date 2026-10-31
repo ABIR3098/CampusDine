@@ -108,3 +108,8 @@ test("parseListParams rejects a page size that is too big or zero", () => {
   assert.ok(parseListParams({ limit: "101" }).error);
   assert.ok(parseListParams({ limit: "0" }).error);
 });
+
+test("parseListParams rejects a negative offset", () => {
+  const { parseListParams } = require("../src/utils/orderRules");
+  assert.equal(parseListParams({ offset: "-1" }).error, "offset must be 0 or more");
+});
