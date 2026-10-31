@@ -2,6 +2,8 @@
 
 BUP · CSE 3208 Software Development Project I · CampusDine
 
+[বাংলায় পড়ুন (Bangla)](README.bn.md)
+
 ```
 campusdine-project/
 ├── frontend/
