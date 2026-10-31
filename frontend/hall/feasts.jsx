@@ -1,12 +1,23 @@
-// Step 7 — "Feasts" tab: special meals on a given date. Everyone sees the list; admin can add / remove.
+// Step 7 — "Feasts & Guest Meals" tab: guest meal booking and special feast pre-booking.
 function HallFeasts({ call, isAdmin, notify }) {
+  const [activeTab, setActiveTab] = useState("feasts"); // "feasts" or "guest"
   const [feasts, setFeasts] = useState(null);
   const [today, setToday] = useState("");
+  const [slots, setSlots] = useState([]);
   const [f, setF] = useState({ date: "", slot: "dinner", title: "", items: "", extraPrice: "", capacity: "" });
+
+  // Guest booking state
+  const [gDate, setGDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [gSlot, setGSlot] = useState("lunch");
+  const [gCount, setGCount] = useState(1);
+  const [gName, setGName] = useState("");
+  const [gBusy, setGBusy] = useState(false);
+  const [gPass, setGPass] = useState(null);
+
   const load = async () => {
     try {
-      const [list, info] = await Promise.all([call("/api/hall/feasts"), call("/api/hall/info")]);
-      setFeasts(list); setToday(info.today);
+      const [list, info, slotData] = await Promise.all([
+        call("/api/hall/feasts"),
     } catch (e) { notify(e, true); }
   };
   useEffect(() => { load(); }, []);
