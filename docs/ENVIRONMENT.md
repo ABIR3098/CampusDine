@@ -15,3 +15,4 @@ Copy `backend/.env.example` to `backend/.env` and fill in your own values. Never
 | `CANTEEN_TZ` | Timezone for pickup times, the meal calendar and reports | `Asia/Dhaka` |
 | `SMTP_SECURE` | Use TLS from the start of the SMTP connection (Hall emails) | `false` |
 | `SMTP_FROM` | Sender name and address for Hall emails | unset |
+| `WALLET_TOPUP_DAILY_LIMIT` | Most a single account can top up in one day, in taka | `20000` |
