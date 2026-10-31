@@ -234,6 +234,39 @@ function HallServices({call,user,isAdmin,notify}) {
                   <div className={"p-1.5 rounded-lg text-xs font-bold " + (step >= 2 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400")}>
                     2. Assigned
                   </div>
+                  <div className={"p-1.5 rounded-lg text-xs font-bold " + (step >= 3 ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-400")}>
+                    3. In Progress
+                  </div>
+                  <div className={"p-1.5 rounded-lg text-xs font-bold " + (step >= 4 ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-400")}>
+                    4. Resolved
+                  </div>
+                </div>
+                {step >= 2 && (
+                  <div className="text-xs text-blue-700 font-medium mt-2 flex items-center gap-1.5">
+                    <span>👷</span>
+                    <span>Caretaker Assigned: <strong>Md. Rafiq (Hall Maintenance Wing)</strong></span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-start justify-between">
+                <div className="space-y-1 text-sm text-slate-700 flex-1">
+                  {r.description&&<p className="whitespace-pre-wrap">{r.description}</p>}
+                  {r.location&&<p className="hl-muted font-medium">📍 Location: {r.location}{r.requested_date? " · Target: " + String(r.requested_date).slice(0,10) : ""}</p>}
+                  {r.admin_note&&<p className="text-xs bg-slate-50 p-2 rounded-lg border border-slate-200 text-slate-800"><b>Admin Note:</b> {r.admin_note}</p>}
+                </div>
+
+                {savedPhoto && (
+                  <div className="shrink-0 cursor-pointer text-center" onClick={() => setViewPhoto(savedPhoto)}>
+                    <img src={savedPhoto} alt="Issue photo" className="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm hover:scale-105 transition-all" />
+                    <span className="text-[10px] text-blue-600 font-bold block mt-1">🔍 View Photo</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 flex-wrap mt-3 pt-2 border-t border-slate-100">
+                {isAdmin ? (
+                  <>
       </HallCard>
     </>}
     {section==="notices"&&<HallCard title="Hall notice board" icon="📢" sub="Official hall announcements and important updates.">
