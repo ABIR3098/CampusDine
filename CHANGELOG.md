@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Docs: pricing guide.
+- Tests: combo and happy-hour pricing tests with a fake database.
 - Fix: admin order filters now reject impossible dates such as 2026-02-30.
 - Docs: architecture overview.
 - Tests: edge cases for order rules.
