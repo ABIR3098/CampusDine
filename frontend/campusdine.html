@@ -1,3 +1,73 @@
+</body>
+</script>
+);
+  </ErrorBoundary>
+    <App />
+  <ErrorBoundary scope="app">
+ReactDOM.createRoot(document.getElementById("root")).render(
+
+}
+  );
+    </div>
+      </div>
+        </ErrorBoundary>
+        )}
+            onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
+          <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
+        {tab === "profile" && (
+
+        )}
+          </>
+            <AdminFeedback summary={feedbackSummary} />
+            <ProblemReports apiBase={apiBase} token={session.token} refreshKey={issueTick} />
+          <>
+        {session.user.role === "admin" && tab === "feedback" && (
+        {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} call={call} apiBase={apiBase} token={session.token} />}
+        )}
+          <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
+        {session.user.role === "admin" && tab === "verify" && (
+        )}
+          <AdminOffers call={call} menu={restaurantMenu} notify={(m, isErr) => { if (isErr) showError(m); else showSuccess(m); setLoyaltyKey(k => k + 1); }} />
+        {session.user.role === "admin" && tab === "offers" && (
+        {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
+        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
+        {session.user.role === "admin" && tab === "hallFood" && <AdminHallFood call={call} />}
+        )}
+          <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
+        {session.user.role === "admin" && tab === "adminMenu" && (
+        {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={restaurantOrders} />}
+        {session.user.role === "admin" && tab === "commandCenter" && <CanteenCommandCenter apiBase={apiBase} token={session.token} orders={restaurantOrders} restaurantId={restaurant?.id} />}
+
+        )}
+            sessionToken={session.token} refreshKey={chatRefreshKey} />
+          <ChatWorkspace role={session.user.role} userId={session.user.id} apiBase={apiBase}
+        {tab === "chat" && (
+        )}
+            onLookup={lookupRecipient} onSend={sendMoney} />
+          <WalletTab apiBase={apiBase} token={session.token} balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
+        {session.user.role !== "admin" && tab === "wallet" && (
+        {session.user.role !== "admin" && tab === "spending" && <SpendingTab call={call} user={session.user} budget={budget} onSaveBudget={saveBudget} />}
+        )}
+                        onPrevMonth={goPrevMonth} onNextMonth={goNextMonth} onJumpToday={goToday} isCurrentMonth={isCurrentMonth} />
+                        onPay={payMealPlan} onRepeat={repeatLastMonth} planBusy={planBusy}
+          <MealCalendar user={session.user} role={session.user.role} year={year} month={month} calendar={calendar} paidDays={calendarPaid} bill={bill} onToggle={toggleDay}
+        {session.user.role !== "admin" && tab === "calendar" && (
+        )}
+            general={myGeneralFeedback} onSubmitGeneral={submitGeneralFeedback} generalBusy={generalBusy} />
+          <FeedbackTab user={session.user} orders={orders} onSubmitOrder={submitFeedback} orderBusy={feedbackBusy}
+        {session.user.role !== "admin" && tab === "feedback" && (
+        )}
+          <TrackOrder orders={orders} onSubmitFeedback={submitFeedback} feedbackBusy={feedbackBusy} onCancel={cancelOrder} cancelBusy={busy} onReorder={reorder} onRefresh={refreshMyOrders} apiBase={apiBase} token={session.token} />
+        {session.user.role !== "admin" && tab === "track" && (
+        {session.user.role !== "admin" && tab === "rewards" && <RewardsTab call={call} refreshKey={loyaltyKey} onGoMenu={() => setTab("menu")} />}
+        {session.user.role !== "admin" && tab === "groupOrders" && <GroupOrderPanel menu={restaurantMenu} cart={cart} setCart={setCart} apiBase={apiBase} token={session.token} userId={session.user.id} />}
+        {session.user.role !== "admin" && tab === "campusHub" && <CampusHub apiBase={apiBase} token={session.token} orders={orders} role={session.user.role} />}
+        )}
+            onToggleFavorite={toggleFavorite} apiBase={apiBase} sessionToken={session.token} loyaltyKey={loyaltyKey} budget={budget} recurringDue={recurringDue} onDueAdd={addDue} onDueSkip={skipDue} onTopUp={goTopUp} userName={session.user.name} pastOrders={orders} watching={watching} onToggleNotify={toggleNotify} />
+          <MenuOrder menu={restaurantMenu} cart={cart} setCart={setCart} placeOrder={placeOrder} walletBalance={wallet.balance} busy={busy}
+        {session.user.role !== "admin" && tab === "menu" && (
+        {session.user.role === "teacher" && tab === "riderTracking" && <TeacherRiderTracking apiBase={apiBase} token={session.token} />}
+
         )}
           </div>
             </span>
