@@ -211,3 +211,5 @@
 .hl-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .hl-input::placeholder { color: var(--ink-soft); opacity: .7; }
 .hl-input:disabled { opacity: .6; cursor: not-allowed; }
+.hl-sec { transition: box-shadow .2s ease; }
+.hl-sec:hover { box-shadow: 0 4px 14px rgba(16,24,40,.08); }
