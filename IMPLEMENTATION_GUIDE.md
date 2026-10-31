@@ -75,7 +75,7 @@ campusdine-project/
 
 ### 2. **Wallet Top-Up Limit** ✓
 - **Issue:** No limit on wallet top-up transactions
-- **Fix:** Maximum ৳9,999 per transaction enforced
+- **Fix:** Maximum ৳10,000 per transaction enforced
 - **Implementation:** `wallet-enhanced.js`
   - Validation: `POST /api/wallet/topup`
   - Limit stored in `.env` as `MAX_WALLET_TOPUP=9999`
