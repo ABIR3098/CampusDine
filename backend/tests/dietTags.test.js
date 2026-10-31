@@ -57,3 +57,9 @@ test("tagsOf understands Bangla words", () => {
   assert.deepEqual(tagsOf("গরুর মাংস"), ["beef"]);
   assert.deepEqual(tagsOf("ইলিশ মাছ"), ["fish"]);
 });
+
+test("tagsOf returns nothing for a plain meal or empty input", () => {
+  assert.deepEqual(tagsOf("Rice, Dal"), []);
+  assert.deepEqual(tagsOf(""), []);
+  assert.deepEqual(tagsOf(null), []);
+});
