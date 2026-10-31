@@ -34,3 +34,8 @@ test("localParts gives the Dhaka wall clock", () => {
   const p = localParts(new Date("2026-10-31T03:17:00Z"), "Asia/Dhaka");
   assert.deepEqual(p, { dateKey: "2026-10-31", dow: 6, minutes: 557 });
 });
+
+test("localParts moves to the next local day after midnight", () => {
+  const p = localParts(new Date("2026-10-31T18:30:00Z"), "Asia/Dhaka");
+  assert.deepEqual(p, { dateKey: "2026-11-01", dow: 0, minutes: 30 });
+});
