@@ -15,3 +15,10 @@ SELECT 'STUDY15', 'PERCENTAGE', 15, 0, 40, '15% off Singara, Fuchka and Chicken 
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM coupons WHERE code = 'STUDY15');
 INSERT IGNORE INTO coupon_items (coupon_id, item_id)
 SELECT c.id, m.id FROM coupons c JOIN menu_items m ON m.name IN ('Singara', 'Fuchka', 'Chicken Roll') WHERE c.code = 'STUDY15';
+
+-- FREECHAI: A free Cha (Tea), up to 10 taka (Daily Spin prize)
+INSERT INTO coupons (code, discount_type, discount_value, min_order_amount, max_discount, description, applies_to_all_items, is_active)
+SELECT 'FREECHAI', 'FIXED', 10, 0, NULL, 'A free Cha (Tea), up to 10 taka (Daily Spin prize)', 0, 1
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM coupons WHERE code = 'FREECHAI');
+INSERT IGNORE INTO coupon_items (coupon_id, item_id)
+SELECT c.id, m.id FROM coupons c JOIN menu_items m ON m.name IN ('Cha (Tea)') WHERE c.code = 'FREECHAI';
