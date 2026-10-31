@@ -10,3 +10,6 @@ Leave `SMTP_HOST` empty. The code is printed in the server console while develop
 
 ## Can I skip the email code on sign-up?
 Set `EMAIL_OTP_REQUIRED=false` in `backend/.env`.
+
+## Can I turn off the login code?
+`LOGIN_OTP` controls it: `all` (every account with an email), `admin` (admin accounts only) or `off`.
