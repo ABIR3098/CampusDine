@@ -334,3 +334,17 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `review_note` | VARCHAR(500) |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `hall_room_assignments`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `room_id` | BIGINT UNSIGNED |
+| `status` | ENUM('active','checked_out','transferred') |
+| `assigned_by` | INT |
+| `assigned_at` | DATETIME |
+| `ended_at` | DATETIME |
+| `notes` | VARCHAR(500) |
