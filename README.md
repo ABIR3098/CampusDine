@@ -166,6 +166,14 @@ See [CAMPUSDINE_NEW_FEATURES.md](CAMPUSDINE_NEW_FEATURES.md) for the new Canteen
 
 ---
 
+## Tech stack
+
+- **Backend:** Node.js, Express, Socket.IO, MySQL (`mysql2`), JWT, `bcryptjs`, `nodemailer`
+- **Frontend:** a single `campusdine.html` page plus React-style JSX modules in `frontend/hall/`
+- **Tests:** Node's built-in test runner
+
+---
+
 ## Running the tests
 
 The backend tests use Node's built-in test runner (Node 18+):
