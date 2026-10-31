@@ -6459,6 +6459,39 @@ function KitchenDisplaySystem({ orders = [], advance, onExit, call, onShowPosSli
 
   const handleAdvance = (id) => {
     if (soundEnabled) playChimeSound("chime");
+    advance(id);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col font-sans select-none overflow-hidden">
+      {/* Top KDS Header */}
+      <div className="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl animate-pulse">🍳</span>
+            <span className="font-display font-black text-xl tracking-wider text-amber-400">KITCHEN DISPLAY (KDS)</span>
+          </div>
+          <span className="px-3 py-1 bg-amber-500/20 text-amber-300 font-mono font-bold text-xs rounded-full border border-amber-500/30">
+            {activeOrders.length} ACTIVE ORDERS
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Filters */}
+          <div className="bg-slate-800 p-1 rounded-xl flex items-center gap-1 border border-slate-700 text-xs">
+            <button
+              onClick={() => setFilter("active")}
+              className={"px-3 py-1.5 rounded-lg font-bold transition-all " + (filter === "active" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white")}>
+              All ({activeOrders.length})
+            </button>
+            <button
+              onClick={() => setFilter("received")}
+              className={"px-3 py-1.5 rounded-lg font-bold transition-all " + (filter === "received" ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white")}>
+              Received ({activeOrders.filter(o => o.status === "Received").length})
+            </button>
+            <button
+              onClick={() => setFilter("cooking")}
+              className={"px-3 py-1.5 rounded-lg font-bold transition-all " + (filter === "cooking" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white")}>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
