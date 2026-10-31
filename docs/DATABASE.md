@@ -395,3 +395,17 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `reviewed_by` | INT |
 | `review_note` | VARCHAR(500) |
 | `created_at` | TIMESTAMP |
+
+## `hall_clearance`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `reason` | VARCHAR(500) |
+| `status` | ENUM('pending','in_review','approved','rejected') |
+| `review_note` | VARCHAR(500) |
+| `reviewed_by` | INT |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
