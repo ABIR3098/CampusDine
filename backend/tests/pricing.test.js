@@ -6,3 +6,9 @@ const { r2, isHappyHourActive, happyHourCovers } = require("../src/pricing");
 const hh = (over = {}) => ({ is_active: 1, start_time: "14:00", end_time: "16:00", days: [], itemIds: [], category: null, ...over });
 // Dhaka is UTC+6, so 09:00Z is 15:00 in Dhaka. 2026-10-31 is a Saturday (dow 6).
 const at = (iso) => new Date(iso);
+
+test("r2 rounds to two decimals", () => {
+  assert.equal(r2(10.126), 10.13);
+  assert.equal(r2("5"), 5);
+  assert.equal(r2(0.1 + 0.2), 0.3);
+});
