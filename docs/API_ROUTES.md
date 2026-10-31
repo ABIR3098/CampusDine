@@ -72,3 +72,11 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/group-orders/:id`
 - `POST /api/group-orders/:id/items`
 - `POST /api/group-orders/:id/close`
+
+## `/api/wallet` — `src/routes/wallet.js`
+
+- `GET /api/wallet`
+- `POST /api/wallet/topup`
+- `GET /api/wallet/recipient`
+- `POST /api/wallet/transfer`
+- `GET /api/wallet/referral`
