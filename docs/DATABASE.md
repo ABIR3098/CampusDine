@@ -457,3 +457,17 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `notes` | VARCHAR(500) |
 | `created_by` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_production_plans`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `plan_date` | DATE |
+| `slot` | ENUM('breakfast','lunch','dinner') |
+| `planned_plates` | INT |
+| `actual_prepared` | INT |
+| `notes` | VARCHAR(500) |
+| `created_by` | INT |
+| `created_at` | TIMESTAMP |
