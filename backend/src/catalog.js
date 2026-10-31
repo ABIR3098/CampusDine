@@ -58,6 +58,7 @@ const NUTRITION_BY_NAME = {
   "Hot Chocolate": { calories: 200, allergens: ["milk"] },
   "Chocolate Milkshake": { calories: 350, allergens: ["milk"] },
   "Beguni": { calories: 90, allergens: [] },
+  "Piyaju": { calories: 90, allergens: [] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
