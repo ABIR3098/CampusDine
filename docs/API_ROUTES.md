@@ -88,3 +88,12 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/calendar/pay`
 - `POST /api/calendar/repeat`
 - `PUT /api/calendar/:day`
+
+## `/api/recurring` — `src/routes/recurring.js`
+
+- `GET /api/recurring`
+- `GET /api/recurring/due`
+- `POST /api/recurring`
+- `PATCH /api/recurring/:id`
+- `DELETE /api/recurring/:id`
+- `POST /api/recurring/:id/done`
