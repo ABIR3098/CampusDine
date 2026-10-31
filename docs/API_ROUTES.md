@@ -130,3 +130,8 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/chat/images`
 - `GET /api/chat/images/:id`
 - `POST /api/chat/messages/:id/reaction`
+
+## `/api/feedback` — `src/routes/feedback.js`
+
+- `POST /api/feedback`
+- `GET /api/feedback/mine`
