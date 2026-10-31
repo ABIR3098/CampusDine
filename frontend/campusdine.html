@@ -3512,6 +3512,7 @@ function PortalTopHeader({
           <span className="hidden sm:inline">Logout</span>
         </button>
       </div>
+    </header>
   );
 }
 
@@ -9317,6 +9318,9 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
   const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarSearch, setSidebarSearch] = useState("");
   const [restaurant, setRestaurant] = useState(null); // the restaurant chosen after login (everyone)
   const restaurantRef = useRef(null); // lets refresh functions (also called from socket handlers) see the latest choice
   restaurantRef.current = restaurant;
@@ -9443,10 +9447,13 @@ function App() {
 
   const onAuth = (token, user) => {
     setSession({ token, user });
-    // Everyone (including Hall students) sees the restaurant picker first;
-    // Hall students can open the Hall from its card.
-    setRestaurant(null);
-    setTab(user.role === "admin" ? "overview" : "menu");
+    // If the student has a Hall Resident account, automatically route them into Hall Portal!
+    if (user.role === "student" && user.accountType === "hall") {
+      setRestaurant(HALL_ENTRY);
+    } else {
+      setRestaurant(null);
+      setTab(user.role === "admin" ? "overview" : "menu");
+    }
   };
   const logout = () => {
     if (socketRef.current) socketRef.current.disconnect();
@@ -9880,12 +9887,15 @@ function App() {
 
   const unreadNotifications = notifications.filter(item => !item.read).length;
 
+  const currentTabs = session.user.role === "admin" ? adminTabs : session.user.role === "teacher" ? teacherTabs : userTabs;
+  const currentTabObj = currentTabs.find(t => t.key === tab);
+
   return (
-    <div className="min-h-screen">
-      <TopBar role={session.user.role} name={session.user.name} avatar={session.user.avatar}
-        tabs={session.user.role === "admin" ? adminTabs : session.user.role === "teacher" ? teacherTabs : userTabs}
-        active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang}
-        notifications={notifications} notificationCount={unreadNotifications}
+    <div className="portal-shell">
+      {/* ─── Vertical Left Sidebar (BUP Portal Style) ─── */}
+      <TopBar
+        role={session.user.role}
+        name={session.user.name}
         notificationOpen={notificationCenterOpen}
         onToggleNotifications={() => setNotificationCenterOpen(v => !v)}
         onMarkAllRead={markAllNotificationsRead}
