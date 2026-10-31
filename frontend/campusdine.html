@@ -1,3 +1,238 @@
+              ) : (
+                </button>
+                  📡 Enable GPS
+                <button onClick={start} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+              {!sharing ? (
+            <div className="flex items-center gap-2 shrink-0">
+            </div>
+              <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{message}</p>
+              </div>
+                {sharing && <span className="text-[10px] uppercase font-800 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Online</span>}
+                <span className="text-sm font-700">{sharing ? "Live Location Streaming Active" : "Location Sharing Paused"}</span>
+              <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+            <div className={sharing ? "rider-radar-dot" : "rider-radar-off"} />
+          <div className={`rider-status-card mt-5 ${sharing ? "active" : "inactive"}`}>
+          {/* GPS Radar Status */}
+
+          </div>
+            </div>
+              </button>
+                <span className="cd-logout-text">Log out</span>
+                <Icon path={I.logout} className="w-4 h-4" />
+              <button onClick={onLogout} className="cd-logout">
+              </button>
+                <span>🚨</span> SOS Emergency
+              <button type="button" onClick={() => setShowSos(true)} className="btn-sos">
+            <div className="flex items-center gap-2">
+            </div>
+              </div>
+                </p>
+                  {lastUpdate && <span className="ml-2 font-mono text-[11px] opacity-75">· Synced {lastUpdate.toLocaleTimeString()}</span>}
+                  Rider: <strong>{user && user.name ? user.name : "Active Rider"}</strong> · ID #{user ? user.external_id || user.id : "—"}
+                <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--ink-soft)" }}>
+                <h1 className="text-2xl font-display font-800 tracking-tight">Rider Operations Hub</h1>
+              <div>
+              </div>
+                🛵
+              <div className="w-12 h-12 rounded-2xl grid place-items-center text-2xl shadow-sm" style={{ background: "var(--gold-soft)", border: "1px solid var(--accent-border)" }}>
+            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap justify-between items-center gap-4">
+        <div className="card p-6">
+        {/* Top Control Bar */}
+
+      <div className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+    <div className="min-h-screen pb-16" style={{ background: "var(--bg)", color: "var(--ink)" }}>
+  return (
+
+  };
+    return <span className={`order-status-badge ${itm.cls}`}>{itm.icon} {itm.label}</span>;
+    const itm = map[s] || { cls: "received", label: s, icon: "•" };
+    };
+      Accepted: { cls: "accepted", label: "Accepted", icon: "✓" }
+      Assigned: { cls: "assigned", label: "Assigned", icon: "🛵" },
+      Ready: { cls: "ready", label: "Ready", icon: "🔔" },
+      Cooking: { cls: "cooking", label: "Cooking", icon: "🍳" },
+      Received: { cls: "received", label: "Received", icon: "📥" },
+    const map = {
+  const getStatusBadge = (s) => {
+
+  };
+    setMessage("Location sharing stopped.");
+    setSharing(false);
+    try { await api(apiBase, "/api/riders/location", { method: "POST", token, body: { active: false } }); } catch (_) {}
+    try { localStorage.removeItem("cd_rider_gps"); } catch (_) {}
+  const stop = async () => {
+
+  };
+    }, err => setMessage(err.message || "Location permission denied."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+      setMessage("GPS sharing is active. Streaming coordinates to campus teachers & dispatch.");
+      setLastUpdate(new Date());
+      setSharing(true);
+      } catch (_) {}
+        });
+          body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, active: true }
+          method: "POST", token,
+        await api(apiBase, "/api/riders/location", {
+      try {
+      } catch (_) {}
+        localStorage.setItem("cd_rider_gps", JSON.stringify({ token, apiBase, riderId: (user && user.id) || Date.now() }));
+      try {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+    }
+      return;
+      setMessage("This browser does not support GPS.");
+    if (!navigator.geolocation) {
+  const start = () => {
+
+  }, [apiBase, token, user]);
+    };
+      socket.disconnect();
+      clearInterval(interval);
+    return () => {
+    });
+      refreshOrders();
+    socket.on("rider:order-assigned", () => {
+    if (user && user.id) socket.emit("join", `rider:${user.id}`);
+    const socket = io(apiBase, { auth: { token } });
+    const interval = setInterval(refreshOrders, 10000);
+    refreshOrders();
+  useEffect(() => {
+  // Real-time socket updates for new orders & location sync
+
+  };
+    }
+      setShiftBusy(false);
+    } finally {
+      setOrderError(e.message || "Could not update your shift.");
+    } catch (e) {
+      }
+        setMessage("Shift started. Ready to receive assignments.");
+        setShift(true);
+        await api(apiBase, "/api/operations/riders/shift/start", { method: "POST", token, body: { maxOrders } });
+      } else {
+        setMessage("Shift ended. New assignments paused.");
+        setShift(false);
+        await api(apiBase, "/api/operations/riders/shift/end", { method: "POST", token });
+      if (shift) {
+    try {
+    setShiftBusy(true);
+  const updateShift = async () => {
+
+  }, [apiBase, token]);
+      .catch(e => setOrderError(e.message || "Could not load shift status."));
+      })
+        if (current.maxOrders) setMaxOrders(Number(current.maxOrders));
+        setShift(current.status === "ON_DUTY");
+      .then(current => {
+    api(apiBase, "/api/operations/riders/shift/me", { token })
+  useEffect(() => {
+
+  };
+    }
+      setOrderError(e.message || "Could not optimize the route.");
+    } catch (e) {
+      setOrderError("");
+      setRoutePlan(res);
+      const res = await api(apiBase, "/api/operations/riders/route", { token });
+    try {
+  const optimizeRoute = async () => {
+
+  };
+    }
+      setAcceptingId(null);
+    } finally {
+      setOrderError(e.message || "Could not accept this order.");
+    } catch (e) {
+      await refreshOrders();
+      await api(apiBase, `/api/riders/orders/${orderId}/accept`, { method: "POST", token });
+    try {
+    setAcceptingId(orderId);
+  const acceptOrder = async (orderId) => {
+
+  };
+    }
+      setOrderError(e.message || "Could not load orders.");
+    } catch (e) {
+      setLastUpdate(new Date());
+      setOrderError("");
+      setSummary(data);
+      const data = await api(apiBase, "/api/riders/orders/summary", { token });
+    try {
+  const refreshOrders = async () => {
+
+  const [deliveryProof, setDeliveryProof] = useState({});
+  const [showSos, setShowSos] = useState(false);
+  const [acceptingId, setAcceptingId] = useState(null);
+  const [orderError, setOrderError] = useState("");
+  const [maxOrders, setMaxOrders] = useState(3);
+  const [shiftBusy, setShiftBusy] = useState(false);
+  const [shift, setShift] = useState(false);
+  const [routePlan, setRoutePlan] = useState(null);
+  const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
+  const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
+function RiderDashboard({ apiBase, token, user, onLogout }) {
+/* ---------------- Rider-only GPS sharing ---------------- */
+
+}
+  );
+    </div>
+      )}
+        </div>
+          })}
+            );
+              </div>
+                </div>
+                  )}
+                    </span>
+                      ✓ {o.picked_up_at ? "Picked Up" : "Awaiting Handover"}
+                    <span className="status-pill success text-xs font-bold">
+                  ) : (
+                    </button>
+                      Advance to {isReceived ? "Cooking" : "Ready"} <Icon path={I.arrow} className="w-3.5 h-3.5" />
+                    <button onClick={() => advance(o.id)} className="btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                  ) : !isReady ? (
+                    <span className="status-pill danger text-xs">Cancelled</span>
+                  {isCancelled ? (
+
+                  </div>
+                    <span className="font-mono font-bold text-base" style={{ color: "var(--ink)" }}>{taka(o.total)}</span>
+                    <span className="text-[11px] text-slate-500 uppercase block font-bold">Total Bill</span>
+                  <div>
+                <div className="flex justify-between items-center pt-3 border-t mt-2" style={{ borderColor: "var(--line)" }}>
+
+                </div>
+                  )}
+                    </div>
+                      🚪 <strong>Rider Drop-off:</strong> {o.delivery_note}
+                      style={{ background: "rgba(59,130,246,0.08)", color: "#1e40af", border: "1px solid rgba(59,130,246,0.2)" }}>
+                    <div className="text-xs mb-3 p-2.5 rounded-xl font-medium"
+                  {o.delivery_note && (
+
+                  )}
+                    </div>
+                      📝 <strong>Kitchen Note:</strong> {o.note}
+                      style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
+                    <div className="text-xs mb-3 p-2.5 rounded-xl font-medium"
+                  {o.note && (
+
+                  </div>
+                    </div>
+                      ))}
+                        </div>
+                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded-md bg-white border" style={{ borderColor: "var(--line)" }}>×{i.qty}</span>
+                          <span>{i.name}</span>
+                        <div key={idx} className="flex justify-between items-center">
+                      {o.items.map((i, idx) => (
+                    <div className="text-sm font-semibold space-y-1" style={{ color: "var(--ink)" }}>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Items to Prepare:</div>
+                  <div className="p-3 rounded-xl mb-3" style={{ background: "var(--panel-soft)" }}>
+
+                  )}
+                    </div>
+                      <span>⏰</span> Scheduled: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     <div className="text-xs mb-3 font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5" style={{ background: "rgba(59,130,246,0.1)", color: "#1d4ed8" }}>
                   {o.pickup_time && (
 
