@@ -625,6 +625,24 @@
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
+
+  /* ═══════════════════════════════════════════════════════════════
+     BUP PORTAL STYLE VERTICAL SIDEBAR & APP SHELL
+     ═══════════════════════════════════════════════════════════════ */
+  .portal-shell {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg);
+  }
+
+  /* Left Vertical Sidebar */
+  .portal-sidebar {
+    width: 260px;
+    background: var(--panel);
+    border-right: 1.5px solid var(--line);
+    display: flex;
+    flex-direction: column;
+
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
 .chat-shell[data-admin="1"]{grid-template-columns:320px minmax(0,1fr)}
