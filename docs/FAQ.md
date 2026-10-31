@@ -16,3 +16,6 @@ Set `EMAIL_OTP_REQUIRED=false` in `backend/.env`.
 
 ## Pickup times or reports look off by some hours
 Set `CANTEEN_TZ` in `backend/.env` to the canteen's timezone. The default is `Asia/Dhaka`.
+
+## How do I add more food items?
+See [Adding menu items](MENU_ITEMS_SQL.md).
