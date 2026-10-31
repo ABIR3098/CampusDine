@@ -38,3 +38,8 @@ test("an overnight window runs before and after midnight", () => {
   assert.equal(isHappyHourActive(night, at("2026-10-31T19:00:00Z")), true); // 01:00 Dhaka next day
   assert.equal(isHappyHourActive(night, at("2026-10-31T21:00:00Z")), false); // 03:00 Dhaka
 });
+
+test("an overnight window belongs to the day it started on", () => {
+  const satNight = hh({ start_time: "22:00", end_time: "02:00", days: [6] });
+  assert.equal(isHappyHourActive(satNight, at("2026-10-31T19:00:00Z")), true); // Sunday 01:00, started Saturday
+});
