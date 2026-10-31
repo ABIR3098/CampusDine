@@ -81,3 +81,10 @@ test("cleanCancelReason trims, limits and nulls empty input", () => {
   assert.equal(cleanCancelReason(undefined), null);
   assert.equal(cleanCancelReason(42), null);
 });
+
+test("tip options and statuses are fixed lists", () => {
+  const { TIP_OPTIONS, STATUSES, ALL_STATUSES } = require("../src/utils/orderRules");
+  assert.deepEqual(TIP_OPTIONS, [0, 5, 10, 20]);
+  assert.deepEqual(STATUSES, ["Received", "Cooking", "Ready"]);
+  assert.equal(ALL_STATUSES[ALL_STATUSES.length - 1], "Cancelled");
+});
