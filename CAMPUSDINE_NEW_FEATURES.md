@@ -8,7 +8,7 @@
 
 ## Features added
 
-1. **Smart Live Order Tracking** — student's active orders show order status, assigned rider, rider GPS freshness and a map link. Data refreshes every 15 seconds. It uses the existing rider GPS updates and only returns the signed-in student's orders.
+1. **Smart Live Order Tracking** — teacher accounts with an assigned rider see order status, rider name, GPS freshness and a map link. Data refreshes every 15 seconds. Student order pages never show GPS.
 2. **Smart Queue Management** — live counts for Received / Cooking / Ready and an estimated new-order wait. Students see campus-wide queue totals; Canteen Admin sees only the selected restaurant's queue. Existing per-order queue position remains in Track Order.
 3. **Campus Food Waste Challenge** — students can join and record one no-waste pledge per day. Canteen Admin logs cooked and leftover portions per meal; the Command Center shows 30-day totals and a 7-day trend. Student pledges are self-reported.
 4. **AI-style Food Recommendation** — explainable ranking based on the student's previous purchases, campus popularity over the last 30 days and current stock. This is a local recommendation algorithm, not a hosted generative-AI model.
@@ -19,7 +19,7 @@
 
 - `GET /api/campus/queue` — student/teacher queue overview.
 - `GET /api/campus/queue?restaurant=<id>` — Canteen Admin queue for selected restaurant.
-- `GET /api/campus/live-tracking` — signed-in student's active orders and assigned rider location.
+- `GET /api/campus/live-tracking` — teacher-only: the signed-in teacher's active delivery orders and assigned rider location.
 - `GET /api/campus/recommendations` — student/teacher recommendations.
 - `GET|POST /api/campus/lost-found` — view or create Lost & Found posts.
 - `PATCH /api/campus/lost-found/:id` — Hall Admin status update.
