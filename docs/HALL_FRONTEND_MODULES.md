@@ -28,3 +28,6 @@ Home: warns when the wallet can't cover the Hall bill.
 
 ## `bill.jsx`
 Step 10 — "My bill" tab: what each meal costs, day by day, and the month's total.
+
+## `billExport.jsx`
+"Download CSV" and "Print / PDF" buttons for the My bill tab.
