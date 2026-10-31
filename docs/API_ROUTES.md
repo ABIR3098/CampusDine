@@ -156,3 +156,19 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/hall-admin/dashboard`
 - `POST /api/hall-admin/items`
 - `PATCH /api/hall-admin/items/:id`
+
+## `/api/campus` — `src/routes/campusFeatures.js`
+
+- `GET /api/campus/queue`
+- `GET /api/campus/live-tracking`
+- `GET /api/campus/recommendations`
+- `GET /api/campus/lost-found`
+- `POST /api/campus/lost-found`
+- `PATCH /api/campus/lost-found/:id`
+- `POST /api/campus/emergency`
+- `GET /api/campus/emergency`
+- `PATCH /api/campus/emergency/:id`
+- `GET /api/campus/waste-challenge`
+- `POST /api/campus/waste-challenge/join`
+- `POST /api/campus/waste-challenge/pledge`
+- `POST /api/campus/waste-challenge`
