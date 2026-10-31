@@ -80,3 +80,11 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/wallet/recipient`
 - `POST /api/wallet/transfer`
 - `GET /api/wallet/referral`
+
+## `/api/calendar` — `src/routes/calendar.js`
+
+- `GET /api/calendar`
+- `GET /api/calendar/bill`
+- `POST /api/calendar/pay`
+- `POST /api/calendar/repeat`
+- `PUT /api/calendar/:day`
