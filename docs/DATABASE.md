@@ -605,3 +605,16 @@ Created in `backend/src/hall/extraSchema.js`.
 | `notes` | VARCHAR(500) |
 | `recorded_by` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_audit_log`
+Created in `backend/src/hall/extraSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `action` | VARCHAR(100) |
+| `entity_type` | VARCHAR(60) |
+| `entity_id` | BIGINT |
+| `details` | JSON |
+| `created_at` | TIMESTAMP |
