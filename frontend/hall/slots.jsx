@@ -43,6 +43,7 @@ function HallSlotCard({ slot, isAdmin, onSave }) {
               </select>
               <input type="time" className="hl-input" style={{ flex: "1 1 110px" }} value={f.cutoffTime} onChange={(e) => setF({ ...f, cutoffTime: e.target.value })} />
             </div>
+            <HallCutoffPreview label={slot.label} daysBefore={f.cutoffDaysBefore} time={f.cutoffTime} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div><label className="hl-label">Price (৳)</label><input type="number" min="0" className="hl-input" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></div>
