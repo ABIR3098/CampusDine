@@ -44,3 +44,11 @@ test("someone who is already going keeps their seat", () => {
 test("a capacity of 0 never has a seat", () => {
   assert.equal(hasSeat(0, 0), false);
 });
+
+test("RSVP helpers handle missing values and numbers written as text", () => {
+  const { parseRsvpStatus, hasSeat } = require("../src/hall/feastRsvp");
+  assert.strictEqual(parseRsvpStatus(undefined), null);
+  assert.strictEqual(parseRsvpStatus("GOING"), "going");
+  assert.strictEqual(hasSeat("10", "9"), true);
+  assert.strictEqual(hasSeat("10", "10"), false);
+});
