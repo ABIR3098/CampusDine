@@ -2,7 +2,7 @@ const express = require("express");
 const pool = require("../../db");
 const catchAsync = require("../../utils/catchAsync");
 const { requireRole } = require("../../middleware/auth");
-const { todayKey } = require("../../utils/clock");
+const { noticeScope } = require("../noticeScope");
 const router = express.Router();
 const TYPES = new Set(["maintenance","cleaning","laundry","guest","lost_found","facility_booking","feedback","emergency","event","leave","complaint","incident"]);
 const STATUSES = new Set(["submitted","approved","in_progress","resolved","rejected","cancelled"]);
@@ -72,7 +72,8 @@ router.delete("/services/:id", catchAsync(async(req,res)=>{
 }));
 
 router.get("/notices", catchAsync(async(req,res)=>{
-  const [rows]=await pool.query("SELECT id,title,body,category,pinned,expires_at,created_at FROM hall_notices WHERE (expires_at IS NULL OR expires_at > NOW()) AND (? IS NULL OR university_id=?) ORDER BY pinned DESC,created_at DESC LIMIT 100",[req.user.universityId||null,req.user.universityId||null]);
+  const scope=noticeScope(req.user.universityId);
+  const [rows]=await pool.query(`SELECT id,title,body,category,pinned,expires_at,created_at FROM hall_notices WHERE (expires_at IS NULL OR expires_at > NOW()) AND ${scope.sql} ORDER BY pinned DESC,created_at DESC LIMIT 100`,scope.params);
   res.json(rows);
 }));
 router.post("/notices", requireRole("admin"), catchAsync(async(req,res)=>{
@@ -146,7 +147,7 @@ router.get("/audit", requireRole("admin"), catchAsync(async(req,res)=>{
 
 // Meal pickup QR/token. The token only verifies collection; it never charges a wallet.
 router.get("/pickup-tokens", catchAsync(async(req,res)=>{
-  const date=String(req.query.date||todayKey());
+  const date=String(req.query.date||new Date().toISOString().slice(0,10));
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Date must be YYYY-MM-DD"});
   const admin=req.user.role==="admin";
   const [rows]=await pool.query(`SELECT t.id,t.user_id,t.the_date,t.slot,t.token_code,t.status,t.created_at,t.served_at,u.name AS student_name,u.external_id
@@ -156,7 +157,7 @@ router.get("/pickup-tokens", catchAsync(async(req,res)=>{
   res.json(rows);
 }));
 router.post("/pickup-tokens", requireRole("student","teacher"), catchAsync(async(req,res)=>{
-  const b=req.body||{}, slot=String(b.slot||""), date=String(b.date||todayKey());
+  const b=req.body||{}, slot=String(b.slot||""), date=String(b.date||new Date().toISOString().slice(0,10));
   if(!["breakfast","lunch","dinner"].includes(slot)||!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Choose a valid date and meal"});
   const [meal]=await pool.query("SELECT status FROM hall_meal_state WHERE user_id=? AND the_date=? AND slot=?",[req.user.id,date,slot]);
   if(!meal.length||meal[0].status!=="on") return res.status(400).json({error:"Turn this meal ON before creating a pickup token"});
