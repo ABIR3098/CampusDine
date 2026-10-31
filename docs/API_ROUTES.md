@@ -276,3 +276,7 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `GET /api/hall/ratings/mine`
 - `PUT /api/hall/ratings/:date/:slot`
+
+## `/api/hall` — `src/hall/routes/ratingsReport.js`
+
+- `GET /api/hall/ratings/summary`
