@@ -87,3 +87,8 @@ test("the status lists keep their order and Cancelled comes last", () => {
   assert.deepStrictEqual(STATUSES, ["Received", "Cooking", "Ready"]);
   assert.deepStrictEqual(ALL_STATUSES, ["Received", "Cooking", "Ready", "Cancelled"]);
 });
+
+test("cleanCancelReason gives null for values that are not text", () => {
+  const { cleanCancelReason } = require("../src/utils/orderRules");
+  for (const v of [42, null, undefined, {}, ["x"]]) assert.strictEqual(cleanCancelReason(v), null);
+});
