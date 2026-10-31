@@ -249,6 +249,40 @@ function HallFeasts({ call, isAdmin, notify }) {
 
       {activeTab === "feasts" && (
         <>
+          <HallCard title="Upcoming Grand Feasts & Special Nights" icon="🎉" sub="Grand feasts feature special menu items like Kacchi Biryani, Polao Roast, or Firni. Pre-book your seat in advance.">
+            {!feasts ? <div className="hl-empty">Loading…</div> : feasts.length === 0 ? (
+              <div className="hl-empty">🍽 No feast scheduled in the next 60 days.</div>
+            ) : (
+              <div className="hl-grid2">
+                {feasts.map((x) => {
+                  const dt = new Date(x.date + "T00:00:00Z");
+                  const percentBooked = x.capacity ? Math.min(100, Math.round((x.goingCount / x.capacity) * 100)) : 45;
+
+                  return (
+                    <div key={x.id} className={"hl-feast " + (x.myRsvp === "going" ? "going border-2 border-blue-500 shadow-md" : "")}>
+                      <div className="hl-feast-date bg-blue-700 text-white rounded-xl p-2.5 text-center shrink-0">
+                        <div className="text-2xl font-black">{dt.getUTCDate()}</div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider">{dt.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" })}</div>
+                      </div>
+                      <div className="hl-feast-body flex-1" style={{ paddingTop: 4 }}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="font-display font-black text-base text-slate-900 leading-tight">{x.title}</div>
+                            <div className="text-xs text-blue-600 font-bold mt-0.5">
+                              {HALL_SLOT_EMOJI[x.slot]} {HALL_SLOT_LABEL[x.slot]} Special
+                            </div>
+                          </div>
+                          {isAdmin && <button className="hl-btn sm danger" onClick={() => remove(x.id)}>Remove</button>}
+                        </div>
+
+                        {/* Capacity Progress Bar */}
+                        {x.capacity != null && (
+                          <div className="mt-2.5">
+                            <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
+                              <span>Seat Availability</span>
+                              <span>{x.goingCount} / {x.capacity} Booked ({x.capacity - x.goingCount} left)</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
   );
 }
 Hall.register({ key: "feasts", label: "Feasts", icon: "🎉", order: 5, component: HallFeasts });
