@@ -6792,6 +6792,39 @@ function DailySpinWheelModal({ user, onClose, onReward }) {
         <div className="flex items-center justify-between pb-3 border-b border-indigo-800/60 mb-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl animate-bounce">🎡</span>
+            <div className="text-left">
+              <div className="font-display font-black text-base text-amber-400">Daily Lucky Food Spin</div>
+              <div className="text-[11px] text-indigo-300">Spin once daily for wallet cash & food coupons</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-full bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 font-bold grid place-items-center text-xs">✕</button>
+        </div>
+
+        {/* Wheel Container */}
+        <div className="relative w-64 h-64 mx-auto my-4 flex items-center justify-center">
+          {/* Wheel Pointer */}
+          <div className="absolute -top-3 z-20 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-amber-400 drop-shadow-md" />
+
+          {/* Wheel SVG */}
+          <svg
+            viewBox="0 0 200 200"
+            className="w-full h-full rounded-full shadow-2xl transition-all duration-[4000ms] ease-[cubic-bezier(0.15,0.9,0.2,1)]"
+            style={{ transform: "rotate(" + rotation + "deg)" }}>
+            {SPIN_SECTORS.map((sec, i) => {
+              const count = SPIN_SECTORS.length;
+              const angle = 360 / count;
+              const startA = i * angle;
+              const endA = (i + 1) * angle;
+
+              // Arc math
+              const r = 100;
+              const x1 = 100 + r * Math.cos(Math.PI * (startA - 90) / 180);
+              const y1 = 100 + r * Math.sin(Math.PI * (startA - 90) / 180);
+              const x2 = 100 + r * Math.cos(Math.PI * (endA - 90) / 180);
+              const y2 = 100 + r * Math.sin(Math.PI * (endA - 90) / 180);
+
+              const textAngle = startA + angle / 2;
+              const tx = 100 + (r * 0.65) * Math.cos(Math.PI * (textAngle - 90) / 180);
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
