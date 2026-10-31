@@ -301,3 +301,20 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `hall_name` | VARCHAR(180) |
 | `block_name` | VARCHAR(100) |
 | `created_at` | TIMESTAMP |
+
+## `hall_rooms`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `block_id` | BIGINT UNSIGNED |
+| `hall_name` | VARCHAR(180) |
+| `block_name` | VARCHAR(100) |
+| `floor_no` | VARCHAR(30) |
+| `room_number` | VARCHAR(30) |
+| `capacity` | INT |
+| `occupied` | INT |
+| `room_type` | VARCHAR(60) |
+| `status` | ENUM('available','maintenance','inactive') |
+| `created_at` | TIMESTAMP |
