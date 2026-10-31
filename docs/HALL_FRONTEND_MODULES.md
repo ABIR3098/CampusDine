@@ -97,3 +97,6 @@ Ratings (admin): is each meal getting better or worse? A small line per meal tim
 
 ## `report.jsx`
 Step 12 — admin "Reports" tab: plates per day and meal, who is off, who changed what and when.
+
+## `reportCsv.jsx`
+Reports: download what is on the screen as a spreadsheet (CSV).
