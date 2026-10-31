@@ -194,3 +194,14 @@ Created in `backend/schema.sql`.
 | `name` | VARCHAR(100) |
 | `price` | DECIMAL(10,2) |
 | `qty` | INT |
+
+## `wallet_transactions`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `label` | VARCHAR(150) |
+| `amount` | DECIMAL(10,2) |
+| `created_at` | TIMESTAMP |
