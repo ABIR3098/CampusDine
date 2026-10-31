@@ -107,3 +107,12 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/admin/reports/export`
 - `GET /api/admin/feedback`
 - `POST /api/admin/announcement`
+
+## `/api/coupon` — `src/routes/coupon.js`
+
+- `POST /api/coupon/validate`
+- `POST /api/coupon/apply`
+- `GET /api/coupon/available`
+- `POST /api/coupon`
+- `GET /api/coupon`
+- `PUT /api/coupon/:couponId`
