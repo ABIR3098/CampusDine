@@ -76,3 +76,6 @@ Last call, admin side: put up leftover plates, see who took them, hand them over
 
 ## `lastcallRepeat.jsx`
 Last call (admin): fill the form from the last time, in one tap.
+
+## `meals.jsx`
+"My meals" tab: the next 7 days, three meals a day. Switch a meal ON / OFF until its cut-off.
