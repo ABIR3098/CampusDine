@@ -6425,6 +6425,40 @@ function playChimeSound(type = "chime") {
         osc.stop(now + i * 0.12 + 0.35);
       });
     }
+  } catch (_) {}
+}
+
+/* ─── Kitchen Display System (KDS Fullscreen Mode) ─── */
+function KitchenDisplaySystem({ orders = [], advance, onExit, call, onShowPosSlip }) {
+  const [filter, setFilter] = useState("active"); // active, cooking, received
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [lastOrderCount, setLastOrderCount] = useState(orders.length);
+
+  // Play audio chime when new orders appear
+  useEffect(() => {
+    if (orders.length > lastOrderCount && soundEnabled) {
+      playChimeSound("chime");
+    }
+    setLastOrderCount(orders.length);
+  }, [orders.length, soundEnabled]);
+
+  const activeOrders = orders.filter(o => o.status !== "Cancelled" && o.status !== "Ready");
+  const filtered = activeOrders.filter(o => {
+    if (filter === "cooking") return o.status === "Cooking";
+    if (filter === "received") return o.status === "Received";
+    return true;
+  });
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
+  const handleAdvance = (id) => {
+    if (soundEnabled) playChimeSound("chime");
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
