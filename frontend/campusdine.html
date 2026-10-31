@@ -1,3 +1,238 @@
+  const [showScratch, setShowScratch] = useState(false);
+  const [showPlanner, setShowPlanner] = useState(false);
+  /* ---- Added: Smart Campus Features State ---- */
+
+  const [payMethod, setPayMethod] = useState("wallet");
+  const starredItems = menu.filter(item => item.is_favorite);
+    });
+      return 0; // "default" — keep the server's category/name ordering
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "priceDesc") return b.price - a.price;
+      if (sortBy === "priceAsc") return a.price - b.price;
+    .sort((a, b) => {
+    })
+      return i.name.toLowerCase().includes(q) || (i.bn && i.bn.includes(search.trim()));
+      if (!q) return true;
+      const q = search.trim().toLowerCase();
+    .filter(i => {
+    .filter(i => diet === "all" || (diet === "veg" ? !!i.is_veg : !i.is_veg))
+    .filter(i => !favoritesOnly || i.is_favorite)
+    .filter(i => i.category === cat)
+  const filtered = menu
+  }, [menu]);
+    }
+      if (first) setCat(first);
+      const first = ["heavy", "snacks", "drinks"].find(c => menu.some(i => i.category === c));
+    if (menu.length > 0 && !menu.some(i => i.category === cat)) {
+  useEffect(() => {
+  // jump to the first category that does have items so the menu never opens empty.
+  // A restaurant may have no items in the selected category (e.g. no "heavy" meals):
+  const [diet, setDiet] = useState("all"); // "all" | "veg" | "nonveg"
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("default");
+  const [search, setSearch] = useState("");
+  });
+    return menu.some(m => m.category === c) ? c : "heavy";
+    const c = mealSlot(new Date().getHours()).cat;
+  const [cat, setCat] = useState(() => {
+function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, userName, pastOrders = [], menu, cart, setCart, placeOrder, walletBalance, busy, onToggleFavorite, apiBase, sessionToken, loyaltyKey, watching = [], onToggleNotify }) {
+}
+  );
+    </div>
+      </div>
+        </button>
+          <span>📡</span> Broadcast Emergency Location Ping
+          className="w-full py-3 rounded-xl bg-red-600 text-white font-800 text-sm flex items-center justify-center gap-2 shadow-lg">
+        <button onClick={() => { alert("Emergency alert beacon sent to campus security and dispatch."); onClose(); }}
+
+        </div>
+          ))}
+            </a>
+              <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{h.desc}</div>
+              </div>
+                <span className="text-sm font-bold text-red-600 font-mono">📞 {h.phone}</span>
+                <strong className="text-sm">{h.title}</strong>
+              <div className="flex justify-between items-center">
+              style={{ borderColor: "var(--line)" }}>
+              className="p-3 rounded-xl border block transition-colors hover:bg-red-50 dark:hover:bg-red-950/20"
+            <a key={i} href={`tel:${h.phone}`}
+          {hotlines.map((h, i) => (
+        <div className="space-y-2">
+
+        </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+          </div>
+            </div>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Instant emergency contacts for delivery on campus.</p>
+              <h3 className="font-display font-800 text-lg text-red-600">Rider Emergency SOS</h3>
+            <div>
+            <span className="text-3xl animate-bounce">🚨</span>
+          <div className="flex items-center gap-3">
+        <div className="flex justify-between items-start">
+      <div className="card p-6 max-w-md w-full border-2 border-red-500 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm fade-in">
+  return (
+
+  ];
+    { title: "National Emergency Helpline", phone: "999", desc: "Police, Fire Service, Ambulance" }
+    { title: "Campus Medical Center & Ambulance", phone: "01713-222222", desc: "First Aid & Rapid Response" },
+    { title: "Campus Proctor Office Hotline", phone: "01712-111111", desc: "Emergency Disciplinary & Safety" },
+    { title: "Campus Security Control Room", phone: "01711-000000", desc: "24/7 Central Gate & Patrol" },
+  const hotlines = [
+function RiderEmergencyModal({ onClose }) {
+/* ---------------- FEATURE: Rider SOS Emergency Hotline Modal ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        </div>
+          ))}
+            </div>
+              </div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{b.desc}</div>
+                </div>
+                  {b.unlocked && <span className="text-[10px] font-800 uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Unlocked</span>}
+                  <strong className="text-sm">{b.name}</strong>
+                <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+              </div>
+                {b.icon}
+              <div className="text-2xl w-10 h-10 rounded-xl grid place-items-center shrink-0" style={{ background: "var(--panel)" }}>
+            <div key={i} className={`badge-chip ${b.unlocked ? "unlocked" : "locked"}`}>
+          {badges.map((b, i) => (
+        <div className="space-y-2.5">
+
+        </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+          </div>
+            </div>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Earn rewards and campus reputation as you dine.</p>
+              <h3 className="font-display font-800 text-lg">Campus Foodie Badges</h3>
+            <div>
+            <span className="text-2xl">🏆</span>
+          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center">
+      <div className="card p-6 max-w-md w-full max-h-[85vh] overflow-y-auto space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+  return (
+
+  ];
+    { icon: "⭐", name: "Gourmet Critic", desc: "Left 5 helpful ratings for the kitchen", unlocked: true }
+    { icon: "🔥", name: "7-Day Streak", desc: "Dined at campus canteen 7 consecutive days", unlocked: false },
+    { icon: "⚡", name: "Speed Picker", desc: "Collected meal within 5 mins of ready alert", unlocked: false },
+    { icon: "🌱", name: "Eco Champ", desc: "Brought personal box (BYOB) to save plastic", unlocked: true },
+    { icon: "🍗", name: "Biryani Master", desc: "Ordered Special Tehari or Biryani 3+ times", unlocked: true },
+    { icon: "🌅", name: "Early Bird", desc: "Ordered breakfast before 9:00 AM", unlocked: true },
+  const badges = [
+function FoodieBadgesModal({ onClose }) {
+/* ---------------- FEATURE: Campus Foodie Badges Modal ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        </button>
+          {isAlreadyClaimed ? "Close & Return" : "Claim & Return to Menu"}
+        <button onClick={onClose} className="btn-primary w-full py-2.5 rounded-xl text-xs font-700">
+
+        </div>
+          )}
+            </div>
+              </p>
+                  : "Reward saved! Use this code at checkout today."}
+                  ? "⏳ Next scratch card unlocks tomorrow!"
+                {isAlreadyClaimed
+              <p className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>
+              </div>
+                PROMO CODE: {reward.code}
+              <div className="inline-block px-3 py-1 rounded-full font-mono text-xs font-700 bg-amber-100 text-amber-800">
+              <div className="font-display font-800 text-lg text-emerald-600">{reward.text}</div>
+              <div className="text-4xl animate-bounce">🎊</div>
+            <div className="py-4 space-y-2 fade-in">
+          ) : (
+            </div>
+              <div className="text-[11px] opacity-75 font-normal mt-1">1 scratch per student per day</div>
+              <div>TAP TO SCRATCH</div>
+              <div className="text-3xl mb-1">✨</div>
+            <div className="scratch-cover">
+          {!scratched ? (
+        <div className="scratch-card-box" onClick={handleScratch} style={{ cursor: isAlreadyClaimed ? "default" : "pointer" }}>
+
+        </p>
+            : "Scratch once per day to unlock an exclusive campus perk or cashback!"}
+            ? "You have already claimed today's scratch! Here is your saved reward for today:"
+          {isAlreadyClaimed
+        <p className="text-xs" style={{ color: "var(--ink-soft)" }}>
+        </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+          <div className="font-display font-800 text-lg">🎁 Daily Lucky Scratch</div>
+        <div className="flex justify-between items-center">
+      <div className="card p-6 max-w-sm w-full text-center space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+  return (
+
+  const isAlreadyClaimed = !!savedData;
+
+  };
+    } catch (_) {}
+      localStorage.setItem("cd_scratch_data", JSON.stringify({ date: todayStr, reward }));
+    try {
+    setScratched(true);
+    if (scratched) return;
+  const handleScratch = () => {
+
+  });
+    return prizes[Math.floor(Math.random() * prizes.length)];
+    ];
+      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
+      { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
+      { text: "☕ Free Student Chai", code: "FREECHAI" },
+      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
+    const prizes = [
+    if (savedData && savedData.reward) return savedData.reward;
+  const [reward, setReward] = useState(() => {
+  const [scratched, setScratched] = useState(() => !!savedData);
+
+  });
+    return null;
+    } catch (_) {}
+      }
+        if (parsed && parsed.date === todayStr) return parsed;
+        const parsed = JSON.parse(raw);
+      if (raw) {
+      const raw = localStorage.getItem("cd_scratch_data");
+    try {
+  const [savedData, setSavedData] = useState(() => {
+  const todayStr = new Date().toDateString();
+function DailyScratchModal({ onClose }) {
+/* ---------------- FEATURE: Daily Lucky Scratch Card Modal ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        </div>
+          )}
+            ))
+              </div>
+                </button>
+                  <span>+ Add Combo</span>
+                  className="btn-primary text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 shrink-0">
+                <button onClick={() => { c.items.forEach(it => onAddToCart(it)); onClose(); }}
+                </div>
+                  </div>
+                    Combo Cost: <strong style={{ color: "var(--gold)" }}>৳{c.cost}</strong> · Saves ৳{c.savings}
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+                  <div className="text-sm font-700">{c.label}</div>
+                <div className="space-y-0.5">
+                style={{ background: "var(--panel)", borderColor: "var(--accent-border)" }}>
+              <div key={idx} className="p-3.5 rounded-xl border flex items-center justify-between gap-3"
+            combos.map((c, idx) => (
+          ) : (
+            </div>
+              No complete combo found under ৳{budget}. Try increasing your budget slightly!
+            <div className="p-6 text-center text-xs rounded-xl border italic" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
           {combos.length === 0 ? (
           </div>
             Recommended Combos Under ৳{budget}:
