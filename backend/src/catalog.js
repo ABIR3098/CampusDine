@@ -60,6 +60,7 @@ const NUTRITION_BY_NAME = {
   "Beguni": { calories: 90, allergens: [] },
   "Piyaju": { calories: 90, allergens: [] },
   "Alur Chop": { calories: 140, allergens: [] },
+  "Egg Chop": { calories: 220, allergens: ["egg", "gluten"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
