@@ -6925,6 +6925,39 @@ function LeaderboardAndBadges({ user, orders = [], onGoMenu }) {
           <span>Sustainability & Achievement Badges</span>
         </button>
       </div>
+
+      {activeTab === "leaderboard" && (
+        <div className="space-y-6">
+          {/* Top 3 Podium */}
+          <div className="card p-6 bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-0 shadow-xl">
+            <div className="text-center mb-6">
+              <span className="text-xs uppercase tracking-widest text-amber-400 font-extrabold">HALL OF FAME</span>
+              <h2 className="text-xl md:text-2xl font-display font-black mt-1">This Month's Top Campus Diners</h2>
+              <p className="text-xs text-indigo-300 mt-1">Earn points with every canteen order, BYOB eco actions, and zero-waste dining.</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 md:gap-6 items-end max-w-lg mx-auto pt-6 pb-2">
+              {/* Rank 2 (Silver) */}
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 rounded-2xl bg-slate-800 border-2 border-slate-300 grid place-items-center text-xl shadow-lg relative">
+                  🥈
+                  <span className="absolute -top-2 -right-2 bg-slate-300 text-slate-900 font-black text-[10px] w-5 h-5 rounded-full grid place-items-center">2</span>
+                </div>
+                <div className="font-bold text-xs mt-2 text-center text-slate-200">Nusrat Jahan</div>
+                <div className="text-[10px] text-slate-400">410 pts</div>
+                <div className="w-full h-20 bg-slate-800/80 rounded-t-xl mt-2 border-t-2 border-slate-400 flex items-center justify-center font-black text-slate-400">#2</div>
+              </div>
+
+              {/* Rank 1 (Gold) */}
+              <div className="flex flex-col items-center">
+                <div className="w-18 h-18 rounded-2xl bg-amber-500/20 border-2 border-amber-400 grid place-items-center text-3xl shadow-2xl relative animate-pulse">
+                  🥇
+                  <span className="absolute -top-3 -right-2 bg-amber-400 text-slate-950 font-black text-xs w-6 h-6 rounded-full grid place-items-center shadow">1</span>
+                </div>
+                <div className="font-black text-sm mt-2 text-center text-amber-300">Fahim Ahmed</div>
+                <div className="text-xs text-amber-400 font-bold">480 pts</div>
+                <div className="w-full h-28 bg-amber-500/30 rounded-t-xl mt-2 border-t-4 border-amber-400 flex items-center justify-center font-black text-amber-400 text-lg">#1</div>
+              </div>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
