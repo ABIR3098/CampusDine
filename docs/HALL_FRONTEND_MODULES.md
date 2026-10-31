@@ -109,3 +109,6 @@ Home: "your month so far" — how many closed meals were ON / OFF and how much t
 
 ## `serveExtras.jsx`
 Serve tab (admin): progress of the meal, a soft beep for each new token, and a sound switch.
+
+## `services.jsx`
+Hall Services: complaints, maintenance, cleaning, laundry, lost & found, feedback and notices. Food/menu/pickup is handled by Canteen Admin.
