@@ -32,3 +32,8 @@ test("isLocked: earlier day is open, later day is locked", () => {
 test("isDateKey accepts a real date", () => {
   assert.equal(isDateKey("2026-10-31"), true);
 });
+
+test("isDateKey rejects dates that do not exist", () => {
+  assert.equal(isDateKey("2026-02-30"), false);
+  assert.equal(isDateKey("2026-13-01"), false);
+});
