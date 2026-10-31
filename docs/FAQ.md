@@ -22,3 +22,6 @@ See [Adding menu items](MENU_ITEMS_SQL.md).
 
 ## How do I change the hall weekly menu?
 Hall admins can edit it in the app, or you can change the starting sample menu. See [Hall weekly menu](HALL_MENU.md).
+
+## Which restaurant does an item belong to?
+Built-in items are listed per restaurant in `backend/src/catalog.js` (`ITEMS_BY_RESTAURANT`). Items added later are remembered in the `app_meta` table.
