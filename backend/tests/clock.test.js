@@ -45,3 +45,10 @@ test("addDays and dayDiff work across the year boundary", () => {
   assert.strictEqual(addDays("2026-12-31", 1), "2027-01-01");
   assert.strictEqual(dayDiff("2026-12-31", "2027-01-01"), 1);
 });
+
+test("toMinutes trims spaces and gives null for missing values", () => {
+  const { toMinutes } = require("../src/utils/clock");
+  assert.strictEqual(toMinutes(" 09:30 "), 570);
+  assert.strictEqual(toMinutes(null), null);
+  assert.strictEqual(toMinutes(undefined), null);
+});
