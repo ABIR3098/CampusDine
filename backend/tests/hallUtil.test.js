@@ -45,3 +45,7 @@ test("isDateKey rejects wrong formats and empty input", () => {
 test("addDays crosses the year end", () => {
   assert.equal(addDays("2026-12-31", 1), "2027-01-01");
 });
+
+test("cutoffOf for a same-day cut-off", () => {
+  assert.deepEqual(cutoffOf(dinner, "2026-10-22"), { dateKey: "2026-10-22", minutes: 900 });
+});
