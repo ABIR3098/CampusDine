@@ -926,3 +926,19 @@ Created in `backend/src/routes/campusFeatures.js`.
 | `joined_at` | TIMESTAMP |
 | `saved_meals` | INT |
 | `last_pledge_date` | DATE |
+
+## `campus_food_waste`
+Created in `backend/src/routes/campusFeatures.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `admin_id` | INT |
+| `restaurant_id` | VARCHAR(30) |
+| `meal_name` | VARCHAR(120) |
+| `cooked_portions` | INT |
+| `leftover_portions` | INT |
+| `notes` | VARCHAR(500) |
+| `waste_percent` | DECIMAL(6,2) |
+| `log_date` | DATE |
+| `created_at` | TIMESTAMP |
