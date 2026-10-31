@@ -1,3 +1,238 @@
+  useEffect(() => {
+  }, []);
+    return () => clearTimeout(t);
+    const t = setTimeout(() => setOpen(true), 1000);
+  useEffect(() => {
+  const [open, setOpen] = useState(false);
+function PromoPopup() {
+// Promotional popup: appears 1 second after the front page loads, dark backdrop, cross button to close
+
+}
+  );
+    </div>
+      {overlay}
+      )}
+        <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("more.d")}</p>
+      ) : (
+        </div>
+          <button type="button" className="cdl-fm-back" onClick={(e) => { e.stopPropagation(); setOpen(false); }}>&larr; {tx("more.back")}</button>
+          <button type="button" className="cdl-fm-btn ghost" onClick={openBook}>{tx("more.mb")}</button>
+          <button type="button" className="cdl-fm-btn primary" onClick={() => setPage("special")}>{tx("more.sp")}</button>
+        <div className="cdl-fm-actions">
+      {open ? (
+      <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{tx("more")}</div>
+      <Icon path={I.menu} className="w-7 h-7" style={{ color: "var(--gold)" }} />
+      onKeyDown={(e) => { if (!open && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setOpen(true); } }}>
+      onClick={() => { if (!open) setOpen(true); }}
+      role={open ? undefined : "button"} tabIndex={open ? undefined : 0}
+    <div className="card cdl-fm-card flex flex-col items-center justify-center text-center p-6 gap-3"
+  return (
+
+  }
+      </div>, document.body);
+        <button type="button" className="cdl-fm-viewbtn" hidden={bookOpen} onClick={viewMenu}>&#128214; {tx("more.view")}</button>
+        </div>
+          <button type="button" className="cdl-fm-backbtn" onClick={closePage}>&larr; {tx("more.back")}</button>
+        <div className="cdl-fm-bar">
+      <div className={"cdl-fm-page cdl-fm-book" + (bookOpen ? " is-reading" : "")} role="dialog" aria-modal="true" aria-label={tx("more.mb")}>
+    overlay = ReactDOM.createPortal(
+  } else if (page === "book") {
+      </div>, document.body);
+        </div>
+          <img className="cdl-promo-img" src="images/promo/special-offer-today.png" alt="CampusDine today's special offer discount" />
+          <button type="button" className="cdl-promo-close" onClick={() => setPage(null)} aria-label={tx("more.close")}>&times;</button>
+        <div className="cdl-promo-modal cdl-promo-wide" onClick={(e) => e.stopPropagation()}>
+      <div className="cdl-promo-backdrop darker" onClick={() => setPage(null)} role="dialog" aria-modal="true" aria-label={tx("more.sp")}>
+    overlay = ReactDOM.createPortal(
+  if (page === "special") {
+  let overlay = null;
+
+  );
+    <button type="button" className="cdl-fm-x" onClick={() => setPage(null)} aria-label={tx("more.close")}>&times;</button>
+  const closeX = (
+
+  }, [page]);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    const prev = document.body.style.overflow;
+    const onKey = (e) => { if (e.key === "Escape" && !e.defaultPrevented) closePage(); };   // Esc inside the open book only closes the book
+    if (!page) return;
+  useEffect(() => {
+  }, []);
+    return () => window.removeEventListener("hashchange", sync);
+    window.addEventListener("hashchange", sync);
+    sync();
+    };
+      else setPage(p => (p === "book" ? null : p));
+      if (window.location.hash === "#menu-book") setPage("book");
+    const sync = () => {
+  useEffect(() => {
+  }, [page]);
+    if (page !== "book" && window.CampusDineMenuBook && window.CampusDineMenuBook.isOpen()) window.CampusDineMenuBook.close();
+  useEffect(() => {
+  // leaving the Menu Book page (Back, Esc, browser back) also closes the book
+  }, [page]);
+    return () => clearTimeout(t);
+    const t = setTimeout(() => window.CampusDineMenuBook.open(), 350);
+    if (page !== "book" || !window.CampusDineMenuBook) return;
+  useEffect(() => {
+  // the book opens by itself (cover first, then it swings open); View Menu brings it back after it is closed with the cross
+  }, []);
+    return () => document.removeEventListener("menubook:toggle", onToggle);
+    document.addEventListener("menubook:toggle", onToggle);
+    const onToggle = (e) => setBookOpen(!!(e.detail && e.detail.open));
+  useEffect(() => {
+  const viewMenu = () => { if (window.CampusDineMenuBook) window.CampusDineMenuBook.open(); };
+  const [bookOpen, setBookOpen] = useState(false);
+  // the 3D book opens on top of the Menu Book page (see menu-book.js); the View Menu button hides while it is open
+  const openBook = () => { window.location.hash = "menu-book"; setPage("book"); };
+  };
+    setPage(null);
+    }
+      try { window.history.replaceState(null, "", window.location.pathname + window.location.search); } catch (e) { window.location.hash = ""; }
+    if (window.location.hash === "#menu-book") {
+  const closePage = () => {
+  // Menu Book is its own page with its own address (#menu-book), so the browser back button works too
+  const [page, setPage] = useState(null); // null | "special" | "book"
+  const [open, setOpen] = useState(false); // the card shows its two buttons
+function FullMenuCard({ onLogin }) {
+
+];
+  ["Coconut Water", "ডাবের পানি", "drinks", 40, null, "coconut-water"],
+  ["Falooda", "ফালুদা", "drinks", 60, "New", "falooda"],
+  ["Borhani", "বোরহানি", "drinks", 30, null, "borhani"],
+  ["Lemon Soda", "লেবু সোডা", "drinks", 25, null, "lemon-soda"],
+  ["Mango Juice", "আমের জুস", "drinks", 40, null, "mango-juice"],
+  ["Cold Coffee", "কোল্ড কফি", "drinks", 50, "Popular", "cold-coffee"],
+  ["Mineral Water", "পানি", "drinks", 15, null, "mineral-water"],
+  ["Lassi", "লাচ্ছি", "drinks", 35, "New", "lassi"],
+  ["Cha (Tea)", "চা", "drinks", 8, null, "cha"],
+  ["Veg Pakora", "সবজি পাকোড়া", "snacks", 20, null, "veg-pakora"],
+  ["Egg Sandwich", "ডিম স্যান্ডউইচ", "snacks", 35, null, "egg-sandwich"],
+  ["Chicken Burger", "চিকেন বার্গার", "snacks", 90, "New", "chicken-burger"],
+  ["French Fries", "ফ্রেঞ্চ ফ্রাই", "snacks", 40, null, "french-fries"],
+  ["Jhalmuri", "ঝালমুড়ি", "snacks", 20, null, "jhalmuri"],
+  ["Chotpoti", "চটপটি", "snacks", 30, "Popular", "chotpoti"],
+  ["Chicken Roll", "চিকেন রোল", "snacks", 50, null, "chicken-roll"],
+  ["Fuchka", "ফুচকা", "snacks", 30, "Popular", "fuchka"],
+  ["Singara", "সিঙ্গারা", "snacks", 10, "New", "singara"],
+  ["Chowmein", "চাউমিন", "heavy", 70, "New", "chowmein"],
+  ["Fried Rice", "ফ্রাইড রাইস", "heavy", 80, null, "fried-rice"],
+  ["Mixed Veg & Rice", "সবজি-ভাত", "heavy", 55, null, "mixed-veg-rice"],
+  ["Fish Curry & Rice", "মাছ-ভাত", "heavy", 90, null, "fish-curry"],
+  ["Egg Curry & Rice", "ডিম ভুনা-ভাত", "heavy", 70, null, "egg-curry"],
+  ["Beef Bhuna & Rice", "গরুর ভুনা-ভাত", "heavy", 130, null, "beef-bhuna"],
+  ["Chicken Biryani", "চিকেন বিরিয়ানি", "heavy", 120, "Popular", "chicken-biryani"],
+  ["Plain Rice & Dal", "ভাত-ডাল", "heavy", 45, null, "rice-dal"],
+  ["Porota-Vaji", "পরোটা-ভাজি", "heavy", 40, null, "porota-vaji"],
+  ["Tehari", "তেহারি", "heavy", 80, "Popular", "tehari"],
+  ["Khichuri", "খিচুড়ি", "heavy", 60, "Popular", "khichuri"],
+  // [name, name_bn, category, price, tag, image slug]
+const MENU_BOOK = [
+// "More on the full menu" card: click it to get two buttons - Today's Special (offer popup) and Menu Book
+/* ---------------- Login / Register screen ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        VALID NOW • ${String(seconds).padStart(2, '0')}s • DO NOT SCREENSHOT
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+      <div className="mt-1 text-[9px] font-mono font-700 tracking-wider text-emerald-600 flex items-center justify-center gap-1">
+      {/* Live dynamic watermark to prevent screenshot fraud */}
+      </svg>
+        <path d={qr.d} fill="#000" />
+        <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
+        shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
+      <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
+      <div className="qr-laser-beam" />
+    <div className="qr-laser-wrap text-center">
+  return (
+  const pad = 4;
+  if (!qr) return null;
+  }, [value]);
+    } catch (e) { return null; }
+      return { n, d };
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c},${r}h1v1h-1z`;
+      let d = "";
+      const n = q.getModuleCount();
+      q.make();
+      q.addData(String(value));
+      const q = window.qrcode(0, "M");
+      if (typeof window.qrcode !== "function" || !value) return null;
+    try {
+  const qr = useMemo(() => {
+  }, []);
+    return () => clearInterval(t);
+    const t = setInterval(() => setSeconds(new Date().getSeconds()), 1000);
+  useEffect(() => {
+  const [seconds, setSeconds] = useState(() => new Date().getSeconds());
+function QrCode({ value, size = 120, dim = false }) {
+// Uses the small "qrcode-generator" library loaded in <head>; if it failed to load we show the plain token instead.
+// Draws a QR code as inline SVG (black on white, so scanners work in dark theme too).
+
+const ID_RE = /^[A-Za-z0-9._-]{3,50}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/* ---------------- Added: validation helpers + QR code ---------------- */
+
+}
+  );
+    </button>
+      <span className="px-2 py-1.5" style={seg(CURRENT_LANG === "bn")}>বাং</span>
+      <span className="px-2 py-1.5" style={seg(CURRENT_LANG === "en")}>EN</span>
+      className="flex rounded-lg border overflow-hidden text-xs font-600" style={{ borderColor: "var(--line)" }}>
+    <button onClick={onToggle} title={tx("lang.switch")}
+  return (
+  const seg = (active) => ({ background: active ? "var(--gold)" : "transparent", color: active ? "#fff" : "var(--ink-soft)" });
+function LangToggle({ onToggle }) {
+/* ---------------- Language toggle (EN | বাং) ---------------- */
+
+}
+  );
+    </div>
+      )}
+        </div>
+          </div>
+            ))}
+              </button>
+                {theme.accent === a.key && <Icon path={I.check} className="w-4 h-4" style={{ color: "#fff" }} />}
+                style={{ background: a.color, borderColor: theme.accent === a.key ? "var(--ink)" : "transparent" }}>
+                className="w-8 h-8 rounded-full grid place-items-center border-2 transition-transform hover:scale-110"
+                title={tx("theme." + a.key)} aria-label={tx("theme." + a.key)}
+              <button key={a.key} onClick={() => setTheme(t => ({ ...t, accent: a.key }))}
+            {THEME_ACCENTS.map(a => (
+          <div className="flex items-center gap-2">
+          <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("theme.accent")}</div>
+          </div>
+            ))}
+              </button>
+                {tx(label)}
+                style={{ background: theme.mode === key ? "var(--gold)" : "transparent", color: theme.mode === key ? "#fff" : "var(--ink-soft)" }}>
+              <button key={key} onClick={() => setTheme(t => ({ ...t, mode: key }))} className="flex-1 px-2 py-2 transition-colors"
+            {modes.map(([key, label]) => (
+          <div className="flex rounded-lg border overflow-hidden text-xs mb-3" style={{ borderColor: "var(--line)" }}>
+          <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("theme.mode")}</div>
+          style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+        <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl border shadow-2xl p-3 z-50 fade-in"
+      {open && (
+      </button>
+        <Icon path={I.droplet} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+        className="w-9 h-9 rounded-lg grid place-items-center transition-colors hover:bg-black/5">
+      <button onClick={() => setOpen(o => !o)} title={tx("theme.title")} aria-expanded={open}
+    <div className="relative" ref={boxRef}>
+  return (
+  const modes = [["light", "theme.light"], ["dark", "theme.dark"], ["auto", "theme.auto"]];
+
+  }, [open]);
+    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("mousedown", close);
+    const close = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    if (!open) return;
+  useEffect(() => {
+  // close the panel when clicking elsewhere
+
+  }, [theme]);
     return () => mq.removeEventListener("change", onChange);
     mq.addEventListener("change", onChange);
     const onChange = () => applyTheme(theme);
