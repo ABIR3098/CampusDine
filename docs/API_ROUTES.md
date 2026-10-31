@@ -210,3 +210,11 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `GET /api/hall/defaulters`
 - `POST /api/hall/defaulters/remind`
+
+## `/api/hall` — `src/hall/routes/diet.js`
+
+- `GET /api/hall/diet/mine`
+- `PUT /api/hall/diet/mine`
+- `GET /api/hall/diet/menu`
+- `GET /api/hall/diet/warnings`
+- `GET /api/hall/diet/summary`
