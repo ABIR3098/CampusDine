@@ -1,3 +1,238 @@
+  const [hStatus, setHStatus] = useState("all");
+  const [hQuery, setHQuery] = useState("");
+  /* Feature: order history filter */
+  const [plansKey, setPlansKey] = useState(0);
+  const [planDraft, setPlanDraft] = useState(null); // the order a weekly plan is being made from
+  const [printOrder, setPrintOrder] = useState(null);
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
+}
+  );
+    </div>
+      </div>
+        ))}
+          </div>
+            <button type="button" onClick={() => remove(p)} className="text-xs px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--line)", color: "var(--brick)" }}>{tx("rec.delete")}</button>
+            <button type="button" onClick={() => toggleActive(p)} className="text-xs px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--line)" }}>{p.active ? tx("rec.pause") : tx("rec.resume")}</button>
+            </div>
+              <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{p.days.map(recDay).join(", ")} · {p.time}{!p.active && " · " + tx("rec.paused")}</div>
+              <div className="text-sm font-600">{p.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+            <div className="flex-1 min-w-[180px]">
+          <div key={p.id} className="rounded-lg border p-3 flex flex-wrap items-center gap-2" style={{ borderColor: "var(--line)", opacity: p.active ? 1 : 0.6 }}>
+        {plans.map(p => (
+      <div className="space-y-2.5">
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>🔁 {tx("rec.title")}</div>
+    <div className="card p-5">
+  return (
+  if (plans.length === 0) return null;
+  };
+    catch (e) { setError(e.message || "Could not delete"); }
+    try { await api(apiBase, "/api/recurring/" + p.id, { method: "DELETE", token }); await load(); }
+  const remove = async (p) => {
+  };
+    catch (e) { setError(e.message || "Could not update"); }
+    try { await api(apiBase, "/api/recurring/" + p.id, { method: "PATCH", token, body: { active: !p.active } }); await load(); }
+  const toggleActive = async (p) => {
+  useEffect(() => { load(); }, [reloadKey]);
+  const load = () => api(apiBase, "/api/recurring", { token }).then(setPlans).catch(() => {});
+  const [error, setError] = useState("");
+  const [plans, setPlans] = useState([]);
+function RecurringPlans({ apiBase, token, reloadKey }) {
+// "My weekly orders" list
+
+}
+  );
+    </div>
+      </div>
+        <button type="button" onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("rec.cancel")}</button>
+        <button type="button" disabled={busy || days.length === 0 || !time} onClick={save} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("rec.save")}</button>
+      <div className="flex gap-2 mt-3">
+      {error && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{error}</p>}
+      <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("rec.hint")}</p>
+      <input type="time" value={time} onChange={e => setTime(e.target.value)} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("rec.time")}</div>
+      </div>
+        ))}
+          <button key={d} type="button" onClick={() => toggle(d)} className={"chip text-xs px-3 py-1.5 rounded-full" + (days.includes(d) ? " active-chip" : "")}>{recDay(d)}</button>
+        {[0, 1, 2, 3, 4, 5, 6].map(d => (
+      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("rec.days")}</div>
+      <div className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>{order.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+      <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>🔁 {tx("rec.repeat")} — {order.token}</div>
+    <div className="card p-5">
+  return (
+  };
+    finally { setBusy(false); }
+    } catch (e) { setError(e.message || "Could not save"); }
+      onSaved();
+        items: order.items.map(it => ({ id: it.menu_item_id, name: it.name, qty: it.qty })), days, time } });
+      await api(apiBase, "/api/recurring", { method: "POST", token, body: {
+    try {
+    setBusy(true); setError("");
+  const save = async () => {
+  const toggle = (d) => setDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [time, setTime] = useState("12:30");
+  const [days, setDays] = useState([new Date().getDay()]);
+function RecurringForm({ order, apiBase, token, onClose, onSaved }) {
+// the form that opens from an order's "Repeat weekly" button
+
+const recDay = (d) => REC_DAYS[CURRENT_LANG === "bn" ? "bn" : "en"][d];
+};
+  bn: ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহ", "শুক্র", "শনি"],
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+const REC_DAYS = {
+/* Feature: recurring order */
+}
+  } catch (_) { return false; }
+    return ok;
+    document.body.removeChild(ta);
+    const ok = document.execCommand("copy");
+    document.body.appendChild(ta); ta.select();
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    ta.value = text; ta.setAttribute("readonly", "");
+    const ta = document.createElement("textarea");
+  try {
+  } catch (_) { /* fall through to the old way */ }
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+  try {
+async function copyText(text) {
+/* Feature: copy token */
+
+}
+  );
+    </div>
+      </section>
+        )}
+          </div>
+            ))}
+              </div>
+                {g.comment && <p className="text-sm mt-1.5">"{g.comment}"</p>}
+                </div>
+                  <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(g.created_at).toLocaleDateString()}</span>
+                  </div>
+                    </span>
+                      {tx("fb.cat." + g.category)}
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                    <StarPicker value={g.rating} readOnly size="w-4 h-4" />
+                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div key={g.id} className="card p-4">
+            {general.map(g => (
+          <div className="space-y-3">
+        ) : (
+          <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("fb.history.empty")}</div>
+        {general.length === 0 ? (
+        <div className="font-display font-700 mb-3">{tx("fb.history")}</div>
+      <section>
+
+      </section>
+        </div>
+          )}
+            <div className="success-banner rounded-lg px-3 py-2 mt-3 text-sm">✓ {tx("fb.thanks")}</div>
+          {sent && (
+          </div>
+            </div>
+              </button>
+                {generalBusy ? tx("submitting") : tx("fb.send")}
+              <button disabled={generalBusy || rating === 0} onClick={submit} className="btn-primary px-5 py-2 rounded-lg text-sm">
+              {rating === 0 && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("fb.pickrating")}</span>}
+            <div className="flex items-center gap-3">
+            <span className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{comment.length}/500</span>
+          <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
+            rows="3" className="w-full mt-3 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("fb.ph.general")} maxLength={500}
+          </div>
+            {rating > 0 && <span className="text-sm font-600" style={{ color: "var(--gold-deep)" }}>{tx(RATING_KEYS[rating])}</span>}
+            <StarPicker value={rating} onChange={setRating} />
+          <div className="flex items-center gap-3">
+          </div>
+            ))}
+              </button>
+                {c.emoji} {tx("fb.cat." + c.id)}
+                className={`tab-btn px-3 py-1.5 rounded-full text-sm ${category === c.id ? "active" : ""}`}>
+              <button key={c.id} type="button" onClick={() => setCategory(c.id)}
+            {FEEDBACK_CATS.map(c => (
+          <div className="flex gap-2 flex-wrap mb-4">
+          <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("fb.cat")}</div>
+        <div className="card p-4">
+        <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>{tx("fb.general.sub")}</p>
+        <div className="font-display font-700">{tx("fb.general")}</div>
+      <section>
+
+      </section>
+        )}
+          </div>
+            ))}
+              </div>
+                <OrderFeedback order={o} onSubmit={onSubmitOrder} busy={orderBusy} />
+                </div>
+                  {(o.items || []).map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
+                <div className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
+                </div>
+                  <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(o.created_at).toLocaleDateString()}</span>
+                  <span className="font-mono font-700">{o.token}</span>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div key={o.id} className="card p-4">
+            {rateable.map(o => (
+          <div className="space-y-3">
+        ) : (
+          <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("fb.orders.empty")}</div>
+        {rateable.length === 0 ? (
+        <div className="font-display font-700 mb-3">{tx("fb.orders")}</div>
+      <section>
+
+      </div>
+</button>
+  <Icon path={I.printer} className="w-3.5 h-3.5" /> {tx("pr.print")}
+        <button onClick={() => setPrintKey(k => k + 1)} disabled={allRatings.length === 0} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600 disabled:opacity-40" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+        </div>
+          <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{tx("fb.sub")}</p>
+          <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>{tx("fb.title")}</div>
+        <div>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+      )}
+        </PrintSheet>
+            rows={general.map(g => [new Date(g.created_at).toLocaleDateString(), tx("fb.cat." + g.category), psStars(g.rating), g.comment || "—"])} />
+          <PsTable head={[tx("pr.date"), tx("pr.category"), tx("pr.rating"), tx("pr.comment")]} empty={tx("pr.nofb")}
+          <h2>{tx("pr.generalfb")}</h2>
+            rows={ratedOrders.map(o => [o.token, new Date(o.created_at).toLocaleDateString(), (o.items || []).map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", "), psStars(o.feedback.rating), o.feedback.comment || "—"])} />
+          <PsTable head={[tx("pr.order"), tx("pr.date"), tx("pr.items"), tx("pr.rating"), tx("pr.comment")]} empty={tx("pr.nofb")}
+          <h2>{tx("pr.orderfb")}</h2>
+          </div>
+              .map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+            {[[tx("pr.totalrated"), num(allRatings.length)], [tx("pr.avgrating"), allRatings.length ? num(avgRating.toFixed(1)) + " / 5" : "—"]]
+          <div className="ps-grid">
+          meta={`${user.name}${user.externalId ? " (" + user.externalId + ")" : ""} · ${tx("pr.generated", { t: new Date().toLocaleString() })}`}>
+        <PrintSheet key={printKey} title={tx("pr.feedback")}
+      {printKey > 0 && (
+    <div className="max-w-2xl space-y-8">
+  return (
+
+  };
+    if (ok) { setRating(0); setComment(""); setSent(true); }
+    const ok = await onSubmitGeneral(category, rating, comment);
+  const submit = async () => {
+
+  const avgRating = allRatings.length ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length : 0;
+  const allRatings = [...ratedOrders.map(o => o.feedback.rating), ...general.map(g => g.rating)];
+  const ratedOrders = orders.filter(o => o.feedback);
+  const rateable = orders.filter(o => o.status === "Ready");
+
+  }, [sent]);
+    return () => clearTimeout(t);
+    const t = setTimeout(() => setSent(false), 4000);
+    if (!sent) return;
+  useEffect(() => {
+
+  const [printKey, setPrintKey] = useState(0);
+  const [sent, setSent] = useState(false);
+  const [comment, setComment] = useState("");
+  const [rating, setRating] = useState(0);
+  const [category, setCategory] = useState("food");
+function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmitGeneral, generalBusy }) {
+/* ---------------- Feedback tab (student / teacher) ---------------- */
 
 }
   );
