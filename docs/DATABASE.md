@@ -839,3 +839,13 @@ Created in `backend/src/offersSchema.js`.
 | `price` | DECIMAL(10,2) |
 | `is_active` | TINYINT(1) |
 | `created_at` | TIMESTAMP |
+
+## `combo_deal_items`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `combo_id` | INT |
+| `item_id` | INT |
+| `qty` | INT |
