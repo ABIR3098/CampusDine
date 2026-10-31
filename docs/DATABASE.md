@@ -269,3 +269,14 @@ Created in `backend/schema.sql`.
 | `id` | INT |
 | `coupon_id` | INT |
 | `item_id` | INT |
+
+## `coupon_usage`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `coupon_id` | INT |
+| `order_id` | INT |
+| `created_at` | TIMESTAMP |
