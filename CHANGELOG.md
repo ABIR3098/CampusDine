@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Tests: one-time code (OTP) rules with an in-memory database, and catchAsync.
 - Docs: auth API guide.
 - Fix: coupon routes now always release their database connection. Before, an error such as a duplicate code leaked one, and about ten errors could freeze the server.
 - Fix: `/api/coupon/apply` now checks active, expiry, usage limit, minimum order, one use per person and one discount per order, and caps the discount at the order total.
