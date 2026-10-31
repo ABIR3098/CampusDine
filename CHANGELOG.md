@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix: changing the account e-mail now requires the current password.
 - Fix: demo accounts (admin/admin123 and others) are no longer created when NODE_ENV=production.
 - Fix: wallet top-up is now limited to student and teacher accounts (riders and admins could call it before).
 - Menu: calories and allergens for 28 more items, with tests that check the data.
