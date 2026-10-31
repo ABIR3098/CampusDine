@@ -18,3 +18,9 @@ npm-debug.log*
 # Editors
 .vscode/
 .idea/
+
+# Archives
+*.zip
+
+# Test output
+coverage/
