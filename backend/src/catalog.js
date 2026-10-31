@@ -79,6 +79,7 @@ const NUTRITION_BY_NAME = {
   "Vegetable Roll": { calories: 280, allergens: ["gluten"] },
   "Chicken Samosa": { calories: 280, allergens: ["gluten"] },
   "Masala Tea": { calories: 70, allergens: ["milk"] },
+  "Waffle": { calories: 380, allergens: ["egg", "milk", "gluten"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
