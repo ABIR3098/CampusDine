@@ -231,3 +231,4 @@
 .hl-sub { max-width: 60ch; }
 .hl-dayc-row { transition: background .15s ease; }
 .hl-dayc-row:hover { background: var(--gold-soft); }
+.hl-sec-head { row-gap: 8px; }
