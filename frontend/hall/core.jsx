@@ -272,7 +272,14 @@ function HallMemberHome({ call, user, notify, goTab }) {
 function HallAdminHome({ call, user, notify, goTab }) {
   const [day, setDay] = useState(null);
   const [err, setErr] = useState(null);
-  useEffect(() => { call("/api/hall/report/day").then(setDay).catch((e) => { setErr(e.message || String(e)); notify(e, true); }); }, []);
+  const [date, setDate] = useState(null);   // null = today
+  const [today, setToday] = useState(null);
+  useEffect(() => {
+    setDay(null); setErr(null);
+    call("/api/hall/report/day" + (date ? `?date=${date}` : ""))
+      .then((r) => { setDay(r); if (!date) setToday(r.date); })
+      .catch((e) => { setErr(e.message || String(e)); notify(e, true); });
+  }, [date]);
   return (
     <>
       <div className="hl-greet">
@@ -280,8 +287,9 @@ function HallAdminHome({ call, user, notify, goTab }) {
           <div className="font-display font-800 text-xl">Hello, {String(user.name || "").split(" ")[0]} 👋</div>
           <div className="text-sm hl-muted">Today's plates at a glance.</div>
         </div>
-        {day && <span className="hl-chip">📅 {hallDateLabel(day.date)}</span>}
+        {day && today && <HallDayNav date={day.date} today={today} onChange={setDate} />}
       </div>
+      <HallAdminChips call={call} goTab={goTab} />
       {!day ? (err ? <div className="hl-error">⚠️ {err}</div> : <div className="hl-empty">Loading…</div>) : (
         <div className="hl-grid3">
           {day.slots.map((s) => (
