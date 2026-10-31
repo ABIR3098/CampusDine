@@ -1,3 +1,238 @@
+  }, [session]);
+    })();
+      } catch (e) { showError(e); }
+        }
+          await Promise.all([refreshMenu(), refreshMyOrders(), refreshWallet(), refreshMyGeneralFeedback()]);
+        } else {
+          await Promise.all([refreshMenu(), refreshAdminOrders(), refreshOverview(), refreshReports(), refreshFeedback(), refreshCoupons()]);
+        if (session.user.role === "admin") {
+      try {
+    (async () => {
+    if (!session || session.user.role === "rider") return;
+  useEffect(() => {
+  // Initial data load after login
+
+  };
+    setWallet({ balance: 0, transactions: [], loaded: false }); setLowBalanceDismissed(false);
+    setSession(null); setRestaurant(null); setCart([]); setError(null); setNotificationCenterOpen(false);
+    try { localStorage.removeItem("campusdine_hall_admin_token"); } catch (_) {}
+    if (socketRef.current) socketRef.current.disconnect();
+  const logout = () => {
+  };
+    setTab(user.role === "admin" ? "overview" : "menu");
+    setRestaurant(null);
+    // Hall students can open the Hall from its card.
+    // Everyone (including Hall students) sees the restaurant picker first;
+    setSession({ token, user });
+  const onAuth = (token, user) => {
+
+  const refreshMyGeneralFeedback = async () => setMyGeneralFeedback(await call("/api/feedback/mine"));
+  const refreshFeedback = async () => setFeedbackSummary(await call("/api/admin/feedback"));
+  };
+    setForecast(await call("/api/admin/reports/forecast"));
+    setTrend(await call("/api/admin/reports/revenue-trend"));
+  const refreshReports = async () => {
+  };
+    setCoupons(data.coupons || []);
+    const data = await call("/api/coupon");
+  const refreshCoupons = async () => {
+  const refreshOverview = async () => setOverview(await call("/api/admin/overview" + restaurantQuery()));
+  const refreshAdminOrders = async () => setOrders(await call("/api/orders" + restaurantQuery()));
+  const restaurantQuery = () => (restaurantRef.current && !restaurantRef.current.isHall ? `?restaurant=${restaurantRef.current.id}` : "");
+  const refreshMyOrders = async () => setOrders(await call("/api/orders/mine"));
+  };
+    setBill(await call(`/api/calendar/bill?year=${year}&month=${month}`));
+    setCalendarPaid(mapPaid(rows));
+    setCalendar(mapCalendar(rows));
+    const rows = await call(`/api/calendar?year=${year}&month=${month}`);
+  const refreshCalendar = async () => {
+  };
+    } catch (e) { showError(e); refreshMenu().catch(() => {}); }
+      }
+        showSuccess(tx("notify.set"));
+        setWatching(w => [...w, itemId]);
+        await call("/api/menu/" + itemId + "/notify", { method: "POST" });
+      } else {
+        setWatching(w => w.filter(id => id !== itemId));
+        await call("/api/menu/" + itemId + "/notify", { method: "DELETE" });
+      if (watching.includes(itemId)) {
+    try {
+  const toggleNotify = async (itemId) => {
+  };
+    if ((r.ready || []).length) refreshMenu().catch(() => {});
+    for (const it of (r.ready || [])) pushNotification("stock", tx("notify.back"), tx("notify.backmsg", { n: it.name }));
+    setWatching(r.watching || []);
+    const r = await call("/api/menu/alerts");
+  const refreshAlerts = async () => {
+  const refreshWallet = async () => setWallet(mapWallet(await call("/api/wallet")));
+  };
+    } catch (e) { showError(e); }
+      await refreshMenu();
+      await call(`/api/menu/${itemId}/favorite`, { method: isFavorite ? "DELETE" : "POST" });
+    try {
+  const toggleFavorite = async (itemId, isFavorite) => {
+
+  const refreshMenu = async () => setMenu(mapMenu(await call("/api/menu")));
+
+  };
+    return map;
+    rows.forEach(r => { if (r.paid) map[new Date(r.the_date).getDate()] = true; });
+    const map = {};
+  const mapPaid = (rows) => {
+  };
+    return map;
+    rows.forEach(r => { map[new Date(r.the_date).getDate()] = r.status; });
+    const map = {};
+  const mapCalendar = (rows) => {
+  });
+    transactions: data.transactions.map(t => ({ label: t.label, amount: t.amount, time: new Date(t.created_at).toLocaleString() })),
+    loaded: true,
+    balance: data.balance,
+  const mapWallet = (data) => ({
+  const mapMenu = (rows) => rows.map(m => ({ ...m, bn: m.name_bn }));
+
+  const call = (path, opts) => api(apiBase, path, { ...opts, token: session && session.token });
+
+  };
+    }, 5000);
+      setToastNotifications(prev => prev.filter(entry => entry.id !== id));
+    setTimeout(() => {
+    setToastNotifications(prev => [item, ...prev].slice(0, 3));
+    setNotifications(prev => [item, ...prev]);
+    const item = { id, kind, title, message, read: false, createdAt: new Date().toISOString() };
+    const id = Date.now() + Math.random();
+  const pushNotification = (kind, title, message) => {
+  const clearNotifications = () => setNotifications([]);
+  const markAllNotificationsRead = () => setNotifications(prev => prev.map(item => ({ ...item, read: true })));
+  const showSuccess = (msg) => { setError(null); setSuccess(msg); };
+  const showError = (e) => { setSuccess(null); setError(typeof e === "string" ? e : e.message); };
+  const socketRef = useRef(null);
+
+  const goToday = () => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1); };
+  };
+    if (month === 12) { setYear(y => y + 1); setMonth(1); } else { setMonth(m => m + 1); }
+  const goNextMonth = () => {
+  };
+    if (month === 1) { setYear(y => y - 1); setMonth(12); } else { setMonth(m => m - 1); }
+  const goPrevMonth = () => {
+
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(now.getFullYear());
+  const now = new Date();
+
+  const [loyaltyKey, setLoyaltyKey] = useState(0); // bumped whenever points / offers may have changed
+  const [chatRefreshKey, setChatRefreshKey] = useState(0);
+  const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [toastNotifications, setToastNotifications] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [newFeedbackCount, setNewFeedbackCount] = useState(0);
+  const [generalBusy, setGeneralBusy] = useState(false);
+  const [myGeneralFeedback, setMyGeneralFeedback] = useState([]);
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
+  const [coupons, setCoupons] = useState([]);
+  const [feedbackSummary, setFeedbackSummary] = useState({ average: 0, count: 0, entries: [] });
+  const [forecast, setForecast] = useState({});
+  const [trend, setTrend] = useState([]);
+  const [overview, setOverview] = useState({});
+  const [planBusy, setPlanBusy] = useState(false);
+  const [calendarPaid, setCalendarPaid] = useState({});
+  const [bill, setBill] = useState({ fullDays: 0, halfDays: 0, fullRate: 0, halfRate: 0, total: 0, paidDays: 0, paidAmount: 0, dueDays: 0, dueAmount: 0, walletBalance: 0 });
+  const [calendar, setCalendar] = useState({});
+  const [watching, setWatching] = useState([]);
+  /* Feature: notify me */
+  const [wallet, setWallet] = useState({ balance: 0, transactions: [], loaded: false });
+  const [orders, setOrders] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [menu, setMenu] = useState([]);
+
+  restaurantRef.current = restaurant;
+  const restaurantRef = useRef(null); // lets refresh functions (also called from socket handlers) see the latest choice
+  const [restaurant, setRestaurant] = useState(null); // the restaurant chosen after login (everyone)
+  const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [lang, setLang] = useState(() => { try { return localStorage.getItem("cd_lang") === "bn" ? "bn" : "en"; } catch (e) { return "en"; } });
+  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState(null);
+  const [tab, setTab] = useState("menu");
+  const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
+  const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
+function App() {
+
+}
+  return <div className="space-y-5"><section className="card p-5"><div className="flex justify-between gap-3"><div><h2 className="text-xl font-bold">Canteen Command Center</h2><p className="text-sm" style={{color:'var(--ink-soft)'}}>Live operations overview for your canteen</p></div><button className="btn-primary rounded-lg px-3 py-2" onClick={load}>Refresh</button></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">{[['Active orders',queue?.summary?.active_orders||0],['Received',queue?.summary?.received||0],['Cooking',queue?.summary?.cooking||0],['Ready',queue?.summary?.ready||0]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><h3 className="font-semibold mt-5 mb-2">Live order queue</h3><div className="space-y-2">{(queue?.orders||[]).slice(0,12).map(o=><div className="flex justify-between border rounded-lg p-3" style={{borderColor:'var(--line)'}}><span>Order #{o.id} · {o.item_lines} item lines</span><b>{o.status}</b></div>)}</div></section><section className="card p-5"><h2 className="text-xl font-bold">Campus Food Waste Challenge</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Record cooked and leftover portions after each meal service.</p><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[['Cooked portions',waste?.totals?.cooked||0],['Leftover portions',waste?.totals?.leftover||0],['Waste logs',waste?.totals?.logs||0],['Waste rate',`${waste?.totals?.cooked?Math.round(100*waste.totals.leftover/waste.totals.cooked):0}%`]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><div className="grid md:grid-cols-2 gap-3 mt-4"><input className="input" placeholder="Meal name" value={form.meal_name} onChange={e=>setForm({...form,meal_name:e.target.value})}/><input className="input" type="number" min="1" placeholder="Cooked portions" value={form.cooked_portions} onChange={e=>setForm({...form,cooked_portions:e.target.value})}/><input className="input" type="number" min="0" placeholder="Leftover portions" value={form.leftover_portions} onChange={e=>setForm({...form,leftover_portions:e.target.value})}/><input className="input" placeholder="Notes (optional)" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/></div><button className="btn-primary rounded-lg px-3 py-2 mt-3" onClick={save}>Log food waste</button><h3 className="font-semibold mt-5">7-day waste trend</h3><div className="space-y-2 mt-2">{(waste?.days||[]).map(d=><div className="flex justify-between text-sm border-b py-2" style={{borderColor:'var(--line)'}}><span>{new Date(d.log_date).toLocaleDateString()}</span><span>{d.leftover} / {d.cooked} portions · {d.waste_percent||0}% waste</span></div>)}</div></section>{msg&&<div className="card p-3 text-sm">{msg}</div>}</div>
+  const save=async()=>{try{const r=await api(apiBase,'/api/campus/waste-challenge',{method:'POST',token,body:{...form,cooked_portions:Number(form.cooked_portions),leftover_portions:Number(form.leftover_portions),restaurant_id:restaurantId}});setMsg(`Waste logged. Today's meal waste: ${r.waste_percent}%`);setForm({meal_name:'',cooked_portions:'',leftover_portions:'',notes:''});await load()}catch(e){setMsg(e.message)}};
+  useEffect(()=>{load();const t=setInterval(load,12000);return()=>clearInterval(t)},[]);
+  const load=async()=>{try{const [q,w]=await Promise.all([api(apiBase,`/api/campus/queue?restaurant=${encodeURIComponent(restaurantId||'')}`,{token}),api(apiBase,`/api/campus/waste-challenge?restaurant=${encodeURIComponent(restaurantId||'')}`,{token})]);setQueue(q);setWaste(w)}catch(e){setMsg(e.message)}};
+  const [queue,setQueue]=useState(null),[waste,setWaste]=useState(null),[form,setForm]=useState({meal_name:'',cooked_portions:'',leftover_portions:'',notes:''}),[msg,setMsg]=useState('');
+function CanteenCommandCenter({apiBase,token,orders,restaurantId}) {
+}
+  </div>
+    {msg&&<div className="card p-3 text-sm">{msg}</div>}
+    <section className="card p-5"><h2 className="text-xl font-bold">Emergency SOS & Campus Help</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Use for urgent campus assistance. For immediate danger, contact local emergency services as well.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={sos.emergency_type} onChange={e=>setSos({...sos,emergency_type:e.target.value})}><option>Medical emergency</option><option>Safety / security</option><option>Fire / accident</option><option>Other urgent help</option></select><input className="input" placeholder="Your current location / landmark" value={sos.location} onChange={e=>setSos({...sos,location:e.target.value})}/><input className="input" placeholder="Contact number" value={sos.contact} onChange={e=>setSos({...sos,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="What happened?" value={sos.details} onChange={e=>setSos({...sos,details:e.target.value})}/><button disabled={busy} className="btn-primary rounded-lg px-3 py-2 mt-3" style={{background:'#b91c1c',color:'white'}} onClick={submitSOS}>Send Emergency SOS</button></section>
+    <section className="card p-5"><h2 className="text-xl font-bold">Lost & Found</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Post a lost item or something you found on campus.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={form.item_type} onChange={e=>setForm({...form,item_type:e.target.value})}><option value="lost">I lost something</option><option value="found">I found something</option></select><input className="input" placeholder="Item title" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/><input className="input" placeholder="Where was it lost/found?" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input className="input" placeholder="Contact information (optional)" value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><div className="flex flex-wrap items-center gap-3 mt-3"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={imagePick}/>{form.image_data&&<span className="text-xs">Image attached</span>}<button disabled={busy} className="btn-primary rounded-lg px-3 py-2" onClick={submitPost}>Publish post</button></div><div className="grid md:grid-cols-2 gap-3 mt-4">{posts.map(p=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}>{p.image_data&&<img src={p.image_data} alt="Lost or found item" className="w-full h-36 object-cover rounded-lg mb-2"/>}<div className="flex justify-between gap-2"><b>{p.title}</b><span className="text-xs">{p.item_type} · {p.status}</span></div><p className="text-sm">{p.description}</p><p className="text-xs mt-2">{p.location} · Posted by {p.posted_by}</p></div>)}</div></section>
+    <section className="card p-5"><h2 className="text-xl font-bold mb-3">AI-style Food Recommendations</h2><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{recs.map(x=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}><div className="font-semibold">{x.name}</div><div className="text-sm">৳{x.price} · {x.stock} left</div><div className="text-xs mt-2" style={{color:'var(--ink-soft)'}}>{x.reason}</div></div>)}</div>{!recs.length&&<p className="text-sm">No recommendations available right now.</p>}</section>
+    <section className="card p-5"><h2 className="text-xl font-bold">Campus Food Waste Challenge</h2><p className="text-sm mt-1">Help your campus reduce leftovers and build a more sustainable canteen.</p><div className="flex flex-wrap items-center gap-4 mt-3"><div><b className="text-2xl">{challenge?.participants||0}</b><div className="text-xs">Students joined</div></div><div><b className="text-2xl">{challenge?.totals?.leftover||0}</b><div className="text-xs">Leftover portions logged (30 days)</div></div><button disabled={challenge?.joined} className="btn-primary rounded-lg px-3 py-2" onClick={async()=>{try{await api(apiBase,'/api/campus/waste-challenge/join',{method:'POST',token,body:{}});await load();setMsg('You joined the Campus Food Waste Challenge!')}catch(e){setMsg(e.message)}}}>{challenge?.joined?'Joined ✓':'Join the challenge'}</button></div><div className="text-xs mt-2">{challenge?.joined?`Your no-waste pledges: ${challenge.my_saved_meals||0}`:'Make mindful meal choices and avoid unnecessary food waste.'} {challenge?.joined&&!challenge?.pledged_today&&<button className="underline ml-2" onClick={async()=>{try{await api(apiBase,'/api/campus/waste-challenge/pledge',{method:'POST',token,body:{}});await load();setMsg('Your no-waste pledge was recorded!')}catch(e){setMsg(e.message)}}}>I finished my meal without waste today</button>}{challenge?.pledged_today?' · Today’s pledge recorded':''}</div></section>
+    {role==='teacher'&&<section className="card p-5"><h2 className="text-xl font-bold">Smart Live Order Tracking</h2><p className="text-sm mb-3">Teacher delivery orders only. Rider GPS status refreshes every 15 seconds.</p>{liveOrders.length?liveOrders.map(o=><div className="border rounded-xl p-3 mb-3" style={{borderColor:'var(--line)'}}><div className="flex justify-between gap-2"><b>Order #{o.id} · {o.token}</b><span>{o.status}</span></div><p className="text-sm mt-1">{o.rider_name?`Rider: ${o.rider_name}`:'Waiting for rider assignment'} · {o.rider_live?'GPS live':'GPS not currently updating'}</p>{o.latitude!=null&&o.longitude!=null?<><p className="text-xs mt-1">Location: {o.latitude.toFixed(5)}, {o.longitude.toFixed(5)}</p><a className="text-sm underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${o.latitude}&mlon=${o.longitude}#map=17/${o.latitude}/${o.longitude}`}>Open rider location map</a></>:null}</div>):<p className="text-sm">No active teacher delivery orders to track.</p>}</section>}
+    <section className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Campus Live Queue</h2><p className="text-sm" style={{color:'var(--ink-soft)'}}>Refreshes automatically every 15 seconds</p></div><button className="btn-primary rounded-lg px-3 py-2" onClick={load}>Refresh</button></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">{[['Active',queue?.summary?.active_orders||0],['Received',queue?.summary?.received||0],['Cooking',queue?.summary?.cooking||0],['Ready',queue?.summary?.ready||0]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><p className="text-sm mt-3">Estimated wait for a new order: {queue?.summary?.est_wait_for_new_order||0} minutes</p></section>
+  return <div className="space-y-5">
+  const imagePick=async e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>2*1024*1024){setMsg('Choose PNG/JPG/WEBP image under 2 MB.');return}const reader=new FileReader();reader.onload=()=>setForm(x=>({...x,image_data:String(reader.result)}));reader.readAsDataURL(f)};
+  const submitSOS=async()=>{setBusy(true);setMsg('');try{const r=await api(apiBase,'/api/campus/emergency',{method:'POST',token,body:sos});setMsg(r.message);setSos({...sos,details:''})}catch(e){setMsg(e.message)}finally{setBusy(false)}};
+  const submitPost=async()=>{setBusy(true);setMsg('');try{await api(apiBase,'/api/campus/lost-found',{method:'POST',token,body:form});setForm({item_type:'lost',title:'',description:'',location:'',contact:'',image_data:''});setMsg('Your Lost & Found post has been published.');await load()}catch(e){setMsg(e.message)}finally{setBusy(false)}};
+  useEffect(()=>{load();const t=setInterval(load,15000);return()=>clearInterval(t)},[]);
+  const load=async()=>{try{const [r,q,p,c]=await Promise.all([api(apiBase,'/api/campus/recommendations',{token}),api(apiBase,'/api/campus/queue',{token}),api(apiBase,'/api/campus/lost-found',{token}),api(apiBase,'/api/campus/waste-challenge',{token})]);setRecs(r);setQueue(q);setPosts(p);setChallenge(c);if(role==='teacher'){setLiveOrders(await api(apiBase,'/api/campus/live-tracking',{token}))}else{setLiveOrders([])}}catch(e){setMsg(e.message)}};
+  const [sos,setSos]=useState({emergency_type:'Medical emergency',location:'',details:'',contact:''});
+  const [form,setForm]=useState({item_type:'lost',title:'',description:'',location:'',contact:'',image_data:''});
+  const [recs,setRecs]=useState([]),[queue,setQueue]=useState(null),[liveOrders,setLiveOrders]=useState([]),[posts,setPosts]=useState([]),[challenge,setChallenge]=useState(null),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
+function CampusHub({apiBase,token,orders,role}) {
+
+}
+  }
+      : card;
+      ? <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>{card}</div>
+    return whole
+    );
+      </div>
+        </details>
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", marginTop: 8, fontSize: 11, userSelect: "text" }}>{detail}</pre>
+          <summary style={{ cursor: "pointer", opacity: 0.7 }}>{labels.details}</summary>
+        <details style={{ marginTop: 14, textAlign: "left", fontSize: 12 }}>
+        </div>
+          <button type="button" className="btn-gold" style={{ padding: "8px 16px", borderRadius: 10, fontSize: 14 }} onClick={() => window.location.reload()}>{labels.reload}</button>
+          <button type="button" className="btn-primary" style={{ padding: "8px 16px", borderRadius: 10, fontSize: 14 }} onClick={this.retry}>{labels.again}</button>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+        <p style={{ fontSize: 14, opacity: 0.8, margin: "0 0 14px" }}>{text.body}</p>
+        <h2 style={{ fontWeight: 700, fontSize: 18, margin: "10px 0 6px" }}>{text.title}</h2>
+        <div style={{ fontSize: 34, lineHeight: 1 }}>⚠️</div>
+      <div role="alert" style={{ maxWidth: 520, margin: whole ? "0 auto" : "24px auto", padding: "22px 22px 18px", borderRadius: 16, border: "1px solid rgba(220,38,38,0.35)", background: "rgba(220,38,38,0.07)", color: "var(--ink, #1f2937)", textAlign: "center" }}>
+    const card = (
+    ].join("\n");
+      ...String(this.state.stack || "").split("\n").filter(Boolean).slice(0, 6),
+      err && err.name ? err.name + ": " + (err.message || "") : String(err),
+    const detail = [
+    const err = this.state.error;
+      : { again: "Try again", reload: "Reload", details: "Technical details" };
+      ? { again: "আবার চেষ্টা করুন", reload: "রিলোড করুন", details: "টেকনিক্যাল তথ্য" }
+    const labels = bn
+        : { title: "This screen ran into a problem", body: "The rest of the app still works — try again, or open another tab." });
+        ? { title: "এই স্ক্রিনে একটা সমস্যা হয়েছে", body: "বাকি অ্যাপ ঠিকঠাক চলছে। আবার চেষ্টা করুন, অথবা অন্য ট্যাব খুলুন।" }
+      : (bn
+        : { title: "Something went wrong", body: "The app hit an unexpected error. Reload the page — you may need to log in again." })
+        ? { title: "কিছু একটা ভুল হয়েছে", body: "অ্যাপে একটা অপ্রত্যাশিত সমস্যা হয়েছে। পেজটি রিলোড করুন, আবার লগইন করতে হতে পারে।" }
+      ? (bn
+    const text = whole
+    const bn = typeof CURRENT_LANG !== "undefined" && CURRENT_LANG === "bn";
+    const whole = this.props.scope === "app";
+    if (!this.state.failed) return <React.Fragment key={this.state.tries}>{this.props.children}</React.Fragment>;
+  render() {
+  }
+    this.setState((s) => ({ failed: false, error: null, stack: "", tries: s.tries + 1 }));
+  retry() {
+  }
+    console.error("CampusDine: a screen crashed while drawing:", error, info && info.componentStack);
+    this.setState({ stack: (info && info.componentStack) || "" });
+  componentDidCatch(error, info) {
   }
     return { failed: true, error };
   static getDerivedStateFromError(error) {
