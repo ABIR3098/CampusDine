@@ -1,3 +1,238 @@
+                        <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{t.time}</div>
+                        <div className="font-600 text-sm">{txLabel(t.label)}</div>
+                      <div>
+                      </div>
+                        {isCredit ? "⬇️" : "🍽️"}
+                      <div className={`tx-icon ${isCredit ? "credit" : "debit"}`}>
+                    <div className="flex items-center">
+                  <div key={i} className="tx-row">
+                return (
+                const isCredit = t.amount > 0;
+              {transactions.map((t, i) => {
+            <div className="space-y-1">
+          ) : (
+            </div>
+              <div className="empty-text">Your top-ups, meal orders and transfers will appear here in chronological order.</div>
+              <div className="empty-title">{tx("notx")}</div>
+              <div className="empty-icon">🪙</div>
+            <div className="empty-state">
+          {transactions.length === 0 ? (
+          </div>
+            </span>
+              {transactions.length} records
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: "var(--hover)", color: "var(--ink-soft)" }}>
+            <div className="font-display font-800 text-base" style={{ color: "var(--gold)" }}>📜 {tx("txhist")}</div>
+          <div className="flex items-center justify-between mb-4 pb-2 border-b" style={{ borderColor: "var(--line)" }}>
+        <div className="lg:col-span-2 card-elevated">
+        {/* Enhanced Transaction History with icons */}
+
+        </div>
+          <SendMoneyCard balance={balance} onLookup={onLookup} onSend={onSend} />
+
+          </div>
+            </button>
+              {busy ? tx("adding") : ("+ " + tx("addmoney"))}
+            <button disabled={busy || amount <= 0} onClick={() => setShowPay(true)} className="btn-primary w-full py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all">
+            </div>
+                className="form-input font-mono font-bold text-base" placeholder="Custom amount" />
+              <input type="number" min="10" value={amount} onChange={e => setAmount(Number(e.target.value))}
+            <div className="relative mb-3">
+            </div>
+              ))}
+                </button>
+                  {taka(v)}
+                  style={amount === v ? {} : { borderColor: "var(--line)", background: "var(--input-bg)" }}>
+                  className={`py-2 rounded-xl text-sm font-mono font-bold transition-all ${amount === v ? "btn-primary shadow-sm" : "border hover:border-emerald-500"}`}
+                <button key={v} onClick={() => setAmount(v)}
+              {[100, 300, 500].map(v => (
+            <div className="grid grid-cols-3 gap-2 mb-3">
+            </div>
+              <span className="text-xs text-emerald-600 font-semibold">Instant Credit</span>
+              <div className="font-display font-800 text-base" style={{ color: "var(--gold)" }}>⚡ {tx("topup")}</div>
+            <div className="flex items-center justify-between mb-3">
+          <div className="card-elevated">
+          {/* Redesigned Quick Top-Up Card */}
+
+          <ReferralCard apiBase={apiBase} token={token} />
+
+          </div>
+            </div>
+              <span className="font-mono font-600">Verified ✓</span>
+              <span>Campus Digital ID</span>
+            <div className="mt-3 pt-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--accent-border)", color: "var(--ink-soft)" }}>
+            <div className="font-mono text-3xl font-800 tracking-tight" style={{ color: "var(--ink)" }}>{taka(balance)}</div>
+            </div>
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: "rgba(22,163,74,0.12)", color: "#15803d" }}>Active</span>
+              <span className="text-xs font-700 uppercase tracking-wider" style={{ color: "var(--ink-soft)" }}>{tx("wallet.bal")}</span>
+            <div className="flex items-center justify-between mb-3">
+          <div className="card-accent relative overflow-hidden shadow-sm">
+          {/* Enhanced Glassmorphic Balance Card */}
+        <div className="lg:col-span-1 space-y-5">
+      <div className="grid lg:grid-cols-3 gap-6">
+
+      </div>
+        </div>
+          <p className="section-subtitle">Manage campus balance, instant top-ups, student-to-student peer transfers, and ledger</p>
+          <h2 className="section-title">💳 {tx("nav.wallet")} &amp; Payments</h2>
+        <div>
+      <div className="section-header">
+      )}
+        <PaymentModal amount={amount} busy={busy} onClose={() => setShowPay(false)} onConfirm={handleConfirm} />
+      {showPay && (
+    <div className="space-y-6 max-w-4xl page-enter">
+  return (
+
+  };
+    await topUp(amount, method); // modal shows the success message itself
+  const handleConfirm = async (method) => {
+
+  const [showPay, setShowPay] = useState(false);
+  const [amount, setAmount] = useState(suggestedAmount || 100);
+function WalletTab({ apiBase, token, balance, topUp, transactions, busy, onLookup, onSend, suggestedAmount }) {
+}
+  );
+    </div>
+      <p className="text-xs font-600">{tx("ref.stats", { i: num(info.invited), r: num(info.rewarded), e: taka(info.earned) })}</p>
+      <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>{tx("ref.how", { b: taka(info.bonus) })}</p>
+      </div>
+        </button>
+          {copied ? "✓ " + tx("ref.copied") : "📋 " + tx("ref.copy")}
+        <button type="button" onClick={copy} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: copied ? "var(--leaf)" : "var(--ink-soft)" }}>
+        <span className="font-mono text-xl font-700 tracking-widest px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>{info.code}</span>
+      <div className="flex items-center gap-2 mb-3">
+      <div className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("ref.yours")}</div>
+      <div className="font-display font-700 mb-2" style={{ color: "var(--gold)" }}>🎁 {tx("ref.title")}</div>
+    <div className="card p-5 mb-5">
+  return (
+  };
+    catch (_) { window.prompt(tx("ref.copy") + ":", info.code); }
+    try { await navigator.clipboard.writeText(info.code); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+  const copy = async () => {
+  if (!info) return null;
+  }, []);
+    return () => { dead = true; };
+    api(apiBase, "/api/wallet/referral", { token }).then(d => { if (!dead) setInfo(d); }).catch(() => {});
+    let dead = false;
+  useEffect(() => {
+  const [copied, setCopied] = useState(false);
+  const [info, setInfo] = useState(null);
+function ReferralCard({ apiBase, token }) {
+/* ---------------- Wallet tab ---------------- */
+
+}
+  );
+    </div>
+      </div>
+        )}
+          </div>
+            <button onClick={onClose} className="btn-primary w-full py-2 rounded-lg text-sm">{tx("done")}</button>
+            <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>{tx("paidvia", { m: choice?.label })}</p>
+            </p>
+              <span className="font-mono font-600">{taka(amount)}</span> {tx("pay.added")}
+            <p className="text-sm mb-1">
+              style={{ background: "var(--leaf)", color: "#fff" }}>✓</div>
+            <div className="mx-auto mb-3 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+          <div className="py-4 text-center">
+        {step === "success" && (
+
+        )}
+          </div>
+            {tx("confirming", { m: choice?.label })}
+          <div className="py-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
+        {step === "processing" && (
+
+        )}
+          </div>
+            </div>
+              <button disabled={busy} onClick={confirmPay} className="flex-1 btn-primary py-2 rounded-lg text-sm">{tx("yes")}</button>
+              <button onClick={goBack} className="flex-1 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>{tx("no")}</button>
+            <div className="flex gap-2">
+            {err && <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>{err}</p>}
+            </p>
+                : <>Top up <span className="font-mono font-600">{taka(amount)}</span> via <span className="font-600">{choice.label}</span>?</>}
+                ? <><span className="font-600">{choice.label}</span> দিয়ে <span className="font-mono font-600">{taka(amount)}</span> টপ-আপ করবেন?</>
+              {CURRENT_LANG === "bn"
+            <p className="text-sm mb-4">
+          <div>
+        {step === "confirm" && (
+
+        )}
+          </div>
+            <button onClick={goBack} className="w-full py-2 rounded-lg border text-sm mt-1" style={{ borderColor: "var(--line)" }}>{tx("back")}</button>
+            ))}
+              </button>
+                <span style={{ color: "var(--ink-soft)" }}>›</span>
+                </span>
+                  {o.label}
+                  <span className="w-3 h-3 rounded-full" style={{ background: o.color }} />
+                <span className="flex items-center gap-2">
+                style={{ borderColor: "var(--line)" }}>
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-500"
+              <button key={o.key} onClick={() => pickMethod(o)}
+            {category.options.map(o => (
+          <div className="space-y-2">
+        {step === "method" && (
+
+        )}
+          </div>
+            ))}
+              </button>
+                <span style={{ color: "var(--ink-soft)" }}>›</span>
+                </span>
+                  {tx("pc." + c.key)}
+                  <span className="w-3 h-3 rounded-full" style={{ background: c.color }} />
+                <span className="flex items-center gap-2">
+                style={{ borderColor: "var(--line)" }}>
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-500"
+              <button key={c.key} onClick={() => pickCategory(c)}
+            {PAY_CATEGORIES.map(c => (
+          <div className="space-y-2">
+        {step === "category" && (
+
+        <div className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>{tx("amount")} <span className="font-mono">{taka(amount)}</span></div>
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>{title}</div>
+        )}
+          <button onClick={onClose} className="absolute top-3 right-3 text-sm opacity-60 hover:opacity-100">✕</button>
+        {step !== "processing" && (
+      <div className="card w-full max-w-sm p-5 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(17,24,39,0.5)" }}>
+  return (
+
+    : tx("pay.t4");
+    : step === "success" ? tx("pay.t3")
+    : step === "confirm" ? tx("pay.t2")
+    : step === "method" ? tx("pc." + category.key)
+  const title = step === "category" ? tx("pay.t1")
+
+  };
+    else if (step === "confirm") { setStep(category?.options ? "method" : "category"); setChoice(null); }
+    if (step === "method") { setStep("category"); setCategory(null); }
+  const goBack = () => {
+
+  };
+    }
+      setStep("confirm");
+      setErr(e.message || tx("pay.failed"));
+    } catch (e) {
+      setStep("success");
+      await onConfirm(choice.key);
+    try {
+    setStep("processing");
+    setErr(null);
+  const confirmPay = async () => {
+
+  };
+    setStep("confirm");
+    setChoice(opt);
+  const pickMethod = (opt) => {
+
+  };
+    }
+      setStep("confirm");
+      setChoice({ key: cat.key, label: tx("pc." + cat.key) });
+    } else {
+      setStep("method");
+    if (cat.options) {
     setCategory(cat);
   const pickCategory = (cat) => {
 
