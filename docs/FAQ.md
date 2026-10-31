@@ -25,3 +25,6 @@ Hall admins can edit it in the app, or you can change the starting sample menu. 
 
 ## Which restaurant does an item belong to?
 Built-in items are listed per restaurant in `backend/src/catalog.js` (`ITEMS_BY_RESTAURANT`). Items added later are remembered in the `app_meta` table.
+
+## How do I run the tests?
+Run `npm test` inside the `backend` folder (Node 18 or newer).
