@@ -3314,25 +3314,10 @@ function TopBar({
         <div className="portal-sidebar-head">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <span role="img" aria-label="CampusDine logo" className="cd-logo shrink-0"></span>
-            style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
-        </div>
-        <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
-        <div className="flex-1 sm:hidden" />
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
-          <div className="relative">
-            <button type="button" onClick={onToggleNotifications} title={tx("notif")} aria-label={tx("notif")}
-              aria-expanded={notificationOpen} aria-controls="notification-panel"
-              className="relative w-10 h-10 rounded-lg grid place-items-center hover:bg-black/5 transition-colors">
-              <Icon path={I.bell} className="w-5 h-5" style={{ color: "var(--gold)" }} />
-              {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-700 grid place-items-center text-white" style={{ background: "var(--brick)" }}>
-                  {notificationCount > 9 ? "9+" : notificationCount}
-                </span>
-              )}
-            </button>
-            {notificationOpen && (
-              <div id="notification-panel" role="region" aria-label={tx("notif")}
-                className="absolute right-0 top-full mt-3 w-[min(92vw,360px)] rounded-2xl border shadow-2xl overflow-hidden" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+            {!sidebarCollapsed && (
+              <div className="leading-tight">
+                <span className="font-display gold-text font-800 text-base tracking-tight block">CampusDine</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Smart Portal</span>
                 <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--line)", background: "rgba(245,179,0,0.08)" }}>
                   <div className="font-display font-700" style={{ color: "var(--gold)" }}>{tx("notif")}</div>
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide">
