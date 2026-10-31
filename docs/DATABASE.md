@@ -505,3 +505,17 @@ Created in `backend/src/hall/autopaySchema.js`.
 | `user_id` | INT |
 | `enabled` | TINYINT(1) |
 | `updated_at` | DATETIME |
+
+## `hall_autopay_log`
+Created in `backend/src/hall/autopaySchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `ym` | CHAR(7) |
+| `status` | VARCHAR(12) |
+| `amount` | DECIMAL(10,2) |
+| `due` | DECIMAL(10,2) |
+| `balance` | DECIMAL(10,2) |
+| `created_at` | DATETIME |
