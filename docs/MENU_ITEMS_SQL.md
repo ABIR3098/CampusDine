@@ -16,3 +16,6 @@ Run it **after** `schema.sql`. It is safe to run more than once: an item is inse
 ## Adding one more item
 Add one `UNION ALL SELECT ...` line to the items block and one to the restaurant block, using the same name in both.
 Images live in `frontend/images/food/`; use `default.svg` if there is no matching picture.
+
+## Current size
+The file adds **132** items: Amitie 33, Vista 33, Third Place 33 and Staff Canteen 33.
