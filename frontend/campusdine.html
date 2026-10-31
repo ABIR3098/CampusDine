@@ -3378,6 +3378,25 @@ function TopBar({
                   <span className="portal-nav-badge">
                     {t.badge > 9 ? "9+" : t.badge}
                   </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Sidebar Bottom Status */}
+        {!sidebarCollapsed && (
+          <div className="p-3 border-t flex items-center justify-between text-xs" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+            <div className="flex items-center gap-1.5 font-bold">
+              <span className="w-2 h-2 rounded-full" style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
+              <span>{connected ? "System Online" : "Offline"}</span>
+            </div>
+            <span className="text-[10px] font-mono opacity-60">v2.4</span>
+          </div>
+        )}
+      </aside>
+
+      {/* Mobile Backdrop overlay */}
       </div>
     </div>
     <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
