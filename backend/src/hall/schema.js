@@ -68,7 +68,7 @@ async function ensureHallSchema(db) {
     (3,'breakfast','Porota, Dal, Egg'),              (3,'lunch','Rice, Dal, Chicken curry'),       (3,'dinner','Rice, Dal, Mixed veg, Egg'),
     (4,'breakfast','Suji, Banana'),             (4,'lunch','Rice, Dal, Beef curry, Mixed veg'),          (4,'dinner','Rice, Dal, Fish curry, Lemon'),
     (5,'breakfast','Porota, Egg curry, Banana'),        (5,'lunch','Tehari, Borhani'),                (5,'dinner','Rice, Dal, Chicken curry, Salad'),
-    (6,'breakfast','Khichuri, Egg'),            (6,'lunch','Rice, Dal, Fish curry, Salad'),          (6,'dinner','Rice, Dal, Mixed veg, Egg')`);
+    (6,'breakfast','Khichuri, Egg, Pickle'),            (6,'lunch','Rice, Dal, Fish curry, Salad'),          (6,'dinner','Rice, Dal, Mixed veg, Egg')`);
 
   // Step 7 — feasts: a special meal on one date (shown to everyone, charged on top of the normal price)
   await db.query(`CREATE TABLE IF NOT EXISTS hall_feasts (
