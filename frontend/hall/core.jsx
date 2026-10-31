@@ -232,17 +232,26 @@ function HallTopBar({
                   onClick={() => setSearchTerm("")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
                   ✕
+                </button>
+              )}
             </div>
-            {Avatar && <div className="hidden sm:block" title={`${user.name} · ${user.role}`}><Avatar src={user.avatar} name={user.name} size={34} /></div>}
-            {ThemeMenu && <ThemeMenu />}
-            <span className="hl-divider hidden sm:block" />
-            <button onClick={onLogout} title="Log out" aria-label="Log out" className="hl-logout">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              <span className="hl-logout-text">Log out</span>
+          </div>
+        )}
+
+        {/* Vertical Tab Navigation List */}
+        <nav className="portal-nav-list no-scrollbar">
+          {filteredTabs.map(t => {
+            const isActive = active === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => {
+                  setActive(t.key);
+                  if (setMobileMenuOpen) setMobileMenuOpen(false);
+                }}
+                title={t.label}
+                aria-label={t.label}
             </button>
           </div>
         </div>
