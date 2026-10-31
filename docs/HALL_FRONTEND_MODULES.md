@@ -70,3 +70,6 @@ The alerts that sit at the top of the member Home tab: closing-soon reminder and
 
 ## `lastcall.jsx`
 Last call, member side: at the end of a meal the canteen puts leftover plates up at a low price.
+
+## `lastcallAdmin.jsx`
+Last call, admin side: put up leftover plates, see who took them, hand them over by code, refund a plate nobody collected.
