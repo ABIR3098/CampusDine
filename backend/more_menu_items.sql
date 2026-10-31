@@ -105,6 +105,7 @@ SELECT v.name, v.name_bn, v.category, v.price, v.stock, v.tag, v.is_veg, v.image
   UNION ALL SELECT 'Aloo Tikki', 'আলু টিক্কি', 'snacks', 25, 40, NULL, 1, '/images/food/veg-pakora.svg'
   UNION ALL SELECT 'Egg Roll', 'এগ রোল', 'snacks', 40, 40, NULL, 0, '/images/food/chicken-roll.svg'
   UNION ALL SELECT 'Chicken Tikka Roll', 'চিকেন টিক্কা রোল', 'snacks', 70, 30, 'New', 0, '/images/food/chicken-roll.svg'
+  UNION ALL SELECT 'Veg Spring Roll', 'ভেজ স্প্রিং রোল', 'snacks', 30, 40, NULL, 1, '/images/food/chicken-roll.svg'
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM menu_items m WHERE m.name = v.name);
 
@@ -206,6 +207,7 @@ JOIN (
   UNION ALL SELECT 'Aloo Tikki', 'vista'
   UNION ALL SELECT 'Egg Roll', 'vista'
   UNION ALL SELECT 'Chicken Tikka Roll', 'vista'
+  UNION ALL SELECT 'Veg Spring Roll', 'vista'
 ) AS r ON r.name = m.name
 ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value);
 
