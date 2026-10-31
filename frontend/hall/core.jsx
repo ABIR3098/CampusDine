@@ -182,9 +182,9 @@ function useHallHeroSlides(call, user, goTab, refreshKey) {
 }
 
 // ---------- top bar (same bar as the restaurants: logo, tabs, theme, avatar, log out) ----------
-function HallTopBar({ user, tabs, active, setActive, onLogout, ui }) {
-  const deskRef = useRef(null);
-  const mobRef = useRef(null);
+function HallTopBar({
+  user, tabs, active, setActive, onLogout, ui,
+  sidebarCollapsed, setSidebarCollapsed, mobileMenuOpen, setMobileMenuOpen,
   useEffect(() => {
     [deskRef.current, mobRef.current].forEach((root) => {
       const el = root && root.querySelector(".nav-pill.active");

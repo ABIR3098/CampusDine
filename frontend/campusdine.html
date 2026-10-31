@@ -10034,6 +10034,21 @@ function App() {
                   </div>
                 </div>
 
+                <div className="portal-kpi-card">
+                  <div className="portal-kpi-icon" style={{ background: "rgba(139,92,246,0.1)", color: "#7c3aed" }}>
+                    🛵
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-bold text-slate-400">Live Delivery</div>
+                    <div className="font-mono text-xl font-black mt-0.5" style={{ color: "var(--ink)" }}>
+                      {orders.filter(o => o.status === "Cooking" || o.status === "Received").length} Active
+                    </div>
+                    <div className="text-[10px] font-bold text-indigo-600 mt-0.5">Tracking Enabled</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         <ErrorBoundary scope="tab">
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
@@ -10114,6 +10129,7 @@ function App() {
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
         )}
         </ErrorBoundary>
+        </div>
       </div>
     </div>
   );
