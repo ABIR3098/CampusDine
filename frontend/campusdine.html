@@ -1863,9 +1863,475 @@ Object.assign(I18N.en, {
   "otp.resend": "Resend code",
   "otp.resendin": "Resend in {s}s",
   "otp.change": "Wrong email? Edit it above to get a new code.",
+  "otp.devhint": "Not getting an email? If the server has no email set up yet (developer mode), the code is printed in the server console.",
+  "otp.verifylogin": "Verify & log in",
+  "otp.loginnote": "Wrong account? Change the ID above to start again.",
+  "reset.send": "Send reset code",
+  "reset.sent": "If these details match an account, a code has been sent to that email.",
+  "qr.title": "Show this QR at the counter",
+  "qr.hint": "Your pickup token {t} is inside this code. The counter scans it to hand over your order.",
+  "qr.collected": "Collected",
+  "qr.noqr": "QR code unavailable — show the token {t} instead.",
+  "n.collected.t": "Order collected",
+  "n.collected": "Order {o} was handed over. Enjoy your meal!",
+  "acct.badge.hall": "Hall resident",
+  "acct.badge.regular": "Regular account",
+  "hallhint": "Enter your hall name and a room number, then save, to get a fixed Hall ID."
+});
+Object.assign(I18N.bn, {
+  "idoremail": "আইডি নম্বর বা ইমেইল",
+  "email": "ইমেইল",
+  "email.ph": "you@example.com",
+  "confirmpw": "পাসওয়ার্ড আবার দিন",
+  "showpw": "দেখান",
+  "hidepw": "লুকান",
+  "acct.type": "আমি",
+  "acct.regular": "সাধারণ",
+  "acct.regular.d": "হলে থাকি না",
+  "acct.hall": "হলের আবাসিক",
+  "acct.hall.d": "ক্যাম্পাসের হলে থাকি",
+  "hallname": "হলের নাম",
+  "hallname.ph": "যেমন নর্থ হল",
+  "room.signup.ph": "যেমন ২০৪",
+  "hall.signup.note": "অ্যাকাউন্ট খোলার সাথে সাথেই আপনি আপনার স্থায়ী হল আইডি পাবেন।",
+  "err.email": "সঠিক ইমেইল ঠিকানা দিন।",
+  "err.id": "আইডি ৩–৫০ অক্ষরের হতে হবে: ইংরেজি অক্ষর, সংখ্যা, ডট, ড্যাশ বা আন্ডারস্কোর।",
+  "err.pwmatch": "দুটি পাসওয়ার্ড মিলছে না।",
+  "err.hall": "হলের নাম ও রুম নম্বর দিন।",
+  "taken.id": "এই আইডিতে আগেই অ্যাকাউন্ট আছে।",
+  "taken.email": "এই ইমেইলে আগেই অ্যাকাউন্ট আছে।",
+  "pw.weak": "দুর্বল পাসওয়ার্ড",
+  "pw.ok": "মোটামুটি পাসওয়ার্ড",
+  "pw.strong": "শক্তিশালী পাসওয়ার্ড",
+  "reset.p": "আপনার আইডি ও সাইন-আপের ইমেইল দিন, তারপর নতুন পাসওয়ার্ড বেছে নিন।",
+  "reset.noemail": "ইমেইল ছাড়া অ্যাকাউন্ট (বা অ্যাডমিন অ্যাকাউন্ট) এখানে রিসেট করা যায় না — ক্যান্টিন অ্যাডমিনকে জানান।",
+  "otp.sendcode": "যাচাই কোড পাঠান",
+  "otp.verify": "যাচাই করে অ্যাকাউন্ট খুলুন",
+  "otp.label": "যাচাই কোড",
+  "otp.ph": "৬ সংখ্যার কোড",
+  "otp.sent": "{e} ঠিকানায় ৬ সংখ্যার কোড পাঠানো হয়েছে। কোডটি ১০ মিনিট বৈধ থাকবে।",
+  "otp.err": "৬ সংখ্যার কোডটি দিন।",
+  "otp.resend": "আবার কোড পাঠান",
+  "otp.resendin": "{s} সেকেন্ড পরে আবার পাঠানো যাবে",
+  "otp.change": "ভুল ইমেইল? উপরে ইমেইল বদলালে নতুন কোড পাবেন।",
+  "otp.devhint": "ইমেইল আসছে না? সার্ভারে ইমেইল সেট করা না থাকলে (ডেভেলপার মোড) কোডটি সার্ভার কনসোলে দেখা যাবে।",
+  "otp.verifylogin": "যাচাই করে লগ ইন করুন",
+  "otp.loginnote": "ভুল অ্যাকাউন্ট? উপরে আইডি বদলে আবার শুরু করুন।",
+  "reset.send": "রিসেট কোড পাঠান",
+  "reset.sent": "তথ্য মিললে ওই ইমেইলে একটি কোড পাঠানো হয়েছে।",
+  "qr.title": "কাউন্টারে এই QR দেখান",
+  "qr.hint": "আপনার পিকআপ টোকেন {t} এই কোডের ভেতরে আছে। কাউন্টার স্ক্যান করে অর্ডার দেবে।",
+  "qr.collected": "নেওয়া হয়েছে",
+  "qr.noqr": "QR কোড পাওয়া যাচ্ছে না — টোকেন {t} দেখান।",
+  "n.collected.t": "অর্ডার নেওয়া হয়েছে",
+  "n.collected": "অর্ডার {o} হস্তান্তর হয়েছে। ভালো খাবার খান!",
+  "acct.badge.hall": "হলের আবাসিক",
+  "acct.badge.regular": "সাধারণ অ্যাকাউন্ট",
+  "hallhint": "স্থায়ী হল আইডি পেতে হলের নাম ও রুম নম্বর দিয়ে সেভ করুন।"
+});
+// ---- Added: spending summary ----
+Object.assign(I18N.en, {
+  "nav.spending": "Spending",
+  "sp.loading": "Loading your summary…",
+  "sp.empty": "No orders this month yet — once you order, your spending summary appears here.",
+  "sp.spent": "Spent",
+  "sp.orders": "Orders",
+  "sp.activedays": "on {d} day(s)",
+  "sp.avg": "Average order",
+  "sp.biggest": "Biggest: {a}",
+  "sp.saved": "Saved",
+  "sp.saved.d": "with coupons",
+  "sp.more": "{p}% more than last month",
+  "sp.less": "{p}% less than last month",
+  "sp.same": "Same as last month",
+  "sp.noprev": "No orders last month to compare",
+  "sp.daily": "Spending by day",
+  "sp.months": "Last 6 months (tap a bar to open that month)",
+  "sp.top": "Most ordered",
+  "sp.cat": "Where it went",
+  "sp.cat.heavy": "Main meals",
+  "sp.cat.snacks": "Snacks",
+  "sp.cat.drinks": "Drinks",
+  "sp.cat.other": "Other",
+  "sp.pay": "How you paid",
+  "sp.norders": "{n} order(s)",
+  "sp.wallet": "Wallet",
+  "sp.topups": "Added this month"
+});
+Object.assign(I18N.bn, {
+  "nav.spending": "খরচ",
+  "sp.loading": "আপনার সারসংক্ষেপ লোড হচ্ছে…",
+  "sp.empty": "এই মাসে এখনো কোনো অর্ডার নেই — অর্ডার করলে আপনার খরচের সারসংক্ষেপ এখানে দেখা যাবে।",
+  "sp.spent": "খরচ",
+  "sp.orders": "অর্ডার",
+  "sp.activedays": "{d} দিনে",
+  "sp.avg": "গড় অর্ডার",
+  "sp.biggest": "সর্বোচ্চ: {a}",
+  "sp.saved": "সাশ্রয়",
+  "sp.saved.d": "কুপন দিয়ে",
+  "sp.more": "গত মাসের চেয়ে {p}% বেশি",
+  "sp.less": "গত মাসের চেয়ে {p}% কম",
+  "sp.same": "গত মাসের সমান",
+  "sp.noprev": "তুলনার জন্য গত মাসে অর্ডার নেই",
+  "sp.daily": "দিন অনুযায়ী খরচ",
+  "sp.months": "গত ৬ মাস (বারে চাপ দিলে সেই মাস খুলবে)",
+  "sp.top": "সবচেয়ে বেশি অর্ডার",
+  "sp.cat": "কোথায় খরচ হলো",
+  "sp.cat.heavy": "মূল খাবার",
+  "sp.cat.snacks": "স্ন্যাক্স",
+  "sp.cat.drinks": "পানীয়",
+  "sp.cat.other": "অন্যান্য",
+  "sp.pay": "কীভাবে পরিশোধ করেছেন",
+  "sp.norders": "{n}টি অর্ডার",
+  "sp.wallet": "ওয়ালেট",
+  "sp.topups": "এই মাসে যোগ হয়েছে"
+});
+// ---- Added: meal plan (pay the calendar from the wallet) ----
+Object.assign(I18N.en, {
+  "mp.paid": "Paid",
+  "mp.due": "Still to pay",
+  "mp.paidamt": "Already paid",
+  "mp.pay": "Pay meal plan from wallet",
+  "mp.paying": "Paying…",
+  "mp.nothing": "Everything marked is paid",
+  "mp.balance": "Wallet balance",
+  "mp.short": "Wallet is {a} short — add money in the Wallet tab first.",
+  "mp.repeat": "Repeat last month's pattern",
+  "mp.repeat.d": "Fills the unmarked days from today using last month's usual weekdays. Nothing is charged until you pay.",
+  "mp.repeat.ok": "Added {n} day(s) from last month's pattern.",
+  "mp.paid.ok": "Meal plan paid: {a} for {d} day(s).",
+  "mp.confirm": "This day is already paid. Changing it refunds the money to your wallet and the day becomes unpaid. Continue?",
+  "mp.legend": "✓ = paid",
+  "mp.note": "Pay the month from your wallet. Paid days after today can still be changed (refunded); today's and past days are locked.",
+  "tx.mealpay": "Meal plan {m} ({f} full, {h} half)",
+  "tx.mealrefund": "Meal plan refund {d}"
+});
+Object.assign(I18N.bn, {
+  "mp.paid": "পরিশোধিত",
+  "mp.due": "এখনো দিতে হবে",
+  "mp.paidamt": "ইতিমধ্যে পরিশোধ",
+  "mp.pay": "ওয়ালেট থেকে মিল প্ল্যানের টাকা দিন",
+  "mp.paying": "পরিশোধ হচ্ছে…",
+  "mp.nothing": "যা চিহ্নিত আছে সবই পরিশোধিত",
+  "mp.balance": "ওয়ালেট ব্যালেন্স",
+  "mp.short": "ওয়ালেটে {a} কম আছে — আগে ওয়ালেট ট্যাবে টাকা যোগ করুন।",
+  "mp.repeat": "গত মাসের ধরন আবার ব্যবহার করুন",
+  "mp.repeat.d": "আজ থেকে চিহ্নহীন দিনগুলো গত মাসের সাধারণ সপ্তাহের ধরন অনুযায়ী ভরবে। আপনি পরিশোধ না করা পর্যন্ত কিছু কাটা হবে না।",
+  "mp.repeat.ok": "গত মাসের ধরন থেকে {n} দিন যোগ হয়েছে।",
+  "mp.paid.ok": "মিল প্ল্যান পরিশোধিত: {d} দিনের জন্য {a}।",
+  "mp.confirm": "এই দিনটি পরিশোধ করা। বদলালে টাকা ওয়ালেটে ফেরত যাবে এবং দিনটি অপরিশোধিত হবে। চালিয়ে যাবেন?",
+  "mp.legend": "✓ = পরিশোধিত",
+  "mp.note": "ওয়ালেট থেকে মাসের টাকা দিন। আজকের পরের পরিশোধিত দিন বদলানো যায় (টাকা ফেরত আসে); আজকের ও আগের দিন বদলানো যায় না।",
+  "tx.mealpay": "মিল প্ল্যান {m} ({f} পূর্ণ, {h} অর্ধেক)",
+  "tx.mealrefund": "মিল প্ল্যান ফেরত {d}"
+});
+// ---- Added: printable student reports ----
+Object.assign(I18N.en, {
+  "pr.print": "Print",
+  "pr.generated": "Generated {t}",
+  "pr.spending": "Spending summary",
+  "pr.feedback": "My feedback",
+  "pr.bill": "Meal plan bill",
+  "pr.date": "Date", "pr.item": "Item", "pr.items": "Items", "pr.qty": "Qty", "pr.amount": "Amount",
+  "pr.order": "Order", "pr.rating": "Rating", "pr.comment": "Comment", "pr.category": "Category",
+  "pr.day": "Day", "pr.meal": "Meal", "pr.rate": "Rate", "pr.status": "Status", "pr.method": "Method", "pr.orders": "Orders",
+  "pr.orderfb": "Order ratings", "pr.generalfb": "General feedback",
+  "pr.avgrating": "Average rating", "pr.totalrated": "Total ratings",
+  "pr.paid": "Paid", "pr.unpaid": "Unpaid",
+  "pr.nodays": "No meal days are marked this month.",
+  "pr.nofb": "Nothing yet.",
+  "pr.fullmeals": "Full meals", "pr.halfmeals": "Half meals"
+});
+Object.assign(I18N.bn, {
+  "pr.print": "প্রিন্ট",
+  "pr.generated": "তৈরি: {t}",
+  "pr.spending": "খরচের সারসংক্ষেপ",
+  "pr.feedback": "আমার ফিডব্যাক",
+  "pr.bill": "মিল প্ল্যান বিল",
+  "pr.date": "তারিখ", "pr.item": "আইটেম", "pr.items": "আইটেম", "pr.qty": "পরিমাণ", "pr.amount": "টাকা",
+  "pr.order": "অর্ডার", "pr.rating": "রেটিং", "pr.comment": "মন্তব্য", "pr.category": "ধরন",
+  "pr.day": "বার", "pr.meal": "মিল", "pr.rate": "রেট", "pr.status": "অবস্থা", "pr.method": "পদ্ধতি", "pr.orders": "অর্ডার",
+  "pr.orderfb": "অর্ডারের রেটিং", "pr.generalfb": "সাধারণ ফিডব্যাক",
+  "pr.avgrating": "গড় রেটিং", "pr.totalrated": "মোট রেটিং",
+  "pr.paid": "পরিশোধিত", "pr.unpaid": "অপরিশোধিত",
+  "pr.nodays": "এই মাসে কোনো মিল দিন চিহ্নিত নেই।",
+  "pr.nofb": "এখনো কিছু নেই।",
+  "pr.fullmeals": "পূর্ণ মিল", "pr.halfmeals": "অর্ধেক মিল"
+});
+// ---- Added: wallet transfer ----
+Object.assign(I18N.en, {
+  "xfer.title": "Send money",
+  "xfer.sub": "Send wallet money to another student or teacher using their ID.",
+  "xfer.id": "Their ID number",
+  "xfer.find": "Find",
+  "xfer.change": "Change",
+  "xfer.amount": "Amount",
+  "xfer.note": "Note (optional)",
+  "xfer.note.ph": "e.g. lunch",
+  "xfer.send": "Send money",
+  "xfer.sending": "Sending…",
+  "xfer.short": "Not enough balance in your wallet.",
+  "xfer.confirm": "Send {a} to {n}?",
+  "xfer.ok": "Sent {a} to {n}.",
+  "xfer.limit": "Up to ৳2,000 per transfer and ৳5,000 per day.",
+  "tx.sent": "Sent to {n}",
+  "tx.received": "Received from {n}",
+  "n.received.t": "Money received",
+  "n.received": "{n} sent you {a}."
+});
+Object.assign(I18N.bn, {
+  "xfer.title": "টাকা পাঠান",
+  "xfer.sub": "আইডি দিয়ে অন্য শিক্ষার্থী বা শিক্ষককে ওয়ালেট থেকে টাকা পাঠান।",
+  "xfer.id": "তার আইডি নম্বর",
+  "xfer.find": "খুঁজুন",
+  "xfer.change": "বদলান",
+  "xfer.amount": "পরিমাণ",
+  "xfer.note": "নোট (ঐচ্ছিক)",
+  "xfer.note.ph": "যেমন লাঞ্চ",
+  "xfer.send": "টাকা পাঠান",
+  "xfer.sending": "পাঠানো হচ্ছে…",
+  "xfer.short": "আপনার ওয়ালেটে যথেষ্ট ব্যালেন্স নেই।",
+  "xfer.confirm": "{n}-কে {a} পাঠাবেন?",
+  "xfer.ok": "{n}-কে {a} পাঠানো হয়েছে।",
+  "xfer.limit": "প্রতি ট্রান্সফারে সর্বোচ্চ ৳২,০০০ এবং দিনে ৳৫,০০০।",
+  "tx.sent": "{n}-কে পাঠানো",
+  "tx.received": "{n}-এর কাছ থেকে পাওয়া",
+  "n.received.t": "টাকা পেয়েছেন",
+  "n.received": "{n} আপনাকে {a} পাঠিয়েছে।"
+});
+const tx = (key, vars) => {
+  let str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][key] : undefined;
+  if (str === undefined) str = I18N.en[key];
+  if (str === undefined) str = key;
+  if (vars) Object.keys(vars).forEach(k => { str = str.split("{" + k + "}").join(vars[k]); });
+  return str;
+};
+// lookup("status", "Ready") -> translated label, or the raw value if there is no translation
+const lookup = (prefix, val) => {
+  const k = prefix + "." + val;
+  const str = I18N[CURRENT_LANG] ? I18N[CURRENT_LANG][k] : undefined;
+  if (str !== undefined) return str;
+  return I18N.en[k] !== undefined ? I18N.en[k] : val;
+};
+const num = (n) => Number(n).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-US", { useGrouping: false });
+const itemName = (item) => (CURRENT_LANG === "bn" && item.bn) ? item.bn : item.name;
+const dispName = (name) => (CURRENT_LANG === "bn" && MENU_BN[name]) ? MENU_BN[name] : name;
+// Wallet labels are stored in English by the server; map the known ones.
+const txLabel = (label) => {
+  if (CURRENT_LANG !== "bn") return label;
+  if (label === "Welcome bonus") return tx("tx.welcome");
+  if (label === "Order payment") return tx("tx.order");
+  let m = /^Refund — Order (\S+) cancelled$/.exec(label);
+  if (m) return tx("tx.refund", { t: m[1] });
+  m = /^Wallet top-up via (.+)$/.exec(label);
+  if (m) return tx("tx.topup", { m: m[1] });
+  m = /^Sent to (.+)$/.exec(label);
+  if (m) return tx("tx.sent", { n: m[1] });
+  m = /^Received from (.+)$/.exec(label);
+  if (m) return tx("tx.received", { n: m[1] });
+  m = /^Meal plan (\d{4}-\d{2}) \((\d+) full, (\d+) half\)$/.exec(label);
+  if (m) return tx("tx.mealpay", { m: m[1], f: num(m[2]), h: num(m[3]) });
+  m = /^Meal plan refund (\d{4}-\d{2}-\d{2})$/.exec(label);
+  if (m) return tx("tx.mealrefund", { d: m[1] });
+  return label;
+};
+const taka = (n) => `৳${Number(n || 0).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "en-BD")}`;
+function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); } // month is 1-12 here
+function monthLabel(ym) {
+  const [y, m] = ym.split("-");
+  return new Date(Number(y), Number(m) - 1).toLocaleString("default", { month: "short" });
 }
-  );
+
+/* ---------------- Theme (light / dark / auto + accent colour) ---------------- */
+const THEME_ACCENTS = [
+  { key: "green", color: "#4F7F5F" }, { key: "blue", color: "#2F76B8" }, { key: "orange", color: "#EA580C" },
+  { key: "purple", color: "#7A5CA8" }, { key: "rose", color: "#D0537A" },
+];
+function readTheme() {
+  try {
+    const t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
+    return {
+      mode: ["light", "dark", "auto"].includes(t.mode) ? t.mode : "light",
+      accent: THEME_ACCENTS.some(a => a.key === t.accent) ? t.accent : "green",
+    };
+  } catch (e) { return { mode: "light", accent: "green" }; }
+}
+function applyTheme(t) {
+  const dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  document.documentElement.setAttribute("data-accent", t.accent);
+}
+function ThemeMenu() {
+  const [theme, setTheme] = useState(readTheme);
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+
+  // apply + remember the choice; in "auto" mode also follow the device when it switches light/dark
+  useEffect(() => {
+    applyTheme(theme);
+    try { localStorage.setItem("cd_theme", JSON.stringify(theme)); } catch (e) {}
+    if (theme.mode !== "auto" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme(theme);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [theme]);
+
+  // close the panel when clicking elsewhere
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const modes = [["light", "theme.light"], ["dark", "theme.dark"], ["auto", "theme.auto"]];
+  return (
+    <div className="relative" ref={boxRef}>
+      <button onClick={() => setOpen(o => !o)} title={tx("theme.title")} aria-expanded={open}
+        className="w-9 h-9 rounded-lg grid place-items-center transition-colors hover:bg-black/5">
+        <Icon path={I.droplet} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl border shadow-2xl p-3 z-50 fade-in"
+          style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+          <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("theme.mode")}</div>
+          <div className="flex rounded-lg border overflow-hidden text-xs mb-3" style={{ borderColor: "var(--line)" }}>
+            {modes.map(([key, label]) => (
+              <button key={key} onClick={() => setTheme(t => ({ ...t, mode: key }))} className="flex-1 px-2 py-2 transition-colors"
+                style={{ background: theme.mode === key ? "var(--gold)" : "transparent", color: theme.mode === key ? "#fff" : "var(--ink-soft)" }}>
+                {tx(label)}
+              </button>
+            ))}
+          </div>
+          <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("theme.accent")}</div>
+          <div className="flex items-center gap-2">
+            {THEME_ACCENTS.map(a => (
+              <button key={a.key} onClick={() => setTheme(t => ({ ...t, accent: a.key }))}
+                title={tx("theme." + a.key)} aria-label={tx("theme." + a.key)}
+                className="w-8 h-8 rounded-full grid place-items-center border-2 transition-transform hover:scale-110"
+                style={{ background: a.color, borderColor: theme.accent === a.key ? "var(--ink)" : "transparent" }}>
+                {theme.accent === a.key && <Icon path={I.check} className="w-4 h-4" style={{ color: "#fff" }} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/* ---------------- Language toggle (EN | বাং) ---------------- */
+function LangToggle({ onToggle }) {
+  const seg = (active) => ({ background: active ? "var(--gold)" : "transparent", color: active ? "#fff" : "var(--ink-soft)" });
+  return (
+    <button onClick={onToggle} title={tx("lang.switch")}
+      className="flex rounded-lg border overflow-hidden text-xs font-600" style={{ borderColor: "var(--line)" }}>
+      <span className="px-2 py-1.5" style={seg(CURRENT_LANG === "en")}>EN</span>
+      <span className="px-2 py-1.5" style={seg(CURRENT_LANG === "bn")}>বাং</span>
+    </button>
+  );
+}
+
+/* ---------------- Added: validation helpers + QR code ---------------- */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const ID_RE = /^[A-Za-z0-9._-]{3,50}$/;
+
+// Draws a QR code as inline SVG (black on white, so scanners work in dark theme too).
+// Uses the small "qrcode-generator" library loaded in <head>; if it failed to load we show the plain token instead.
+function QrCode({ value, size = 120, dim = false }) {
+  const [seconds, setSeconds] = useState(() => new Date().getSeconds());
+  useEffect(() => {
+    const t = setInterval(() => setSeconds(new Date().getSeconds()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const qr = useMemo(() => {
+    try {
+      if (typeof window.qrcode !== "function" || !value) return null;
+      const q = window.qrcode(0, "M");
+      q.addData(String(value));
+      q.make();
+      const n = q.getModuleCount();
+      let d = "";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c},${r}h1v1h-1z`;
+      return { n, d };
+    } catch (e) { return null; }
+  }, [value]);
+  if (!qr) return null;
+  const pad = 4;
+  return (
+    <div className="qr-laser-wrap text-center">
+      <div className="qr-laser-beam" />
+      <svg role="img" aria-label="QR code" width={size} height={size} viewBox={`${-pad} ${-pad} ${qr.n + pad * 2} ${qr.n + pad * 2}`}
+        shapeRendering="crispEdges" style={{ background: "#fff", borderRadius: 8, flexShrink: 0, opacity: dim ? 0.3 : 1 }}>
+        <rect x={-pad} y={-pad} width={qr.n + pad * 2} height={qr.n + pad * 2} fill="#fff" />
+        <path d={qr.d} fill="#000" />
+      </svg>
+      {/* Live dynamic watermark to prevent screenshot fraud */}
+      <div className="mt-1 text-[9px] font-mono font-700 tracking-wider text-emerald-600 flex items-center justify-center gap-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        VALID NOW • ${String(seconds).padStart(2, '0')}s • DO NOT SCREENSHOT
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Login / Register screen ---------------- */
+// "More on the full menu" card: click it to get two buttons - Today's Special (offer popup) and Menu Book
+const MENU_BOOK = [
+  // [name, name_bn, category, price, tag, image slug]
+  ["Khichuri", "খিচুড়ি", "heavy", 60, "Popular", "khichuri"],
+  ["Tehari", "তেহারি", "heavy", 80, "Popular", "tehari"],
+  ["Porota-Vaji", "পরোটা-ভাজি", "heavy", 40, null, "porota-vaji"],
+  ["Plain Rice & Dal", "ভাত-ডাল", "heavy", 45, null, "rice-dal"],
+  ["Chicken Biryani", "চিকেন বিরিয়ানি", "heavy", 120, "Popular", "chicken-biryani"],
+  ["Beef Bhuna & Rice", "গরুর ভুনা-ভাত", "heavy", 130, null, "beef-bhuna"],
+  ["Egg Curry & Rice", "ডিম ভুনা-ভাত", "heavy", 70, null, "egg-curry"],
+  ["Fish Curry & Rice", "মাছ-ভাত", "heavy", 90, null, "fish-curry"],
+  ["Mixed Veg & Rice", "সবজি-ভাত", "heavy", 55, null, "mixed-veg-rice"],
+  ["Fried Rice", "ফ্রাইড রাইস", "heavy", 80, null, "fried-rice"],
+  ["Chowmein", "চাউমিন", "heavy", 70, "New", "chowmein"],
+  ["Singara", "সিঙ্গারা", "snacks", 10, "New", "singara"],
+  ["Fuchka", "ফুচকা", "snacks", 30, "Popular", "fuchka"],
+  ["Chicken Roll", "চিকেন রোল", "snacks", 50, null, "chicken-roll"],
+  ["Chotpoti", "চটপটি", "snacks", 30, "Popular", "chotpoti"],
+  ["Jhalmuri", "ঝালমুড়ি", "snacks", 20, null, "jhalmuri"],
+  ["French Fries", "ফ্রেঞ্চ ফ্রাই", "snacks", 40, null, "french-fries"],
+  ["Chicken Burger", "চিকেন বার্গার", "snacks", 90, "New", "chicken-burger"],
+  ["Egg Sandwich", "ডিম স্যান্ডউইচ", "snacks", 35, null, "egg-sandwich"],
+  ["Veg Pakora", "সবজি পাকোড়া", "snacks", 20, null, "veg-pakora"],
+  ["Cha (Tea)", "চা", "drinks", 8, null, "cha"],
+  ["Lassi", "লাচ্ছি", "drinks", 35, "New", "lassi"],
+  ["Mineral Water", "পানি", "drinks", 15, null, "mineral-water"],
+  ["Cold Coffee", "কোল্ড কফি", "drinks", 50, "Popular", "cold-coffee"],
+  ["Mango Juice", "আমের জুস", "drinks", 40, null, "mango-juice"],
+  ["Lemon Soda", "লেবু সোডা", "drinks", 25, null, "lemon-soda"],
+  ["Borhani", "বোরহানি", "drinks", 30, null, "borhani"],
+  ["Falooda", "ফালুদা", "drinks", 60, "New", "falooda"],
+  ["Coconut Water", "ডাবের পানি", "drinks", 40, null, "coconut-water"],
+];
+
+function FullMenuCard({ onLogin }) {
+  const [open, setOpen] = useState(false); // the card shows its two buttons
+  const [page, setPage] = useState(null); // null | "special" | "book"
+  // Menu Book is its own page with its own address (#menu-book), so the browser back button works too
+  const closePage = () => {
+    if (window.location.hash === "#menu-book") {
+      try { window.history.replaceState(null, "", window.location.pathname + window.location.search); } catch (e) { window.location.hash = ""; }
+    }
+    setPage(null);
+  };
+  const openBook = () => { window.location.hash = "menu-book"; setPage("book"); };
+  // the 3D book opens on top of the Menu Book page (see menu-book.js); the View Menu button hides while it is open
+  const [bookOpen, setBookOpen] = useState(false);
+  const viewMenu = () => { if (window.CampusDineMenuBook) window.CampusDineMenuBook.open(); };
+  useEffect(() => {
+    const onToggle = (e) => setBookOpen(!!(e.detail && e.detail.open));
+    document.addEventListener("menubook:toggle", onToggle);
+    return () => document.removeEventListener("menubook:toggle", onToggle);
+  }, []);
+  // the book opens by itself (cover first, then it swings open); View Menu brings it back after it is closed with the cross
+  useEffect(() => {
       </div>
         </ErrorBoundary>
         )}
