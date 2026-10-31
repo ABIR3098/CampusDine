@@ -94,3 +94,6 @@ Ratings, admin side: what students think of the meals (average, spread, best / l
 
 ## `ratingsTrend.jsx`
 Ratings (admin): is each meal getting better or worse? A small line per meal time.
+
+## `report.jsx`
+Step 12 — admin "Reports" tab: plates per day and meal, who is off, who changed what and when.
