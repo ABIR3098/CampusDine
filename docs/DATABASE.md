@@ -689,3 +689,16 @@ Created in `backend/src/hall/schema.js`.
 | `cutoff_time` | TIME |
 | `price` | DECIMAL(10,2) |
 | `guest_price` | DECIMAL(10,2) |
+
+## `hall_meal_state`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `status` | ENUM('on','off') |
+| `source` | ENUM('manual','auto') |
+| `changed_at` | DATETIME |
