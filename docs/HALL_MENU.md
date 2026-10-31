@@ -31,3 +31,6 @@ Each day has three slots: `breakfast`, `lunch` and `dinner`. Items are written a
 
 ## Limits
 One meal line can be at most 255 characters, and an empty line is not saved.
+
+## Going back to the sample menu
+Delete the rows you want to reset from `hall_menu` and restart the server. The sample rows are inserted again with `INSERT IGNORE`; rows that still exist are never overwritten.
