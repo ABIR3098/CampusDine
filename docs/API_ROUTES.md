@@ -234,3 +234,8 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/hall/finance/expenses`
 - `POST /api/hall/finance/expenses`
 - `DELETE /api/hall/finance/expenses/:id`
+
+## `/api/hall` — `src/hall/routes/guests.js`
+
+- `GET /api/hall/guests`
+- `PUT /api/hall/guests/:date/:slot`
