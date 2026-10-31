@@ -28,3 +28,7 @@ test("isLocked: earlier day is open, later day is locked", () => {
   assert.strictEqual(isLocked(lunch, "2026-10-22", { dateKey: "2026-10-21", minutes: 1400 }), false);
   assert.strictEqual(isLocked(lunch, "2026-10-22", { dateKey: "2026-10-23", minutes: 0 }), true);
 });
+
+test("isDateKey accepts a real date", () => {
+  assert.equal(isDateKey("2026-10-31"), true);
+});
