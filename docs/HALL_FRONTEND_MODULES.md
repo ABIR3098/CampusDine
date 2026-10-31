@@ -115,3 +115,6 @@ Hall Services: complaints, maintenance, cleaning, laundry, lost & found, feedbac
 
 ## `slotPreview.jsx`
 Meal times (admin): says in plain words what the cut-off you are typing means.
+
+## `slots.jsx`
+Step 2 — "Meal times" tab: when each meal closes for changes, and its price. Admin can edit.
