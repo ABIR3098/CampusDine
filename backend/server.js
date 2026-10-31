@@ -633,7 +633,8 @@ async function runStartupCheck() {
     { name: "Demo Rider", externalId: "rider1", role: "rider", password: "rider123", bonus: 0 },
   ];
 
-  for (const acc of demoAccounts) {
+  const skipDemo = process.env.NODE_ENV === "production"; // never seed admin123 etc. on a live server
+  for (const acc of skipDemo ? [] : demoAccounts) {
     const [existing] = await db.query("SELECT id FROM users WHERE external_id = ?", [acc.externalId]);
     if (existing.length > 0) continue;
 
