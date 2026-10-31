@@ -12,3 +12,8 @@ test("a built payload parses back as valid", () => {
   assert.ok(payload.startsWith("CD1|C-105|"));
   assert.deepEqual(parseCode(payload), { token: "C-105", signed: true, valid: true });
 });
+
+test("a tampered signature is invalid", () => {
+  const bad = "CD1|C-105|000000000000";
+  assert.equal(parseCode(bad).valid, false);
+});
