@@ -618,3 +618,18 @@ Created in `backend/src/hall/extraSchema.js`.
 | `entity_id` | BIGINT |
 | `details` | JSON |
 | `created_at` | TIMESTAMP |
+
+## `hall_expenses`
+Created in `backend/src/hall/financeSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `expense_date` | DATE |
+| `category` | VARCHAR(30) |
+| `amount` | DECIMAL(10,2) |
+| `supplier_id` | BIGINT UNSIGNED |
+| `note` | VARCHAR(255) |
+| `created_by` | INT |
+| `university_id` | BIGINT UNSIGNED |
+| `created_at` | DATETIME |
