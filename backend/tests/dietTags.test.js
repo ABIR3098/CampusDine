@@ -76,3 +76,11 @@ test("parseList accepts an array and removes duplicates", () => {
   assert.deepEqual(parseList(["beef", "beef", "egg"]), ["beef", "egg"]);
   assert.deepEqual(parseList(null), []);
 });
+
+test("matchesFor marks allergy above avoid", () => {
+  const diet = { allergies: ["fish"], avoid: ["beef", "fish"] };
+  assert.deepEqual(matchesFor(["beef", "fish"], diet), [
+    { key: "beef", label: "Beef", level: "avoid" },
+    { key: "fish", label: "Fish", level: "allergy" },
+  ]);
+});
