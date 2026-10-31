@@ -66,6 +66,7 @@ const NUTRITION_BY_NAME = {
   "Chicken Fried Rice": { calories: 520, allergens: ["egg", "soy"] },
   "Beef Tehari": { calories: 680, allergens: [] },
   "Chicken Pasta": { calories: 550, allergens: ["gluten", "milk"] },
+  "Thai Soup": { calories: 90, allergens: ["soy"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
