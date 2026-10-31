@@ -216,3 +216,7 @@
 .hl-dayc { transition: transform .15s ease, box-shadow .2s ease; }
 .hl-dayc:hover { transform: translateY(-2px); }
 .hl-dayc-row .tl { letter-spacing: .02em; }
+@media (prefers-reduced-motion: reduce) {
+  .hl-btn, .hl-sec, .hl-dayc { transition: none; }
+  .hl-dayc:hover { transform: none; }
+}
