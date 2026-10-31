@@ -307,13 +307,6 @@ npm install --save-dev nodemon
 npm install express cors bcrypt jsonwebtoken mysql2 socket.io uuid express-rate-limit dotenv
 ```
 
-### 3. **Or Use Enhanced Package**
-
-```bash
-cp package-enhanced.json package.json
-npm install
-```
-
 ### 4. **Run Server**
 
 **Development:**
