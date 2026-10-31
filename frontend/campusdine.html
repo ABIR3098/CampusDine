@@ -3264,6 +3264,472 @@ function NutritionInfo({ item }) {
   const allergens = Array.isArray(item.allergens) ? item.allergens : [];
   const hasCalories = typeof item.calories === "number";
   if (!hasCalories && allergens.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      {hasCalories && (
+        <span title={tx("nut.approx")} className="text-[11px] font-mono px-2 py-1 rounded-full"
+          style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+          ~{num(item.calories)} {tx("nut.kcal")}
+        </span>
+      )}
+      {allergens.length > 0 && (
+        <span className="text-[11px] uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{tx("nut.contains")}:</span>
+      )}
+      {allergens.map(a => (
+        <span key={a} className="text-[11px] font-600 px-2 py-0.5 rounded-full border"
+          style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+          {lookup("allergen", a)}
+        </span>
+      ))}
+      {hasCalories && allergens.length === 0 && (
+        <span className="text-[11px] font-600 px-2 py-0.5 rounded-full border"
+          style={{ borderColor: "#16A34A", color: "#16A34A" }}>
+          {tx("nut.none")}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* Feature: your usual */
+// the (up to) 3 menu items this student has ordered in the most separate orders; unavailable items are skipped
+function pickUsual(pastOrders, menu) {
+  const counts = new Map();
+  for (const o of pastOrders || []) {
+    if (o.status === "Cancelled") continue;
+    for (const name of new Set((o.items || []).map(i => i.name))) counts.set(name, (counts.get(name) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, n]) => ({ item: menu.find(m => m.name === name), n }))
+    .filter(x => x.item && x.item.availability === "available" && Number(x.item.stock) > 0)
+    .slice(0, 3);
+}
+function UsualPanel({ pastOrders, menu, cart, add }) {
+  const usual = pickUsual(pastOrders, menu);
+  if (usual.length === 0) return null;
+  return (
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
+      <div className="font-display font-700 text-base mb-3" style={{ color: "var(--gold)" }}>🔁 {tx("usual.title")}</div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {usual.map(({ item, n }) => {
+          const inCart = cart.find(c => c.id === item.id);
+          const maxed = !!inCart && inCart.qty >= item.stock;
+          return (
+            <div key={"usual-" + item.id} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+              <div className="flex items-center gap-1.5">
+                <DietMark isVeg={!!item.is_veg} />
+                <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{itemName(item)}</span>
+              </div>
+              <div className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>{tx("usual.times", { n: num(n) })}</div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                <button type="button" disabled={maxed} onClick={() => add(item)}
+                  className="text-xs px-2.5 py-1.5 rounded-lg text-white disabled:opacity-50"
+                  style={{ background: inCart ? "var(--teal)" : "var(--gold)" }}>
+                  {inCart ? tx("plus1") : tx("add")}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+function FavoritesQuickOrderPanel({ items, cart, add, onToggleFavorite, setFavoritesOnly }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mb-5 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "rgba(245, 179, 0, 0.05)" }}>
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Icon path={I.star} className="w-4 h-4" style={{ color: "var(--gold)" }} fill="currentColor" />
+          <h3 className="font-display font-700 text-base" style={{ color: "var(--gold)" }}>{tx("starred")}</h3>
+        </div>
+        <button onClick={() => setFavoritesOnly(true)} className="text-xs px-2.5 py-1.5 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+          {tx("viewfav")}
+        </button>
+      </div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {items.map(item => {
+          const out = item.stock <= 0 || item.availability === "sold_out";
+          const inCart = cart.find(cartItem => cartItem.id === item.id);
+          return (
+            <div key={`fav-${item.id}`} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <DietMark isVeg={!!item.is_veg} />
+                  <span className="font-600 text-sm" style={{ color: "var(--ink)" }}>{itemName(item)}</span>
+                </div>
+                <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+                  type="button"
+                  aria-pressed="true"
+                  aria-label={tx("fav.remove")}
+                  title={tx("fav.remove")}
+                  className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+                  <Icon path={I.star} className="w-4 h-4" fill="currentColor" style={{ color: "var(--gold)" }} />
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono font-600 text-sm">{taka(item.price)}</span>
+                {out ? (
+                  <span className="text-[11px] font-600" style={{ color: "var(--brick)" }}>{item.availability === "sold_out" ? tx("soldout") : tx("outstock")}</span>
+                ) : inCart ? (
+                  <button onClick={() => add(item)} className="text-xs px-2.5 py-1.5 rounded-lg text-white" style={{ background: "var(--teal)" }}>
+                    {tx("plus1")}
+                  </button>
+                ) : (
+                  <button onClick={() => add(item)} className="btn-primary px-2.5 py-1.5 rounded-lg text-xs">{tx("quick")}</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Promo slider: today's offers, new items, coupons, points ---------------- */
+// slides: [{ key, tag, title, text, cta?, onCta?, img?, tone? }]
+function PromoSlider({ slides }) {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchX = useRef(null);
+  const n = slides.length;
+  useEffect(() => { if (i >= n) setI(0); }, [n]);
+  useEffect(() => {
+    if (n < 2 || paused) return;
+    const t = setInterval(() => setI(x => (x + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [n, paused]);
+  if (n === 0) return null;
+  const go = (d) => setI(x => (x + d + n) % n);
+  const tones = {
+    green: "linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%)",
+    warm: "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)",
+    rose: "linear-gradient(135deg, #E11D48 0%, #881337 100%)",
+    blue: "linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)",
+    violet: "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
+  };
+  return (
+    <div className="mb-5 relative overflow-hidden rounded-2xl select-none" style={{ height: 160 }}
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={e => { if (touchX.current == null) return; const dx = e.changedTouches[0].clientX - touchX.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); touchX.current = null; }}>
+      <div className="flex h-full" style={{ width: `${n * 100}%`, transform: `translateX(-${(i * 100) / n}%)`, transition: "transform .5s ease" }}>
+        {slides.map(sl => (
+          <div key={sl.key} className="h-full flex items-center justify-between gap-4 px-6 text-white" style={{ width: `${100 / n}%`, background: tones[sl.tone] || tones.green }}>
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase tracking-widest font-700 px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>{sl.tag}</span>
+              <div className="font-display font-800 text-xl sm:text-2xl mt-2 leading-tight">{sl.title}</div>
+              <div className="text-sm opacity-90 mt-1 line-clamp-2">{sl.text}</div>
+              {sl.cta && <button onClick={sl.onCta} className="mt-3 px-3 py-1.5 rounded-lg text-xs font-700" style={{ background: "#fff", color: "#111" }}>{sl.cta}</button>}
+            </div>
+            {sl.img && <img src={sl.img} alt="" className="hidden sm:block rounded-xl object-cover shrink-0" style={{ width: 110, height: 110, background: "rgba(255,255,255,0.15)" }}
+              onError={e => { e.target.style.display = "none"; }} />}
+          </div>
+        ))}
+      </div>
+      {n > 1 && (
+        <>
+          <button aria-label="Previous" onClick={() => go(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronLeft} className="w-4 h-4" /></button>
+          <button aria-label="Next" onClick={() => go(1)} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-white" style={{ background: "rgba(0,0,0,0.3)" }}><Icon path={I.chevronRight} className="w-4 h-4" /></button>
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+            {slides.map((sl, k) => <button key={sl.key} aria-label={"Slide " + (k + 1)} onClick={() => setI(k)} className="rounded-full" style={{ width: k === i ? 18 : 6, height: 6, background: "#fff", opacity: k === i ? 1 : 0.5, transition: "all .3s" }} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* Feature: kitchen note chips */
+const NOTE_CHIPS = ["chip.lessspicy", "chip.noonion", "chip.extrasauce", "chip.lessoil", "chip.nosugar", "chip.packsep"];
+function noteHas(note, text) {
+  return note.split(",").some(p => p.trim().toLowerCase() === text.toLowerCase());
+}
+function noteToggle(note, text) {
+  const parts = note.split(",").map(p => p.trim()).filter(Boolean);
+  const i = parts.findIndex(p => p.toLowerCase() === text.toLowerCase());
+  if (i >= 0) { parts.splice(i, 1); return parts.join(", "); }
+  const added = parts.concat(text).join(", ");
+  return added.length > 200 ? note : added; // no room left: leave the note as it is
+}
+/* Feature: time greeting */
+function mealSlot(h) {
+  if (h >= 5 && h < 11) return { meal: "breakfast", cat: "snacks" };
+  if (h >= 11 && h < 15) return { meal: "lunch", cat: "heavy" };
+  if (h >= 15 && h < 18) return { meal: "snack", cat: "snacks" };
+  if (h >= 18 && h < 22) return { meal: "dinner", cat: "heavy" };
+  return { meal: "late", cat: "drinks" };
+}
+function greetingFor(h) {
+  if (h >= 5 && h < 12) return { key: "morning", icon: "☀️" };
+  if (h >= 12 && h < 17) return { key: "afternoon", icon: "🌤️" };
+  if (h >= 17 && h < 21) return { key: "evening", icon: "🌆" };
+  return { key: "night", icon: "🌙" };
+}
+
+/* ---------------- FEATURE: Canteen Live Busy-o-Meter ---------------- */
+function CanteenBusyOMeter() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  const hour = now.getHours();
+  const min = now.getMinutes();
+  const timeNum = hour + min / 60;
+
+  let label = "🟢 Low Rush (~5 min wait)";
+  let dotColor = "bg-emerald-500";
+  let cls = "busy-low";
+
+  if (timeNum >= 12.75 && timeNum <= 14.25) {
+    label = "🔴 Peak Lunch Rush (~25-30 min wait)";
+    dotColor = "bg-red-500";
+    cls = "busy-peak";
+  } else if ((timeNum >= 8.75 && timeNum <= 10.0) || (timeNum >= 16.5 && timeNum <= 17.5)) {
+    label = "🟡 Moderate Rush (~12-15 min wait)";
+    dotColor = "bg-amber-500";
+    cls = "busy-mod";
+  }
+
+  return (
+    <div className={`busy-meter-pill ${cls}`} title="Estimated wait time based on campus class breaks">
+      <span className={`w-2 h-2 rounded-full ${dotColor} animate-pulse`} />
+      <span>Live Crowd: <strong>{label}</strong></span>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Smart Budget Meal Planner Modal ---------------- */
+function BudgetMealPlannerModal({ menu, onAddToCart, onClose }) {
+  const [budget, setBudget] = useState(80);
+  const [pref, setPref] = useState("all");
+
+  const combos = useMemo(() => {
+    const valid = menu.filter(m => m.stock > 0 && m.availability !== "sold_out");
+    const filtered = valid.filter(m => {
+      if (pref === "veg") return !!m.is_veg;
+      if (pref === "drinks") return m.category === "drinks";
+      return true;
+    });
+
+    const results = [];
+    for (let i = 0; i < filtered.length; i++) {
+      for (let j = i + 1; j < filtered.length; j++) {
+        const cost = filtered[i].price + filtered[j].price;
+        if (cost <= budget) {
+          results.push({
+            items: [filtered[i], filtered[j]],
+            cost,
+            savings: Math.max(0, budget - cost),
+            label: `${filtered[i].name} + ${filtered[j].name}`
+          });
+        }
+      }
+    }
+    return results.sort((a, b) => b.cost - a.cost).slice(0, 4);
+  }, [menu, budget, pref]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">🤖</span>
+            <div>
+              <h3 className="text-lg font-display font-800">Smart Budget Meal Planner</h3>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>AI recommends optimal meal combos within your exact budget.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+
+        <div className="p-4 rounded-xl border space-y-2" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
+          <div className="flex justify-between items-center text-sm font-700">
+            <span>Your Target Budget:</span>
+            <span className="text-lg font-display" style={{ color: "var(--gold)" }}>৳{budget}</span>
+          </div>
+          <input type="range" min="30" max="200" step="5" value={budget} onChange={e => setBudget(Number(e.target.value))}
+            className="w-full accent-emerald-600 cursor-pointer" />
+          <div className="flex gap-2 pt-1 flex-wrap">
+            {[40, 60, 80, 100, 130].map(amt => (
+              <button key={amt} onClick={() => setBudget(amt)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-700 border ${budget === amt ? "btn-primary" : ""}`}
+                style={budget === amt ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+                ৳{amt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {[
+            { id: "all", label: "🍽 All Food" },
+            { id: "veg", label: "🌱 Veg Only" },
+            { id: "drinks", label: "☕ Drinks" }
+          ].map(p => (
+            <button key={p.id} onClick={() => setPref(p.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-700 border ${pref === p.id ? "btn-primary" : ""}`}
+              style={pref === p.id ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-2.5 pt-1">
+          <div className="text-xs font-700 uppercase tracking-wider" style={{ color: "var(--ink-soft)" }}>
+            Recommended Combos Under ৳{budget}:
+          </div>
+          {combos.length === 0 ? (
+            <div className="p-6 text-center text-xs rounded-xl border italic" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+              No complete combo found under ৳{budget}. Try increasing your budget slightly!
+            </div>
+          ) : (
+            combos.map((c, idx) => (
+              <div key={idx} className="p-3.5 rounded-xl border flex items-center justify-between gap-3"
+                style={{ background: "var(--panel)", borderColor: "var(--accent-border)" }}>
+                <div className="space-y-0.5">
+                  <div className="text-sm font-700">{c.label}</div>
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+                    Combo Cost: <strong style={{ color: "var(--gold)" }}>৳{c.cost}</strong> · Saves ৳{c.savings}
+                  </div>
+                </div>
+                <button onClick={() => { c.items.forEach(it => onAddToCart(it)); onClose(); }}
+                  className="btn-primary text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 shrink-0">
+                  <span>+ Add Combo</span>
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Daily Lucky Scratch Card Modal ---------------- */
+function DailyScratchModal({ onClose }) {
+  const todayStr = new Date().toDateString();
+  const [savedData, setSavedData] = useState(() => {
+    try {
+      const raw = localStorage.getItem("cd_scratch_data");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.date === todayStr) return parsed;
+      }
+    } catch (_) {}
+    return null;
+  });
+
+  const [scratched, setScratched] = useState(() => !!savedData);
+  const [reward, setReward] = useState(() => {
+    if (savedData && savedData.reward) return savedData.reward;
+    const prizes = [
+      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
+      { text: "☕ Free Student Chai", code: "FREECHAI" },
+      { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
+      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
+    ];
+    return prizes[Math.floor(Math.random() * prizes.length)];
+  });
+
+  const handleScratch = () => {
+    if (scratched) return;
+    setScratched(true);
+    try {
+      localStorage.setItem("cd_scratch_data", JSON.stringify({ date: todayStr, reward }));
+    } catch (_) {}
+  };
+
+  const isAlreadyClaimed = !!savedData;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-sm w-full text-center space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="font-display font-800 text-lg">🎁 Daily Lucky Scratch</div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+        <p className="text-xs" style={{ color: "var(--ink-soft)" }}>
+          {isAlreadyClaimed
+            ? "You have already claimed today's scratch! Here is your saved reward for today:"
+            : "Scratch once per day to unlock an exclusive campus perk or cashback!"}
+        </p>
+
+        <div className="scratch-card-box" onClick={handleScratch} style={{ cursor: isAlreadyClaimed ? "default" : "pointer" }}>
+          {!scratched ? (
+            <div className="scratch-cover">
+              <div className="text-3xl mb-1">✨</div>
+              <div>TAP TO SCRATCH</div>
+              <div className="text-[11px] opacity-75 font-normal mt-1">1 scratch per student per day</div>
+            </div>
+          ) : (
+            <div className="py-4 space-y-2 fade-in">
+              <div className="text-4xl animate-bounce">🎊</div>
+              <div className="font-display font-800 text-lg text-emerald-600">{reward.text}</div>
+              <div className="inline-block px-3 py-1 rounded-full font-mono text-xs font-700 bg-amber-100 text-amber-800">
+                PROMO CODE: {reward.code}
+              </div>
+              <p className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>
+                {isAlreadyClaimed
+                  ? "⏳ Next scratch card unlocks tomorrow!"
+                  : "Reward saved! Use this code at checkout today."}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <button onClick={onClose} className="btn-primary w-full py-2.5 rounded-xl text-xs font-700">
+          {isAlreadyClaimed ? "Close & Return" : "Claim & Return to Menu"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- FEATURE: Campus Foodie Badges Modal ---------------- */
+function FoodieBadgesModal({ onClose }) {
+  const badges = [
+    { icon: "🌅", name: "Early Bird", desc: "Ordered breakfast before 9:00 AM", unlocked: true },
+    { icon: "🍗", name: "Biryani Master", desc: "Ordered Special Tehari or Biryani 3+ times", unlocked: true },
+    { icon: "🌱", name: "Eco Champ", desc: "Brought personal box (BYOB) to save plastic", unlocked: true },
+    { icon: "⚡", name: "Speed Picker", desc: "Collected meal within 5 mins of ready alert", unlocked: false },
+    { icon: "🔥", name: "7-Day Streak", desc: "Dined at campus canteen 7 consecutive days", unlocked: false },
+    { icon: "⭐", name: "Gourmet Critic", desc: "Left 5 helpful ratings for the kitchen", unlocked: true }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in">
+      <div className="card p-6 max-w-md w-full max-h-[85vh] overflow-y-auto space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🏆</span>
+            <div>
+              <h3 className="font-display font-800 text-lg">Campus Foodie Badges</h3>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Earn rewards and campus reputation as you dine.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border grid place-items-center font-700 text-sm">✕</button>
+        </div>
+
+        <div className="space-y-2.5">
+          {badges.map((b, i) => (
+            <div key={i} className={`badge-chip ${b.unlocked ? "unlocked" : "locked"}`}>
+              <div className="text-2xl w-10 h-10 rounded-xl grid place-items-center shrink-0" style={{ background: "var(--panel)" }}>
+                {b.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <strong className="text-sm">{b.name}</strong>
+                  {b.unlocked && <span className="text-[10px] font-800 uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Unlocked</span>}
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{b.desc}</div>
+              </div>
         )}
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
           <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
