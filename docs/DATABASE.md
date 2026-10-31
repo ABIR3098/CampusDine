@@ -758,3 +758,14 @@ Created in `backend/src/hall/schema.js`.
 | `the_date` | DATE |
 | `slot` | VARCHAR(12) |
 | `guest_count` | TINYINT |
+
+## `hall_payments`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `ym` | CHAR(7) |
+| `amount` | DECIMAL(10,2) |
+| `created_at` | DATETIME |
