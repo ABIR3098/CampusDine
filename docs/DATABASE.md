@@ -484,3 +484,15 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `kind` | VARCHAR(60) |
 | `read_at` | DATETIME |
 | `created_at` | TIMESTAMP |
+
+## `hall_student_profiles`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `user_id` | INT |
+| `phone` | VARCHAR(40) |
+| `emergency_contact` | VARCHAR(180) |
+| `blood_group` | VARCHAR(8) |
+| `department` | VARCHAR(120) |
+| `updated_at` | TIMESTAMP |
