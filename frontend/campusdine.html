@@ -833,6 +833,25 @@
     flex-shrink: 0;
   }
 
+  .portal-user-banner::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    .portal-sidebar {
+      position: fixed;
+      left: -260px;
+      height: 100vh;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
 .chat-shell[data-admin="1"]{grid-template-columns:320px minmax(0,1fr)}
