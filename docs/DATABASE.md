@@ -94,3 +94,16 @@ Created in `backend/schema.sql`.
 | `delivery_lng` | DECIMAL(10,7) |
 | `picked_up_at` | DATETIME |
 | `created_at` | TIMESTAMP |
+
+## `rider_shifts`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `rider_id` | INT |
+| `status` | ENUM('ON_DUTY','OFF_DUTY') |
+| `max_orders` | INT |
+| `started_at` | DATETIME |
+| `ended_at` | DATETIME |
+| `active_key` | TINYINT |
