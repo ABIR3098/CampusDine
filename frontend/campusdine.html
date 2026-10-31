@@ -9896,15 +9896,30 @@ function App() {
       <TopBar
         role={session.user.role}
         name={session.user.name}
+        avatar={session.user.avatar}
+        tabs={currentTabs}
+        active={tab}
+        setActive={setTab}
+        onLogout={logout}
+        connected={connected}
+        onToggleLang={toggleLang}
+        notifications={notifications}
+        notificationCount={unreadNotifications}
         notificationOpen={notificationCenterOpen}
         onToggleNotifications={() => setNotificationCenterOpen(v => !v)}
         onMarkAllRead={markAllNotificationsRead}
         onClearNotifications={clearNotifications}
+        sidebarCollapsed={sidebarCollapsed}
+        setSidebarCollapsed={setSidebarCollapsed}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        searchTerm={sidebarSearch}
+        setSearchTerm={setSidebarSearch}
       />
-      <div className="fixed top-[76px] right-4 z-50 flex flex-col gap-2 w-[min(90vw,320px)] pointer-events-none">
-        {toastNotifications.map(item => (
-          <div key={item.id} className="pointer-events-auto rounded-xl border p-3 shadow-lg" style={{
-            background: item.kind === "announcement" ? "rgba(22,163,74,0.10)" : "rgba(245,179,0,0.12)",
+
+      {/* ─── Main Content Viewport ─── */}
+      <div className="portal-main">
+        {/* Top Header Bar */}
             borderColor: item.kind === "announcement" ? "rgba(22,163,74,0.35)" : "rgba(245,179,0,0.35)",
             color: "var(--ink)"
           }}>
