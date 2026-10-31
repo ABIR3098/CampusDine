@@ -7079,6 +7079,19 @@ function AdminOrders({ orders, advance, call, onShowPosSlip, onOpenKds }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>
+          {assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}
+        </div>
+        <button
+          type="button"
+          onClick={onOpenKds}
+          className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-black text-xs border border-amber-500/40 shadow-lg flex items-center gap-2">
+          <span className="text-base animate-pulse">🍳</span>
+          <span>Launch Kitchen Display System (KDS Fullscreen)</span>
+        </button>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {sorted.map(o => (
         <div key={o.token} className="card p-4">
           <div className="flex justify-between items-start mb-2">
@@ -7109,7 +7122,18 @@ function AdminOrders({ orders, advance, call, onShowPosSlip, onOpenKds }) {
             </div>
           )}
           <div className="flex justify-between items-center">
-            <span className="font-mono text-sm">{taka(o.total)}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm">{taka(o.total)}</span>
+              {onShowPosSlip && (
+                <button
+                  type="button"
+                  onClick={() => onShowPosSlip(o)}
+                  className="text-[11px] px-2 py-1 rounded-md border font-bold hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                  🧾 POS Slip
+                </button>
+              )}
+            </div>
             {o.status === "Cancelled" ? (
               <span className="text-xs flex items-center gap-1" style={{ color: "var(--brick)" }}><Icon path={I.x} className="w-4 h-4" /> Cancelled</span>
             ) : o.status !== "Ready" ? (
@@ -10041,6 +10065,9 @@ function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
   const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
   const [tab, setTab] = useState("menu");
+  const [posReceiptOrder, setPosReceiptOrder] = useState(null);
+  const [showDailySpin, setShowDailySpin] = useState(false);
+  const [kdsActive, setKdsActive] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [lang, setLang] = useState(() => { try { return localStorage.getItem("cd_lang") === "bn" ? "bn" : "en"; } catch (e) { return "en"; } });
@@ -10593,6 +10620,7 @@ function App() {
     { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
     { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
     { key: "rewards", label: tx("nav.rewards"), icon: I.gift },
+    { key: "leaderboard", label: "Badges & Ranks", icon: I.star },
     { key: "spending", label: tx("nav.spending"), icon: I.chart },
     { key: "chat", label: tx("nav.chat"), icon: I.chat },
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
@@ -10605,6 +10633,7 @@ function App() {
     { key: "adminMenu", label: "Menu", icon: I.box },
     { key: "hallFood", label: "Hall Food", icon: I.calendar },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
+    { key: "kds", label: "Kitchen Display (KDS)", icon: I.dashboard },
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "offers", label: "Offers", icon: I.gift },
@@ -10710,6 +10739,9 @@ function App() {
                   <div className="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
                     <button
                       type="button"
+                      onClick={() => setShowDailySpin(true)}
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-lg transition-all flex items-center gap-1.5 animate-bounce">
+                      <span>🎡</span>
                       onClick={() => setTab("wallet")}
                       className="px-4 py-2.5 rounded-xl bg-white text-blue-900 font-extrabold text-xs shadow-md hover:bg-blue-50 transition-all flex items-center gap-2">
                       <span>💳</span>
