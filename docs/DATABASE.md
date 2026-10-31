@@ -747,3 +747,14 @@ Created in `backend/src/hall/schema.js`.
 | `user_id` | INT |
 | `status` | ENUM('going','not_going') |
 | `updated_at` | DATETIME |
+
+## `hall_guests`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `guest_count` | TINYINT |
