@@ -4321,6 +4321,39 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
           </div>
         </div>
 
+        {/* Feature: Night Canteen / Late Night Study Craving */}
+        <div className="mb-4 px-4 py-3 rounded-2xl border transition-all bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-white border-indigo-500/40 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl animate-pulse">🌙</span>
+              <div>
+                <div className="font-display font-black text-sm flex items-center gap-2">
+                  <span>Night Canteen & Exam Craving Window</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500 text-white">11 PM – 2 AM</span>
+                </div>
+                <div className="text-xs text-indigo-200 mt-0.5">
+                  Exam all-nighter? Order hot noodles, kadak chai & energy study snacks with fast 10-min counter pickup.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-indigo-800/60 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-indigo-300">Quick Study Fuel:</span>
+            <button type="button" onClick={() => add({ id: 991, name: "Midnight Spicy Egg Maggi", price: 50, category: "snacks" })} className="px-3 py-1.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all">
+              <span>🍜</span> Egg Maggi (৳50) +
+            </button>
+            <button type="button" onClick={() => add({ id: 992, name: "Kadak Masala Chai", price: 15, category: "drinks" })} className="px-3 py-1.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all">
+              <span>☕</span> Masala Chai (৳15) +
+            </button>
+            <button type="button" onClick={() => add({ id: 993, name: "Cold Brew Espresso", price: 40, category: "drinks" })} className="px-3 py-1.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all">
+              <span>🧊</span> Cold Coffee (৳40) +
+            </button>
+            <button type="button" onClick={() => add({ id: 994, name: "Cheesy Midnight Toast", price: 35, category: "snacks" })} className="px-3 py-1.5 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all">
+              <span>🥪</span> Cheesy Toast (৳35) +
+            </button>
+          </div>
+        </div>
+
         {/* Feature: Smart Budget Meal Planner Banner */}
         <div className="mb-4 p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-3"
           style={{ background: "linear-gradient(135deg, rgba(79,127,95,0.08), rgba(245,158,11,0.06))", borderColor: "var(--accent-border)" }}>
