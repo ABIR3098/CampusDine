@@ -9939,12 +9939,26 @@ function App() {
           currentTabLabel={currentTabObj ? currentTabObj.label : ""}
         />
 
+        {/* Toast notifications */}
+        <div className="fixed top-[85px] right-6 z-50 flex flex-col gap-2 w-[min(90vw,340px)] pointer-events-none">
+          {toastNotifications.map(item => (
+            <div key={item.id} className="pointer-events-auto rounded-2xl border p-3.5 shadow-xl backdrop-blur-md" style={{
+              background: item.kind === "announcement" ? "rgba(22,163,74,0.12)" : "rgba(245,179,0,0.14)",
+              borderColor: item.kind === "announcement" ? "rgba(22,163,74,0.4)" : "rgba(245,179,0,0.4)",
+              color: "var(--ink)"
+            }}>
+              <div className="text-[10px] uppercase tracking-wider font-extrabold" style={{ color: item.kind === "announcement" ? "var(--teal-deep)" : "var(--gold)" }}>{item.title}</div>
+              <div className="text-xs font-medium mt-1 leading-relaxed">{item.message}</div>
+            </div>
+          ))}
         </div>
-        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={switchRestaurant}>
-          {session.user.role !== "admin" && lang === "bn" ? "রেস্টুরেন্ট বদলান" : "Switch restaurant"}
-        </button>
-      </div>
-      <div className="max-w-6xl mx-auto p-5 pb-24 sm:pb-5 fade-in" key={tab}>
+
+        {/* Inner Content Area */}
+        <div className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto fade-in" key={tab}>
+          {/* BUP Portal Style Student / Role Profile Hero Banner (exact BUP screenshot layout) */}
+          {session.user.role === "student" && tab === "menu" && (
+            <>
+              <div className="portal-user-banner">
         <ErrorBoundary scope="tab">
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
