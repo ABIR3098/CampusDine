@@ -227,3 +227,10 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/hall/feasts/:id/rsvp`
 - `DELETE /api/hall/feasts/:id/rsvp`
 - `GET /api/hall/feasts/:id/rsvps`
+
+## `/api/hall` — `src/hall/routes/finance.js`
+
+- `GET /api/hall/finance/summary`
+- `GET /api/hall/finance/expenses`
+- `POST /api/hall/finance/expenses`
+- `DELETE /api/hall/finance/expenses/:id`
