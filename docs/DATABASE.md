@@ -561,3 +561,17 @@ Created in `backend/src/hall/extraSchema.js`.
 | `expires_at` | DATETIME |
 | `created_by` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_inventory`
+Created in `backend/src/hall/extraSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `item_name` | VARCHAR(180) |
+| `category` | VARCHAR(80) |
+| `quantity` | DECIMAL(10,2) |
+| `unit` | VARCHAR(30) |
+| `min_quantity` | DECIMAL(10,2) |
+| `updated_by` | INT |
+| `updated_at` | TIMESTAMP |
