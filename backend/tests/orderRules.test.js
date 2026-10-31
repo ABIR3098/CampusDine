@@ -92,3 +92,11 @@ test("cleanCancelReason gives null for values that are not text", () => {
   const { cleanCancelReason } = require("../src/utils/orderRules");
   for (const v of [42, null, undefined, {}, ["x"]]) assert.strictEqual(cleanCancelReason(v), null);
 });
+
+test("buildOrderStats rounds the average order to two decimals and reads text numbers", () => {
+  const { buildOrderStats } = require("../src/utils/orderRules");
+  assert.strictEqual(buildOrderStats({ orders: 3, spent: 100 }, null).averageOrder, 33.33);
+  const s = buildOrderStats({ orders: "2", spent: "50.5" }, { name: "Cha", qty: "4" });
+  assert.strictEqual(s.averageOrder, 25.25);
+  assert.deepStrictEqual(s.favouriteItem, { name: "Cha", qty: 4 });
+});
