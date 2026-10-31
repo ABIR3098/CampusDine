@@ -18,40 +18,44 @@ function HallFeasts({ call, isAdmin, notify }) {
     try {
       const [list, info, slotData] = await Promise.all([
         call("/api/hall/feasts"),
+        call("/api/hall/info"),
+        call("/api/hall/slots").catch(() => [])
+      ]);
+      setFeasts(list);
+      setToday(info.today);
+      if (slotData && slotData.length) setSlots(slotData);
     } catch (e) { notify(e, true); }
   };
   useEffect(() => { load(); }, []);
 
   // Going / Not going for one feast
   const [busy, setBusy] = useState(null);
-  // admin: who answered what (opens / closes a small list under the feast)
   const [open, setOpen] = useState(null);
   const [list, setList] = useState(null);
   const showWho = async (id) => {
     if (open === id) { setOpen(null); return; }
-    try { setList(await call(`/api/hall/feasts/${id}/rsvps`)); setOpen(id); }
+    try { setList(await call("/api/hall/feasts/" + id + "/rsvps")); setOpen(id); }
     catch (e) { notify(e, true); }
   };
 
-  // one CSV row per answer (uses the CSV helpers from billExport.jsx)
   const downloadCsv = () => {
     const rows = [["Name", "ID", "Answer", "Answered at"]];
     list.people.forEach((p) => rows.push([p.name, p.externalId, p.status === "going" ? "Going" : "Not going", p.at]));
     const csv = "\uFEFF" + rows.map((r) => r.map(hallCsvCell).join(",")).join("\r\n");
-    hallDownloadFile(`feast-${list.feast.date}-${list.feast.slot}.csv`, csv, "text/csv;charset=utf-8");
+    hallDownloadFile("feast-" + list.feast.date + "-" + list.feast.slot + ".csv", csv, "text/csv;charset=utf-8");
   };
 
   const clearRsvp = async (id) => {
     setBusy(id);
-    try { await call(`/api/hall/feasts/${id}/rsvp`, { method: "DELETE" }); notify("Answer removed"); await load(); }
+    try { await call("/api/hall/feasts/" + id + "/rsvp", { method: "DELETE" }); notify("Answer removed"); await load(); }
     catch (e) { notify(e, true); }
     setBusy(null);
   };
   const rsvp = async (id, status) => {
     setBusy(id);
     try {
-      await call(`/api/hall/feasts/${id}/rsvp`, { method: "POST", body: { status } });
-      notify(status === "going" ? "See you at the feast!" : "Marked as not going");
+      await call("/api/hall/feasts/" + id + "/rsvp", { method: "POST", body: { status } });
+      notify(status === "going" ? "See you at the feast! Entry pass booked." : "Marked as not going");
       await load();
     } catch (e) { notify(e, true); }
     setBusy(null);
@@ -67,13 +71,30 @@ function HallFeasts({ call, isAdmin, notify }) {
   };
   const remove = async (id) => {
     if (!window.confirm("Remove this feast?")) return;
-    try { await call(`/api/hall/feasts/${id}`, { method: "DELETE" }); notify("Feast removed"); await load(); }
+    try { await call("/api/hall/feasts/" + id, { method: "DELETE" }); notify("Feast removed"); await load(); }
     catch (e) { notify(e, true); }
   };
 
-  // I can't say going when the feast is full (unless I am already in) or when the meal has locked
   const isFull = (x) => x.capacity != null && x.goingCount >= x.capacity && x.myRsvp !== "going";
 
+  // Book instant guest meal tokens
+  const bookGuestMeal = async () => {
+    setGBusy(true);
+    try {
+      await call("/api/hall/guests/" + gDate + "/" + gSlot, { method: "PUT", body: { count: Number(gCount) } });
+      const passId = "GST-" + Math.floor(1000 + Math.random() * 9000);
+      const slotObj = slots.find(s => s.slot === gSlot) || { guestPrice: 65 };
+      const totalCost = Number(gCount) * (slotObj.guestPrice || 65);
+
+      const passData = {
+        passId,
+        date: gDate,
+        slot: gSlot,
+        count: Number(gCount),
+        guestName: gName.trim() || "Guest of Resident",
+        unitPrice: slotObj.guestPrice || 65,
+        totalCost,
+        generatedAt: new Date().toLocaleString()
   return (
     <>
       <HallCard title="Upcoming feasts" icon="🎉">
