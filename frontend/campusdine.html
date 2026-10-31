@@ -1,3 +1,238 @@
+  };
+    setFlashId(id); setTimeout(() => setFlashId(null), 1400);
+    if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
+    const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - 80;
+    if (!el) return;
+    const box = scrollRef.current, el = box && box.querySelector(`[data-mid="${id}"]`);
+  const jumpToMessage = (id) => {
+  const startReply = (m) => { setReplyTo(m); setMenuFor(null); inputRef.current?.focus(); };
+  const shortText = (t) => { const mt = /^🧾 Order (\S+)/.exec(t || ""); return mt ? `🧾 Order ${mt[1]}` : (t || ""); };
+  };
+    } catch (err) { setError(err.message); }
+      inputRef.current?.focus();
+      setPendingPhoto({ blob, url: URL.createObjectURL(blob) });
+      const blob = await compressChatPhoto(file);
+      setError("");
+    try {
+    if (!/^image\//.test(file.type)) { setError("Please choose an image file"); return; }
+    if (!file) return;
+    e.target.value = "";
+    const file = e.target.files && e.target.files[0];
+  const pickPhoto = async (e) => {
+  };
+    return data.id;
+    }
+      throw new Error("Photo upload failed (error " + res.status + ").");
+      if (res.status === 401 || res.status === 403) throw new Error("Please log in again to send photos.");
+      if (res.status === 404 || res.status === 405) throw new Error("Photo upload is not available yet. Restart the server, then refresh the page (Ctrl + Shift + R).");
+      if (data.error) throw new Error(data.error);
+    if (!res.ok) {
+    try { data = await res.json(); } catch (e) { /* empty body */ }
+    let data = {};
+    });
+      method: "POST", headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": blob.type || "image/jpeg" }, body: blob,
+    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : ""}`, {
+  const uploadImage = async (blob) => {
+  const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+  const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
+  const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+  );
+    <span className="chat-avatar"><Avatar name={name} size={size} />{online !== undefined && <i className={`chat-dot ${online ? "on" : ""}`} />}</span>
+  const withDot = (name, size, online) => (
+  const headAgo = isAdmin ? (selectedUserId ? lastSeen[String(selectedUserId)] : undefined) : adminAgo;
+  };
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+    const days = Math.floor(hrs / 24);
+    if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+    const hrs = Math.floor(mins / 60);
+    if (mins < 60) return `${mins} min ago`;
+    const mins = Math.floor(sec / 60);
+    if (sec < 60) return "just now";
+    if (sec === null || sec === undefined) return "";
+  const agoText = (sec) => {
+  const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
+  const isOnline = (id) => onlineIds.includes(Number(id));
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
+
+  };
+    return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
+    const x = new Date(d);
+    if (!d) return "";
+  const listTime = (d) => {
+  };
+    return x.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+    if (x.toDateString() === y.toDateString()) return "Yesterday";
+    if (x.toDateString() === now.toDateString()) return "Today";
+    const x = new Date(d), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
+  const dayLabel = (d) => {
+  const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  };
+    fitChatInput(e.target);
+    if (!e.target.value) { lastTypingSent.current = 0; emitTyping(false); }
+    if (e.target.value && nowTs - lastTypingSent.current > 2000) { lastTypingSent.current = nowTs; emitTyping(true); }
+    const nowTs = Date.now();
+    setDraft(e.target.value);
+  const onInput = (e) => {
+  };
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+    if (e.key === "Escape" && replyTo) { setReplyTo(null); return; }
+  const onKey = (e) => {
+  };
+    } finally { setBusy(false); }
+      setError(e.message || tx("chat.sendfail"));
+      setDraft(message); setReplyTo(reply); if (photo) setPendingPhoto(photo);
+      setMessages(m => m.filter(x => x.id !== temp.id));
+    } catch (e) {
+      await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
+      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
+      const imageId = photo ? await uploadImage(photo.blob) : null;
+    try {
+    if (inputRef.current) inputRef.current.style.height = "auto";
+    lastTypingSent.current = 0; emitTyping(false);
+    if (photo) setPendingPhoto(null);
+    setDraft(""); setEmojiOpen(false); setOrderOpen(false); setReplyTo(null);
+    setMessages(m => [...m, temp]);
+      ...(reply ? { reply_to_id: reply.id, reply_sender_id: reply.sender_id, reply_sender_name: reply.sender_name, reply_text: shortText(reply.message) } : {}) };
+      ...(photo ? { image_local: photo.url } : {}),
+    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message: message || "📷 Photo", created_at: new Date().toISOString(), pending: true,
+    const reply = replyTo;
+    setBusy(true); setError("");
+    if ((!message && !photo) || busy || (isAdmin && !selectedUserId)) return;
+    const message = (text ?? draft).trim();
+    const photo = text === undefined ? pendingPhoto : null;
+  const send = async (text) => {
+
+  };
+    stickRef.current = true; setNewBelow(0);
+    if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); else el.scrollTop = el.scrollHeight;
+    const el = scrollRef.current; if (!el) return;
+  const jumpToBottom = () => {
+  };
+    if (near) setNewBelow(0);
+    stickRef.current = near; setAtBottom(near);
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    const el = e.currentTarget;
+  const onScroll = (e) => {
+  }, [messages.length, typing, dividerId]);
+    else if (grew > 0) setNewBelow(n => n + grew);
+    if (stickRef.current || Number(last.sender_id) === Number(userId)) { toBottom(true); setNewBelow(0); }
+    const last = messages[messages.length - 1];
+    prevLen.current = messages.length;
+    const grew = messages.length - prevLen.current;
+    }
+      return;
+      } else toBottom(false);
+        el.scrollTop = Math.max(0, top - 40);
+        const top = dividerRef.current.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+      if (want) {
+      pendingInit.current = null;
+      if (want && !dividerRef.current) return;
+      const want = pendingInit.current.id;
+    if (pendingInit.current) {
+    const toBottom = (smooth) => { if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" }); else el.scrollTop = el.scrollHeight; };
+    if (!el || messages.length === 0) return;
+    const el = scrollRef.current;
+  useEffect(() => {
+  // Smart scrolling: jump to first unread on open; afterwards only follow new messages if the reader is at the bottom
+  }, [messages]);
+    setDividerId(fu ? fu.id : null);
+    prevLen.current = messages.length;
+    pendingInit.current = { id: fu ? fu.id : null };
+    const fu = unreadFromRef.current ? messages.find(m => m.id === unreadFromRef.current && Number(m.sender_id) !== Number(userId)) : null;
+    initRef.current = String(selectedUserId || "me");
+    if (messages.length === 0 || initRef.current !== null) return;
+  useEffect(() => {
+  // First load of a conversation: remember where the unread messages start
+  }, [selectedUserId]);
+    if (isAdmin) setMessages([]);
+    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null); setSearchOpen(false); setQuery(""); setReactFor(null);
+    stickRef.current = true; prevLen.current = 0;
+    initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
+  useEffect(() => {
+  // Reset scroll state whenever another conversation is opened
+  }, [isAdmin, apiBase, sessionToken, selectedUserId]);
+    return () => clearInterval(t);
+    }, 10000);
+      (isAdmin ? Promise.all([refreshConversations(), refreshMessages()]) : refreshMessages()).catch(() => {});
+      refreshPresence().catch(() => {});
+      if (document.hidden) return;
+    const t = setInterval(() => {
+  useEffect(() => {
+  // Fallback auto-refresh every 10s (live socket updates still work instantly)
+  }, [isAdmin, apiBase, sessionToken, selectedUserId, refreshKey]);
+    refreshMessages(selectedUserId).catch(e => setError(e.message));
+    if (!isAdmin || !selectedUserId) return;
+  useEffect(() => {
+  }, [isAdmin, selectedUserId, conversations]);
+    setSelectedUserId(conversations[0].user_id);
+    if (!isAdmin || selectedUserId || conversations.length === 0) return;
+  useEffect(() => {
+  }, [isAdmin, apiBase, sessionToken, refreshKey]);
+    refreshPresence().catch(() => {});
+    (isAdmin ? refreshConversations() : refreshMessages()).catch(e => setError(e.message));
+  useEffect(() => {
+  };
+    else { setAdminOnline(!!d.adminOnline); setAdminAgo(d.adminAgoSeconds ?? null); }
+    if (isAdmin) { setOnlineIds((d.online || []).map(Number)); setLastSeen(d.lastSeen || {}); }
+    const d = await chatCall("/api/chat/presence");
+  const refreshPresence = async () => {
+
+  };
+    setMessages(data.messages || []);
+    if (data.firstUnreadId && initRef.current === null) unreadFromRef.current = data.firstUnreadId;
+    const data = await chatCall(isAdmin ? `/api/chat/${target}/messages` : "/api/chat/messages");
+    if (isAdmin && !target) { setMessages([]); return; }
+  const refreshMessages = async (target = selectedUserId) => {
+  };
+    setConversations(data.conversations || []);
+    const data = await chatCall("/api/chat/conversations");
+  const refreshConversations = async () => {
+
+  const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+  const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
+  const isAdmin = role === "admin";
+  const inputRef = useRef(null);
+  const bottomRef = useRef(null);
+  const lastTypingSent = useRef(0);
+  const typingTimer = useRef(null);
+  const prevLen = useRef(0);
+  const stickRef = useRef(true);
+  const unreadFromRef = useRef(null);
+  const pendingInit = useRef(null);
+  const initRef = useRef(null);
+  const dividerRef = useRef(null);
+  const scrollRef = useRef(null);
+  const [newBelow, setNewBelow] = useState(0);
+  const [atBottom, setAtBottom] = useState(true);
+  const [dividerId, setDividerId] = useState(null);
+  const [flashId, setFlashId] = useState(null);
+  const [adminAgo, setAdminAgo] = useState(null);
+  const [lastSeen, setLastSeen] = useState({});
+  const [adminOnline, setAdminOnline] = useState(null);
+  const [onlineIds, setOnlineIds] = useState([]);
+  const fileRef = useRef(null);
+  const [reactFor, setReactFor] = useState(null);
+  const searchRef = useRef(null);
+  const [matchPos, setMatchPos] = useState(0);
+  const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
+  const [pendingPhoto, setPendingPhoto] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [menuFor, setMenuFor] = useState(null);
+  const [typing, setTyping] = useState(false);
+  const [myOrders, setMyOrders] = useState(null);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [mobileChat, setMobileChat] = useState(false);
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [conversations, setConversations] = useState([]);
 function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
