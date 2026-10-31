@@ -1,3 +1,238 @@
+                  <span className="chat-item-body">
+                  {withDot(c.name, 42, isOnline(c.user_id))}
+                  onClick={() => { setSelectedUserId(c.user_id); setMobileChat(true); }}>
+                <button key={c.user_id} className={`chat-item ${active ? "active" : ""}`}
+              return (
+              const active = Number(selectedUserId) === Number(c.user_id), unread = Number(c.unread_count) > 0;
+            ) : filtered.map(c => {
+              <p className="p-4 text-sm text-center" style={{ color: "var(--ink-soft)" }}>{conversations.length ? "No match found." : "No messages yet."}</p>
+            {filtered.length === 0 ? (
+          <div className="chat-inbox-list">
+          </div>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
+            </div>
+              <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
+              <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
+            <div className="chat-inbox-title">
+          <div className="chat-inbox-head">
+        <aside className="card chat-inbox">
+      {isAdmin && (
+    <section className="chat-shell" data-admin={isAdmin ? "1" : "0"} data-mobile-chat={mobileChat ? "1" : "0"}>
+  return (
+
+  });
+    );
+      </div>
+        {!mine && !m.pending && !m.deleted_at && reactControl(m, "theirs")}
+        )}
+          <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
+        {!mine && !m.pending && !m.deleted_at && (
+        </div>
+          )}
+            </div>
+              ))}
+                </button>
+                  <span>{r.emoji}</span>{r.count > 1 && <b>{r.count}</b>}
+                  title={(r.names || []).join(", ")} onClick={() => reactTo(m, r.emoji)}>
+                <button key={r.emoji} type="button" className={`chat-pill-react ${r.mine ? "mine" : ""}`}
+              {m.reactions.map(r => (
+            <div className="chat-reactions">
+          {!m.deleted_at && m.reactions && m.reactions.length > 0 && (
+          <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
+          })()}
+            ) : ((m.image_id || m.image_local) && m.message === "📷 Photo") ? null : <p>{highlight(m.message)}</p>;
+              </div>
+                <div className="chat-order-total">{oc.total}</div>
+                <div className="chat-order-items">{oc.items}</div>
+                <div className="chat-order-top"><span className="chat-order-token">🧾 {oc.token}</span><span className="chat-order-status">{oc.status}</span></div>
+              <div className="chat-order">
+            return oc ? (
+            const oc = parseOrder(m.message);
+          {m.deleted_at ? <p className="chat-deleted">🚫 This message was deleted</p> : (() => {
+          )}
+              : <ChatImage id={m.image_id} apiBase={apiBase} token={sessionToken} onOpen={setLightbox} />
+              ? <img className="chat-img" src={m.image_local} alt="Sending photo" />
+            m.image_local
+          {!m.deleted_at && (m.image_id || m.image_local) && (
+          )}
+            </button>
+              <span>{m.reply_deleted ? "🚫 Message deleted" : shortText(m.reply_text)}</span>
+              <b>{Number(m.reply_sender_id) === Number(userId) ? "You" : (m.reply_sender_name || "Message")}</b>
+            <button type="button" className="chat-quote" onClick={() => jumpToMessage(m.reply_to_id)}>
+          {m.reply_to_id && !m.deleted_at && (
+          {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
+        <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""} ${!m.deleted_at && m.reactions && m.reactions.length ? "has-react" : ""}`}>
+        {mine && !m.pending && !m.deleted_at && reactControl(m, "mine")}
+        )}
+          <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
+        {mine && !m.pending && !m.deleted_at && (
+        )}
+          </div>
+            )}
+              </div>
+                <button type="button" className="danger" onClick={() => deleteMsg(m)}>Delete</button>
+                <button type="button" onClick={() => copyMsg(m)}>Copy</button>
+              <div className="chat-menu" onClick={e => e.stopPropagation()}>
+            {menuFor === m.id && (
+              onClick={e => { e.stopPropagation(); setMenuFor(menuFor === m.id ? null : m.id); }}>⋯</button>
+            <button type="button" className="chat-more" aria-label="Message options"
+          <div className="chat-more-wrap">
+        {mine && !m.pending && !m.deleted_at && (
+        {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
+      <div key={m.id} data-mid={m.id} className={`chat-row ${mine ? "mine" : ""} ${flashId === m.id ? "flash" : ""} ${curId === m.id ? "search-current" : ""}`}>
+    rows.push(
+    const last = !next || Number(next.sender_id) !== Number(m.sender_id);
+    const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
+      rows.push(<div key={`u${m.id}`} ref={dividerRef} className="chat-unread"><span>{unreadN} new message{unreadN === 1 ? "" : "s"}</span></div>);
+    if (m.id === dividerId && unreadN > 0)
+      rows.push(<div key={`d${m.id}`} className="chat-day"><span>{dayLabel(m.created_at)}</span></div>);
+    if (!prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString())
+    const mine = Number(m.sender_id) === Number(userId);
+    const prev = messages[i - 1], next = messages[i + 1];
+  messages.forEach((m, i) => {
+  const rows = [];
+  const unreadN = di < 0 ? 0 : messages.slice(di).filter(m => Number(m.sender_id) !== Number(userId) && !m.deleted_at).length;
+  const di = dividerId ? messages.findIndex(m => m.id === dividerId) : -1;
+
+  }, [draft]);
+    fitChatInput(el);
+    const el = inputRef.current;
+  useEffect(() => {
+  };
+    send(`🧾 Order ${o.token} | ${o.status} | ${taka(o.total)} | ${items}`);
+    const items = (o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 200) || "-";
+  const shareOrder = (o) => {
+  };
+    }
+      } catch (e) { setMyOrders([]); setError(e.message); }
+        setMyOrders(Array.isArray(list) ? list.slice(0, 6) : []);
+        const list = await chatCall("/api/orders/mine");
+      try {
+    if (next && myOrders === null) {
+    setOrderOpen(next);
+    const next = !orderOpen;
+    setEmojiOpen(false);
+  const openOrders = async () => {
+  };
+    return mt ? { token: mt[1], status: mt[2].trim(), total: mt[3].trim(), items: mt[4].trim() } : null;
+    const mt = /^🧾 Order (\S+) \| ([^|]+) \| ([^|]+) \| ([\s\S]*)$/.exec(text || "");
+  const parseOrder = (text) => {
+  useEffect(() => { setTyping(false); }, [selectedUserId, messages.length]);
+  }, [isAdmin, selectedUserId]);
+    return () => { window.removeEventListener("chat-typing", onTyping); clearTimeout(typingTimer.current); };
+    window.addEventListener("chat-typing", onTyping);
+    };
+      if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
+      setTyping(!!d.typing);
+      clearTimeout(typingTimer.current);
+      if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
+      const d = e.detail || {};
+    const onTyping = (e) => {
+  useEffect(() => {
+  };
+    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
+    if (!sock || (isAdmin && !selectedUserId)) return;
+    const sock = window.__campusSocket;
+  const emitTyping = (on) => {
+  };
+    return out;
+    out.push(text.slice(i));
+    }
+      i = j + q.length;
+      out.push(<mark key={k++} className="chat-hit">{text.slice(j, j + q.length)}</mark>);
+      if (j > i) out.push(text.slice(i, j));
+      if (j < 0) break;
+      const j = low.indexOf(q, i);
+    for (;;) {
+    let i = 0, k = 0;
+    const out = [], low = text.toLowerCase();
+    if (!q) return text;
+  const highlight = (text) => {
+  );
+    </div>
+      )}
+        </div>
+          })}
+            return <button key={em} type="button" className={on ? "on" : ""} aria-label={`React ${em}`} onClick={() => reactTo(m, em)}>{em}</button>;
+            const on = (m.reactions || []).some(r => r.mine && r.emoji === em);
+          {REACTION_SET.map(em => {
+        <div className={`chat-reactbar ${reactFor.place} ${side}`} onClick={e => e.stopPropagation()}>
+      {reactFor && reactFor.id === m.id && (
+        }}>☺</button>
+          setReactFor({ id: m.id, place });
+          const place = box && e.currentTarget.getBoundingClientRect().top - box.getBoundingClientRect().top < 70 ? "down" : "up";
+          const box = scrollRef.current;
+          if (reactFor && reactFor.id === m.id) { setReactFor(null); return; }
+          e.stopPropagation();
+        onClick={e => {
+      <button type="button" className="chat-react-btn" aria-label="React to message" title="React"
+    <div className={`chat-react-wrap ${reactFor && reactFor.id === m.id ? "open" : ""}`}>
+  const reactControl = (m, side, boxEl) => (
+  };
+    } catch (e) { setError(e.message); refreshMessages(selectedUserId).catch(() => {}); }
+      await refreshMessages(selectedUserId);
+      await chatCall(`/api/chat/messages/${m.id}/reaction`, { method: "POST", body: { emoji: next } });
+    try {
+    setMessages(list => list.map(x => x.id === m.id ? { ...x, reactions: withReaction(x.reactions, next) } : x));
+    const next = mineNow && mineNow.emoji === emoji ? null : emoji;
+    const mineNow = (m.reactions || []).find(r => r.mine);
+    setReactFor(null);
+  const reactTo = async (m, emoji) => {
+  };
+    return out;
+    }
+      else out = [...out, { emoji: next, count: 1, mine: true, names: [] }];
+      if (hit) out = out.map(r => r === hit ? { ...r, count: r.count + 1, mine: true } : r);
+      const hit = out.find(r => r.emoji === next);
+    if (next) {
+    let out = (list || []).map(r => r.mine ? { ...r, count: r.count - 1, mine: false } : r).filter(r => r.count > 0);
+  const withReaction = (list, next) => {
+  }, [reactFor]);
+    return () => document.removeEventListener("click", close);
+    document.addEventListener("click", close);
+    const close = () => setReactFor(null);
+    if (!reactFor) return;
+  useEffect(() => {
+  const REACTION_SET = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+  // ---- reactions (one per person per message; tap the same emoji again to remove it) ----
+  const toggleSearch = () => { if (searchOpen) closeSearch(); else { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 30); } };
+  const closeSearch = () => { setSearchOpen(false); setQuery(""); };
+  const stepMatch = (dir) => { if (matchIds.length) setMatchPos(p => (Math.min(p, matchIds.length - 1) + dir + matchIds.length) % matchIds.length); };
+  }, [curId, q]);
+    if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
+    const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - 80;
+    if (!el) return;
+    const box = scrollRef.current, el = box && box.querySelector(`[data-mid="${curId}"]`);
+    if (curId === null) return;
+  useEffect(() => {
+  useEffect(() => { setMatchPos(Math.max(0, matchIds.length - 1)); }, [q]);
+  const curId = curPos >= 0 ? matchIds[curPos] : null;
+  const curPos = matchIds.length ? Math.min(matchPos, matchIds.length - 1) : -1;
+  const matchIds = q ? messages.filter(m => !m.deleted_at && !(m.image_id && m.message === "📷 Photo") && (m.message || "").toLowerCase().includes(q)).map(m => m.id) : [];
+  const q = query.trim().toLowerCase();
+  // ---- search inside this chat ----
+  }, [lightbox]);
+    return () => document.removeEventListener("keydown", onEsc);
+    document.addEventListener("keydown", onEsc);
+    const onEsc = (e) => { if (e.key === "Escape") setLightbox(null); };
+    if (!lightbox) return;
+  useEffect(() => {
+  }, [menuFor]);
+    return () => document.removeEventListener("click", close);
+    document.addEventListener("click", close);
+    const close = () => setMenuFor(null);
+    if (menuFor === null) return;
+  useEffect(() => {
+  const copyMsg = (m) => { setMenuFor(null); try { navigator.clipboard.writeText(m.message); } catch (e) {} };
+  };
+    } catch (e) { setError(e.message); }
+      if (isAdmin) refreshConversations().catch(() => {});
+      setMessages(list => list.map(x => x.id === m.id ? { ...x, message: "", deleted_at: new Date().toISOString() } : x));
+      await chatCall(`/api/chat/messages/${m.id}`, { method: "DELETE" });
+    try {
+    if (!window.confirm("Delete this message for everyone?")) return;
+    setMenuFor(null);
+  const deleteMsg = async (m) => {
   };
     setFlashId(id); setTimeout(() => setFlashId(null), 1400);
     if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
