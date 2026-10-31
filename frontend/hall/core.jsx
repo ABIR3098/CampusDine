@@ -466,7 +466,26 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
         />
 
         {toast && (
+          <div className="fixed top-[85px] right-6 z-50 w-[min(90vw,340px)]">
+            <div className="hl-toast fade-in shadow-lg"
+              style={toast.isError
+                ? { background: "var(--danger-bg)", color: "var(--danger-fg)", borderColor: "var(--danger-border)" }
+                : { background: "var(--ok-bg)", color: "var(--ok-fg)", borderColor: "var(--ok-border)" }}>
+              <span>{toast.isError ? "⚠️" : "✅"}</span><span className="flex-1">{toast.message}</span>
+            </div>
           </div>
+        )}
+
+        <div className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto fade-in" key={tab}>
+          {/* BUP Portal Style Blue Student ID Hero Banner for Hall */}
+          {user.role === "student" && tab === "home" && (
+            <div className="portal-user-banner mb-6">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-2xl border-2 border-white/40 overflow-hidden shadow-xl bg-white/20 shrink-0 grid place-items-center">
+                    {ui && ui.Avatar && <ui.Avatar src={user.avatar} name={user.name} size={80} />}
+                  </div>
+                  <div>
         </div>
       )}
 
