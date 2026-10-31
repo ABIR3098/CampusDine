@@ -26,3 +26,8 @@ test("a different token with an old signature is invalid", () => {
 test("a hand-typed token is accepted unsigned and upper-cased", () => {
   assert.deepEqual(parseCode("c-105"), { token: "C-105", signed: false, valid: true });
 });
+
+test("empty input is invalid", () => {
+  assert.equal(parseCode("").valid, false);
+  assert.equal(parseCode(null).valid, false);
+});
