@@ -1,3 +1,238 @@
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [conversations, setConversations] = useState([]);
+function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
+
+}
+  el.style.overflowY = full > 120 ? "auto" : "hidden";
+  el.style.height = Math.min(full, 120) + "px";
+  const full = el.scrollHeight + border;
+  const border = el.offsetHeight - el.clientHeight;
+  el.style.height = "auto";
+  if (!el) return;
+function fitChatInput(el) {
+
+}
+  );
+    </section>
+      )}
+        </div>
+          {coupons.map(coupon => <CouponEditor key={coupon.id} coupon={coupon} onSave={onSave} />)}
+        <div className="space-y-3">
+      ) : (
+        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>No coupons have been created yet.</div>
+      {coupons.length === 0 ? (
+      <h2 className="font-display font-700 text-xl mb-4" style={{ color: "var(--gold)" }}>Manage coupons</h2>
+    <section>
+  return (
+function AdminCoupons({ coupons, onSave }) {
+
+}
+  );
+    </div>
+      )}
+        </form>
+          </div>
+            </button>
+              {saving ? "Saving…" : "Save changes"}
+            <button type="submit" disabled={saving} className="btn-primary px-3 py-2 rounded-lg text-sm disabled:opacity-50">
+              className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>Cancel</button>
+            <button type="button" onClick={() => { setDraft(makeDraft(coupon)); setEditing(false); }}
+          <div className="flex justify-end gap-2 mt-4">
+          </div>
+            </label>
+              Coupon active
+              <input type="checkbox" checked={draft.isActive} onChange={e => change("isActive", e.target.checked)} />
+            <label className="flex items-center gap-2 text-sm self-end pb-2">
+            </label>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+              <input type="datetime-local" value={draft.expiryDate} onChange={e => change("expiryDate", e.target.value)}
+              Expires at (optional)
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+            </label>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                onChange={e => change("usageLimit", e.target.value)}
+              <input type="number" min="1" step="1" value={draft.usageLimit}
+              Usage limit (optional)
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+            </label>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                onChange={e => change("maxDiscount", e.target.value)}
+              <input type="number" min="0.01" step="0.01" value={draft.maxDiscount}
+              Maximum discount (৳, optional)
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+            </label>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                onChange={e => change("minOrderAmount", e.target.value)}
+              <input type="number" min="0" step="0.01" value={draft.minOrderAmount}
+              Minimum order (৳)
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+            </label>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                value={draft.discountValue} onChange={e => change("discountValue", e.target.value)}
+              <input required type="number" min="0.01" max={draft.discountType === "PERCENTAGE" ? 100 : undefined} step="0.01"
+              Discount value {draft.discountType === "PERCENTAGE" ? "(%)" : "(৳)"}
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+            </label>
+              </select>
+                <option value="FIXED">Fixed amount</option>
+                <option value="PERCENTAGE">Percentage</option>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+              <select value={draft.discountType} onChange={e => change("discountType", e.target.value)}
+              Discount type
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+            </label>
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm uppercase" style={{ borderColor: "var(--line)" }} />
+              <input required maxLength={50} value={draft.code} onChange={e => change("code", e.target.value)}
+              Coupon code
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <form onSubmit={save} className="mt-4">
+      {editing && (
+      </div>
+        {!editing && <button onClick={() => setEditing(true)} className="btn-primary px-3 py-2 rounded-lg text-sm">Edit coupon</button>}
+        </div>
+          </div>
+            {coupon.used_count || 0}{coupon.usage_limit ? ` / ${coupon.usage_limit}` : " used"} · {coupon.is_active ? "Active" : "Inactive"}
+          <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{coupon.code}</div>
+        <div>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="card p-4">
+  return (
+
+  };
+    setSaving(false);
+    if (saved) setEditing(false);
+    });
+      expiryDate: draft.expiryDate || null,
+      usageLimit: draft.usageLimit === "" ? null : Number(draft.usageLimit),
+      maxDiscount: draft.maxDiscount === "" ? null : Number(draft.maxDiscount),
+      minOrderAmount: Number(draft.minOrderAmount),
+      discountValue: Number(draft.discountValue),
+      ...draft,
+    const saved = await onSave(coupon.id, {
+    setSaving(true);
+    event.preventDefault();
+  const save = async (event) => {
+  const change = (field, value) => setDraft((current) => ({ ...current, [field]: value }));
+
+  useEffect(() => setDraft(makeDraft(coupon)), [coupon]);
+  const [draft, setDraft] = useState(() => makeDraft(coupon));
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  });
+    isActive: Boolean(Number(item.is_active)),
+    expiryDate: toDateTimeInput(item.expiry_date),
+    usageLimit: item.usage_limit == null ? "" : String(item.usage_limit),
+    maxDiscount: item.max_discount == null ? "" : String(item.max_discount),
+    minOrderAmount: String(item.min_order_amount ?? 0),
+    discountValue: String(item.discount_value ?? ""),
+    discountType: item.discount_type || "PERCENTAGE",
+    code: item.code || "",
+  const makeDraft = (item) => ({
+  };
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const pad = (number) => String(number).padStart(2, "0");
+    if (Number.isNaN(date.getTime())) return "";
+    const date = new Date(String(value).replace(" ", "T"));
+    if (!value) return "";
+  const toDateTimeInput = (value) => {
+function CouponEditor({ coupon, onSave }) {
+
+}
+  );
+    </div>
+      )}
+        </div>
+          ))}
+            </div>
+              {e.comment && <p className="text-sm mt-1" style={{ color: "var(--ink)" }}>"{e.comment}"</p>}
+              {e.items && <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.items}</div>}
+              </div>
+                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.userName} · {e.userRole} · {when(e.created_at)}</span>
+                </div>
+                  )}
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>{CAT[e.category] || CAT.other}</span>
+                  ) : (
+                    <span className="font-mono text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>Order {e.token}</span>
+                  {e.kind === "order" ? (
+                  <StarPicker value={e.rating} readOnly size="w-4 h-4" />
+                <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+              style={{ borderLeft: e.rating <= 2 ? "3px solid var(--brick)" : undefined }}>
+            <div key={`${e.kind}-${e.id}`} className="card p-4"
+          {shown.map(e => (
+        <div className="space-y-3">
+      ) : (
+        </div>
+          {entries.length === 0 ? "No feedback submitted yet." : "No feedback matches this filter."}
+        <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>
+      {shown.length === 0 ? (
+
+      </div>
+        </div>
+          ))}
+            </button>
+              {label} · {countFor(key)}
+              className={`tab-btn px-3 py-1 rounded-full text-xs ${filter === key ? "active" : ""}`}>
+            <button key={key} onClick={() => setFilter(key)}
+          {FILTERS.map(([key, label]) => (
+        <div className="flex gap-2 flex-wrap">
+        </div>
+          </button>
+            <Icon path={I.printer} className="w-3.5 h-3.5" /> Print
+          <button onClick={() => setPrintKey(k => k + 1)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+          <div className="font-display font-700" style={{ color: "var(--gold)" }}>Recent Feedback</div>
+        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+
+      </div>
+        </div>
+          ))}
+            </div>
+              <span className="w-6 font-mono" style={{ color: "var(--ink-soft)" }}>{distribution[n] || 0}</span>
+              <div className="rating-bar flex-1"><span style={{ width: `${((distribution[n] || 0) / maxBar) * 100}%` }} /></div>
+              <span className="w-6 font-mono text-right" style={{ color: "var(--ink-soft)" }}>{n}★</span>
+            <div key={n} className="flex items-center gap-2 text-xs">
+          {[5, 4, 3, 2, 1].map(n => (
+        <div className="space-y-1.5 md:max-w-sm md:justify-self-end w-full">
+        </div>
+          </div>
+            <div className="font-mono text-4xl font-700" style={{ color: "var(--ink)" }}>{count}</div>
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Total Reviews</div>
+          <div className="border-l pl-6" style={{ borderColor: "var(--line)" }}>
+          </div>
+            </div>
+              <StarPicker value={Math.round(average)} readOnly size="w-5 h-5" />
+              <span className="font-mono text-4xl font-700" style={{ color: "var(--gold)" }}>{average.toFixed(1)}</span>
+            <div className="flex items-center gap-2">
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Average Rating</div>
+          <div>
+        <div className="flex items-center gap-6 flex-wrap">
+      <div className="card p-6 mb-6 grid gap-6 md:grid-cols-[auto_1fr] items-center">
+      )}
+        </PrintSheet>
+            ])} />
+              psStars(e.rating), e.comment || "—",
+              e.kind === "order" ? `Order ${e.token}${e.items ? " — " + e.items : ""}` : String(CAT[e.category] || CAT.other).replace(/^\S+\s/, ""),
+              when(e.created_at), `${e.userName} (${e.userRole})`,
+            rows={shown.map(e => [
+          <PsTable head={["Date", "From", "About", "Rating", "Comment"]} empty="No feedback matches this filter."
+          <h2>Feedback</h2>
+            rows={[5, 4, 3, 2, 1].map(n => [psStars(n), distribution[n] || 0, <div className="ps-bar" style={{ width: `${((distribution[n] || 0) / maxBar) * 100}%` }}></div>])} />
+          <PsTable head={["Rating", "Reviews", ""]} numCols={[1]}
+          <h2>Rating breakdown</h2>
+          </div>
+            ].map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+              ["Needs attention (1–2★)", countFor("low")], ["Orders / General", `${countFor("order")} / ${countFor("general")}`],
+              ["Average rating", `${average.toFixed(1)} / 5`], ["Total reviews", count],
+            {[
+          <div className="ps-grid">
+          meta={`${FILTERS.find(f => f[0] === filter)[1]} · ${shown.length} of ${entries.length} entries · generated ${new Date().toLocaleString()}`}>
+        <PrintSheet key={printKey} title="Customer feedback"
+      {printKey > 0 && (
+    <div>
+  return (
 
   const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map(n => distribution[n] || 0));
