@@ -13,3 +13,6 @@ Set `EMAIL_OTP_REQUIRED=false` in `backend/.env`.
 
 ## Can I turn off the login code?
 `LOGIN_OTP` controls it: `all` (every account with an email), `admin` (admin accounts only) or `off`.
+
+## Pickup times or reports look off by some hours
+Set `CANTEEN_TZ` in `backend/.env` to the canteen's timezone. The default is `Asia/Dhaka`.
