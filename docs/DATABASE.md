@@ -989,3 +989,17 @@ Created in `backend/src/routes/hallAdmin.js`.
 | `expires_at` | DATETIME |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `email_otps`
+Created in `backend/src/utils/otp.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `email` | VARCHAR(120) |
+| `purpose` | ENUM('signup','reset','login2fa') |
+| `code_hash` | CHAR(64) |
+| `attempts` | TINYINT |
+| `expires_at` | DATETIME |
+| `used_at` | DATETIME |
+| `created_at` | TIMESTAMP |
