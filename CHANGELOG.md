@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Fix: admin order filters now reject impossible dates such as 2026-02-30.
+- Docs: architecture overview.
+- Tests: edge cases for order rules.
 - Docs: Campus Command Center API guide.
 - Tests: catalog tests, including a check that every menu image file exists.
 - Docs: wallet API guide and corrected top-up limit.
