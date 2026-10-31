@@ -811,3 +811,18 @@ Created in `backend/src/offersSchema.js`.
 | `label` | VARCHAR(150) |
 | `order_id` | INT |
 | `created_at` | TIMESTAMP |
+
+## `loyalty_rewards`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `name` | VARCHAR(100) |
+| `name_bn` | VARCHAR(100) |
+| `type` | VARCHAR(12) |
+| `points_cost` | INT |
+| `discount_value` | DECIMAL(10,2) |
+| `item_id` | INT |
+| `is_active` | TINYINT(1) |
+| `created_at` | TIMESTAMP |
