@@ -290,3 +290,14 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `name` | VARCHAR(180) |
 | `code` | VARCHAR(40) |
 | `created_at` | TIMESTAMP |
+
+## `hall_blocks`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `university_id` | BIGINT UNSIGNED |
+| `hall_name` | VARCHAR(180) |
+| `block_name` | VARCHAR(100) |
+| `created_at` | TIMESTAMP |
