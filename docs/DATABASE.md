@@ -875,3 +875,11 @@ Created in `backend/src/offersSchema.js`.
 | `id` | INT |
 | `happy_hour_id` | INT |
 | `item_id` | INT |
+
+## `app_meta`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `meta_key` | VARCHAR(60) |
+| `meta_value` | VARCHAR(255) |
