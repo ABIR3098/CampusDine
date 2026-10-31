@@ -11,3 +11,8 @@ Use a short prefix, then a plain description:
 - `chore:` tooling and config
 
 Keep each commit to one small change.
+
+## Before you push
+1. Run `npm test` in `backend/`.
+2. Make sure `backend/.env` is not staged (`git status`).
+3. Add a line to `CHANGELOG.md` for user-visible changes.
