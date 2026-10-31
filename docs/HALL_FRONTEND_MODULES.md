@@ -16,3 +16,6 @@ Advanced Hall workflows. Uses the shared Hall shell and authenticated call() hel
 
 ## `autofill.jsx`
 Step 5 — admin tab: the cut-off job. It runs by itself every minute; "Run now" is for checking.
+
+## `autopay.jsx`
+Auto-pay, member side: one switch on My bill.
