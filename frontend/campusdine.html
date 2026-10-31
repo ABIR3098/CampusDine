@@ -7929,6 +7929,472 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           )}
           {!m.deleted_at && (m.image_id || m.image_local) && (
             m.image_local
+              ? <img className="chat-img" src={m.image_local} alt="Sending photo" />
+              : <ChatImage id={m.image_id} apiBase={apiBase} token={sessionToken} onOpen={setLightbox} />
+          )}
+          {m.deleted_at ? <p className="chat-deleted">🚫 This message was deleted</p> : (() => {
+            const oc = parseOrder(m.message);
+            return oc ? (
+              <div className="chat-order">
+                <div className="chat-order-top"><span className="chat-order-token">🧾 {oc.token}</span><span className="chat-order-status">{oc.status}</span></div>
+                <div className="chat-order-items">{oc.items}</div>
+                <div className="chat-order-total">{oc.total}</div>
+              </div>
+            ) : ((m.image_id || m.image_local) && m.message === "📷 Photo") ? null : <p>{highlight(m.message)}</p>;
+          })()}
+          <span className="chat-meta">{fmtTime(m.created_at)}{mine && <b>{m.pending ? " ·" : m.read_at ? " ✓✓" : " ✓"}</b>}</span>
+          {!m.deleted_at && m.reactions && m.reactions.length > 0 && (
+            <div className="chat-reactions">
+              {m.reactions.map(r => (
+                <button key={r.emoji} type="button" className={`chat-pill-react ${r.mine ? "mine" : ""}`}
+                  title={(r.names || []).join(", ")} onClick={() => reactTo(m, r.emoji)}>
+                  <span>{r.emoji}</span>{r.count > 1 && <b>{r.count}</b>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {!mine && !m.pending && !m.deleted_at && (
+          <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
+        )}
+        {!mine && !m.pending && !m.deleted_at && reactControl(m, "theirs")}
+      </div>
+    );
+  });
+
+  return (
+    <section className="chat-shell" data-admin={isAdmin ? "1" : "0"} data-mobile-chat={mobileChat ? "1" : "0"}>
+      {isAdmin && (
+        <aside className="card chat-inbox">
+          <div className="chat-inbox-head">
+            <div className="chat-inbox-title">
+              <h2 className="font-display font-700" style={{ color: "var(--gold)" }}>Inbox</h2>
+              <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
+            </div>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
+          </div>
+          <div className="chat-inbox-list">
+            {filtered.length === 0 ? (
+              <p className="p-4 text-sm text-center" style={{ color: "var(--ink-soft)" }}>{conversations.length ? "No match found." : "No messages yet."}</p>
+            ) : filtered.map(c => {
+              const active = Number(selectedUserId) === Number(c.user_id), unread = Number(c.unread_count) > 0;
+              return (
+                <button key={c.user_id} className={`chat-item ${active ? "active" : ""}`}
+                  onClick={() => { setSelectedUserId(c.user_id); setMobileChat(true); }}>
+                  {withDot(c.name, 42, isOnline(c.user_id))}
+                  <span className="chat-item-body">
+                    <span className="chat-item-top">
+                      <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
+                      <span className="chat-item-time">{listTime(c.updated_at || c.last_at)}</span>
+                    </span>
+                    <span className="chat-item-bottom">
+                      <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
+                      {unread && <span className="chat-badge">{c.unread_count}</span>}
+                    </span>
+                    <span className="chat-item-role">{c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+      )}
+      <div className="card chat-panel">
+        <header className="chat-head">
+          {isAdmin && <button className="chat-back" onClick={() => setMobileChat(false)} aria-label="Back"><Icon path="M15 18l-6-6 6-6" /></button>}
+          {withDot(heading, 40, headOnline)}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
+            <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
+              {typing ? <span className="chat-typing-text">typing…</span> : (
+              <>
+                {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
+                {headOnline !== undefined && " · "}
+                {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+              </>
+            )}
+            </p>
+          </div>
+          <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
+            <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
+          </button>
+          <span className="chat-pill">{tx("chat.support")}</span>
+        </header>
+        {searchOpen && (
+          <div className="chat-searchbar">
+            <input ref={searchRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search in this chat…"
+              onKeyDown={e => { if (e.key === "Escape") closeSearch(); else if (e.key === "Enter") { e.preventDefault(); stepMatch(e.shiftKey ? 1 : -1); } }} />
+            <span className="chat-search-count">{q ? (matchIds.length ? `${curPos + 1} of ${matchIds.length}` : "No results") : ""}</span>
+            <button type="button" aria-label="Older match" title="Older match (Enter)" disabled={matchIds.length < 2} onClick={() => stepMatch(-1)}>▲</button>
+            <button type="button" aria-label="Newer match" title="Newer match (Shift+Enter)" disabled={matchIds.length < 2} onClick={() => stepMatch(1)}>▼</button>
+            <button type="button" aria-label="Close search" onClick={closeSearch}>✕</button>
+          </div>
+        )}
+        {error && <p className="chat-error">{error}</p>}
+        <div className="chat-scroll-wrap">
+        <div className="chat-scroll" ref={scrollRef} onScroll={onScroll} aria-live="polite">
+          {messages.length === 0 ? (
+            <div className="chat-empty">
+              <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
+              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}</p>
+              {!isAdmin && (
+                <div className="chat-quick">
+                  {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
+                </div>
+              )}
+            </div>
+          ) : rows}
+          {typing && (
+            <div className="chat-row">
+              <div style={{ width: 30 }}><Avatar name={heading} size={30} /></div>
+              <div className="chat-bubble theirs first last chat-typing"><i /><i /><i /></div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+        {!atBottom && messages.length > 0 && (
+          <button type="button" className="chat-jump" onClick={jumpToBottom} aria-label="Jump to latest message">
+            <Icon path="M12 5v14M19 12l-7 7-7-7" className="w-5 h-5" />
+            {newBelow > 0 && <span className="chat-jump-badge">{newBelow}</span>}
+          </button>
+        )}
+        </div>
+        {isAdmin && selectedUserId && (
+          <div className="chat-templates">
+            {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
+          </div>
+        )}
+        {pendingPhoto && (
+          <div className="chat-photobar">
+            <img src={pendingPhoto.url} alt="Selected photo" />
+            <span>Photo ready. Add a caption (optional) and press send.</span>
+            <button type="button" aria-label="Remove photo" onClick={() => setPendingPhoto(null)}>✕</button>
+          </div>
+        )}
+        {replyTo && (
+          <div className="chat-replybar">
+            <div>
+              <b>Replying to {Number(replyTo.sender_id) === Number(userId) ? "yourself" : (replyTo.sender_name || heading)}</b>
+              <span>{shortText(replyTo.message)}</span>
+            </div>
+            <button type="button" aria-label="Cancel reply" onClick={() => setReplyTo(null)}>✕</button>
+          </div>
+        )}
+        <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+          <button type="button" className="chat-emoji-btn" aria-label="Send a photo" title="Send a photo"
+            onClick={() => fileRef.current?.click()} disabled={isAdmin && !selectedUserId}>📷</button>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
+          {!isAdmin && (
+            <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
+          )}
+          {orderOpen && !isAdmin && (
+            <div className="chat-order-panel">
+              {myOrders === null ? <p className="chat-order-note">Loading…</p>
+                : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
+                : myOrders.map(o => (
+                  <button key={o.token} type="button" className="chat-order-pick" onClick={() => shareOrder(o)}>
+                    <b>{o.token} · {o.status} · {taka(o.total)}</b>
+                    <small>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 70)}</small>
+                  </button>
+                ))}
+            </div>
+          )}
+          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => { setOrderOpen(false); setEmojiOpen(o => !o); }}
+            disabled={isAdmin && !selectedUserId}>😊</button>
+          {emojiOpen && (
+            <div className="chat-emoji-panel">
+              {emojis.map(em => <button key={em} type="button" onClick={() => addEmoji(em)}>{em}</button>)}
+            </div>
+          )}
+          <div className="chat-input-wrap">
+            <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
+              disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />
+            {draft.length > 3500 && <span className="chat-count">{draft.length}/4000</span>}
+          </div>
+          <button type="submit" className="chat-send" aria-label={tx("chat.send")}
+            disabled={busy || (!draft.trim() && !pendingPhoto) || (isAdmin && !selectedUserId)}>
+            <Icon path="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" className="w-5 h-5" />
+          </button>
+        </form>
+      </div>
+      {lightbox && (
+        <div className="chat-lightbox" onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="Photo" />
+        </div>
+      )}
+    </section>
+  );
+}
+
+// Shrinks a chosen photo (max 1280px, JPEG) so it stays small enough to upload quickly.
+function compressChatPhoto(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = async () => {
+      try {
+        let scale = Math.min(1, 1280 / Math.max(img.width, img.height)), quality = 0.82, blob = null;
+        for (let i = 0; i < 6; i++) {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+          if (blob && blob.size <= 700 * 1024) break;
+          quality = Math.max(0.5, quality - 0.1); scale *= 0.85;
+        }
+        URL.revokeObjectURL(url);
+        if (!blob || blob.size > 900 * 1024) return reject(new Error("This photo is too large. Please choose a smaller one."));
+        resolve(blob);
+      } catch (e) { reject(new Error("Could not process this photo")); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("This file is not a supported photo")); };
+    img.src = url;
+  });
+}
+
+// A photo inside a chat bubble. Loaded with the login token, so only the two people in the chat can see it.
+function ChatImage({ id, apiBase, token, onOpen }) {
+  const [src, setSrc] = useState(() => (window.__chatImgCache && window.__chatImgCache[id]) || null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (src) return;
+    let alive = true;
+    fetch(`${apiBase}/api/chat/images/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => { if (!r.ok) throw new Error("missing"); return r.blob(); })
+      .then(b => {
+        const url = URL.createObjectURL(b);
+        (window.__chatImgCache = window.__chatImgCache || {})[id] = url;
+        if (alive) setSrc(url);
+      })
+      .catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, [id]);
+  if (failed) return <div className="chat-img-missing">📷 Photo unavailable</div>;
+  if (!src) return <div className="chat-img-skel" />;
+  return <img className="chat-img" src={src} alt="Chat photo" onClick={() => onOpen(src)} />;
+}
+
+/* ---------------- Profile tab (all roles) ---------------- */
+/* ---------------- Profile tab (all roles) ---------------- */
+function Avatar({ src, name, size = 34, className = "" }) {
+  const letter = (name || "?").trim().charAt(0).toUpperCase();
+  const base = { width: size, height: size, borderRadius: 999, flexShrink: 0 };
+  if (src) return <img src={src} alt={name || ""} className={className} style={{ ...base, objectFit: "cover" }} />;
+  return (
+    <div className={`grid place-items-center text-white font-700 ${className}`}
+      style={{ ...base, fontSize: size * 0.4, background: "linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%)" }}>{letter}</div>
+  );
+}
+// Reads an image file, crops it to a centred square and shrinks it to 256px (keeps the upload tiny).
+function fileToAvatar(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("img"));
+      img.onload = () => {
+        const size = 256, side = Math.min(img.width, img.height);
+        const c = document.createElement("canvas"); c.width = size; c.height = size;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+        resolve(c.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function ProfileField({ label, value, placeholder }) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>{label}</div>
+      <div className="text-sm font-600" style={{ color: value ? "var(--ink)" : "var(--ink-soft)" }}>
+        {value || placeholder || tx("notset")}
+      </div>
+    </div>
+  );
+}
+function ProfileInput({ label, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{label}</label>
+      <input value={value} onChange={onChange} placeholder={placeholder}
+        className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+    </div>
+  );
+}
+function ProfileTab({ user, call, onUpdated, liveBalance }) {
+  const [editing, setEditing] = useState(false);
+  const [profile, setProfile] = useState({
+    name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
+  });
+  const [walletBalance, setWalletBalance] = useState(user.walletBalance);
+  /* Fix: profile balance = live wallet balance */
+  const shownBalance = liveBalance != null ? liveBalance : walletBalance;
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [avatar, setAvatar] = useState(user.avatar || null);
+  const [avatarChanged, setAvatarChanged] = useState(false);
+  const fileRef = useRef(null);
+  const [announcementText, setAnnouncementText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  const loadProfile = () => call("/api/auth/me").then(data => {
+    setProfile({
+      name: data.name, email: data.email || "", accountType: data.accountType || "regular",
+      phone: data.phone || "", address: data.address || "",
+      department: data.department || "", fatherPhone: data.fatherPhone || "",
+      hallName: data.hallName || "", roomNumber: data.roomNumber || "", hallId: data.hallId || null,
+    });
+    setWalletBalance(data.walletBalance);
+    setAvatar(data.avatar || null); setAvatarChanged(false);
+  }).catch(() => {});
+
+  const pickPhoto = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    if (!/^image\/(png|jpe?g|webp|gif|bmp)$/i.test(file.type)) { setError(tx("pic.bad")); return; }
+    try { setAvatar(await fileToAvatar(file)); setAvatarChanged(true); }
+    catch (_) { setError(tx("pic.bad")); }
+  };
+
+  useEffect(() => { loadProfile(); }, []);
+
+  const save = async () => {
+    setError(null); setSuccess(null);
+    if (!profile.name.trim()) { setError(tx("pe.name")); return; }
+    if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
+    if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
+    if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
+    setBusy(true);
+    try {
+      const body = {
+        name: profile.name, phone: profile.phone, address: profile.address,
+        department: profile.department, fatherPhone: profile.fatherPhone,
+      };
+      if (profile.email.trim()) body.email = profile.email.trim();
+      if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
+      if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
+      if (avatarChanged) body.avatar = avatar;
+      const data = await call("/api/auth/me", { method: "PUT", body });
+      onUpdated(data);
+      setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+      setAvatarChanged(false);
+      setSuccess(tx("pe.ok"));
+      setEditing(false);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelEdit = () => {
+    setError(null); setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    setEditing(false);
+    loadProfile();
+  };
+
+  const sendAnnouncement = async () => {
+    if (!announcementText.trim()) return;
+    setBusy(true);
+    try {
+      await call("/api/admin/announcement", { method: "POST", body: { message: announcementText.trim() } });
+      setAnnouncementText("");
+      setSuccess("Announcement sent to all users.");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="max-w-lg">
+      <div className="card p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{tx("tab.profile")}</div>
+          {!editing && (
+            <button onClick={() => setEditing(true)}
+              className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+              style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+              <Icon path={I.edit} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
+              {tx("edit")}
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col items-center gap-2 mb-5">
+          <Avatar src={avatar} name={profile.name} size={96} />
+          {editing && (
+            <>
+              <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} className="hidden" />
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => fileRef.current && fileRef.current.click()}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                  {avatar ? tx("pic.change") : tx("pic.add")}
+                </button>
+                {avatar && (
+                  <button type="button" onClick={() => { setAvatar(null); setAvatarChanged(true); }}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600 transition-colors hover:bg-black/5"
+                    style={{ borderColor: "var(--line)", color: "var(--brick)" }}>
+                    {tx("pic.remove")}
+                  </button>
+                )}
+              </div>
+              {avatarChanged && <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("pic.hint")}</div>}
+            </>
+          )}
+        </div>
+        <div className="space-y-4">
+          {editing ? (
+            <ProfileInput label={tx("fullname")} value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
+          ) : (
+            <ProfileField label={tx("fullname")} value={profile.name} />
+          )}
+
+          {editing ? (
+            <ProfileInput label={tx("email")} value={profile.email} placeholder={tx("email.ph")}
+              onChange={e => setProfile({ ...profile, email: e.target.value })} />
+          ) : (
+            <ProfileField label={tx("email")} value={profile.email} />
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            {editing ? (
+              <>
+                <ProfileInput label={tx("phone")} value={profile.phone} placeholder="01XXXXXXXXX"
+                  onChange={e => setProfile({ ...profile, phone: e.target.value })} />
+                <ProfileInput label={tx("fphone")} value={profile.fatherPhone} placeholder="01XXXXXXXXX"
+                  onChange={e => setProfile({ ...profile, fatherPhone: e.target.value })} />
+              </>
+            ) : (
+              <>
+                <ProfileField label={tx("phone")} value={profile.phone} />
+                <ProfileField label={tx("fphone")} value={profile.fatherPhone} />
+              </>
+            )}
+          </div>
+
+          {editing ? (
+            <ProfileInput label={tx("address")} value={profile.address} placeholder={tx("addr.ph")}
+              onChange={e => setProfile({ ...profile, address: e.target.value })} />
+          ) : (
+            <ProfileField label={tx("address")} value={profile.address} />
+          )}
+
 
   const unreadNotifications = notifications.filter(item => !item.read).length;
 
