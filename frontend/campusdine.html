@@ -6825,6 +6825,39 @@ function DailySpinWheelModal({ user, onClose, onReward }) {
 
               const textAngle = startA + angle / 2;
               const tx = 100 + (r * 0.65) * Math.cos(Math.PI * (textAngle - 90) / 180);
+              const ty = 100 + (r * 0.65) * Math.sin(Math.PI * (textAngle - 90) / 180);
+
+              return (
+                <g key={i}>
+                  <path
+                    d={"M100,100 L" + x1 + "," + y1 + " A100,100 0 0,1 " + x2 + "," + y2 + " Z"}
+                    fill={sec.color}
+                    stroke="#1e1b4b"
+                    strokeWidth="1.5"
+                  />
+                  <text
+                    x={tx}
+                    y={ty}
+                    fill="#FFFFFF"
+                    fontSize="7.5"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    transform={"rotate(" + textAngle + "," + tx + "," + ty + ")"}>
+                    {sec.value}
+                  </text>
+                </g>
+              );
+            })}
+            <circle cx="100" cy="100" r="18" fill="#1e1b4b" stroke="#f59e0b" strokeWidth="3" />
+            <circle cx="100" cy="100" r="7" fill="#fbbf24" />
+          </svg>
+        </div>
+
+        {/* Prize Notification */}
+        {prize && (
+          <div className="my-3 p-3 bg-indigo-900/80 rounded-2xl border border-amber-400/50 animate-bounce">
+            <div className="text-xs text-indigo-300 font-bold uppercase tracking-wider">Congratulations!</div>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
