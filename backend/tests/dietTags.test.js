@@ -93,3 +93,9 @@ test("the vegetarian shortcut avoids meat and fish but allows egg and dairy", ()
   assert.ok(VEGETARIAN_AVOID.includes("beef") && VEGETARIAN_AVOID.includes("fish"));
   assert.ok(!VEGETARIAN_AVOID.includes("egg") && !VEGETARIAN_AVOID.includes("milk"));
 });
+
+test("every key has a readable label", () => {
+  assert.equal(KEYS.length, 8);
+  for (const k of KEYS) assert.ok(LABEL[k]);
+  assert.equal(LABEL.shellfish, "Prawn / shellfish");
+});
