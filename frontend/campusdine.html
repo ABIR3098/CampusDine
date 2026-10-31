@@ -13,8 +13,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
@@ -1405,6 +1405,7 @@ const I18N = {
     "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
     "pic.hint": "Click Save to keep your new photo.",
     "pe.cur": "Enter your current password to set a new one.",
+    "pe.emailcur": "Enter your current password to change your email.",
     "pe.ok": "Profile updated.",
     "msg.cancel.w": "Order {t} cancelled — {a} refunded to your wallet.",
     "msg.cancel": "Order {t} cancelled.",
@@ -1848,6 +1849,7 @@ const I18N = {
     "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
     "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
     "pe.cur": "নতুন পাসওয়ার্ড দিতে বর্তমান পাসওয়ার্ড লিখুন।",
+    "pe.emailcur": "ইমেইল বদলাতে আপনার বর্তমান পাসওয়ার্ড দিন।",
     "pe.ok": "প্রোফাইল আপডেট হয়েছে।",
     "msg.cancel.w": "অর্ডার {t} বাতিল হয়েছে — {a} আপনার ওয়ালেটে ফেরত এসেছে।",
     "msg.cancel": "অর্ডার {t} বাতিল হয়েছে।",
@@ -9341,6 +9343,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [savedEmail, setSavedEmail] = useState(""); // e-mail on the server; changing it asks for the current password
 
   const loadProfile = () => call("/api/auth/me").then(data => {
     setProfile({
@@ -9349,6 +9352,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
       department: data.department || "", fatherPhone: data.fatherPhone || "",
       hallName: data.hallName || "", roomNumber: data.roomNumber || "", hallId: data.hallId || null,
     });
+    setSavedEmail(data.email || "");
     setWalletBalance(data.walletBalance);
     setAvatar(data.avatar || null); setAvatarChanged(false);
   }).catch(() => {});
@@ -9371,6 +9375,8 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
     if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
     if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
     if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
+    const nextEmail = profile.email.trim().toLowerCase();
+    if (nextEmail && nextEmail !== savedEmail.trim().toLowerCase() && !currentPassword) { setError(tx("pe.emailcur")); return; }
     setBusy(true);
     try {
       const body = {
@@ -9383,6 +9389,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
       if (avatarChanged) body.avatar = avatar;
       const data = await call("/api/auth/me", { method: "PUT", body });
       onUpdated(data);
+      setSavedEmail(data.email || "");
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setAvatarChanged(false);
