@@ -136,3 +136,10 @@ test("cleanCancelReason keeps at most 100 characters", () => {
   const { cleanCancelReason } = require("../src/utils/orderRules");
   assert.equal(cleanCancelReason("a".repeat(150)).length, 100);
 });
+
+test("buildOrderStats converts the favourite quantity to a number", () => {
+  const { buildOrderStats } = require("../src/utils/orderRules");
+  const s = buildOrderStats({ orders: 2, spent: 300 }, { name: "Tehari", qty: "3" });
+  assert.deepEqual(s.favouriteItem, { name: "Tehari", qty: 3 });
+  assert.equal(s.averageOrder, 150);
+});
