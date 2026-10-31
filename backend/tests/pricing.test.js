@@ -16,3 +16,9 @@ test("r2 rounds to two decimals", () => {
 test("happy hour is active inside its window", () => {
   assert.equal(isHappyHourActive(hh(), at("2026-10-31T09:00:00Z")), true);
 });
+
+test("happy hour window start is inclusive and end is exclusive", () => {
+  assert.equal(isHappyHourActive(hh(), at("2026-10-31T08:00:00Z")), true);
+  assert.equal(isHappyHourActive(hh(), at("2026-10-31T10:00:00Z")), false);
+  assert.equal(isHappyHourActive(hh(), at("2026-10-31T07:59:00Z")), false);
+});
