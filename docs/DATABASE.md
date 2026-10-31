@@ -900,3 +900,18 @@ Created in `backend/src/routes/campusFeatures.js`.
 | `status` | ENUM('open','claimed','returned','closed') |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `campus_emergencies`
+Created in `backend/src/routes/campusFeatures.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `user_id` | INT |
+| `emergency_type` | VARCHAR(60) |
+| `details` | VARCHAR(1000) |
+| `location` | VARCHAR(180) |
+| `contact` | VARCHAR(100) |
+| `status` | ENUM('open','acknowledged','responding','resolved','false_alarm') |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
