@@ -17,3 +17,4 @@ Copy `backend/.env.example` to `backend/.env` and fill in your own values. Never
 | `SMTP_FROM` | Sender name and address for Hall emails | unset |
 | `WALLET_TOPUP_DAILY_LIMIT` | Most a single account can top up in one day, in taka | `20000` |
 | `NODE_ENV` | `production` skips the demo accounts (admin, student1, teacher1, rider1) | unset |
+| `SEED_DEMO_ACCOUNTS` | `true` always creates the demo logins, `false` never does; unset creates them unless `NODE_ENV=production` | unset |
