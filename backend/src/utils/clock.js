@@ -25,6 +25,13 @@ function localParts(date = new Date(), tz = TZ) {
   };
 }
 
+// Today's date in the canteen's timezone as "YYYY-MM-DD".
+// Do not use new Date().toISOString().slice(0, 10) for this: that is the UTC date, which is still
+// "yesterday" in Dhaka between 00:00 and 06:00.
+function todayKey(date = new Date(), tz = TZ) {
+  return localParts(date, tz).dateKey;
+}
+
 // "HH:MM" or "HH:MM:SS" → minutes since midnight (null when invalid)
 function toMinutes(value) {
   const m = /^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/.exec(String(value || "").trim());
@@ -42,4 +49,4 @@ function addDays(dateKey, n) {
   return d.toISOString().slice(0, 10);
 }
 
-module.exports = { TZ, localParts, toMinutes, dayDiff, addDays };
+module.exports = { TZ, localParts, todayKey, toMinutes, dayDiff, addDays };
