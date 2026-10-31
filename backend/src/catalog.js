@@ -80,6 +80,7 @@ const NUTRITION_BY_NAME = {
   "Chicken Samosa": { calories: 280, allergens: ["gluten"] },
   "Masala Tea": { calories: 70, allergens: ["milk"] },
   "Waffle": { calories: 380, allergens: ["egg", "milk", "gluten"] },
+  "Hot Dog": { calories: 320, allergens: ["gluten"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
