@@ -43,3 +43,8 @@ test("an overnight window belongs to the day it started on", () => {
   const satNight = hh({ start_time: "22:00", end_time: "02:00", days: [6] });
   assert.equal(isHappyHourActive(satNight, at("2026-10-31T19:00:00Z")), true); // Sunday 01:00, started Saturday
 });
+
+test("equal or invalid start and end times never run", () => {
+  assert.equal(isHappyHourActive(hh({ start_time: "14:00", end_time: "14:00" }), at("2026-10-31T08:00:00Z")), false);
+  assert.equal(isHappyHourActive(hh({ start_time: "bad" }), at("2026-10-31T09:00:00Z")), false);
+});
