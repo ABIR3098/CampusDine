@@ -1038,3 +1038,17 @@ Created in `backend/server.js`.
 | `accuracy_m` | DECIMAL(8,2) |
 | `active` | TINYINT(1) |
 | `updated_at` | TIMESTAMP |
+
+## `recurring_orders`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `items` | TEXT |
+| `days` | VARCHAR(20) |
+| `at_time` | CHAR(5) |
+| `active` | TINYINT(1) |
+| `last_done` | VARCHAR(10) |
+| `created_at` | TIMESTAMP |
