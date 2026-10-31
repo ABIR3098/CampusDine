@@ -125,3 +125,9 @@ test("parseAdminFilters trims the search text and caps it at 40 characters", () 
   assert.equal(parseAdminFilters({ q: "x".repeat(60) }).q.length, 40);
   assert.equal(parseAdminFilters({ q: "   " }).q, null);
 });
+
+test("cleanCancelReason ignores values that are not text", () => {
+  const { cleanCancelReason } = require("../src/utils/orderRules");
+  assert.equal(cleanCancelReason(42), null);
+  assert.equal(cleanCancelReason(undefined), null);
+});
