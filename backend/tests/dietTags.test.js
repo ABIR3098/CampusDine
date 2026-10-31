@@ -43,3 +43,8 @@ test("tagsOf finds egg, including the Banglish word dim", () => {
   assert.deepEqual(tagsOf("Porota, Mixed veg, Egg"), ["egg"]);
   assert.deepEqual(tagsOf("Dim bhuna"), ["egg"]);
 });
+
+test("tagsOf finds milk and dairy dishes", () => {
+  assert.deepEqual(tagsOf("Payesh"), ["milk"]);
+  assert.deepEqual(tagsOf("Mishti doi"), ["milk"]);
+});
