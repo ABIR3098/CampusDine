@@ -442,3 +442,18 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `feedback` | VARCHAR(500) |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `hall_suppliers`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `name` | VARCHAR(180) |
+| `contact_name` | VARCHAR(120) |
+| `phone` | VARCHAR(40) |
+| `email` | VARCHAR(120) |
+| `items_supplied` | VARCHAR(500) |
+| `notes` | VARCHAR(500) |
+| `created_by` | INT |
+| `created_at` | TIMESTAMP |
