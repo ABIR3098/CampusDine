@@ -40,3 +40,12 @@ test("every item image file exists in frontend/images/food", () => {
     assert.ok(fs.existsSync(file), `${name}: missing ${img}`);
   }
 });
+
+test("nutrition entries have non-negative calories and known allergens", () => {
+  const { NUTRITION_BY_NAME } = require("../src/catalog");
+  const known = ["egg", "milk", "gluten", "fish", "nuts", "soy"];
+  for (const [name, info] of Object.entries(NUTRITION_BY_NAME)) {
+    assert.ok(Number.isFinite(info.calories) && info.calories >= 0, name + ": bad calories");
+    for (const a of info.allergens) assert.ok(known.includes(a), name + ": unknown allergen " + a);
+  }
+});
