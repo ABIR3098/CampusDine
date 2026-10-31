@@ -79,3 +79,6 @@ Last call (admin): fill the form from the last time, in one tap.
 
 ## `meals.jsx`
 "My meals" tab: the next 7 days, three meals a day. Switch a meal ON / OFF until its cut-off.
+
+## `menu.jsx`
+Step 6 — "Menu" tab: the fixed weekly menu, 7 days x 3 meals. Admin can edit any cell.
