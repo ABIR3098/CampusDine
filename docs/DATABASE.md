@@ -148,3 +148,12 @@ Created in `backend/schema.sql`.
 | `closes_at` | DATETIME |
 | `status` | ENUM('OPEN','CLOSED','CHECKED_OUT') |
 | `created_at` | TIMESTAMP |
+
+## `group_order_members`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `group_id` | INT |
+| `user_id` | INT |
+| `joined_at` | TIMESTAMP |
