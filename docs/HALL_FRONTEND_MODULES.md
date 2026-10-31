@@ -88,3 +88,6 @@ Menu (admin): copy one meal to the same meal on every other day with one click.
 
 ## `ratings.jsx`
 Ratings, student side: rate the meals you had (1-5 stars + an optional comment).
+
+## `ratingsAdmin.jsx`
+Ratings, admin side: what students think of the meals (average, spread, best / lowest meals, latest comments).
