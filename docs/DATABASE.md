@@ -1026,3 +1026,15 @@ Created in `backend/server.js`.
 | `status` | VARCHAR(40) |
 | `note` | VARCHAR(255) |
 | `created_at` | TIMESTAMP |
+
+## `order_gps_locations`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `order_id` | INT |
+| `latitude` | DECIMAL(10,7) |
+| `longitude` | DECIMAL(10,7) |
+| `accuracy_m` | DECIMAL(8,2) |
+| `active` | TINYINT(1) |
+| `updated_at` | TIMESTAMP |
