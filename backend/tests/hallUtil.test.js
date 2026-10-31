@@ -37,3 +37,7 @@ test("isDateKey rejects dates that do not exist", () => {
   assert.equal(isDateKey("2026-02-30"), false);
   assert.equal(isDateKey("2026-13-01"), false);
 });
+
+test("isDateKey rejects wrong formats and empty input", () => {
+  for (const bad of ["2026-1-5", "31-10-2026", "abcd-ef-gh", "", null, undefined]) assert.equal(isDateKey(bad), false);
+});
