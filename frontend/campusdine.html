@@ -3340,6 +3340,25 @@ function TopBar({
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search menu..."
+                className="portal-search-input"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Vertical Tab Navigation List */}
+        <nav className="portal-nav-list no-scrollbar">
+          {filteredTabs.map(t => {
+            const isActive = active === t.key;
       </div>
     </div>
     <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
