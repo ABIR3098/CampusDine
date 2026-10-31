@@ -22,3 +22,7 @@ test("a different token with an old signature is invalid", () => {
   const sig = sign("C-105");
   assert.equal(parseCode(`CD1|C-999|${sig}`).valid, false);
 });
+
+test("a hand-typed token is accepted unsigned and upper-cased", () => {
+  assert.deepEqual(parseCode("c-105"), { token: "C-105", signed: false, valid: true });
+});
