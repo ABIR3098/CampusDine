@@ -1,26 +1,210 @@
-        {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} call={call} apiBase={apiBase} token={session.token} />}
-        {session.user.role === "admin" && tab === "feedback" && (
-          <>
-            <ProblemReports apiBase={apiBase} token={session.token} refreshKey={issueTick} />
-            <AdminFeedback summary={feedbackSummary} />
-          </>
-        )}
+  .tab-btn.active{
+  }
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor:pointer;
+    font-size:13px;
+    border-radius:999px;
+    padding:8px 16px;
+    font-weight:600;
+  .tab-btn{
+  /* Filter category tabs (Menu, Orders, etc.) */
 
-        {tab === "profile" && (
-          <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
-            onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
-        )}
-        </ErrorBoundary>
-      </div>
-    </div>
-  );
-}
+  .rating-bar > span{ display:block; height:100%; border-radius:999px; background: var(--gold); transition: width .4s ease; }
+  .rating-bar{ height:8px; border-radius:999px; background: var(--line); overflow:hidden; }
+  }
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+    font-weight:700; font-size:13px; color:#FFFFFF;
+    place-items:center;
+    width:34px; height:34px; border-radius:999px; flex-shrink:0;
+  .avatar-dot{
+  }
+    background: var(--brick); color:#FFFFFF;
+    font-size:10px; font-weight:700; line-height:1;
+    display:inline-grid; place-items:center;
+    min-width:16px; height:16px; padding:0 4px; border-radius:999px;
+  .nav-badge{
+  .mobile-nav .nav-badge{ position:absolute; top:2px; right:8px; }
+  .mobile-nav .nav-pill.active{ background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%); }
+  .mobile-nav .nav-pill .nav-label{ display:inline; font-size: 9.5px; }
+  }
+    padding:6px 6px; font-size:9.5px; border-radius:12px; justify-content:center;
+    flex:0 0 auto; min-width:54px; flex-direction:column; gap:2px;
+  .mobile-nav .nav-pill{
+  .mobile-nav .nav-track{ width:100%; border:0; background:transparent; padding:0; border-radius:0; gap:2px; box-shadow:none; }
+  }
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    border-top:1px solid var(--line);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    background: var(--panel-glass);
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+  .mobile-nav{
+  /* Phones: native app style bottom floating bar with smooth scroll */
+  
+  @media (min-width: 1100px){ .nav-pill .nav-label{ display:inline; } }
+  .nav-pill.active .nav-label{ display:inline; }
+  .nav-pill .nav-label{ display:none; }
+  }
+    border-radius: 10px;
+    box-shadow: 0 4px 14px -3px var(--accent-shadow);
+    color:#FFFFFF;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+  .nav-pill.active{
+  .nav-pill:hover{ color: var(--gold-deep); background: var(--hover); transform: translateY(-1px); }
+  }
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--ink-soft);
+    font-size:12.5px; font-weight:600; white-space:nowrap;
+    padding:8px 14px; border-radius:10px;
+    display:inline-flex; align-items:center; gap:7px;
+    position:relative; flex-shrink:0;
+  .nav-pill{
+  }
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    gap: 3px;
+    padding: 4px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    background: var(--panel-glass);
+  .nav-track{
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ scrollbar-width:none; -ms-overflow-style:none; }
+  /* ---- Enhanced Modern Navigation & Tab System ---- */
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <ErrorBoundary scope="app">
-    <App />
-  </ErrorBoundary>
-);
+  .ticket .perf{ border-left: 2px dashed rgba(255,255,255,0.45); }
+  .ticket::after{ right:-9px; }
+  .ticket::before{ left:-9px; }
+  }
+    border-radius:50%;
+    background: var(--bg);
+    width:18px; height:18px;
+    transform:translateY(-50%);
+    top:50%;
+    position:absolute;
+    content:"";
+  .ticket::before, .ticket::after{
+  }
+    box-shadow: 0 6px 16px -8px var(--accent-shadow);
+    overflow:visible;
+    border-radius: 12px;
+    color:#FFFFFF;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+    position:relative;
+  .ticket{
+
+  ::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:8px;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  .gold-text{ color: var(--gold-deep); }
+  .font-mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
+  .font-display{font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;}
+  }
+    font-family:'Plus Jakarta Sans', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    transition: background-color .25s ease, color .25s ease;
+  body{
+  html,body{margin:0;padding:0;}
+  *{box-sizing:border-box;}
+  html[data-theme="dark"] :is(.border, .border-t, .border-b, .border-y, .border-l, .border-r){ border-color: var(--line); }
+  /* Tailwind's default border colour is light grey; keep un-styled borders on the dark palette */
+  html[data-theme="dark"] .hover\:bg-black\/5:hover{ background-color: var(--hover) !important; }
+  html[data-theme="dark"][data-accent="rose"] { --teal:#d3698a; --gold:#d3698a; --gold-bright:#e08fa8; --gold-deep:#e08fa8; --gold-hover:#c53662; --teal-deep:#ebb7c7; --gold-soft:#271b2d; --accent-border:#502940; --accent-glow:rgba(208,83,122,0.25); }
+  html[data-theme="dark"][data-accent="purple"] { --teal:#9077b6; --gold:#9077b6; --gold-bright:#b3a2cd; --gold-deep:#b3a2cd; --gold-hover:#674c8f; --teal-deep:#cec3df; --gold-soft:#1b1c33; --accent-border:#322c50; --accent-glow:rgba(122,92,168,0.25); }
+  html[data-theme="dark"][data-accent="orange"]{ --teal:#EA580C; --gold:#EA580C; --gold-bright:#FB923C; --gold-deep:#FB923C; --gold-hover:#C2410C; --teal-deep:#FDBA74; --gold-soft:#3A1D0B; --accent-border:#7C2D12; --accent-glow:rgba(234,88,12,0.25); }
+  html[data-theme="dark"][data-accent="blue"] { --teal:#468ac9; --gold:#468ac9; --gold-bright:#8db9e2; --gold-deep:#8db9e2; --gold-hover:#276198; --teal-deep:#b6d2ec; --gold-soft:#102035; --accent-border:#183555; --accent-glow:rgba(47,118,184,0.25); }
+  }
+    --accent-glow: rgba(79,127,95,0.25); --accent-shadow: rgba(0,0,0,0.5);
+    --teal-deep: #c6dcce; --gold-soft: #152129; --accent-border: #233836;
+    --gold-bright: #a7c8b2; --gold-deep: #a7c8b2; --gold-hover: #3f664c;
+    --teal: #5f9872; --gold: #5f9872;
+    --brick: #EF4444;
+    --warn-bg: #2A210A; --warn-fg: #FCD34D; --warn-border: #5C4510;
+    --ok-bg: #0F2A1B; --ok-fg: #86EFAC; --ok-border: #1F5130;
+    --danger-bg: #2A1215; --danger-fg: #FCA5A5; --danger-border: #5B1F24;
+    --disabled-bg: #263244; --disabled-fg: #6B7280; --disabled-soft: #1A2436;
+    --scroll: #334155;
+    --hover: rgba(255,255,255,0.08);
+    --input-bg: #0D1626;
+    --panel-soft: rgba(255,255,255,0.04);
+    --panel-glass: rgba(11,18,32,0.9);
+    --line: #243044;
+    --ink-soft: #9AA4B2;
+    --ink: #E5E7EB;
+    --panel: #111A2B;
+    --bg: #0B1220;
+    color-scheme: dark;
+  html[data-theme="dark"]{
+
+  html[data-accent="rose"]  { --teal:#D0537A; --gold:#D0537A; --gold-bright:#c53662; --gold-deep:#c53662; --gold-hover:#c53662; --teal-deep:#601a30; --gold-soft:#f8e7ec; --accent-border:#f0c8d4; --accent-glow:rgba(208,83,122,0.18); --accent-shadow:rgba(197,54,98,0.6); }
+  html[data-accent="purple"] { --teal:#7A5CA8; --gold:#7A5CA8; --gold-bright:#674c8f; --gold-deep:#674c8f; --gold-hover:#674c8f; --teal-deep:#332647; --gold-soft:#ece8f3; --accent-border:#d4cbe3; --accent-glow:rgba(122,92,168,0.18); --accent-shadow:rgba(103,76,143,0.6); }
+  html[data-accent="orange"]{ --teal:#EA580C; --gold:#EA580C; --gold-bright:#C2410C; --gold-deep:#C2410C; --gold-hover:#C2410C; --teal-deep:#7C2D12; --gold-soft:#FFEDD5; --accent-border:#FED7AA; --accent-glow:rgba(234,88,12,0.18);  --accent-shadow:rgba(194,65,12,0.6); }
+  html[data-accent="blue"]  { --teal:#2F76B8; --gold:#2F76B8; --gold-bright:#276198; --gold-deep:#276198; --gold-hover:#276198; --teal-deep:#14324d; --gold-soft:#e2ecf5; --accent-border:#bcd3e8; --accent-glow:rgba(47,118,184,0.18); --accent-shadow:rgba(39,97,152,0.6); }
+  }
+    --accent-shadow: rgba(63,102,76,0.6);
+    --accent-glow: rgba(79,127,95,0.18);
+    --accent-border: #c7d6cc;
+    --gold-soft: #e6ede9;
+    --teal-deep: #213528;
+    --gold-hover: #3f664c;
+    --gold-deep: #3f664c;
+    --gold-bright: #3f664c;
+    --gold: #4F7F5F;
+    --teal: #4F7F5F;
+    /* accent colour (Sage Green by default) */
+    --leaf: #16A34A;
+    --brick: #DC2626;
+    --warn-bg: #FFFBEB; --warn-fg: #92400E; --warn-border: #FDE68A;
+    --ok-bg: #F0FDF4; --ok-fg: #15803D; --ok-border: #BBF7D0;
+    --danger-bg: #FEF2F2; --danger-fg: #B91C1C; --danger-border: #FECACA;
+    --disabled-bg: #D1D5DB; --disabled-fg: #9CA3AF; --disabled-soft: #F3F4F6;
+    --scroll: #D1D5DB;
+    --hover: rgba(0,0,0,0.05);
+    --input-bg: #FFFFFF;
+    --panel-soft: rgba(255,255,255,0.6);
+    --panel-glass: rgba(255,255,255,0.92);
+    --line: #E5E7EB;
+    --ink-soft: #6B7280;
+    --ink: #1F2937;
+    --panel: #FFFFFF;
+    --bg: #F5F7FA;
+  :root{
+  /* ---- Theme: light is the default; <html data-theme="dark"> and data-accent="blue|orange|purple|rose" override it ---- */
+<style>
 </script>
-</body>
+  })();
+    } catch (e) {}
+      document.documentElement.setAttribute("data-accent", t.accent || "green");
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      var dark = t.mode === "dark" || (t.mode === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      var t = JSON.parse(localStorage.getItem("cd_theme") || "{}");
+    try {
+  (function () {
+  // Saved theme (light / dark / auto + accent colour) is applied before the page paints, so there is no flash.
+<script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/hall/loader.js"></script>
+<script src="/hall/files.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="/hall/hall.css" />
+<link rel="stylesheet" href="landing.css" />
+<link rel="icon" type="image/png" href="/images/landing/logo-green.png" />
+<meta name="description" content="CampusDine: order from campus restaurants, track your order live and manage your hall meals." />
+<meta name="theme-color" content="#F0F4F1" />
+<title>CampusDine — Smart Campus Canteen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<head>
+<html lang="en">
+<!DOCTYPE html>
 </html>
