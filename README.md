@@ -182,3 +182,13 @@ The backend tests use Node's built-in test runner (Node 18+):
 cd backend
 npm test
 ```
+
+---
+
+## Legacy files
+
+`backend/server-enhanced.js`, `backend/package-enhanced.json` and the `*-enhanced.js` route files are an older, separate branch. `npm start` runs `server.js`, which does not use them. Use them only as reference.
+
+## Demo accounts
+
+On first start the server creates `admin`, `student1`, `teacher1` and `rider1` with simple passwords. Change or delete them before any real deployment.
