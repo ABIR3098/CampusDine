@@ -267,13 +267,43 @@ function HallServices({call,user,isAdmin,notify}) {
               <div className="flex gap-2 flex-wrap mt-3 pt-2 border-t border-slate-100">
                 {isAdmin ? (
                   <>
+                    <select className="hl-input text-xs" value={r.status} onChange={e=>updateStatus(r.id,e.target.value)}>
+                      {Object.entries(HALL_STATUS_LABEL).map(([v,l])=><option key={v} value={v}>{l}</option>)}
+                    </select>
+                    {r.status!=="resolved"&&<button className="hl-btn sm" onClick={()=>updateStatus(r.id,"resolved")}>Mark Resolved</button>}
+                  </>
+                ) : (
+                  ["submitted","approved"].includes(r.status)&&<button className="hl-btn sm ghost" onClick={()=>cancel(r.id)}>Cancel Request</button>
+                )}
+              </div>
+            </div>
+          );
+        })}</div>}
       </HallCard>
     </>}
+
+    {/* Photo Enlarged Modal */}
+    {viewPhoto && (
+      <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setViewPhoto(null)}>
+        <div className="bg-white rounded-2xl max-w-lg w-full p-4 overflow-hidden relative shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between pb-3 border-b">
+            <h3 className="font-bold text-slate-800 text-sm">Maintenance Evidence Photo</h3>
+            <button onClick={() => setViewPhoto(null)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold grid place-items-center text-xs">✕</button>
+          </div>
+          <div className="mt-3 flex justify-center bg-slate-900 rounded-xl overflow-hidden max-h-[70vh]">
+            <img src={viewPhoto} alt="Enlarged" className="max-h-[70vh] object-contain w-full" />
+          </div>
+          <div className="mt-3 text-right">
+            <button onClick={() => setViewPhoto(null)} className="px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl">Close</button>
+          </div>
+        </div>
+      </div>
+    )}
+
     {section==="notices"&&<HallCard title="Hall notice board" icon="📢" sub="Official hall announcements and important updates.">
       {isAdmin&&<div className="hl-tile mb-4 space-y-3"><input className="hl-input w-full" placeholder="Notice title" value={noticeForm.title} onChange={e=>setNoticeForm({...noticeForm,title:e.target.value})}/><input className="hl-input w-full" placeholder="Category (e.g. Maintenance)" value={noticeForm.category} onChange={e=>setNoticeForm({...noticeForm,category:e.target.value})}/><textarea className="hl-input w-full" rows="3" placeholder="Notice details" value={noticeForm.body} onChange={e=>setNoticeForm({...noticeForm,body:e.target.value})}/><label className="text-sm flex gap-2 items-center"><input type="checkbox" checked={noticeForm.pinned} onChange={e=>setNoticeForm({...noticeForm,pinned:e.target.checked})}/> Pin this notice</label><button className="hl-btn" onClick={createNotice}>Publish notice</button></div>}
       {!notices.length?<div className="hl-empty">No active notices.</div>:<div className="space-y-3">{notices.map(n=><article key={n.id} className="hl-tile"><div className="flex justify-between gap-2"><b>{n.pinned?"📌 ":""}{n.title}</b><span className="hl-chip">{n.category}</span></div><p className="text-sm mt-2 whitespace-pre-wrap">{n.body}</p><div className="text-xs hl-muted mt-2">{new Date(n.created_at).toLocaleString()}</div>{isAdmin&&<button className="hl-btn ghost mt-2" onClick={()=>deleteNotice(n.id)}>Delete notice</button>}</article>)}</div>}
     </HallCard>}
-
 
     {section==="laundry"&&!isAdmin&&<>
       <HallCard title="Request laundry service" icon="🧺" sub="Laundry is a hall service. Submit a pickup request and track its status here.">
@@ -286,7 +316,8 @@ function HallServices({call,user,isAdmin,notify}) {
       </HallCard>
       <HallCard title="My laundry requests" icon="📦"><div className="space-y-2">{laundryJobs.length?laundryJobs.map(j=><div className="hl-tile" key={j.id}><b>Request #{j.id}</b> · {j.description}<div className="text-sm hl-muted">{j.pieces} pieces · Pickup: {String(j.pickup_date||j.pickupDate||'Not scheduled').slice(0,10)} · Status: {j.status}</div></div>):<div className="hl-empty">No laundry requests yet.</div>}</div></HallCard>
     </>}
-    {section==="overview"&&isAdmin&&<><HallCard title="Hall operations overview" icon="📊">{!overview?<div className="hl-empty">Loading…</div>:<div className="hl-grid3">{[["Open requests",overview.open_requests],["Maintenance open",overview.maintenance_open],["Guest requests pending",overview.guest_pending],["Feedback (30 days)",overview.feedback_30d],["Active notices",overview.active_notices]].map(([l,v])=><HallStat key={l} label={l} value={v} icon="📌"/>)}</div>}</HallCard><HallCard title="Recent audit log" icon="🧾"><div className="space-y-2">{audit.slice(0,80).map(a=><div key={a.id} className="hl-tile text-sm"><b>{a.actor||`User ${a.user_id}`}</b> {a.action} {a.entity_type} {a.entity_id?`#${a.entity_id}`:""}<div className="text-xs hl-muted">{new Date(a.created_at).toLocaleString()}</div></div>)}</div></HallCard></>}
+
+    {section==="overview"&&isAdmin&&<><HallCard title="Hall operations overview" icon="📊">{!overview?<div className="hl-empty">Loading…</div>:<div className="hl-grid3">{[["Open requests",overview.open_requests],["Maintenance open",overview.maintenance_open],["Guest requests pending",overview.guest_pending],["Feedback (30 days)",overview.feedback_30d],["Active notices",overview.active_notices]].map(([l,v])=><HallStat key={l} label={l} value={v} icon="📌"/>)}</div>}</HallCard><HallCard title="Recent audit log" icon="🧾"><div className="space-y-2">{audit.slice(0,80).map(a=><div key={a.id} className="hl-tile text-sm"><b>{a.actor||"User " + a.user_id}</b> {a.action} {a.entity_type} {a.entity_id?"#" + a.entity_id:""}<div className="text-xs hl-muted">{new Date(a.created_at).toLocaleString()}</div></div>)}</div></HallCard></>}
   </div>;
 }
 Hall.register({key:"services",label:"Hall services",icon:"🛠️",order:9,component:HallServices});
