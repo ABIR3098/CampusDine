@@ -20,3 +20,7 @@ test("dayDiff counts whole days in both directions", () => {
   assert.equal(dayDiff("2026-10-31", "2026-10-30"), -1);
   assert.equal(dayDiff("2026-10-31", "2026-10-31"), 0);
 });
+
+test("addDays rolls over the month", () => {
+  assert.equal(addDays("2026-10-31", 1), "2026-11-01");
+});
