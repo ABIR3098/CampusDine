@@ -575,3 +575,18 @@ Created in `backend/src/hall/extraSchema.js`.
 | `min_quantity` | DECIMAL(10,2) |
 | `updated_by` | INT |
 | `updated_at` | TIMESTAMP |
+
+## `hall_pickup_tokens`
+Created in `backend/src/hall/extraSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `the_date` | DATE |
+| `slot` | ENUM('breakfast','lunch','dinner') |
+| `token_code` | VARCHAR(24) |
+| `status` | ENUM('issued','served','cancelled') |
+| `served_by` | INT |
+| `created_at` | TIMESTAMP |
+| `served_at` | DATETIME |
