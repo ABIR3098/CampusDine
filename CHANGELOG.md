@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix: wallet top-up is now limited to student and teacher accounts (riders and admins could call it before).
 - Menu: calories and allergens for 28 more items, with tests that check the data.
 - Menu: `more_menu_items.sql`: 60 more items (132 in total) with Bangla names, prices and restaurants.
 - Fix: Hall Admin login is locked for 10 minutes after 5 wrong passwords.
