@@ -31,3 +31,10 @@ test("happy hour respects the allowed weekdays", () => {
   assert.equal(isHappyHourActive(hh({ days: [0] }), at("2026-10-31T09:00:00Z")), false);
   assert.equal(isHappyHourActive(hh({ days: [6] }), at("2026-10-31T09:00:00Z")), true);
 });
+
+test("an overnight window runs before and after midnight", () => {
+  const night = hh({ start_time: "22:00", end_time: "02:00" });
+  assert.equal(isHappyHourActive(night, at("2026-10-31T17:00:00Z")), true); // 23:00 Dhaka
+  assert.equal(isHappyHourActive(night, at("2026-10-31T19:00:00Z")), true); // 01:00 Dhaka next day
+  assert.equal(isHappyHourActive(night, at("2026-10-31T21:00:00Z")), false); // 03:00 Dhaka
+});
