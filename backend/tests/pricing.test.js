@@ -48,3 +48,12 @@ test("equal or invalid start and end times never run", () => {
   assert.equal(isHappyHourActive(hh({ start_time: "14:00", end_time: "14:00" }), at("2026-10-31T08:00:00Z")), false);
   assert.equal(isHappyHourActive(hh({ start_time: "bad" }), at("2026-10-31T09:00:00Z")), false);
 });
+
+test("happyHourCovers checks listed items first, then category, else everything", () => {
+  const line = { id: 7, category: "drinks" };
+  assert.equal(happyHourCovers(hh({ itemIds: [7] }), line), true);
+  assert.equal(happyHourCovers(hh({ itemIds: [8] }), line), false);
+  assert.equal(happyHourCovers(hh({ category: "drinks" }), line), true);
+  assert.equal(happyHourCovers(hh({ category: "heavy" }), line), false);
+  assert.equal(happyHourCovers(hh(), line), true);
+});
