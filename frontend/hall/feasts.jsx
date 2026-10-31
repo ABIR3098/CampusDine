@@ -316,6 +316,39 @@ function HallFeasts({ call, isAdmin, notify }) {
                           {x.myRsvp && x.rsvpOpen && (
                             <button className="hl-btn sm ghost" disabled={busy === x.id} onClick={() => clearRsvp(x.id)}>
                               Cancel
+                            </button>
+                          )}
+                        </div>
+
+                        {!x.rsvpOpen ? <div className="text-xs mt-1.5 hl-muted">RSVP is closed, this feast has locked.</div>
+                          : isFull(x) && <div className="text-xs mt-1.5 hl-muted font-bold text-red-600">This feast is fully booked!</div>}
+
+                        {isAdmin && <button className="hl-btn sm ghost mt-2" onClick={() => showWho(x.id)}>👥 Who is going</button>}
+                        {isAdmin && open === x.id && list && (
+                          <div className="mt-2 text-sm bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="hl-muted text-xs">{list.going} going · {list.notGoing} not going</span>
+                              {list.people.length > 0 && <button className="hl-btn sm ghost" onClick={downloadCsv}>⬇ CSV</button>}
+                            </div>
+                            {list.people.length === 0 ? <div className="hl-empty">Nobody has answered yet.</div> : list.people.map((p, i) => (
+                              <div key={i} className="flex justify-between items-center gap-2 py-0.5 text-xs">
+                                <span>{p.name} <span className="hl-muted">{p.externalId}</span></span>
+                                <span className={"hl-chip " + (p.status === "going" ? "ok" : "plain")}>{p.status === "going" ? "Going" : "Not going"}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </HallCard>
+
+          {isAdmin && (
+            <HallCard title="Add a Grand Feast" icon="➕">
+              <div className="grid gap-3 sm:grid-cols-2">
   );
 }
 Hall.register({ key: "feasts", label: "Feasts", icon: "🎉", order: 5, component: HallFeasts });
