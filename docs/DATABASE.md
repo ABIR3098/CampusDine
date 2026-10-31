@@ -61,3 +61,13 @@ Created in `backend/schema.sql`.
 | `user_id` | INT |
 | `item_id` | INT |
 | `created_at` | TIMESTAMP |
+
+## `stock_alerts`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `menu_item_id` | INT |
+| `created_at` | TIMESTAMP |
