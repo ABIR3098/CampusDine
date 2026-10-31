@@ -486,6 +486,25 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
                     {ui && ui.Avatar && <ui.Avatar src={user.avatar} name={user.name} size={80} />}
                   </div>
                   <div>
+                    <h2 className="text-xl md:text-2xl font-display font-black uppercase tracking-wide">{user.name}</h2>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs opacity-95 mt-1.5 font-medium">
+                      <span>💳 ID: <strong>{user.externalId || "24524203174"}</strong></span>
+                      <span>🏛️ Hall: <strong>{user.hallName || "Main Campus Hall"}</strong></span>
+                      <span>🚪 Room: <strong>{user.roomNumber || "N/A"}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                  <div className="px-4 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 text-xs font-bold font-mono">
+                    Meal Status: Active Resident
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
         </div>
       )}
 
