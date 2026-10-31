@@ -46,3 +46,6 @@ Diet, member side: say what you don't eat and what you are allergic to. The week
 
 ## `dietAdmin.jsx`
 Diet, admin side: for one day, which meals contain what, and how many people who have that meal ON
+
+## `dietAlert.jsx`
+Home: a warning when a meal that is ON for you in the next 3 days contains something you avoid or are allergic to.
