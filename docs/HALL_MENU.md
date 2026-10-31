@@ -25,3 +25,6 @@ The **Copy to all days** button writes one meal to the same slot on every other 
 | 4 | Thursday |
 | 5 | Friday |
 | 6 | Saturday |
+
+## Meal slots
+Each day has three slots: `breakfast`, `lunch` and `dinner`. Items are written as a comma-separated line, for example `Rice, Dal, Fish curry`.
