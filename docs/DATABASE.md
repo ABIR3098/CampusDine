@@ -1077,3 +1077,16 @@ Created in `backend/server.js`.
 | `user_id` | INT |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `chat_messages`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `conversation_id` | INT |
+| `sender_id` | INT |
+| `recipient_id` | INT |
+| `message` | TEXT |
+| `created_at` | TIMESTAMP |
+| `read_at` | DATETIME |
