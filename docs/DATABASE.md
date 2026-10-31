@@ -964,3 +964,11 @@ Created in `backend/src/routes/chat.js`.
 | `mime` | VARCHAR(30) |
 | `data` | MEDIUMBLOB |
 | `created_at` | TIMESTAMP |
+
+## `chat_presence`
+Created in `backend/src/routes/chat.js`.
+
+| Column | Type |
+| --- | --- |
+| `user_id` | INT |
+| `last_seen` | DATETIME |
