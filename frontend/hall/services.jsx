@@ -166,16 +166,41 @@ function HallServices({call,user,isAdmin,notify}) {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-bold flex items-center gap-1.5 text-slate-800">
+                  <span>📸</span>
+                  <span>Attach Issue Photo (Optional)</span>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">Take a live photo from mobile camera or select file (Max 3MB).</div>
+              </div>
+              <label className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-all shadow-sm shrink-0">
+                <span>Upload / Take Photo</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
+              </label>
+            </div>
+            {photoPreview && (
+              <div className="mt-3 relative inline-block">
+                <img src={photoPreview} alt="Preview" className="w-28 h-28 object-cover rounded-xl border border-slate-300 shadow-sm" />
+                <button
+                  type="button"
+                  onClick={() => setPhotoPreview(null)}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white font-bold text-xs grid place-items-center shadow hover:bg-red-700">
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button className="hl-btn w-full sm:w-auto" disabled={busy} onClick={submit}>
+            {busy ? "Submitting…" : "🚀 Submit Maintenance Request"}
+          </button>
         </div>
-        <button className="hl-btn mt-3" disabled={busy} onClick={submit}>{busy?"Submitting…":"Submit request"}</button>
       </HallCard>}
-      <HallCard title={isAdmin?"All service requests":"Request history"} icon="📨">
-        {requests.length===0?<div className="hl-empty">No requests yet.</div>:<div className="space-y-3">{requests.map(r=><div key={r.id} className="hl-tile">
-          <div className="flex flex-wrap justify-between gap-2"><b>#{r.id} · {r.title}</b><span className="hl-chip">{HALL_STATUS_LABEL[r.status]||r.status}</span></div>
-          <div className="text-xs hl-muted mt-1">{(HALL_SERVICE_TYPES.find(x=>x[0]===r.type)||[r.type,r.type])[1]} · {r.student_name||"Student"} · {new Date(r.created_at).toLocaleString()}</div>
-          {r.description&&<p className="text-sm mt-2 whitespace-pre-wrap">{r.description}</p>}
-          {r.location&&<p className="text-sm hl-muted">📍 {r.location}{r.requested_date?` · ${String(r.requested_date).slice(0,10)}`:""}</p>}
-          {r.admin_note&&<p className="text-sm mt-2">Admin note: {r.admin_note}</p>}
+
+      <HallCard title={isAdmin?"All service requests":"Maintenance & Request History"} icon="📨">
+        {requests.length===0?<div className="hl-empty">No requests yet.</div>:<div className="space-y-4">{requests.map(r=>{
+          const step = getStatusStep(r.status);
+          const savedPhoto = (() => {
+            try { return localStorage.getItem("cd_photo_" + r.id) || (photoPreview && localStorage.getItem("cd_maint_recent_photo")); }
+            catch(_) { return null; }
           <div className="flex gap-2 flex-wrap mt-3">{isAdmin?<><select className="hl-input" value={r.status} onChange={e=>updateStatus(r.id,e.target.value)}>{Object.entries(HALL_STATUS_LABEL).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>{r.status!=="resolved"&&<button className="hl-btn ghost" onClick={()=>updateStatus(r.id,"resolved")}>Mark resolved</button>}</>:["submitted","approved"].includes(r.status)&&<button className="hl-btn ghost" onClick={()=>cancel(r.id)}>Cancel request</button>}</div>
         </div>)}</div>}
       </HallCard>
