@@ -67,3 +67,7 @@ test("tagsOf returns nothing for a plain meal or empty input", () => {
 test("tagsOf returns several tags in the fixed tag order", () => {
   assert.deepEqual(tagsOf("Egg, Rice, Beef curry"), ["beef", "egg"]);
 });
+
+test("parseList reads a comma list and drops unknown words", () => {
+  assert.deepEqual(parseList("beef, fish,pizza"), ["beef", "fish"]);
+});
