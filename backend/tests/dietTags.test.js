@@ -22,3 +22,9 @@ test("matchesFor: allergy wins over avoid", () => {
   const diet = { allergies: ["egg"], avoid: ["egg", "beef"] };
   assert.deepStrictEqual(matchesFor(["egg", "beef"], diet).map((m) => m.level), ["allergy", "avoid"]);
 });
+
+test("tagsOf does not tag eggplant as egg, and tags butter as dairy", () => {
+  const { tagsOf } = require("../src/hall/dietTags");
+  assert.deepStrictEqual(tagsOf("Eggplant bhaji"), []);
+  assert.deepStrictEqual(tagsOf("Butter chicken").sort(), ["chicken", "milk"]);
+});
