@@ -30,6 +30,7 @@ More documentation lives in [`docs/`](docs/):
 - [FAQ](docs/FAQ.md)
 - [Database tables](docs/DATABASE.md)
 - [Hall frontend modules](docs/HALL_FRONTEND_MODULES.md)
+- [API routes](docs/API_ROUTES.md)
 
 ---
 
