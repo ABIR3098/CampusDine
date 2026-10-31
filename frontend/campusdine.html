@@ -6492,6 +6492,39 @@ function KitchenDisplaySystem({ orders = [], advance, onExit, call, onShowPosSli
             <button
               onClick={() => setFilter("cooking")}
               className={"px-3 py-1.5 rounded-lg font-bold transition-all " + (filter === "cooking" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white")}>
+              Cooking ({activeOrders.filter(o => o.status === "Cooking").length})
+            </button>
+          </div>
+
+          <button
+            onClick={() => setSoundEnabled(v => !v)}
+            className={"p-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 " + (soundEnabled ? "bg-slate-800 border-slate-700 text-emerald-400" : "bg-slate-800/40 border-slate-700 text-slate-500")}>
+            <span>{soundEnabled ? "🔊 Chime On" : "🔇 Muted"}</span>
+          </button>
+
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+            <span>⛶ Fullscreen</span>
+          </button>
+
+          <button
+            onClick={onExit}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white flex items-center gap-1 shadow">
+            <span>✕ Exit KDS</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main KDS Grid */}
+      <div className="flex-1 p-6 overflow-y-auto bg-slate-950">
+        {filtered.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-slate-500">
+            <span className="text-6xl mb-3">👨‍🍳</span>
+            <div className="text-xl font-bold">Kitchen Queue is Empty</div>
+            <div className="text-sm mt-1">All orders have been prepared and collected!</div>
+          </div>
+        ) : (
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
