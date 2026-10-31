@@ -50,3 +50,16 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/riders/location`
 - `GET /api/riders/orders/summary`
 - `GET /api/riders/locations`
+
+## `/api/operations` — `src/routes/operations.js`
+
+- `GET /api/operations/riders/shift/me`
+- `POST /api/operations/riders/shift/start`
+- `POST /api/operations/riders/shift/end`
+- `GET /api/operations/riders/shifts`
+- `GET /api/operations/riders/assignable-orders`
+- `POST /api/operations/orders/:id/assign-rider`
+- `GET /api/operations/analytics`
+- `GET /api/operations/fraud-events`
+- `GET /api/operations/audit`
+- `GET /api/operations/riders/route`
