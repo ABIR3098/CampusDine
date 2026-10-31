@@ -49,3 +49,6 @@ Diet, admin side: for one day, which meals contain what, and how many people who
 
 ## `dietAlert.jsx`
 Home: a warning when a meal that is ON for you in the next 3 days contains something you avoid or are allergic to.
+
+## `feasts.jsx`
+Step 7 — "Feasts" tab: special meals on a given date. Everyone sees the list; admin can add / remove.
