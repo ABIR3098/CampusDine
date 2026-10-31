@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Docs: auth API guide.
 - Fix: coupon routes now always release their database connection. Before, an error such as a duplicate code leaked one, and about ten errors could freeze the server.
 - Fix: `/api/coupon/apply` now checks active, expiry, usage limit, minimum order, one use per person and one discount per order, and caps the discount at the order total.
 - Fix: creating a coupon now validates the input and returns 409 for a duplicate code.
