@@ -56,6 +56,7 @@ const NUTRITION_BY_NAME = {
   "Cheese Fries": { calories: 450, allergens: ["milk"] },
   "Cappuccino": { calories: 120, allergens: ["milk"] },
   "Hot Chocolate": { calories: 200, allergens: ["milk"] },
+  "Chocolate Milkshake": { calories: 350, allergens: ["milk"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
