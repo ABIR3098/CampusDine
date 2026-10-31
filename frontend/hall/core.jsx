@@ -309,12 +309,29 @@ function HallPortalHeader({
               <span>Hall Dining</span>
               <span className="status-pill success text-[10px] py-0 px-2">Meal Mode</span>
             </div>
+            <button onClick={onBack} className="text-[11px] font-bold text-amber-700 hover:underline">
+              ⇄ Switch to Canteen
             </button>
           </div>
         </div>
       </div>
-      <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
-    </>
+
+      {/* Right: User Pill, Theme, Logout */}
+      <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
+          {Avatar && <Avatar src={user.avatar} name={user.name} size={34} />}
+          <div className="hidden sm:block text-left leading-tight">
+            <div className="text-xs font-bold text-slate-900 truncate max-w-[140px]">{user.name}</div>
+            <div className="text-[10px] font-mono text-emerald-700 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span className="capitalize">{user.role}</span>
+            </div>
+          </div>
+        </div>
+
+        {ThemeMenu && <ThemeMenu />}
+
+        <button onClick={onLogout} title="Log out" className="btn-outline px-3 py-2 rounded-xl text-xs font-bold text-red-600 border-red-200 hover:bg-red-50 flex items-center gap-1.5">
   );
 }
 
