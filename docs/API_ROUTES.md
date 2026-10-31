@@ -41,3 +41,12 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/orders/issues/mine`
 - `GET /api/orders/issues`
 - `PATCH /api/orders/issues/:id`
+
+## `/api/riders` — `src/routes/riders.js`
+
+- `POST /api/riders/orders/assign-pending`
+- `GET /api/riders/orders`
+- `POST /api/riders/orders/:orderId/accept`
+- `POST /api/riders/location`
+- `GET /api/riders/orders/summary`
+- `GET /api/riders/locations`
