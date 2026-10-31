@@ -348,3 +348,17 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `assigned_at` | DATETIME |
 | `ended_at` | DATETIME |
 | `notes` | VARCHAR(500) |
+
+## `hall_room_history`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `from_room_id` | BIGINT UNSIGNED |
+| `to_room_id` | BIGINT UNSIGNED |
+| `action` | ENUM('assigned','transferred','checked_out') |
+| `actor_id` | INT |
+| `note` | VARCHAR(500) |
+| `created_at` | TIMESTAMP |
