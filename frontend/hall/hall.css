@@ -206,3 +206,6 @@
 .hl-logout svg { width: 16px; height: 16px; }
 .hl-logout-text { display: none; }
 @media (min-width: 640px) { .hl-logout { padding: 0 12px; } .hl-logout-text { display: inline; } }
+
+/* ---------- accessibility ---------- */
+.hl-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
