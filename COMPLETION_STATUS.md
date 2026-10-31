@@ -2,6 +2,8 @@
 
 > **Note:** this report describes `server-enhanced.js`, a separate branch. The running app is `server.js` (see README, "Legacy files").
 
+> **Legacy document.** It describes the older `*-enhanced.js` branch. Several of those route files (`auth-enhanced`, `orders-enhanced`, `wallet-enhanced`, `menu-enhanced`, `profile`, `ratings`, `favorites`, `notifications`, `payment`) do not load today, and `npm start` runs `server.js`, which does not use them. Treat the "complete / tested" claims below as historical.
+
 **Project:** CampusDine Bug Fixes & Feature Implementation  
 **Status:** ✅ **100% COMPLETE**  
 **Date:** September 3, 2026  
