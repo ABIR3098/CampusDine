@@ -117,6 +117,7 @@ SELECT v.name, v.name_bn, v.category, v.price, v.stock, v.tag, v.is_veg, v.image
   UNION ALL SELECT 'Roasted Peanuts', 'বাদাম ভাজা', 'snacks', 10, 70, NULL, 1, '/images/food/jhalmuri.svg'
   UNION ALL SELECT 'Chitoi Pitha', 'চিতই পিঠা', 'snacks', 12, 50, NULL, 1, '/images/food/default.svg'
   UNION ALL SELECT 'Chicken Chowmein', 'চিকেন চাউমিন', 'heavy', 90, 30, NULL, 0, '/images/food/chowmein.svg'
+  UNION ALL SELECT 'Beef Chowmein', 'বিফ চাউমিন', 'heavy', 110, 25, NULL, 0, '/images/food/chowmein.svg'
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM menu_items m WHERE m.name = v.name);
 
@@ -230,6 +231,7 @@ JOIN (
   UNION ALL SELECT 'Roasted Peanuts', 'vista'
   UNION ALL SELECT 'Chitoi Pitha', 'vista'
   UNION ALL SELECT 'Chicken Chowmein', 'thirdplace'
+  UNION ALL SELECT 'Beef Chowmein', 'thirdplace'
 ) AS r ON r.name = m.name
 ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value);
 
