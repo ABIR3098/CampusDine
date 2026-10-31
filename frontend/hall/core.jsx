@@ -213,6 +213,25 @@ function HallTopBar({
             {sidebarCollapsed ? "▶" : "◀"}
           </button>
         </div>
+
+        {/* Sidebar Search Bar */}
+        {!sidebarCollapsed && (
+          <div className="portal-search-box">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-50">🔍</span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search hall..."
+                className="portal-search-input"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
+                  ✕
             </div>
             {Avatar && <div className="hidden sm:block" title={`${user.name} · ${user.role}`}><Avatar src={user.avatar} name={user.name} size={34} /></div>}
             {ThemeMenu && <ThemeMenu />}
