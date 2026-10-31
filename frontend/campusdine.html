@@ -1,3 +1,238 @@
+        )}
+          </div>
+            </span>
+              <button onClick={() => setLowBalanceDismissed(true)} className="font-700">✕</button>
+              <button onClick={() => setTab("wallet")} className="btn-primary px-3 py-1.5 rounded-lg text-xs">{tx("topup")}</button>
+            <span className="flex items-center gap-3 shrink-0">
+            <span>{tx("lowbal", { b: taka(wallet.balance) })}</span>
+          <div className="warn-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center gap-3">
+        {session.user.role !== "admin" && wallet.loaded && wallet.balance < LOW_BALANCE_THRESHOLD && !lowBalanceDismissed && tab !== "wallet" && (
+        )}
+          </div>
+            <button onClick={() => setSuccess(null)} className="font-700">✕</button>
+            <span>{success}</span>
+          <div className="success-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
+        {success && (
+        )}
+          </div>
+            <button onClick={() => setError(null)} className="font-700">✕</button>
+            <span>{error}</span>
+          <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
+        {error && (
+        <ErrorBoundary scope="tab">
+      <div className="max-w-6xl mx-auto p-5 pb-24 sm:pb-5 fade-in" key={tab}>
+      </div>
+        </button>
+          {session.user.role !== "admin" && lang === "bn" ? "রেস্টুরেন্ট বদলান" : "Switch restaurant"}
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={switchRestaurant}>
+        </div>
+          </div>
+            {restaurant.subtitle && <div className="text-[11px] opacity-60">({restaurant.subtitle})</div>}
+            <div className="text-sm font-700">{restaurant.name}</div>
+          <div className="leading-tight">
+          <img src={restaurant.logo} alt="" style={{ width: 36, height: 36 }} />
+        <div className="flex items-center gap-2.5">
+      <div className="max-w-6xl mx-auto px-5 pt-4 flex items-center justify-between gap-3 flex-wrap">
+      </div>
+        ))}
+          </div>
+            <div className="text-sm mt-1 leading-relaxed">{item.message}</div>
+            <div className="text-[10px] uppercase tracking-wide font-700" style={{ color: item.kind === "announcement" ? "var(--teal-deep)" : "var(--gold)" }}>{item.title}</div>
+          }}>
+            color: "var(--ink)"
+            borderColor: item.kind === "announcement" ? "rgba(22,163,74,0.35)" : "rgba(245,179,0,0.35)",
+            background: item.kind === "announcement" ? "rgba(22,163,74,0.10)" : "rgba(245,179,0,0.12)",
+          <div key={item.id} className="pointer-events-auto rounded-xl border p-3 shadow-lg" style={{
+        {toastNotifications.map(item => (
+      <div className="fixed top-[76px] right-4 z-50 flex flex-col gap-2 w-[min(90vw,320px)] pointer-events-none">
+      />
+        onClearNotifications={clearNotifications}
+        onMarkAllRead={markAllNotificationsRead}
+        onToggleNotifications={() => setNotificationCenterOpen(v => !v)}
+        notificationOpen={notificationCenterOpen}
+        notifications={notifications} notificationCount={unreadNotifications}
+        active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang}
+        tabs={session.user.role === "admin" ? adminTabs : session.user.role === "teacher" ? teacherTabs : userTabs}
+      <TopBar role={session.user.role} name={session.user.name} avatar={session.user.avatar}
+    <div className="min-h-screen">
+  return (
+
+  const unreadNotifications = notifications.filter(item => !item.read).length;
+
+  ];
+    { key: "profile", label: "Profile", icon: I.user },
+    { key: "feedback", label: "Feedback", icon: I.star, badge: newFeedbackCount },
+    { key: "reports", label: "Reports", icon: I.chart },
+    { key: "chat", label: "Messages", icon: I.chat },
+    { key: "offers", label: "Offers", icon: I.gift },
+    { key: "coupons", label: "Coupons", icon: I.ticket },
+    { key: "verify", label: "Scan token", icon: I.ticket },
+    { key: "adminOrders", label: "Orders", icon: I.ticket },
+    { key: "hallFood", label: "Hall Food", icon: I.calendar },
+    { key: "adminMenu", label: "Menu", icon: I.box },
+    { key: "commandCenter", label: "Command Center", icon: I.chart },
+    { key: "overview", label: "Overview", icon: I.dashboard },
+  const adminTabs = [
+  const teacherTabs = [...userTabs, { key: "riderTracking", label: "Rider Tracking", icon: I.ticket }];
+  ];
+    { key: "profile", label: tx("nav.profile"), icon: I.user },
+    { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
+    { key: "chat", label: tx("nav.chat"), icon: I.chat },
+    { key: "spending", label: tx("nav.spending"), icon: I.chart },
+    { key: "rewards", label: tx("nav.rewards"), icon: I.gift },
+    { key: "wallet", label: tx("nav.wallet"), icon: I.wallet },
+    { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
+    { key: "campusHub", label: "Campus Hub", icon: I.dashboard },
+    { key: "track", label: tx("nav.track"), icon: I.clock },
+    { key: "groupOrders", label: "Group orders", icon: I.ticket },
+    { key: "menu", label: tx("nav.menu"), icon: I.menu },
+  const userTabs = [
+  const toRate = orders.filter(o => o.status === "Ready" && !o.feedback).length;
+
+  };
+    setRestaurant(null);
+    setCart([]);
+      : "Switching restaurant will empty your cart. Continue?")) return;
+      ? "রেস্টুরেন্ট বদলালে আপনার কার্ট খালি হয়ে যাবে। চালিয়ে যাবেন?"
+    if (cart.length > 0 && !window.confirm(session.user.role !== "admin" && lang === "bn"
+  const switchRestaurant = () => {
+  const restaurantOrders = session.user.role === "admin" ? orders.filter(o => o.restaurant === restaurant.id) : orders;
+  const restaurantMenu = menu.filter(m => m.restaurant === restaurant.id);
+  // Each restaurant sells its own items; admin orders are also limited to the chosen restaurant
+
+  }
+        onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
+      ext={{ apiBase, wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
+    return <HallGate call={call} user={session.user} token={session.token} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
+  if (restaurant.isHall) {
+  // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
+
+  }
+      onPick={(r) => { setRestaurant(r); setTab(session.user.role === "admin" ? "overview" : "menu"); }} onLogout={logout} /></>;
+    return <><RiderGpsBackground /><RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
+  if (!restaurant) {
+
+  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} /></>;
+
+  if (!session) return <><RiderGpsBackground /><Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} /></>;
+
+  };
+    try { localStorage.setItem("cd_lang", next); } catch (e) {}
+    setLang(next);
+    const next = lang === "bn" ? "en" : "bn";
+  const toggleLang = () => {
+  menu.forEach(m => { if (m.bn) MENU_BN[m.name] = m.bn; });
+  MENU_BN = {};
+  CURRENT_LANG = (session && session.user.role === "admin") ? "en" : lang;
+  // Language: admin pages are English-only for now; student/teacher pages follow the toggle.
+
+  };
+    } catch (e) { showError(e); }
+      await refreshMenu();
+      await call("/api/menu", { method: "POST", body: { ...item, restaurant: restaurant && restaurant.id } });
+    try {
+  const addMenuItem = async (item) => {
+  };
+    }
+      return false;
+      showError(e);
+    } catch (e) {
+      return true;
+      showSuccess("Coupon updated successfully.");
+      await refreshCoupons();
+      await call(`/api/coupon/${id}`, { method: "PUT", body: patch });
+    try {
+  const updateCoupon = async (id, patch) => {
+  };
+    } catch (e) { showError(e); }
+      await refreshMenu();
+      await call(`/api/menu/${id}`, { method: "PUT", body: patch });
+    try {
+  const updateMenuItem = async (id, patch) => {
+
+  };
+    } catch (e) { showError(e); } finally { setPlanBusy(false); }
+      await refreshCalendar();
+      setSuccess(tx("mp.repeat.ok", { n: num(r.added) }));
+      const r = await call("/api/calendar/repeat", { method: "POST", body: { year, month } });
+    try {
+    setPlanBusy(true);
+  const repeatLastMonth = async () => {
+  };
+    } catch (e) { showError(e); } finally { setPlanBusy(false); }
+      await refreshCalendar(); await refreshWallet();
+      setSuccess(tx("mp.paid.ok", { a: taka(r.paid), d: num(r.days) }));
+      const r = await call("/api/calendar/pay", { method: "POST", body: { year, month } });
+    try {
+    setPlanBusy(true);
+  const payMealPlan = async () => {
+  };
+    } catch (e) { showError(e); }
+      if (r.refunded) await refreshWallet();
+      await refreshCalendar();
+      const r = await call(`/api/calendar/${day}`, { method: "PUT", body: { year, month, status: next } });
+    try {
+    if (calendarPaid[day] && !window.confirm(tx("mp.confirm"))) return;
+    const next = currentStatus === "off" ? "full" : currentStatus === "full" ? "half" : "off";
+  const toggleDay = async (day, currentStatus) => {
+
+  };
+    try { await refreshWallet(); } catch (e) { showError(e); }
+    await call("/api/wallet/transfer", { method: "POST", body: { toId, amount, note } });
+  const sendMoney = async (toId, amount, note) => {
+  const lookupRecipient = (id) => call(`/api/wallet/recipient?id=${encodeURIComponent(id)}`);
+  // Wallet transfer: look the person up first, then send. Errors bubble up so the card can show them.
+
+  };
+    try { await refreshWallet(); } catch (e) { showError(e); }
+    // The top-up already succeeded on the server; a refresh hiccup shouldn't look like a failed payment.
+    } catch (e) { showError(e); throw e; } finally { setBusy(false); }
+      await call("/api/wallet/topup", { method: "POST", body: { amount, method } });
+    try {
+    setBusy(true); setError(null);
+  const topUp = async (amount, method) => {
+
+  }, [tab, session, newFeedbackCount]);
+    setNewFeedbackCount(0);
+    refreshFeedback().catch(() => {});
+    if (!session || session.user.role !== "admin" || tab !== "feedback") return;
+  useEffect(() => {
+  // Admin: opening the Feedback tab always pulls the latest and clears the unread badge
+
+  };
+    } catch (e) { showError(e); return false; } finally { setGeneralBusy(false); }
+      return true;
+      await refreshMyGeneralFeedback();
+      await call("/api/feedback", { method: "POST", body: { category, rating, comment } });
+    try {
+    setGeneralBusy(true); setError(null);
+  const submitGeneralFeedback = async (category, rating, comment) => {
+
+  };
+    } catch (e) { showError(e); return false; } finally { setFeedbackBusy(false); }
+      return true;
+      await refreshMyOrders();
+      await call(`/api/orders/${orderId}/feedback`, { method: "POST", body: { rating, comment } });
+    try {
+    setFeedbackBusy(true); setError(null);
+  const submitFeedback = async (orderId, rating, comment) => {
+
+  };
+    } catch (e) { showError(e); } finally { setBusy(false); }
+      );
+          : tx("msg.cancel", { t: cancelled.token })
+          ? tx("msg.cancel.w", { t: cancelled.token, a: taka(Number(cancelled.total) + Number(cancelled.tip_amount || 0)) /* Fix: cancel refund shows tip */ })
+        cancelled.payment_method === "wallet"
+      showSuccess(
+      setLoyaltyKey(k => k + 1); // spent points come back on cancel
+      await Promise.all([refreshMyOrders(), refreshMenu(), refreshWallet()]);
+      const cancelled = await call(`/api/orders/${id}/cancel`, { method: "PATCH" });
+    try {
+    setBusy(true); setError(null); setSuccess(null);
+  const cancelOrder = async (id) => {
+
+  };
+    } catch (e) { showError(e); }
       await refreshAdminOrders();
       await call(`/api/orders/${id}/advance`, { method: "PATCH" });
     try {
