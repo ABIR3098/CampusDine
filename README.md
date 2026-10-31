@@ -28,6 +28,7 @@ More documentation lives in [`docs/`](docs/):
 - [Adding menu items](docs/MENU_ITEMS_SQL.md)
 - [Environment variables](docs/ENVIRONMENT.md)
 - [FAQ](docs/FAQ.md)
+- [Database tables](docs/DATABASE.md)
 
 ---
 
