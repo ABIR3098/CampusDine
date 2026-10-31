@@ -3306,27 +3306,14 @@ function TopBar({
 }) {
   const filteredTabs = tabs.filter(t => !searchTerm || t.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const renderTabs = (ref) => (
-    <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
-      {tabs.map(t => (
-        <button key={t.key} onClick={() => setActive(t.key)} title={t.label} aria-label={t.label}
-          className={`nav-pill ${active === t.key ? "active" : ""}`}>
-          <Icon path={t.icon} className="w-4 h-4" />
-          <span className="nav-label">{t.label}</span>
-          {t.badge > 0 && <span className="nav-badge">{t.badge > 9 ? "9+" : t.badge}</span>}
-        </button>
-      ))}
-    </nav>
-  );
-
   return (
     <>
-    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
-        <div className="flex items-center gap-2 shrink-0">
-          <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
-          <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
-          <span className="w-2 h-2 rounded-full" title={connected ? tx("live.on") : tx("live.off")}
+      {/* ─── 1. BUP PORTAL STYLE VERTICAL SIDEBAR ─── */}
+      <aside className={`portal-sidebar ${sidebarCollapsed ? "collapsed" : ""} ${mobileMenuOpen ? "mobile-open" : ""}`}>
+        {/* Brand & Toggle Header */}
+        <div className="portal-sidebar-head">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <span role="img" aria-label="CampusDine logo" className="cd-logo shrink-0"></span>
             style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
         </div>
         <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
