@@ -519,3 +519,14 @@ Created in `backend/src/hall/autopaySchema.js`.
 | `due` | DECIMAL(10,2) |
 | `balance` | DECIMAL(10,2) |
 | `created_at` | DATETIME |
+
+## `hall_diet`
+Created in `backend/src/hall/dietSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `user_id` | INT |
+| `avoid` | VARCHAR(200) |
+| `allergies` | VARCHAR(200) |
+| `note` | VARCHAR(160) |
+| `updated_at` | DATETIME |
