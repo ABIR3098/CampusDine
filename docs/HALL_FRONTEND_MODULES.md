@@ -91,3 +91,6 @@ Ratings, student side: rate the meals you had (1-5 stars + an optional comment).
 
 ## `ratingsAdmin.jsx`
 Ratings, admin side: what students think of the meals (average, spread, best / lowest meals, latest comments).
+
+## `ratingsTrend.jsx`
+Ratings (admin): is each meal getting better or worse? A small line per meal time.
