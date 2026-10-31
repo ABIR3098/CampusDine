@@ -118,3 +118,6 @@ Meal times (admin): says in plain words what the cut-off you are typing means.
 
 ## `slots.jsx`
 Step 2 — "Meal times" tab: when each meal closes for changes, and its price. Admin can edit.
+
+## `token.jsx`
+Step 13 — meal tokens. Student/teacher: "Token" tab, take a number for today's meal and watch the queue.
