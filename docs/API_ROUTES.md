@@ -247,3 +247,13 @@ Every route registered in the backend, grouped by the file that defines it. Path
 ## `/api/hall` — `src/hall/routes/jobs.js`
 
 - `POST /api/hall/auto-fill`
+
+## `/api/hall` — `src/hall/routes/lastcall.js`
+
+- `GET /api/hall/lastcall`
+- `POST /api/hall/lastcall/:id/claim`
+- `GET /api/hall/lastcall/manage`
+- `POST /api/hall/lastcall`
+- `PATCH /api/hall/lastcall/:id/close`
+- `POST /api/hall/lastcall/serve`
+- `POST /api/hall/lastcall/claims/:id/cancel`
