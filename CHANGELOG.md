@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Docs and tests: group orders, weekly orders, Hall meal states and fraud events.
 - Fix: Hall pickup-token routes use the canteen date between 00:00 and 06:00.
 - Fix: changing the account e-mail now requires the current password.
 - Fix: demo accounts (admin/admin123 and others) are no longer created when NODE_ENV=production.
