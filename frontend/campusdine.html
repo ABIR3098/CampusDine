@@ -1,3 +1,238 @@
+  }
+    return { failed: true, error };
+  static getDerivedStateFromError(error) {
+  }
+    this.retry = this.retry.bind(this);
+    this.state = { failed: false, error: null, stack: "", tries: 0 };
+    super(props);
+  constructor(props) {
+class ErrorBoundary extends React.Component {
+// Fix 12: one broken screen must not blank the whole app. Shows a friendly card instead.
+
+}
+  );
+    </div>
+      </div>
+        </div>
+          <button className="btn-gold px-4 py-2 rounded-xl text-sm" onClick={onLogout}>{bn ? "লগআউট" : "Log out"}</button>
+        <div className="text-center mt-6">
+        </div>
+          ))}
+            </button>
+              <div className="text-xs opacity-70 mt-1 leading-relaxed">{bn ? r.descBn : r.desc}</div>
+              {r.subtitle && <div className="text-[11px] opacity-60">({r.subtitle})</div>}
+              <div className="font-display font-700 mt-3">{r.name}</div>
+              <img src={r.logo} alt={r.name} className="mx-auto" style={{ width: 104, height: 104 }} />
+              style={{ background: "var(--card, #fff)", borderColor: "rgba(0,0,0,0.12)", color: "var(--ink)" }}>
+            <button key={r.id} onClick={() => onPick(r.isHall ? HALL_ENTRY : r)} className={`rounded-2xl border p-4 text-center transition hover:-translate-y-0.5 hover:shadow-lg ${r.isHall ? "col-span-2 lg:col-span-1" : ""}`}
+          {[...RESTAURANTS, { ...HALL_ENTRY, logo: "/images/restaurants/hall.svg" }].map(r => (
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        </div>
+          </p>
+              : bn ? "কোন রেস্টুরেন্ট থেকে খাবার অর্ডার করতে চান?" : "Which restaurant do you want to order from?"}
+              ? "Which restaurant do you want to manage?"
+            {role === "admin"
+          <p className="text-sm opacity-70 mt-1">
+          <h1 className="font-display text-xl font-700 mt-3">{bn ? "স্বাগতম" : "Welcome"}, {userName}</h1>
+          </div>
+            <span className="font-display gold-text text-3xl font-800">CampusDine</span>
+            <span role="img" aria-label="CampusDine logo" className="cd-logo cd-logo-lg"></span>
+          <div className="flex items-center justify-center gap-3">
+        <div className="text-center mb-6">
+      <div className="w-full max-w-6xl fade-in">
+    <div className="min-h-screen flex items-center justify-center p-5">
+  return (
+  const bn = lang === "bn" && role !== "admin";
+function RestaurantPicker({ role, userName, lang, onPick, onLogout }) {
+
+}
+  );
+    </div>
+      </Section>
+        {data.rewards.filter(rewardItemOk).map(r => <Row key={r.id} kind="rewards" row={r} title={r.name} sub={`${r.points_cost} points · ${r.type === "DISCOUNT" ? "৳" + Number(r.discount_value) + " off" : "free " + (r.item_name || "item")}`} />)}
+      <Section title="Point rewards" kind="rewards">
+
+      </Section>
+        {combos.map(c => <Row key={c.id} kind="combos" row={c} title={`${c.name} — ৳${Number(c.price)}`} sub={`${c.items.map(i => `${i.name}${i.qty > 1 ? " ×" + i.qty : ""}`).join(" + ")} · normal ৳${c.fullPrice}${c.saving > 0 ? ` · saves ৳${c.saving}` : " · not cheaper than normal, won't apply"}`} />)}
+        {combos.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No combos for this restaurant yet.</p>}
+      <Section title="Combo deals" kind="combos">
+
+      </Section>
+        {data.happyHours.map(h => <Row key={h.id} kind="happy-hours" row={h} title={h.name} sub={hhSub(h)} on={h.activeNow} />)}
+        {data.happyHours.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No happy hours yet.</p>}
+      <Section title="Happy hours" kind="happy-hours">
+
+      </section>
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm mt-3" onClick={saveSettings}>Save rules</button>
+        </div>
+          <OfferField label="Streak bonus (points)"><input type="number" min="0" className={inputCls} style={lineStyle} value={settings.streakBonus} onChange={e => setSettings({ ...settings, streakBonus: e.target.value })} /></OfferField>
+          <OfferField label="Streak length (days)"><input type="number" min="2" className={inputCls} style={lineStyle} value={settings.streakDays} onChange={e => setSettings({ ...settings, streakDays: e.target.value })} /></OfferField>
+          <OfferField label="Taka per 1 point"><input type="number" min="1" className={inputCls} style={lineStyle} value={settings.earnPer} onChange={e => setSettings({ ...settings, earnPer: e.target.value })} /></OfferField>
+        <div className="grid sm:grid-cols-3 gap-3">
+        <h3 className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Points & streak rules</h3>
+      <section className="card p-4">
+
+      <h2 className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Offers & loyalty</h2>
+    <div className="space-y-8 max-w-3xl">
+  return (
+
+  );
+    </section>
+      <div className="space-y-2 mt-2">{children}</div>
+      )}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, type: form.row.type, pointsCost: String(form.row.points_cost), discountValue: String(Number(form.row.discount_value || 0)), itemId: form.row.item_id ? String(form.row.item_id) : "", isActive: !!form.row.is_active }} />
+        <RewardForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, startTime: String(form.row.start_time).slice(0, 5), endTime: String(form.row.end_time).slice(0, 5), days: form.row.days, category: form.row.category, itemIds: form.row.itemIds, discountType: form.row.discount_type, discountValue: String(Number(form.row.discount_value)), isActive: !!form.row.is_active }} /> :
+        kind === "happy-hours" ? <HappyHourForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+          initial={form.row && { name: form.row.name, name_bn: form.row.name_bn, price: String(Number(form.row.price)), isActive: !!form.row.is_active, items: form.row.items.map(i => ({ itemId: String(i.item_id), qty: i.qty })) }} /> :
+        kind === "combos" ? <ComboForm menu={menu} onCancel={() => setForm(null)} onSave={(b) => save(kind, form.row && form.row.id, b)}
+      {form && form.kind === kind && (
+      </div>
+        <button className="btn-primary px-3 py-1.5 rounded-lg text-xs" onClick={() => setForm({ kind })}>+ New</button>
+        <h3 className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{title}</h3>
+      <div className="flex items-center justify-between mb-3">
+    <section>
+  const Section = ({ title, kind, children }) => (
+  const hhSub = (h) => `${String(h.start_time).slice(0, 5)}–${String(h.end_time).slice(0, 5)} · ${h.days.length ? h.days.map(d => DAY_LABELS[d]).join(", ") : "every day"} · ${h.itemIds.length ? h.itemIds.length + " items" : h.category || "everything"} · ${h.discount_type === "PERCENTAGE" ? Number(h.discount_value) + "% off" : "৳" + Number(h.discount_value) + " off each"}`;
+  );
+    </div>
+      </div>
+        <button className="px-3 py-1.5 rounded-lg text-xs border" style={{ borderColor: "var(--brick)", color: "var(--brick)" }} onClick={() => remove(kind, row.id, row.name)}>Delete</button>
+        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={() => setForm({ kind, row })}>Edit</button>
+      <div className="flex gap-2 shrink-0">
+      </div>
+        <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{sub}</div>
+        <div className="font-600 text-sm">{title} {!row.is_active && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>(off)</span>} {on && <span className="text-[10px] px-2 py-0.5 rounded-full ml-1" style={{ background: "var(--teal)", color: "#fff" }}>running now</span>}</div>
+      <div className="min-w-0">
+    <div className="card p-3 flex items-center justify-between gap-3" style={{ opacity: row.is_active ? 1 : 0.55 }}>
+  const Row = ({ kind, row, title, sub, on }) => (
+  const rewardItemOk = (r) => !r.item_id || menuIds.has(r.item_id);
+  const combos = data.combos.filter(c => c.items.every(i => menuIds.has(i.item_id)));
+  // Combos belong to one restaurant: show the ones made of this restaurant's items
+  };
+    } catch (e) { notify(e, true); }
+      setSettings(s); notify("Loyalty settings saved.");
+      const s = await call("/api/loyalty/settings", { method: "PUT", body: { earnPer: Number(settings.earnPer), streakDays: Number(settings.streakDays), streakBonus: Number(settings.streakBonus) } });
+    try {
+  const saveSettings = async () => {
+  };
+    try { await call(`/api/offers/admin/${kind}/${id}`, { method: "DELETE" }); await load(); } catch (e) { notify(e, true); }
+    if (!window.confirm(`Delete “${name}”?`)) return;
+  const remove = async (kind, id, name) => {
+  };
+    } catch (e) { notify(e, true); }
+      setForm(null); await load(); notify("Saved.");
+      await call(`/api/offers/admin/${kind}${id ? "/" + id : ""}`, { method: id ? "PUT" : "POST", body });
+    try {
+  const save = async (kind, id, body) => {
+
+  if (!data) return <div className="card p-6 text-sm">…</div>;
+  useEffect(() => { load().catch(e => notify(e, true)); }, []);
+  const load = async () => { const d = await call("/api/offers/admin"); setData(d); setSettings(d.settings); };
+  const menuIds = new Set(menu.map(m => m.id));
+  const [settings, setSettings] = useState(null);
+  const [form, setForm] = useState(null); // { kind: "combos"|"happy-hours"|"rewards", row? }
+  const [data, setData] = useState(null);
+function AdminOffers({ call, menu, notify }) {
+
+}
+  );
+    </div>
+      </div>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, pointsCost: Number(d.pointsCost), discountValue: Number(d.discountValue), itemId: d.itemId ? Number(d.itemId) : null })}>Save reward</button>
+      <div className="flex gap-2">
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+          </OfferField>}
+            </select>
+              <option value="">Choose item…</option>{menu.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            <select className={inputCls} style={lineStyle} value={d.itemId} onChange={e => setD({ ...d, itemId: e.target.value })}>
+        : <OfferField label="Free item (one unit)">
+        ? <OfferField label="Taka off"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.discountValue} onChange={e => setD({ ...d, discountValue: e.target.value })} /></OfferField>
+      {d.type === "DISCOUNT"
+      </div>
+        </OfferField>
+          </select>
+            <option value="DISCOUNT">Discount (৳)</option><option value="FREE_ITEM">Free item</option>
+          <select className={inputCls} style={lineStyle} value={d.type} onChange={e => setD({ ...d, type: e.target.value })}>
+        <OfferField label="Reward">
+        <OfferField label="Points needed"><input type="number" min="1" className={inputCls} style={lineStyle} value={d.pointsCost} onChange={e => setD({ ...d, pointsCost: e.target.value })} /></OfferField>
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="৳20 off" /></OfferField>
+      <div className="grid sm:grid-cols-4 gap-3">
+    <div className="card p-4 space-y-3">
+  return (
+  const [d, setD] = useState(initial || { name: "", name_bn: "", type: "DISCOUNT", pointsCost: "100", discountValue: "20", itemId: "", isActive: true });
+function RewardForm({ menu, initial, onSave, onCancel }) {
+
+}
+  );
+    </div>
+      </div>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, discountValue: Number(d.discountValue) })}>Save happy hour</button>
+      <div className="flex gap-2">
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      </details>
+        </div>
+          {menu.map(m => <label key={m.id} className="text-xs flex items-center gap-1.5"><input type="checkbox" checked={d.itemIds.includes(m.id)} onChange={() => toggleItem(m.id)} />{m.name}</label>)}
+        <div className="grid sm:grid-cols-3 gap-1 mt-2 max-h-40 overflow-auto">
+        <summary className="text-xs cursor-pointer" style={{ color: "var(--ink-soft)" }}>Only specific items ({d.itemIds.length} chosen — overrides “Applies to”)</summary>
+      <details>
+      </div>
+        </div>
+          ))}
+              style={d.days.includes(i) ? { background: "var(--teal)", borderColor: "var(--teal)" } : lineStyle}>{l}</button>
+            <button key={i} onClick={() => toggleDay(i)} className={`px-2.5 py-1 rounded-lg border text-xs ${d.days.includes(i) ? "text-white" : ""}`}
+          {DAY_LABELS.map((l, i) => (
+        <div className="flex gap-1.5 flex-wrap">
+        <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Days (none selected = every day)</div>
+      <div>
+      </div>
+        <OfferField label={d.discountType === "PERCENTAGE" ? "Percent" : "Taka"}><input type="number" min="1" className={inputCls} style={lineStyle} value={d.discountValue} onChange={e => setD({ ...d, discountValue: e.target.value })} /></OfferField>
+        </OfferField>
+          </select>
+            <option value="PERCENTAGE">Percent off</option><option value="FIXED">৳ off each item</option>
+          <select className={inputCls} style={lineStyle} value={d.discountType} onChange={e => setD({ ...d, discountType: e.target.value })}>
+        <OfferField label="Discount type">
+        <OfferField label="Until"><input type="time" className={inputCls} style={lineStyle} value={d.endTime} onChange={e => setD({ ...d, endTime: e.target.value })} /></OfferField>
+        <OfferField label="From"><input type="time" className={inputCls} style={lineStyle} value={d.startTime} onChange={e => setD({ ...d, startTime: e.target.value })} /></OfferField>
+      <div className="grid sm:grid-cols-4 gap-3">
+      </div>
+        </OfferField>
+          </select>
+            <option value="">Everything</option><option value="heavy">Meals</option><option value="snacks">Snacks</option><option value="drinks">Drinks</option>
+          <select className={inputCls} style={lineStyle} value={d.category || ""} onChange={e => setD({ ...d, category: e.target.value || null })}>
+        <OfferField label="Applies to">
+        <OfferField label="Name (বাংলা)"><input className={inputCls} style={lineStyle} value={d.name_bn || ""} onChange={e => setD({ ...d, name_bn: e.target.value })} /></OfferField>
+        <OfferField label="Name"><input className={inputCls} style={lineStyle} value={d.name} onChange={e => setD({ ...d, name: e.target.value })} placeholder="Snacks happy hour" /></OfferField>
+      <div className="grid sm:grid-cols-3 gap-3">
+    <div className="card p-4 space-y-3">
+  return (
+  const toggleItem = (id) => setD({ ...d, itemIds: d.itemIds.includes(id) ? d.itemIds.filter(x => x !== id) : [...d.itemIds, id] });
+  const toggleDay = (i) => setD({ ...d, days: d.days.includes(i) ? d.days.filter(x => x !== i) : [...d.days, i] });
+  const [d, setD] = useState(initial || { name: "", name_bn: "", startTime: "15:00", endTime: "17:00", days: [], category: "snacks", itemIds: [], discountType: "PERCENTAGE", discountValue: "15", isActive: true });
+function HappyHourForm({ menu, initial, onSave, onCancel }) {
+
+}
+  );
+    </div>
+      </div>
+        <button className="btn-gold px-4 py-2 rounded-lg text-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn-primary px-4 py-2 rounded-lg text-sm" onClick={() => onSave({ ...d, price: Number(d.price), items: d.items.filter(i => i.itemId).map(i => ({ itemId: Number(i.itemId), qty: Number(i.qty) })) })}>Save combo</button>
+      <div className="flex gap-2">
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={d.isActive} onChange={e => setD({ ...d, isActive: e.target.checked })} /> Active</label>
+      </div>
+        Normal price ৳{full}{Number(d.price) > 0 && full > 0 ? ` → customer saves ৳${full - Number(d.price)}` : ""}{Number(d.price) >= full && full > 0 ? " (combo price must be lower than the normal price to apply)" : ""}
+      <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+      </div>
+        <button onClick={() => setD({ ...d, items: [...d.items, { itemId: "", qty: 1 }] })} className="text-xs underline">+ Add item</button>
+        ))}
+          </div>
+            {d.items.length > 2 && <button onClick={() => setD({ ...d, items: d.items.filter((_, i) => i !== idx) })} className="text-xs px-2" style={{ color: "var(--brick)" }}>✕</button>}
+            <input type="number" min="1" max="20" className="px-3 py-2 rounded-lg border text-sm w-20" style={lineStyle} value={it.qty} onChange={e => setItem(idx, { qty: e.target.value })} />
+            </select>
+              {menu.map(m => <option key={m.id} value={m.id}>{m.name} — ৳{Number(m.price)}</option>)}
               <option value="">Choose item…</option>
             <select className={inputCls} style={lineStyle} value={it.itemId} onChange={e => setItem(idx, { itemId: e.target.value })}>
           <div key={idx} className="flex gap-2 items-center">
