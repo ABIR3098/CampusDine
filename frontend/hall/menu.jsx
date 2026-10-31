@@ -6,7 +6,7 @@ function HallMenuCell({ value, isAdmin, onSave }) {
   useEffect(() => { setText(value); }, [value]);
   if (!isAdmin) return <div className="font-600">{value || "—"}</div>;
   return (
-    <input className="hl-input" aria-label="Edit meal items" value={text} maxLength={255} onChange={(e) => setText(e.target.value)}
+    <input className="hl-input" aria-label="Edit meal items" placeholder="e.g. Rice, Dal, Fish curry" value={text} maxLength={255} onChange={(e) => setText(e.target.value)}
       onBlur={() => { if (text.trim() && text.trim() !== value) onSave(text.trim()); else setText(value); }} />
   );
 }
