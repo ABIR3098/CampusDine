@@ -547,3 +547,17 @@ Created in `backend/src/hall/extraSchema.js`.
 | `admin_note` | VARCHAR(500) |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `hall_notices`
+Created in `backend/src/hall/extraSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `title` | VARCHAR(180) |
+| `body` | TEXT |
+| `category` | VARCHAR(50) |
+| `pinned` | TINYINT(1) |
+| `expires_at` | DATETIME |
+| `created_by` | INT |
+| `created_at` | TIMESTAMP |
