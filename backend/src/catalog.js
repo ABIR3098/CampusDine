@@ -70,6 +70,7 @@ const NUTRITION_BY_NAME = {
   "Orange Juice": { calories: 110, allergens: [] },
   "Watermelon Juice": { calories: 90, allergens: [] },
   "Chicken Curry & Rice": { calories: 560, allergens: [] },
+  "Dal Sobji & Rice": { calories: 420, allergens: [] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
