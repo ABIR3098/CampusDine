@@ -290,6 +290,25 @@ function HallPortalHeader({
 }) {
   const ThemeMenu = ui && ui.ThemeMenu, Avatar = ui && ui.Avatar;
 
+  return (
+    <header className="portal-header">
+      {/* Left: Mobile toggle & Canteen switcher */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenMobileMenu}
+          className="md:hidden w-10 h-10 rounded-xl border grid place-items-center"
+          style={{ borderColor: "var(--line)" }}>
+          <span style={{ fontSize: 18 }}>☰</span>
+        </button>
+
+        <div className="flex items-center gap-2.5">
+          <img src="/images/restaurants/hall.svg" alt="" className="w-8 h-8 rounded-lg object-contain border p-1 shadow-xs" style={{ borderColor: "var(--line)", background: "#fff" }} />
+          <div className="leading-tight">
+            <div className="text-sm font-extrabold flex items-center gap-1.5" style={{ color: "var(--ink)" }}>
+              <span>Hall Dining</span>
+              <span className="status-pill success text-[10px] py-0 px-2">Meal Mode</span>
+            </div>
             </button>
           </div>
         </div>
