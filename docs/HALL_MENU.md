@@ -28,3 +28,6 @@ The **Copy to all days** button writes one meal to the same slot on every other 
 
 ## Meal slots
 Each day has three slots: `breakfast`, `lunch` and `dinner`. Items are written as a comma-separated line, for example `Rice, Dal, Fish curry`.
+
+## Limits
+One meal line can be at most 255 characters, and an empty line is not saved.
