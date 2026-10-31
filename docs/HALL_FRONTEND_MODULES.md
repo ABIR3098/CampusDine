@@ -7,3 +7,6 @@ Hall profile tab. Payment and wallet features are intentionally excluded from Ha
 
 ## `adminChips.jsx`
 Admin Home: what needs attention right now, one tap away.
+
+## `adminDayNav.jsx`
+Admin Home: look at another day with ‹ and › instead of only today.
