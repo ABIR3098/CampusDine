@@ -849,3 +849,20 @@ Created in `backend/src/offersSchema.js`.
 | `combo_id` | INT |
 | `item_id` | INT |
 | `qty` | INT |
+
+## `happy_hours`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `name` | VARCHAR(100) |
+| `name_bn` | VARCHAR(100) |
+| `start_time` | TIME |
+| `end_time` | TIME |
+| `days` | VARCHAR(20) |
+| `category` | VARCHAR(12) |
+| `discount_type` | VARCHAR(12) |
+| `discount_value` | DECIMAL(10,2) |
+| `is_active` | TINYINT(1) |
+| `created_at` | TIMESTAMP |
