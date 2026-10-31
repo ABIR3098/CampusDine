@@ -952,3 +952,15 @@ Created in `backend/src/routes/chat.js`.
 | `user_id` | INT |
 | `emoji` | VARCHAR(16) |
 | `created_at` | TIMESTAMP |
+
+## `chat_images`
+Created in `backend/src/routes/chat.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `owner_user_id` | INT |
+| `uploader_id` | INT |
+| `mime` | VARCHAR(30) |
+| `data` | MEDIUMBLOB |
+| `created_at` | TIMESTAMP |
