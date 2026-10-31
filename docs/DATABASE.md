@@ -915,3 +915,14 @@ Created in `backend/src/routes/campusFeatures.js`.
 | `status` | ENUM('open','acknowledged','responding','resolved','false_alarm') |
 | `created_at` | TIMESTAMP |
 | `updated_at` | TIMESTAMP |
+
+## `campus_waste_challenge_members`
+Created in `backend/src/routes/campusFeatures.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `user_id` | INT |
+| `joined_at` | TIMESTAMP |
+| `saved_meals` | INT |
+| `last_pledge_date` | DATE |
