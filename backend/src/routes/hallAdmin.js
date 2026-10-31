@@ -5,7 +5,11 @@ const pool = require("../db");
 const { createOtp, verifyOtp } = require("../utils/otp");
 const { sendOtpEmail } = require("../utils/mailer");
 const { verifyToken, requireRole } = require("../middleware/auth");
+const { createAttemptLock } = require("../utils/attemptLock");
 const router = express.Router();
+// 5 wrong passwords for the same ID from the same address lock Hall Admin login for 10 minutes.
+const hallLoginLock = createAttemptLock({ max: 5, lockMs: 10 * 60 * 1000 });
+setInterval(() => hallLoginLock.sweep(), 5 * 60 * 1000).unref();
 const clean = v => typeof v === "string" ? v.trim() : "";
 async function schema() {
   await pool.query(`CREATE TABLE IF NOT EXISTS hall_admin_items (
@@ -64,8 +68,11 @@ router.post('/auth/register', async(req,res,next)=>{try{
 }catch(e){next(e)}});
 router.post('/auth/login', async(req,res,next)=>{try{
  const id=clean(req.body.identifier), password=String(req.body.password||''); if(!id||!password)return res.status(400).json({error:'Enter ID/email and password'});
+ const lockKey=`${req.ip}|${id.toLowerCase()}`, wait=hallLoginLock.lockedFor(lockKey);
+ if(wait>0)return res.status(429).json({error:`Too many failed attempts. Try again in ${Math.ceil(wait/60000)} minute(s).`});
  const [rows]=await pool.query("SELECT * FROM users WHERE role='hall_admin' AND (external_id=? OR email=?) LIMIT 1",[id,id.toLowerCase()]);
- const user=rows[0]; if(!user||!(await bcrypt.compare(password,user.password_hash)))return res.status(401).json({error:'Invalid Hall Admin credentials'});
+ const user=rows[0]; if(!user||!(await bcrypt.compare(password,user.password_hash))){hallLoginLock.noteFail(lockKey);return res.status(401).json({error:'Invalid Hall Admin credentials'});}
+ hallLoginLock.clear(lockKey);
  const otp=await createOtp(pool,user.email,'login2fa'); if(!otp.ok) return res.status(otp.status).json({error:otp.error});
  const mail=await sendOtpEmail(user.email,otp.code,'login2fa',otp.expiresInMin); if(!mail.sent && process.env.NODE_ENV!=='production') console.log(`[Hall Admin login OTP for ${user.email}] ${otp.code}`);
  const challenge=jwt.sign({uid:user.id,purpose:'hall_admin_login'},process.env.JWT_SECRET,{expiresIn:'10m'});
