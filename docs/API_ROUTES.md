@@ -63,3 +63,12 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/operations/fraud-events`
 - `GET /api/operations/audit`
 - `GET /api/operations/riders/route`
+
+## `/api/group-orders` — `src/routes/groupOrders.js`
+
+- `POST /api/group-orders`
+- `POST /api/group-orders/join`
+- `GET /api/group-orders`
+- `GET /api/group-orders/:id`
+- `POST /api/group-orders/:id/items`
+- `POST /api/group-orders/:id/close`
