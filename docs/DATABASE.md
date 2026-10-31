@@ -677,3 +677,15 @@ Created in `backend/src/hall/ratingsSchema.js`.
 | `comment` | VARCHAR(300) |
 | `created_at` | DATETIME |
 | `updated_at` | DATETIME |
+
+## `hall_slots`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `slot` | VARCHAR(12) |
+| `label` | VARCHAR(30) |
+| `cutoff_days_before` | TINYINT |
+| `cutoff_time` | TIME |
+| `price` | DECIMAL(10,2) |
+| `guest_price` | DECIMAL(10,2) |
