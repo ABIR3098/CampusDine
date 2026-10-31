@@ -31,3 +31,7 @@ test("empty input is invalid", () => {
   assert.equal(parseCode("").valid, false);
   assert.equal(parseCode(null).valid, false);
 });
+
+test("a payload with the wrong number of parts is invalid", () => {
+  assert.deepEqual(parseCode("CD1|C-105"), { token: null, signed: true, valid: false });
+});
