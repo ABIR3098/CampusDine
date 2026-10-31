@@ -213,3 +213,5 @@
 .hl-input:disabled { opacity: .6; cursor: not-allowed; }
 .hl-sec { transition: box-shadow .2s ease; }
 .hl-sec:hover { box-shadow: 0 4px 14px rgba(16,24,40,.08); }
+.hl-dayc { transition: transform .15s ease, box-shadow .2s ease; }
+.hl-dayc:hover { transform: translateY(-2px); }
