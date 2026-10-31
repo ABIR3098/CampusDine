@@ -10015,6 +10015,25 @@ function App() {
                     ⭐
                   </div>
                   <div>
+                    <div className="text-[11px] uppercase tracking-wider font-bold text-slate-400">Reward Points</div>
+                    <div className="font-mono text-xl font-black mt-0.5" style={{ color: "var(--ink)" }}>
+                      {orders.reduce((acc, o) => acc + Math.floor(o.total / 10), 0)} pts
+                    </div>
+                    <div className="text-[10px] font-bold text-amber-600 mt-0.5">Loyalty Member</div>
+                  </div>
+                </div>
+
+                <div className="portal-kpi-card">
+                  <div className="portal-kpi-icon" style={{ background: "rgba(16,185,129,0.1)", color: "#059669" }}>
+                    🌱
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-bold text-slate-400">Green BYOB</div>
+                    <div className="font-mono text-xl font-black mt-0.5" style={{ color: "var(--ink)" }}>৳15 Saved</div>
+                    <div className="text-[10px] font-bold text-emerald-600 mt-0.5">Eco Champion</div>
+                  </div>
+                </div>
+
         <ErrorBoundary scope="tab">
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
