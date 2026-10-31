@@ -31,3 +31,6 @@ Run `npm test` inside the `backend` folder (Node 18 or newer).
 
 ## Why is there no `.env` in the repository?
 It holds passwords and secrets, so `.gitignore` excludes it. Copy `backend/.env.example` to `backend/.env` and fill in your own values.
+
+## Why does a new menu item show no calories?
+Calories and allergens live in `NUTRITION_BY_NAME` in `backend/src/catalog.js`. Items that are not listed there simply show no nutrition badges. Add a line for the item to fix it.
