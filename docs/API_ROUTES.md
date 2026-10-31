@@ -218,3 +218,12 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/hall/diet/menu`
 - `GET /api/hall/diet/warnings`
 - `GET /api/hall/diet/summary`
+
+## `/api/hall` — `src/hall/routes/feasts.js`
+
+- `GET /api/hall/feasts`
+- `POST /api/hall/feasts`
+- `DELETE /api/hall/feasts/:id`
+- `POST /api/hall/feasts/:id/rsvp`
+- `DELETE /api/hall/feasts/:id/rsvp`
+- `GET /api/hall/feasts/:id/rsvps`
