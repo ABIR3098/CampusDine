@@ -5594,18 +5594,476 @@ function ReferralCard({ apiBase, token }) {
     <div className="card p-5 mb-5">
       <div className="font-display font-700 mb-2" style={{ color: "var(--gold)" }}>🎁 {tx("ref.title")}</div>
       <div className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("ref.yours")}</div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-mono text-xl font-700 tracking-widest px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>{info.code}</span>
+        <button type="button" onClick={copy} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: copied ? "var(--leaf)" : "var(--ink-soft)" }}>
+          {copied ? "✓ " + tx("ref.copied") : "📋 " + tx("ref.copy")}
         </button>
-          {session.user.role !== "admin" && lang === "bn" ? "রেস্টুরেন্ট বদলান" : "Switch restaurant"}
-        <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={switchRestaurant}>
-        </div>
-          </div>
-            {restaurant.subtitle && <div className="text-[11px] opacity-60">({restaurant.subtitle})</div>}
-            <div className="text-sm font-700">{restaurant.name}</div>
-          <div className="leading-tight">
-          <img src={restaurant.logo} alt="" style={{ width: 36, height: 36 }} />
-        <div className="flex items-center gap-2.5">
-      <div className="max-w-6xl mx-auto px-5 pt-4 flex items-center justify-between gap-3 flex-wrap">
       </div>
+      <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>{tx("ref.how", { b: taka(info.bonus) })}</p>
+      <p className="text-xs font-600">{tx("ref.stats", { i: num(info.invited), r: num(info.rewarded), e: taka(info.earned) })}</p>
+    </div>
+  );
+}
+function WalletTab({ apiBase, token, balance, topUp, transactions, busy, onLookup, onSend, suggestedAmount }) {
+  const [amount, setAmount] = useState(suggestedAmount || 100);
+  const [showPay, setShowPay] = useState(false);
+
+  const handleConfirm = async (method) => {
+    await topUp(amount, method); // modal shows the success message itself
+  };
+
+  return (
+    <div className="grid lg:grid-cols-3 gap-6 max-w-3xl">
+      {showPay && (
+        <PaymentModal amount={amount} busy={busy} onClose={() => setShowPay(false)} onConfirm={handleConfirm} />
+      )}
+      <div className="lg:col-span-1">
+        <div className="ticket p-6 mb-5">
+          <div className="perf pl-4">
+            <div className="text-xs opacity-70">{tx("wallet.bal")}</div>
+            <div className="font-mono text-3xl font-700 mt-1">{taka(balance)}</div>
+          </div>
+        </div>
+        <ReferralCard apiBase={apiBase} token={token} />
+        <div className="card p-5">
+          <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{tx("topup")}</div>
+          <div className="flex gap-2 mb-3">
+            {[100, 300, 500].map(v => (
+              <button key={v} onClick={() => setAmount(v)}
+                className={`flex-1 py-2 rounded-lg border text-sm font-mono ${amount === v ? "text-white" : ""}`}
+                style={amount === v ? { background: "var(--gold)", borderColor: "var(--gold)", color: "#FFFFFF" } : { borderColor: "var(--line)" }}>
+                {taka(v)}
+              </button>
+            ))}
+          </div>
+          <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))}
+            className="w-full px-3 py-2 rounded-lg border mb-3 font-mono" style={{ borderColor: "var(--line)" }} />
+          <button disabled={busy || amount <= 0} onClick={() => setShowPay(true)} className="btn-primary w-full py-2.5 rounded-xl">
+            {busy ? tx("adding") : tx("addmoney")}
+          </button>
+        </div>
+        <SendMoneyCard balance={balance} onLookup={onLookup} onSend={onSend} />
+      </div>
+      <div className="lg:col-span-2 card p-5">
+        <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>{tx("txhist")}</div>
+        {transactions.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{tx("notx")}</p>
+        ) : (
+          <div className="space-y-1">
+            {transactions.map((t, i) => (
+              <div key={i} className="flex justify-between items-center py-2.5 text-sm" style={{ borderBottom: "1px solid var(--line)" }}>
+                <div>
+                  <div className="font-500">{txLabel(t.label)}</div>
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{t.time}</div>
+                </div>
+                <span className="font-mono font-600" style={{ color: t.amount > 0 ? "var(--leaf)" : "var(--brick)" }}>
+                  {t.amount > 0 ? "+" : ""}{taka(t.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Wallet: send money to another student / teacher ---------------- */
+function SendMoneyCard({ balance, onLookup, onSend }) {
+  const [toId, setToId] = useState("");
+  const [recipient, setRecipient] = useState(null); // { name, externalId } once the ID is confirmed
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // { ok, text }
+
+  const find = async () => {
+    setMsg(null); setRecipient(null);
+    if (!toId.trim()) return;
+    setBusy(true);
+    try { setRecipient(await onLookup(toId.trim())); }
+    catch (e) { setMsg({ ok: false, text: e.message }); }
+    finally { setBusy(false); }
+  };
+
+  const send = async () => {
+    const n = Number(amount);
+    if (!recipient || !(n > 0)) return;
+    if (n > balance) { setMsg({ ok: false, text: tx("xfer.short") }); return; }
+    if (!window.confirm(tx("xfer.confirm", { a: taka(n), n: recipient.name }))) return;
+    setBusy(true); setMsg(null);
+    try {
+      await onSend(recipient.externalId, n, note.trim());
+      setMsg({ ok: true, text: tx("xfer.ok", { a: taka(n), n: recipient.name }) });
+      setToId(""); setRecipient(null); setAmount(""); setNote("");
+    } catch (e) {
+      setMsg({ ok: false, text: e.message });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="card p-5 mt-5">
+      <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>{tx("xfer.title")}</div>
+      <p className="text-xs mb-3" style={{ color: "var(--ink-soft)" }}>{tx("xfer.sub")}</p>
+
+      {!recipient ? (
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); find(); }}>
+          <input value={toId} onChange={e => setToId(e.target.value)} placeholder={tx("xfer.id")}
+            className="flex-1 min-w-0 px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
+          <button type="submit" disabled={busy || !toId.trim()} className="btn-primary px-4 rounded-lg text-sm disabled:opacity-50">{tx("xfer.find")}</button>
+        </form>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+            <div className="text-sm font-700 truncate">{recipient.name} <span className="font-mono font-400 text-xs">({recipient.externalId})</span></div>
+            <button type="button" onClick={() => { setRecipient(null); setMsg(null); }} className="text-xs font-600 underline">{tx("xfer.change")}</button>
+          </div>
+          <div className="flex gap-2">
+            {[50, 100, 200].map(v => (
+              <button key={v} type="button" onClick={() => setAmount(String(v))}
+                className="flex-1 py-1.5 rounded-lg border text-sm font-mono" style={{ borderColor: "var(--line)" }}>{taka(v)}</button>
+            ))}
+          </div>
+          <input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} placeholder={tx("xfer.amount")}
+            className="w-full px-3 py-2 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
+          <input value={note} maxLength={40} onChange={e => setNote(e.target.value)} placeholder={`${tx("xfer.note")} — ${tx("xfer.note.ph")}`}
+            className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <button type="button" onClick={send} disabled={busy || !(Number(amount) > 0)} className="btn-primary w-full py-2.5 rounded-xl disabled:opacity-50">
+            {busy ? tx("xfer.sending") : tx("xfer.send")}
+          </button>
+        </div>
+      )}
+      {msg && (
+        <div className={`${msg.ok ? "success-banner" : "error-banner"} rounded-lg px-3 py-2 mt-3 text-sm`}>{msg.text}</div>
+      )}
+      <p className="text-[11px] mt-3" style={{ color: "var(--ink-soft)" }}>{tx("xfer.limit")}</p>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Overview ---------------- */
+function AdminOverview({ overview, orders }) {
+  const lowStock = overview.lowStock || [];
+  const Stat = ({ label, value, icon }) => (
+    <div className="card p-5">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm" style={{ color: "var(--ink-soft)" }}>{label}</span>
+        <Icon path={icon} className="w-4 h-4" style={{ color: "var(--gold)" }} />
+      </div>
+      <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>{value}</div>
+    </div>
+  );
+
+  return (
+    <div>
+      {lowStock.length > 0 && (
+        <div className="low-stock-banner rounded-xl p-4 mb-6 flex items-center gap-3">
+          <Icon path={I.bell} className="w-5 h-5" style={{ color: "var(--brick)" }} />
+          <div className="text-sm">
+            <span className="font-700" style={{ color: "var(--brick)" }}>Low stock: </span>
+            {lowStock.map(i => i.name).join(", ")} — restock soon.
+          </div>
+        </div>
+      )}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Stat label="Full meals today" value={overview.fullMealsToday ?? 0} icon={I.calendar} />
+        <Stat label="Half meals today" value={overview.halfMealsToday ?? 0} icon={I.calendar} />
+        <Stat label="Pending orders" value={overview.pendingOrders ?? 0} icon={I.clock} />
+        <Stat label="Revenue today" value={taka(overview.revenueToday ?? 0)} icon={I.wallet} />
+      </div>
+      <div className="card p-5">
+        <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>Live queue snapshot</div>
+        {orders.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No live orders right now.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {orders.filter(o => o.status !== "Ready").map(o => (
+              <span key={o.token} className="font-mono text-xs px-3 py-1.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                {o.token} · {o.status}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Menu management ---------------- */
+function AdminMenu({ menu, updateItem, addItem, busy }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ name: "", bn: "", category: "heavy", price: "", stock: "", isVeg: true });
+
+  const submit = () => {
+    if (!form.name || !form.price) return;
+    addItem({ name: form.name, nameBn: form.bn, category: form.category, price: Number(form.price), stock: Number(form.stock) || 0, tag: "New", isVeg: form.isVeg });
+    setForm({ name: "", bn: "", category: "heavy", price: "", stock: "", isVeg: true });
+    setShowAdd(false);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>Menu management</div>
+        <button onClick={() => setShowAdd(s => !s)} className="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-1.5">
+          <Icon path={I.plus} className="w-4 h-4" /> Add item
+        </button>
+      </div>
+
+      {showAdd && (
+        <div className="card p-4 mb-5 grid sm:grid-cols-6 gap-3 fade-in">
+          <input placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
+          <input placeholder="Local name (optional)" value={form.bn} onChange={e => setForm({ ...form, bn: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
+          <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }}>
+            {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+          <select value={form.isVeg ? "veg" : "nonveg"} onChange={e => setForm({ ...form, isVeg: e.target.value === "veg" })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }}>
+            <option value="veg">Veg</option>
+            <option value="nonveg">Non-veg</option>
+          </select>
+          <input placeholder="Price ৳" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
+          <div className="flex gap-2">
+            <input placeholder="Stock" type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className="w-full px-3 py-2 rounded-lg border" style={{ borderColor: "var(--line)" }} />
+            <button disabled={busy} onClick={submit} className="btn-gold px-3 rounded-lg"><Icon path={I.check} className="w-4 h-4" /></button>
+          </div>
+        </div>
+      )}
+
+      <div className="card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr style={{ background: "var(--gold-soft)" }}>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Item</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Category</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Type</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Price (৳)</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Stock</th>
+              <th className="text-left p-3 font-display" style={{ color: "var(--teal-deep)" }}>Availability</th>
+            </tr>
+          </thead>
+          <tbody>
+            {menu.map(item => (
+              <tr key={item.id} style={{ borderTop: "1px solid var(--line)", opacity: (item.availability || "available") === "available" ? 1 : 0.6 }}>
+                <td className="p-3">
+                  <div className="font-600">{item.name}</div>
+                </td>
+                <td className="p-3 capitalize">{item.category}</td>
+                <td className="p-3">
+                  <select value={item.is_veg ? "veg" : "nonveg"} onChange={e => updateItem(item.id, { isVeg: e.target.value === "veg" })}
+                    className="px-2 py-1 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+                    <option value="veg">Veg</option>
+                    <option value="nonveg">Non-veg</option>
+                  </select>
+                </td>
+                <td className="p-3">
+                  <input type="number" defaultValue={item.price} onBlur={e => updateItem(item.id, { price: Number(e.target.value) })}
+                    className="w-20 px-2 py-1 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
+                </td>
+                <td className="p-3">
+                  <input type="number" defaultValue={item.stock} onBlur={e => updateItem(item.id, { stock: Number(e.target.value) })}
+                    className={`w-20 px-2 py-1 rounded-lg border font-mono ${item.stock <= LOW_STOCK_THRESHOLD ? "font-700" : ""}`}
+                    style={{ borderColor: item.stock <= LOW_STOCK_THRESHOLD ? "var(--brick)" : "var(--line)", color: item.stock <= LOW_STOCK_THRESHOLD ? "var(--brick)" : "inherit" }} />
+                </td>
+                <td className="p-3">
+                  {(() => {
+                    const a = item.availability || "available";
+                    const stockNum = Number(item.stock);
+                    const autoOut = a === "available" && stockNum <= 0;
+                    const lowStock = a === "available" && stockNum > 0 && stockNum <= LOW_STOCK_THRESHOLD;
+                    const pill = a === "hidden" ? "Hidden" : a === "sold_out" ? "Sold out" : autoOut ? "Sold out (stock 0)" : lowStock ? "Low stock · " + stockNum + " left" : "Available";
+                    const pillStyle = autoOut
+                      ? { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" }
+                      : lowStock || a === "sold_out"
+                        ? { background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }
+                        : a === "available"
+                          ? { background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)" }
+                          : { background: "var(--danger-bg, #FEF2F2)", color: "var(--danger-fg, #B91C1C)" };
+                    return (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-700 px-2 py-0.5 rounded-full" style={pillStyle}>{pill}</span>
+                        {a !== "hidden" && (
+                          <button onClick={() => updateItem(item.id, { availability: a === "sold_out" ? "available" : "sold_out" })}
+                            className="text-xs px-2.5 py-1 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>
+                            {a === "sold_out" ? "Mark available" : "Sold out"}
+                          </button>
+                        )}
+                        <button onClick={() => updateItem(item.id, { availability: a === "hidden" ? "available" : "hidden" })}
+                          className="text-xs px-2.5 py-1 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>
+                          {a === "hidden" ? "Show" : "Hide"}
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>Edit a price or stock number and click outside the box to save. "Sold out" keeps an item on the menu but blocks ordering; "Hide" removes it from students' menu until you show it again.</p>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Hall food management ---------------- */
+function AdminHallFood({ call }) {
+  const [days, setDays] = useState([]);
+  const [drafts, setDrafts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState(null);
+  const slots = [
+    { key: "breakfast", label: "Breakfast" },
+    { key: "lunch", label: "Lunch" },
+    { key: "dinner", label: "Dinner" },
+  ];
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await call("/api/hall/menu");
+      const nextDays = data.days || [];
+      setDays(nextDays);
+      const nextDrafts = {};
+      nextDays.forEach(day => slots.forEach(slot => { nextDrafts[`${day.dow}-${slot.key}`] = day.slots?.[slot.key] || ""; }));
+      setDrafts(nextDrafts);
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not load the Hall meal schedule.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { load(); }, []);
+  const save = async (day, slot) => {
+    const key = `${day.dow}-${slot.key}`;
+    const items = (drafts[key] || "").trim();
+    if (!items) { setNotice({ ok: false, text: "Enter the meal menu before saving." }); return; }
+    setSaving(key);
+    setNotice(null);
+    try {
+      await call(`/api/hall/menu/${day.dow}/${slot.key}`, { method: "PUT", body: { items } });
+      setDays(prev => prev.map(d => d.dow === day.dow ? { ...d, slots: { ...d.slots, [slot.key]: items } } : d));
+      setNotice({ ok: true, text: `${day.name} ${slot.label} menu saved.` });
+    } catch (e) {
+      setNotice({ ok: false, text: e.message || "Menu could not be saved." });
+    } finally {
+      setSaving("");
+    }
+  };
+  return (
+    <div className="space-y-5">
+      <div className="card p-5">
+        <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>Hall food & weekly menu</div>
+        <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>View the weekly breakfast, lunch and dinner schedule for Hall students.</p>
+      </div>
+      {error && <div className="error-banner rounded-xl px-4 py-3 text-sm">{error}</div>}
+      {notice && <div className={`${notice.ok ? "success-banner" : "error-banner"} rounded-xl px-4 py-3 text-sm`}>{notice.text}</div>}
+      {loading ? <div className="card p-6 text-sm">Loading Hall meal schedule…</div> : (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {days.map(day => (
+            <section key={day.dow} className="card p-4">
+              <div className="font-display font-700 text-lg mb-3" style={{ color: "var(--gold)" }}>{day.name}</div>
+              <div className="space-y-3">
+                {slots.map(slot => (
+                  <div key={slot.key} className="rounded-xl border p-3" style={{ borderColor: "var(--line)" }}>
+                    <label className="block text-sm font-700 mb-2">{slot.label}</label>
+                    <textarea rows={3} maxLength={255} value={drafts[`${day.dow}-${slot.key}`] ?? ""} onChange={e => setDrafts(prev => ({ ...prev, [`${day.dow}-${slot.key}`]: e.target.value }))} placeholder="e.g. Rice, Dal, Chicken curry" className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)", background: "var(--surface, white)" }} />
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <span className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{(drafts[`${day.dow}-${slot.key}`] || "").length}/255 characters</span>
+                      <button disabled={!!saving || !(drafts[`${day.dow}-${slot.key}`] || "").trim()} onClick={() => save(day, slot)} className="btn-gold px-3 py-1.5 rounded-lg text-xs font-700">{saving === `${day.dow}-${slot.key}` ? "Saving…" : "Save meal"}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Admin: Orders queue ---------------- */
+function AdminOrders({ orders, advance, call }) {
+  const [assignmentMessage, setAssignmentMessage] = useState("");
+  const retryAssignments = async () => {
+    try {
+      const result = await call("/api/riders/orders/assign-pending", { method: "POST" });
+      setAssignmentMessage(`${result.count} pending order(s) assigned.`);
+    } catch (error) {
+      setAssignmentMessage(error.message || "Could not assign pending orders.");
+    }
+  };
+  if (orders.length === 0) {
+    return <div className="space-y-3"><button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>{assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}<div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>Queue is empty.</div></div>;
+  }
+  // Feature: pre-order — ASAP orders (no pickup_time) need attention first,
+  // then scheduled ones soonest-first, so the kitchen sees what's coming up next.
+  const sorted = [...orders].sort((a, b) => {
+    if (!a.pickup_time && !b.pickup_time) return b.id - a.id;
+    if (!a.pickup_time) return -1;
+    if (!b.pickup_time) return 1;
+    return new Date(a.pickup_time) - new Date(b.pickup_time);
+  });
+  return (
+    <div className="space-y-3"><div className="flex flex-wrap items-center gap-3"><button onClick={retryAssignments} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign pending orders</button>{assignmentMessage && <p className="text-sm">{assignmentMessage}</p>}</div><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {sorted.map(o => (
+        <div key={o.token} className="card p-4">
+          <div className="flex justify-between items-start mb-2">
+            <span className="font-mono font-700 text-lg" style={{ color: "var(--gold)" }}>{o.token}</span>
+            <span className="text-xs px-2 py-1 rounded-full font-600" style={{
+              background: o.status === "Ready" ? "var(--leaf)" : o.status === "Cooking" ? "var(--gold)" : o.status === "Cancelled" ? "var(--brick)" : "var(--line)",
+              color: o.status === "Received" ? "var(--ink)" : "#fff"
+            }}>{o.status}</span>
+          </div>
+          {o.pickup_time && (
+            <div className="text-xs mb-2 font-600" style={{ color: "var(--teal)" }}>
+              Pickup: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </div>
+          )}
+          <div className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>
+            {o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}
+          </div>
+          {o.note && (
+            <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
+              style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
+              📝 Note: {o.note}
+            </div>
+          )}
+          {o.delivery_note && (
+            <div className="text-sm mb-3 px-3 py-2 rounded-lg font-600"
+              style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)", border: "1px solid var(--warn-border, #FDE68A)" }}>
+              🚪 Delivery: {o.delivery_note}
+            </div>
+          )}
+          <div className="flex justify-between items-center">
+            <span className="font-mono text-sm">{taka(o.total)}</span>
+            {o.status === "Cancelled" ? (
+              <span className="text-xs flex items-center gap-1" style={{ color: "var(--brick)" }}><Icon path={I.x} className="w-4 h-4" /> Cancelled</span>
+            ) : o.status !== "Ready" ? (
+              <button onClick={() => advance(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
+                Advance <Icon path={I.arrow} className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <span className="text-xs flex items-center gap-1" style={{ color: "var(--leaf)" }}><Icon path={I.check} className="w-4 h-4" /> {o.picked_up_at ? "Collected" : "Ready — awaiting pickup"}</span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+    </div>
+  );
+}
+
+/* ---------------- Rider-only GPS sharing ---------------- */
+function RiderDashboard({ apiBase, token, user, onLogout }) {
+  const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
+  const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
+  const [routePlan, setRoutePlan] = useState(null);
         ))}
           </div>
             <div className="text-sm mt-1 leading-relaxed">{item.message}</div>
