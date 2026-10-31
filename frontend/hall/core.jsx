@@ -271,6 +271,25 @@ function HallTopBar({
             </div>
             <span className="text-[10px] font-mono opacity-60">Meal Active</span>
           </div>
+        )}
+      </aside>
+
+      {/* Mobile Backdrop overlay */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 md:hidden animate-fadeIn"
+        />
+      )}
+    </>
+  );
+}
+
+function HallPortalHeader({
+  user, onLogout, ui, onOpenMobileMenu, onBack
+}) {
+  const ThemeMenu = ui && ui.ThemeMenu, Avatar = ui && ui.Avatar;
+
             </button>
           </div>
         </div>
