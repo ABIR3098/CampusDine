@@ -18,3 +18,9 @@ test("every item in more_menu_items.sql has a valid restaurant", () => {
   const valid = ["amitie", "vista", "thirdplace", "staff"];
   for (const [name, restaurant] of restaurantPairs) assert.ok(valid.includes(restaurant), name + ": " + restaurant);
 });
+
+test("every image used in more_menu_items.sql exists in frontend/images/food", () => {
+  for (const m of itemsPart.matchAll(/'(\/images\/food\/[a-z-]+\.svg)'/g)) {
+    assert.ok(fs.existsSync(path.join(__dirname, "..", "..", "frontend", m[1])), "missing " + m[1]);
+  }
+});
