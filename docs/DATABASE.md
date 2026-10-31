@@ -663,3 +663,17 @@ Created in `backend/src/hall/lastcallSchema.js`.
 | `status` | VARCHAR(10) |
 | `created_at` | DATETIME |
 | `served_at` | DATETIME |
+
+## `hall_meal_ratings`
+Created in `backend/src/hall/ratingsSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `stars` | TINYINT |
+| `comment` | VARCHAR(300) |
+| `created_at` | DATETIME |
+| `updated_at` | DATETIME |
