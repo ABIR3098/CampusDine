@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Fix: wallet transfer now rounds the balance it returns, so it can no longer show values like 60.199999999999996.
+- Tests: money helper tests.
 - Tests: one-time code (OTP) rules with an in-memory database, and catchAsync.
 - Docs: auth API guide.
 - Fix: coupon routes now always release their database connection. Before, an error such as a duplicate code leaked one, and about ten errors could freeze the server.
