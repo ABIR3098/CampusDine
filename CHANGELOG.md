@@ -7,4 +7,5 @@
 - Hall styles: focus ring, hover effects and reduced-motion support.
 - Pages: meta descriptions and theme colour; Hall Admin favicon and form labels.
 - Repo: `.editorconfig`, `.gitattributes`, `npm test` script and a corrected `.gitignore`.
-- Docs: hall menu guide, menu SQL guide, environment variables table.
+- Docs: hall menu guide, menu SQL guide, environment variables table, FAQ and contributing guide.
+- Tests: new unit tests for the clock helpers, signed token QR codes and happy-hour pricing.
