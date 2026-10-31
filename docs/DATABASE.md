@@ -107,3 +107,16 @@ Created in `backend/schema.sql`.
 | `started_at` | DATETIME |
 | `ended_at` | DATETIME |
 | `active_key` | TINYINT |
+
+## `fraud_events`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `user_id` | INT |
+| `event_type` | VARCHAR(80) |
+| `severity` | ENUM('LOW','MEDIUM','HIGH') |
+| `details_json` | JSON |
+| `ip_address` | VARCHAR(64) |
+| `created_at` | TIMESTAMP |
