@@ -6995,28 +6995,475 @@ function AdminReports({ trend, forecast, call, apiBase, token }) {
       {/* ---------- Existing trend + forecast ---------- */}
       <div className="grid lg:grid-cols-3 gap-6 no-print">
       <div className="lg:col-span-2 card p-5">
-        ))}
+        <div className="font-display font-700 mb-5" style={{ color: "var(--gold)" }}>Revenue trend — last 6 months</div>
+        {trend.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No order history yet this window.</p>
+        ) : (
+          <div className="flex items-end gap-4 h-48">
+            {trend.map(r => (
+              <div key={r.ym} className="flex-1 flex flex-col items-center gap-2">
+                <div className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{Math.round(r.revenue / 1000)}k</div>
+                <div className="w-full rounded-t-lg" style={{ height: `${(r.revenue / max) * 140}px`, background: "var(--gold)" }}></div>
+                <div className="text-xs font-600">{monthLabel(r.ym)}</div>
+              </div>
+            ))}
           </div>
-            <div className="text-sm mt-1 leading-relaxed">{item.message}</div>
-            <div className="text-[10px] uppercase tracking-wide font-700" style={{ color: item.kind === "announcement" ? "var(--teal-deep)" : "var(--gold)" }}>{item.title}</div>
-          }}>
-            color: "var(--ink)"
-            borderColor: item.kind === "announcement" ? "rgba(22,163,74,0.35)" : "rgba(245,179,0,0.35)",
-            background: item.kind === "announcement" ? "rgba(22,163,74,0.10)" : "rgba(245,179,0,0.12)",
-          <div key={item.id} className="pointer-events-auto rounded-xl border p-3 shadow-lg" style={{
-        {toastNotifications.map(item => (
-      <div className="fixed top-[76px] right-4 z-50 flex flex-col gap-2 w-[min(90vw,320px)] pointer-events-none">
-      />
-        onClearNotifications={clearNotifications}
-        onMarkAllRead={markAllNotificationsRead}
-        onToggleNotifications={() => setNotificationCenterOpen(v => !v)}
-        notificationOpen={notificationCenterOpen}
-        notifications={notifications} notificationCount={unreadNotifications}
-        active={tab} setActive={setTab} onLogout={logout} connected={connected} onToggleLang={toggleLang}
-        tabs={session.user.role === "admin" ? adminTabs : session.user.role === "teacher" ? teacherTabs : userTabs}
-      <TopBar role={session.user.role} name={session.user.name} avatar={session.user.avatar}
-    <div className="min-h-screen">
+        )}
+      </div>
+      <div className="card p-5">
+        <div className="font-display font-700 mb-2" style={{ color: "var(--gold)" }}>Tomorrow's forecast</div>
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Based on subscription-calendar data</p>
+        <div className="ticket p-5">
+          <div className="perf pl-4">
+            <div className="text-xs opacity-70">Predicted meal count</div>
+            <div className="font-mono text-3xl font-700">{forecast.predictedMealCount ?? 0}</div>
+          </div>
+        </div>
+        <p className="text-xs mt-4" style={{ color: "var(--ink-soft)" }}>Use this to plan how much khichuri and tehari to prepare.</p>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Admin: Scan / verify a pickup token ---------------- */
+function AdminVerify({ call, onCollected }) {
+  const [code, setCode] = useState("");
+  const [result, setResult] = useState(null);   // regular canteen order result
+  const [hallResult, setHallResult] = useState(null); // verified Hall meal QR
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const check = async (raw) => {
+    const text = String(raw === undefined ? code : raw).trim();
+    if (!text) return;
+    setBusy(true); setError(null); setResult(null); setHallResult(null);
+    try {
+      if (text.startsWith("HALL|")) {
+        const data = await call("/api/hall/queue/scan", { method: "POST", body: { code: text } });
+        setHallResult(data);
+      } else {
+        const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
+        setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const collect = async () => {
+    if (!result) return;
+    setBusy(true); setError(null);
+    try {
+      const data = await call("/api/orders/verify", { method: "POST", body: { code: result.order.token, collect: true } });
+      setResult({ order: data.order, problem: null, justCollected: true });
+      if (onCollected) onCollected(data.order);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const stopScan = () => {
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    setScanning(false);
+  };
+  useEffect(() => () => { if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop()); }, []);
+
+  const startScan = async () => {
+    setError(null);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError("This browser can't open the camera here (the page must be on https:// or localhost). Type the token instead.");
+      return;
+    }
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      setScanning(true);
+    } catch (e) {
+      setError("Couldn't open the camera — allow camera access, or type the token instead.");
+    }
+  };
+
+  // While the camera is on, look for a QR code in the video about 4 times a second
+  useEffect(() => {
+    if (!scanning) return;
+    const video = videoRef.current;
+    if (!video || !streamRef.current) return;
+    video.srcObject = streamRef.current;
+    video.play().catch(() => {});
+    let stopped = false;
+    const detector = ("BarcodeDetector" in window) ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const tick = async () => {
+      if (stopped) return;
+      if (video.readyState >= 2 && video.videoWidth) {
+        let text = null;
+        try {
+          if (detector) {
+            const found = await detector.detect(video);
+            if (found.length) text = found[0].rawValue;
+          } else if (window.jsQR) {
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const hit = window.jsQR(img.data, img.width, img.height);
+            if (hit) text = hit.data;
+          }
+        } catch (_) { /* keep trying */ }
+        if (text && !stopped) { stopped = true; stopScan(); setCode(text); check(text); return; }
+      }
+      setTimeout(tick, 250);
+    };
+    tick();
+    return () => { stopped = true; };
+  }, [scanning]);
+
+  const o = result && result.order;
+  const okToHandOver = result && !result.problem && !result.justCollected;
+  const banner = !result ? null
+    : result.justCollected ? { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Handed over — marked as collected" }
+    : result.problem ? (result.problem.code === "NOT_READY"
+        ? { bg: "var(--warn-bg, #FFFBEB)", fg: "var(--warn-fg, #92400E)", bd: "var(--warn-border, #FDE68A)", text: result.problem.message }
+        : { bg: "var(--danger-bg)", fg: "var(--danger-fg)", bd: "var(--danger-border)", text: result.problem.message + (result.problem.code === "ALREADY_COLLECTED" && o.picked_up_at ? " at " + new Date(o.picked_up_at).toLocaleString() : "") })
+    : { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Genuine token, order is Ready — hand it over" };
+
   return (
+    <div className="max-w-xl space-y-5">
+      <div className="card p-5">
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
+          Scan a canteen order QR or a Hall Student meal QR. Hall QR scans mark that meal token as served. You can also type the token text into the box.
+        </p>
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
+          <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
+            className="flex-1 px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+          <button type="submit" disabled={busy || !code.trim()} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">Check</button>
+        </form>
+        <div className="mt-3">
+          {scanning ? (
+            <button type="button" onClick={stopScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Stop camera</button>
+          ) : (
+            <button type="button" onClick={startScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Scan with camera</button>
+          )}
+        </div>
+        {scanning && (
+          <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)", background: "#000" }}>
+            <video ref={videoRef} playsInline muted className="w-full" style={{ maxHeight: 320, objectFit: "cover" }} />
+          </div>
+        )}
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+      </div>
+
+      {hallResult && (
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)", borderBottom: "1px solid var(--ok-border, #BBF7D0)" }}>Hall meal QR verified — pickup completed</div>
+          <div className="p-5 space-y-2">
+            <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>Hall #{hallResult.serial}</div>
+            <div className="text-sm">Student: <strong>{hallResult.name}</strong> · ID: {hallResult.externalId || "—"}</div>
+            <div className="text-sm">Meal: <strong>{hallResult.slot}</strong> · Plates: <strong>{hallResult.plates}</strong></div>
+            <div className="text-xs" style={{ color: "var(--ink-soft)" }}>This QR is now marked as used. Scanning it again will be rejected.</div>
+            <button onClick={() => { setHallResult(null); setCode(""); setError(null); }} className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+          </div>
+        </div>
+      )}
+      {o && (
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
+          <div className="p-5 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>{o.token}</div>
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Status: {o.status} · {o.payment_method === "wallet" ? "Paid by wallet" : "Cash at counter"}</div>
+              </div>
+              <div className="font-mono text-lg font-700">{taka(o.total)}</div>
+            </div>
+            <div className="text-sm">
+              <div className="font-600">{o.customer_name} <span className="font-400" style={{ color: "var(--ink-soft)" }}>· {o.customer_id} · {o.customer_role}</span></div>
+              {o.account_type === "hall" && (
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                  Hall resident — {o.hall_name || "—"}, room {o.room_number || "—"}{o.hall_id ? ` · ${o.hall_id}` : ""}
+                </div>
+              )}
+            </div>
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
+            {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
+            {o.delivery_note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>🚪 {o.delivery_note}</div>}
+            <div className="flex gap-2">
+              {okToHandOver && (
+                <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
+              )}
+              <button onClick={() => { setResult(null); setCode(""); setError(null); }}
+                className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ---------------- Admin: Feedback ---------------- */
+const ISSUE_LABELS = { cold: "Food was cold", wrong: "Wrong item", missing: "Missing item", late: "Very late", quality: "Poor quality", other: "Other" };
+function ProblemReports({ apiBase, token, refreshKey }) {
+  const [rows, setRows] = useState([]);
+  const [replies, setReplies] = useState({});
+  const [busyId, setBusyId] = useState(null);
+  const [error, setError] = useState("");
+  const load = () => api(apiBase, "/api/orders/issues", { token }).then(setRows).catch(e => setError(e.message || "Could not load problem reports"));
+  useEffect(() => { load(); }, [refreshKey]);
+  const act = async (row, resolve) => {
+    setBusyId(row.id); setError("");
+    try {
+      const reply = (replies[row.id] || "").trim();
+      await api(apiBase, "/api/orders/issues/" + row.id, { method: "PATCH", token, body: { reply: reply || undefined, resolve } });
+      setReplies(r => ({ ...r, [row.id]: "" }));
+      await load();
+    } catch (e) { setError(e.message || "Could not save"); }
+    finally { setBusyId(null); }
+  };
+  const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const openCount = rows.filter(r => r.status === "Open").length;
+  return (
+    <div className="card p-5 mb-6">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>⚠️ Reported problems {openCount > 0 && <span className="ml-2 text-xs px-2 py-0.5 rounded-full text-white" style={{ background: "var(--brick)" }}>{openCount} open</span>}</div>
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      {rows.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No problems reported 🎉</p>}
+      <div className="space-y-3">
+        {rows.map(r => (
+          <div key={r.id} className="rounded-lg border p-3" style={{ borderColor: "var(--line)", background: r.status === "Open" ? "var(--panel-soft)" : "transparent" }}>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-mono font-700">{r.token}</span>
+              <span style={{ color: "var(--ink-soft)" }}>{r.user_name}{r.external_id ? " (" + r.external_id + ")" : ""}</span>
+              <span className="font-600">· {ISSUE_LABELS[r.reason] || r.reason}</span>
+              <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{when(r.created_at)} · {r.status === "Open" ? "⏳ Open" : "✅ Resolved"}</span>
+            </div>
+            {r.details && <div className="text-sm mt-1.5" style={{ color: "var(--ink-soft)" }}>“{r.details}”</div>}
+            {r.admin_reply && <div className="text-sm mt-1.5 font-600">💬 {r.admin_reply}</div>}
+            {r.status === "Open" && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <input type="text" value={replies[r.id] || ""} onChange={e => setReplies(p => ({ ...p, [r.id]: e.target.value.slice(0, 500) }))}
+                  placeholder="Reply to the student (optional)" className="flex-1 min-w-[180px] px-3 py-1.5 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                <button type="button" disabled={busyId === r.id || !(replies[r.id] || "").trim()} onClick={() => act(r, false)}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>Send reply</button>
+                <button type="button" disabled={busyId === r.id} onClick={() => act(r, true)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">Resolve</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function AdminFeedback({ summary }) {
+  const { average = 0, count = 0, entries = [], distribution = {} } = summary;
+  const [filter, setFilter] = useState("all");
+  const [printKey, setPrintKey] = useState(0);
+
+  const FILTERS = [
+    ["all", "All"], ["order", "Orders"], ["general", "General"], ["low", "Needs attention"],
+  ];
+  const CAT = {
+    food: "🍛 Food", service: "🛎️ Service", hygiene: "🧼 Hygiene", suggestion: "💡 Suggestion", other: "💬 Other",
+  };
+  const countFor = (key) => entries.filter(e => key === "all" ? true : key === "low" ? e.rating <= 2 : e.kind === key).length;
+  const shown = entries.filter(e => filter === "all" ? true : filter === "low" ? e.rating <= 2 : e.kind === filter);
+  const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map(n => distribution[n] || 0));
+  const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div>
+      {printKey > 0 && (
+        <PrintSheet key={printKey} title="Customer feedback"
+          meta={`${FILTERS.find(f => f[0] === filter)[1]} · ${shown.length} of ${entries.length} entries · generated ${new Date().toLocaleString()}`}>
+          <div className="ps-grid">
+            {[
+              ["Average rating", `${average.toFixed(1)} / 5`], ["Total reviews", count],
+              ["Needs attention (1–2★)", countFor("low")], ["Orders / General", `${countFor("order")} / ${countFor("general")}`],
+            ].map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <h2>Rating breakdown</h2>
+          <PsTable head={["Rating", "Reviews", ""]} numCols={[1]}
+            rows={[5, 4, 3, 2, 1].map(n => [psStars(n), distribution[n] || 0, <div className="ps-bar" style={{ width: `${((distribution[n] || 0) / maxBar) * 100}%` }}></div>])} />
+          <h2>Feedback</h2>
+          <PsTable head={["Date", "From", "About", "Rating", "Comment"]} empty="No feedback matches this filter."
+            rows={shown.map(e => [
+              when(e.created_at), `${e.userName} (${e.userRole})`,
+              e.kind === "order" ? `Order ${e.token}${e.items ? " — " + e.items : ""}` : String(CAT[e.category] || CAT.other).replace(/^\S+\s/, ""),
+              psStars(e.rating), e.comment || "—",
+            ])} />
+        </PrintSheet>
+      )}
+      <div className="card p-6 mb-6 grid gap-6 md:grid-cols-[auto_1fr] items-center">
+        <div className="flex items-center gap-6 flex-wrap">
+          <div>
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Average Rating</div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-4xl font-700" style={{ color: "var(--gold)" }}>{average.toFixed(1)}</span>
+              <StarPicker value={Math.round(average)} readOnly size="w-5 h-5" />
+            </div>
+          </div>
+          <div className="border-l pl-6" style={{ borderColor: "var(--line)" }}>
+            <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>Total Reviews</div>
+            <div className="font-mono text-4xl font-700" style={{ color: "var(--ink)" }}>{count}</div>
+          </div>
+        </div>
+        <div className="space-y-1.5 md:max-w-sm md:justify-self-end w-full">
+          {[5, 4, 3, 2, 1].map(n => (
+            <div key={n} className="flex items-center gap-2 text-xs">
+              <span className="w-6 font-mono text-right" style={{ color: "var(--ink-soft)" }}>{n}★</span>
+              <div className="rating-bar flex-1"><span style={{ width: `${((distribution[n] || 0) / maxBar) * 100}%` }} /></div>
+              <span className="w-6 font-mono" style={{ color: "var(--ink-soft)" }}>{distribution[n] || 0}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="font-display font-700" style={{ color: "var(--gold)" }}>Recent Feedback</div>
+          <button onClick={() => setPrintKey(k => k + 1)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+            <Icon path={I.printer} className="w-3.5 h-3.5" /> Print
+          </button>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {FILTERS.map(([key, label]) => (
+            <button key={key} onClick={() => setFilter(key)}
+              className={`tab-btn px-3 py-1 rounded-full text-xs ${filter === key ? "active" : ""}`}>
+              {label} · {countFor(key)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {shown.length === 0 ? (
+        <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>
+          {entries.length === 0 ? "No feedback submitted yet." : "No feedback matches this filter."}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {shown.map(e => (
+            <div key={`${e.kind}-${e.id}`} className="card p-4"
+              style={{ borderLeft: e.rating <= 2 ? "3px solid var(--brick)" : undefined }}>
+              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <StarPicker value={e.rating} readOnly size="w-4 h-4" />
+                  {e.kind === "order" ? (
+                    <span className="font-mono text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>Order {e.token}</span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>{CAT[e.category] || CAT.other}</span>
+                  )}
+                </div>
+                <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.userName} · {e.userRole} · {when(e.created_at)}</span>
+              </div>
+              {e.items && <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{e.items}</div>}
+              {e.comment && <p className="text-sm mt-1" style={{ color: "var(--ink)" }}>"{e.comment}"</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CouponEditor({ coupon, onSave }) {
+  const toDateTimeInput = (value) => {
+    if (!value) return "";
+    const date = new Date(String(value).replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return "";
+    const pad = (number) => String(number).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+  const makeDraft = (item) => ({
+    code: item.code || "",
+    discountType: item.discount_type || "PERCENTAGE",
+    discountValue: String(item.discount_value ?? ""),
+    minOrderAmount: String(item.min_order_amount ?? 0),
+    maxDiscount: item.max_discount == null ? "" : String(item.max_discount),
+    usageLimit: item.usage_limit == null ? "" : String(item.usage_limit),
+    expiryDate: toDateTimeInput(item.expiry_date),
+    isActive: Boolean(Number(item.is_active)),
+  });
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [draft, setDraft] = useState(() => makeDraft(coupon));
+  useEffect(() => setDraft(makeDraft(coupon)), [coupon]);
+
+  const change = (field, value) => setDraft((current) => ({ ...current, [field]: value }));
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    const saved = await onSave(coupon.id, {
+      ...draft,
+      discountValue: Number(draft.discountValue),
+      minOrderAmount: Number(draft.minOrderAmount),
+      maxDiscount: draft.maxDiscount === "" ? null : Number(draft.maxDiscount),
+      usageLimit: draft.usageLimit === "" ? null : Number(draft.usageLimit),
+      expiryDate: draft.expiryDate || null,
+    });
+    if (saved) setEditing(false);
+    setSaving(false);
+  };
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-display font-700 text-lg" style={{ color: "var(--gold)" }}>{coupon.code}</div>
+          <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+            {coupon.used_count || 0}{coupon.usage_limit ? ` / ${coupon.usage_limit}` : " used"} · {coupon.is_active ? "Active" : "Inactive"}
+          </div>
+        </div>
+        {!editing && <button onClick={() => setEditing(true)} className="btn-primary px-3 py-2 rounded-lg text-sm">Edit coupon</button>}
+      </div>
+      {editing && (
+        <form onSubmit={save} className="mt-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Coupon code
+              <input required maxLength={50} value={draft.code} onChange={e => change("code", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm uppercase" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Discount type
+              <select value={draft.discountType} onChange={e => change("discountType", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+                <option value="PERCENTAGE">Percentage</option>
+                <option value="FIXED">Fixed amount</option>
+              </select>
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Discount value {draft.discountType === "PERCENTAGE" ? "(%)" : "(৳)"}
+              <input required type="number" min="0.01" max={draft.discountType === "PERCENTAGE" ? 100 : undefined} step="0.01"
+                value={draft.discountValue} onChange={e => change("discountValue", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Minimum order (৳)
+              <input type="number" min="0" step="0.01" value={draft.minOrderAmount}
+                onChange={e => change("minOrderAmount", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Maximum discount (৳, optional)
+              <input type="number" min="0.01" step="0.01" value={draft.maxDiscount}
+                onChange={e => change("maxDiscount", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Usage limit (optional)
+              <input type="number" min="1" step="1" value={draft.usageLimit}
+                onChange={e => change("usageLimit", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
 
   const unreadNotifications = notifications.filter(item => !item.read).length;
 
