@@ -77,6 +77,7 @@ const NUTRITION_BY_NAME = {
   "Mishti Doi": { calories: 200, allergens: ["milk"] },
   "Payesh": { calories: 280, allergens: ["milk", "nuts"] },
   "Vegetable Roll": { calories: 280, allergens: ["gluten"] },
+  "Chicken Samosa": { calories: 280, allergens: ["gluten"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
