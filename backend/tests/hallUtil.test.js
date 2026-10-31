@@ -58,3 +58,8 @@ test("isLocked is false one minute before the cut-off and true at it", () => {
   assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-22", minutes: 899 }), false);
   assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-22", minutes: 900 }), true);
 });
+
+test("isLocked looks at the date first", () => {
+  assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-23", minutes: 0 }), true);
+  assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-21", minutes: 1400 }), false);
+});
