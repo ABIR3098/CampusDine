@@ -44,9 +44,6 @@ JWT_SECRET=your-super-secret-key-change-this
 # Install dependencies
 npm install
 
-# Or use enhanced package
-cp package-enhanced.json package.json
-npm install
 
 # Start server
 npm run dev
