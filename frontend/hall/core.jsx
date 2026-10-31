@@ -193,16 +193,26 @@ function HallTopBar({
     <>
       {/* ─── 1. BUP PORTAL STYLE VERTICAL SIDEBAR FOR HALL ─── */}
       <aside className={`portal-sidebar ${sidebarCollapsed ? "collapsed" : ""} ${mobileMenuOpen ? "mobile-open" : ""}`}>
-          <div className="flex items-center gap-2 shrink-0">
-            <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
-            <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
+        {/* Brand & Toggle Header */}
+        <div className="portal-sidebar-head">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <span role="img" aria-label="CampusDine logo" className="cd-logo shrink-0"></span>
+            {!sidebarCollapsed && (
+              <div className="leading-tight">
+                <span className="font-display gold-text font-800 text-base tracking-tight block">Hall Dining</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Student Portal</span>
+              </div>
+            )}
           </div>
-          <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
-          <div className="flex-1 sm:hidden" />
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
-            <div className="hidden min-[1400px]:block text-right mr-1">
-              <div className="text-sm font-600 leading-tight">{user.name}</div>
-              <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{user.role}</div>
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(c => !c)}
+            title={sidebarCollapsed ? "Expand Menu" : "Collapse Menu"}
+            className="w-8 h-8 rounded-xl border grid place-items-center text-xs hover:bg-black/5 transition-colors shrink-0"
+            style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+            {sidebarCollapsed ? "▶" : "◀"}
+          </button>
+        </div>
             </div>
             {Avatar && <div className="hidden sm:block" title={`${user.name} · ${user.role}`}><Avatar src={user.avatar} name={user.name} size={34} /></div>}
             {ThemeMenu && <ThemeMenu />}
