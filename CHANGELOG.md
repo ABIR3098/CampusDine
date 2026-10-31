@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Docs: `docs/HALL_ADMIN_API.md` covers the Hall Admin sign-up, login with e-mail code, requests, notices and dashboard.
 - Fix: visitor requests and hall pickup tokens used the UTC date, so between 00:00 and 06:00 in Dhaka they used yesterday. They now use the canteen clock (`todayKey()` in `utils/clock.js`).
 - Docs: `docs/HALL_ADVANCED_API.md` covers rooms, visitors, facilities, clearance, laundry, notifications and university routes.
 - Docs: `docs/HALL_API.md` lists every `/api/hall` route with who can call it, limits and error codes.
