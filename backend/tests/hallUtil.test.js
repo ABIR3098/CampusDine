@@ -53,3 +53,8 @@ test("cutoffOf for a same-day cut-off", () => {
 test("cutoffOf for a cut-off the evening before", () => {
   assert.deepEqual(cutoffOf(breakfast, "2026-10-22"), { dateKey: "2026-10-21", minutes: 1260 });
 });
+
+test("isLocked is false one minute before the cut-off and true at it", () => {
+  assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-22", minutes: 899 }), false);
+  assert.equal(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-22", minutes: 900 }), true);
+});
