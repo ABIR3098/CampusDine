@@ -205,3 +205,8 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `GET /api/hall/bill`
 - `POST /api/hall/bill/pay`
+
+## `/api/hall` — `src/hall/routes/defaulters.js`
+
+- `GET /api/hall/defaulters`
+- `POST /api/hall/defaulters/remind`
