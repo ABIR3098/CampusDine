@@ -1067,3 +1067,13 @@ Created in `backend/server.js`.
 | `admin_reply` | VARCHAR(500) |
 | `created_at` | TIMESTAMP |
 | `resolved_at` | DATETIME |
+
+## `chat_conversations`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
