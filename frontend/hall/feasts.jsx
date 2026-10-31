@@ -283,6 +283,39 @@ function HallFeasts({ call, isAdmin, notify }) {
                               <span>{x.goingCount} / {x.capacity} Booked ({x.capacity - x.goingCount} left)</span>
                             </div>
                             <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                              <div className={"h-full rounded-full transition-all " + (percentBooked > 85 ? "bg-red-500" : percentBooked > 60 ? "bg-amber-500" : "bg-emerald-500")} style={{ width: percentBooked + "%" }} />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-1.5 flex-wrap mt-2.5">
+                          {x.date === today && <span className="hl-chip warn">Happening Today</span>}
+                          <span className={"hl-chip " + (x.extraPrice > 0 ? "plain" : "ok")}>
+                            {x.extraPrice > 0 ? "+" + hallTaka(x.extraPrice) : "Free for Residents"}
+                          </span>
+                          <span className="hl-chip plain">👥 {x.goingCount} going</span>
+                        </div>
+
+                        <div className="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2 text-slate-700">
+                          <strong>🍽 Special Menu:</strong> {x.items}
+                        </div>
+
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            className={"hl-btn sm " + (x.myRsvp === "going" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "ghost")}
+                            disabled={busy === x.id || !x.rsvpOpen || isFull(x)}
+                            onClick={() => rsvp(x.id, "going")}>
+                            {x.myRsvp === "going" ? "✅ Seat Confirmed" : "🎟️ Pre-Book Ticket"}
+                          </button>
+                          <button
+                            className={"hl-btn sm " + (x.myRsvp === "not_going" ? "" : "ghost")}
+                            disabled={busy === x.id || !x.rsvpOpen}
+                            onClick={() => rsvp(x.id, "not_going")}>
+                            🚫 Not going
+                          </button>
+                          {x.myRsvp && x.rsvpOpen && (
+                            <button className="hl-btn sm ghost" disabled={busy === x.id} onClick={() => clearRsvp(x.id)}>
+                              Cancel
   );
 }
 Hall.register({ key: "feasts", label: "Feasts", icon: "🎉", order: 5, component: HallFeasts });
