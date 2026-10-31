@@ -198,6 +198,39 @@ function HallFeasts({ call, isAdmin, notify }) {
                   </div>
                   <div className="text-center pb-3 border-b border-slate-200">
                     <div className="text-xs uppercase font-extrabold text-blue-600 tracking-wider">Hall Dining Service</div>
+                    <div className="font-display font-black text-xl text-slate-900 mt-0.5">CampusDine Guest Pass</div>
+                    <div className="text-xs text-slate-500">{gPass.generatedAt}</div>
+                  </div>
+
+                  <div className="text-center my-4">
+                    <div className="text-xs text-slate-500 uppercase font-bold">Pick-up Token Number</div>
+                    <div className="font-mono font-black text-3xl text-blue-700 tracking-widest mt-1 bg-blue-50 py-2 rounded-xl border border-blue-100 inline-block px-6">
+                      #{gPass.passId}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-xs py-3 border-y border-slate-100 font-medium text-slate-700">
+                    <div className="flex justify-between"><span>Guest:</span><strong>{gPass.guestName}</strong></div>
+                    <div className="flex justify-between"><span>Date:</span><strong>{gPass.date}</strong></div>
+                    <div className="flex justify-between"><span>Meal Slot:</span><strong>{HALL_SLOT_LABEL[gPass.slot] || gPass.slot}</strong></div>
+                    <div className="flex justify-between"><span>Total Meals:</span><strong>{gPass.count} plates</strong></div>
+                    <div className="flex justify-between"><span>Total Billed:</span><strong>৳{gPass.totalCost}</strong></div>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-1.5 shadow">
+                      <span>🖨️</span>
+                      <span>Print Guest Slip</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGPass(null)}
+                      className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
+                      Close
+                    </button>
           </div>
         )}
       </HallCard>
