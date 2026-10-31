@@ -972,3 +972,20 @@ Created in `backend/src/routes/chat.js`.
 | --- | --- |
 | `user_id` | INT |
 | `last_seen` | DATETIME |
+
+## `hall_admin_items`
+Created in `backend/src/routes/hallAdmin.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `item_type` | ENUM('complaint','service','notice','incident','leave','visitor','booking','lost_found','event') |
+| `title` | VARCHAR(180) |
+| `details` | TEXT |
+| `status` | VARCHAR(32) |
+| `student_id` | INT |
+| `created_by` | INT |
+| `assigned_to` | VARCHAR(120) |
+| `expires_at` | DATETIME |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
