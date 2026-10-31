@@ -25,3 +25,12 @@ Created in `backend/schema.sql`.
 | `hall_id` | VARCHAR(20) |
 | `avatar` | MEDIUMTEXT |
 | `created_at` | TIMESTAMP |
+
+## `meal_rates`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `role` | ENUM('student','teacher') |
+| `full_rate` | DECIMAL(10,2) |
+| `half_rate` | DECIMAL(10,2) |
