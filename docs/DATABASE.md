@@ -866,3 +866,12 @@ Created in `backend/src/offersSchema.js`.
 | `discount_value` | DECIMAL(10,2) |
 | `is_active` | TINYINT(1) |
 | `created_at` | TIMESTAMP |
+
+## `happy_hour_items`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `happy_hour_id` | INT |
+| `item_id` | INT |
