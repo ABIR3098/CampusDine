@@ -18,7 +18,7 @@ campusdine-project/
 **One server, one command, one URL.** The backend now serves the frontend
 file directly (like your CropTrack project did), so there's no separate
 frontend server, no CORS setup, and no `file://` browser restrictions to
-fight with. It also auto-creates three demo accounts the first time it
+fight with. It also auto-creates four demo accounts the first time it
 connects to the database, so you can log in immediately without
 registering anything by hand.
 
