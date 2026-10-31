@@ -22,3 +22,8 @@ SELECT 'FREECHAI', 'FIXED', 10, 0, NULL, 'A free Cha (Tea), up to 10 taka (Daily
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM coupons WHERE code = 'FREECHAI');
 INSERT IGNORE INTO coupon_items (coupon_id, item_id)
 SELECT c.id, m.id FROM coupons c JOIN menu_items m ON m.name IN ('Cha (Tea)') WHERE c.code = 'FREECHAI';
+
+-- CASH5: 5 taka off an order of 50 taka or more (Scratch Card prize)
+INSERT INTO coupons (code, discount_type, discount_value, min_order_amount, max_discount, description, applies_to_all_items, is_active)
+SELECT 'CASH5', 'FIXED', 5, 50, NULL, '5 taka off an order of 50 taka or more (Scratch Card prize)', 1, 1
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM coupons WHERE code = 'CASH5');
