@@ -662,6 +662,25 @@
     min-height: 70px;
   }
 
+  .portal-search-box {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .portal-search-input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--input-bg);
+    color: var(--ink);
+    font-size: 12.5px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .portal-search-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
 .chat-shell[data-admin="1"]{grid-template-columns:320px minmax(0,1fr)}
