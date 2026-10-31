@@ -7,3 +7,6 @@ The `PORT` value in `backend/.env` (`5000` in `.env.example`). The server also s
 
 ## I have no email provider. How do I get the OTP code?
 Leave `SMTP_HOST` empty. The code is printed in the server console while developing.
+
+## Can I skip the email code on sign-up?
+Set `EMAIL_OTP_REQUIRED=false` in `backend/.env`.
