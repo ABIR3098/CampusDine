@@ -112,3 +112,6 @@ Serve tab (admin): progress of the meal, a soft beep for each new token, and a s
 
 ## `services.jsx`
 Hall Services: complaints, maintenance, cleaning, laundry, lost & found, feedback and notices. Food/menu/pickup is handled by Canteen Admin.
+
+## `slotPreview.jsx`
+Meal times (admin): says in plain words what the cut-off you are typing means.
