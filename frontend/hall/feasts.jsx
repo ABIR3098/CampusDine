@@ -162,10 +162,42 @@ function HallFeasts({ call, isAdmin, notify }) {
                     {[1, 2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n} Guest{n > 1 ? "s" : ""}</option>)}
                   </select>
                 </div>
+                <div>
+                  <label className="hl-label">Rate / Guest</label>
+                  <div className="hl-input w-full bg-slate-100 font-bold text-slate-700 flex items-center">
+                    ৳{currentSlotPrice}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+
+              <div>
+                <label className="hl-label">Guest Name / Relation (Optional)</label>
+                <input type="text" placeholder="e.g. Cousin from BUET, School friend" value={gName} onChange={e => setGName(e.target.value)} className="hl-input w-full" />
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-blue-200 flex items-center justify-between">
+                <span className="text-xs text-slate-600 font-bold">Total Estimated Cost:</span>
+                <span className="text-lg font-black text-blue-600 font-mono">৳{Number(gCount) * currentSlotPrice}</span>
+              </div>
+
+              <button
+                type="button"
+                disabled={gBusy || !gDate}
+                onClick={bookGuestMeal}
+                className="hl-btn w-full">
+                {gBusy ? "Booking Tokens…" : "🎟️ Confirm & Generate Guest Pass"}
+              </button>
+            </div>
+
+            {/* Generated Guest Pass View */}
+            <div>
+              {gPass ? (
+                <div className="bg-white border-2 border-dashed border-blue-400 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                  <div className="absolute top-2 right-2 px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full font-black text-[10px] tracking-wider uppercase">
+                    OFFICIAL GUEST PASS
+                  </div>
+                  <div className="text-center pb-3 border-b border-slate-200">
+                    <div className="text-xs uppercase font-extrabold text-blue-600 tracking-wider">Hall Dining Service</div>
           </div>
         )}
       </HallCard>
