@@ -22,3 +22,7 @@ test("matchesFor: allergy wins over avoid", () => {
   const diet = { allergies: ["egg"], avoid: ["egg", "beef"] };
   assert.deepStrictEqual(matchesFor(["egg", "beef"], diet).map((m) => m.level), ["allergy", "avoid"]);
 });
+
+test("tagsOf finds chicken", () => {
+  assert.deepEqual(tagsOf("Rice, Chicken curry"), ["chicken"]);
+});
