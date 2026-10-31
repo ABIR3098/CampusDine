@@ -185,27 +185,14 @@ function useHallHeroSlides(call, user, goTab, refreshKey) {
 function HallTopBar({
   user, tabs, active, setActive, onLogout, ui,
   sidebarCollapsed, setSidebarCollapsed, mobileMenuOpen, setMobileMenuOpen,
-  useEffect(() => {
-    [deskRef.current, mobRef.current].forEach((root) => {
-      const el = root && root.querySelector(".nav-pill.active");
-      if (el && el.scrollIntoView) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
-    });
-  }, [active]);
-  const renderTabs = (ref) => (
-    <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
-      {tabs.map((t) => (
-        <button key={t.key} onClick={() => setActive(t.key)} title={t.label} aria-label={t.label} className={`nav-pill ${active === t.key ? "active" : ""}`}>
-          <span style={{ fontSize: 15, lineHeight: 1 }}>{t.icon || "•"}</span>
-          <span className="nav-label">{t.label}</span>
-        </button>
-      ))}
-    </nav>
-  );
-  const ThemeMenu = ui && ui.ThemeMenu, Avatar = ui && ui.Avatar;
+  searchTerm, setSearchTerm
+}) {
+  const filteredTabs = tabs.filter(t => !searchTerm || t.label.toLowerCase().includes(searchTerm.toLowerCase()));
+
   return (
     <>
-      <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
+      {/* ─── 1. BUP PORTAL STYLE VERTICAL SIDEBAR FOR HALL ─── */}
+      <aside className={`portal-sidebar ${sidebarCollapsed ? "collapsed" : ""} ${mobileMenuOpen ? "mobile-open" : ""}`}>
           <div className="flex items-center gap-2 shrink-0">
             <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
             <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
