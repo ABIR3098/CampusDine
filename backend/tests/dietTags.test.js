@@ -38,3 +38,8 @@ test("tagsOf finds fish", () => {
 test("tagsOf finds prawn as shellfish", () => {
   assert.deepEqual(tagsOf("Prawn curry"), ["shellfish"]);
 });
+
+test("tagsOf finds egg, including the Banglish word dim", () => {
+  assert.deepEqual(tagsOf("Porota, Mixed veg, Egg"), ["egg"]);
+  assert.deepEqual(tagsOf("Dim bhuna"), ["egg"]);
+});
