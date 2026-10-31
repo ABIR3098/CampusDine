@@ -43,12 +43,45 @@ function HallServices({call,user,isAdmin,notify}) {
   };
   useEffect(()=>{load();},[isAdmin]);
 
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      notify("Image size must be less than 3MB", true);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
   const submit=async()=>{
     if(!form.title.trim()){notify("Please enter a title",true);return;}
     setBusy(true);
-    try {await call("/api/hall/services",{method:"POST",body:{...form,type}});setForm({title:"",description:"",location:"",requestedDate:""});notify("Request submitted");await load();}
+    try {
+      let finalDesc = form.description || "";
+      if (type === "maintenance") {
+        const catObj = MAINTENANCE_CATEGORIES.find(c => c.key === mCategory);
+        finalDesc = "[Category: " + (catObj ? catObj.label : mCategory) + "] " + finalDesc;
+      }
+      if (photoPreview) {
+        finalDesc += "\n[Photo Evidence Attached]";
+      }
+      const res = await call("/api/hall/services",{method:"POST",body:{...form,description:finalDesc,type}});
+      if (photoPreview) {
+        try {
+          if (res && res.id) localStorage.setItem("cd_photo_" + res.id, photoPreview);
+          localStorage.setItem("cd_maint_recent_photo", photoPreview);
+        } catch (_) {}
+      }
+      setForm({title:"",description:"",location:"",requestedDate:""});
+      setPhotoPreview(null);
+      notify("Maintenance request submitted successfully!");
+      await load();
+    }
     catch(e){notify(e,true);} finally{setBusy(false);}
   };
+
   const updateStatus=async(id,status)=>{
     try{await call(`/api/hall/services/${id}`,{method:"PATCH",body:{status}});notify("Request updated");await load();}
     catch(e){notify(e,true);}
