@@ -116,3 +116,17 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/coupon`
 - `GET /api/coupon`
 - `PUT /api/coupon/:couponId`
+
+## `/api/chat` — `src/routes/chat.js`
+
+- `GET /api/chat/conversations`
+- `GET /api/chat/messages`
+- `GET /api/chat/:userId/messages`
+- `POST /api/chat/messages`
+- `GET /api/chat/order/:orderId/messages`
+- `POST /api/chat/order/:orderId/messages`
+- `DELETE /api/chat/messages/:id`
+- `GET /api/chat/presence`
+- `POST /api/chat/images`
+- `GET /api/chat/images/:id`
+- `POST /api/chat/messages/:id/reaction`
