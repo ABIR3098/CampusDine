@@ -22,6 +22,8 @@ fight with. It also auto-creates three demo accounts the first time it
 connects to the database, so you can log in immediately without
 registering anything by hand.
 
+More documentation lives in [`docs/`](docs/) (see [Hall weekly menu](docs/HALL_MENU.md)).
+
 ---
 
 ## Restaurants
