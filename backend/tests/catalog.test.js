@@ -57,3 +57,13 @@ test("every nutrition entry matches a built-in item or one in more_menu_items.sq
     assert.ok(name in IMAGE_BY_NAME || sql.includes("SELECT '" + name + "'"), name + " is not a known item");
   }
 });
+
+test("no built-in item is listed under two restaurants", () => {
+  const seen = new Map();
+  for (const [restaurant, names] of Object.entries(ITEMS_BY_RESTAURANT)) {
+    for (const name of names) {
+      assert.ok(!seen.has(name), name + " is in " + seen.get(name) + " and " + restaurant);
+      seen.set(name, restaurant);
+    }
+  }
+});
