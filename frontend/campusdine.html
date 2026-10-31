@@ -4198,22 +4198,475 @@ function MenuOrder({ budget, recurringDue = [], onDueAdd, onDueSkip, onTopUp, us
                     const text = tx(k);
                     const on = noteHas(orderNote, text);
                     return (
+                      <button key={k} type="button" onClick={() => setOrderNote(noteToggle(orderNote, text))}
+                        className={"chip text-xs px-2.5 py-1 rounded-full" + (on ? " active-chip" : "")}>{text}</button>
+                    );
+                  })}
+                </div>
+                <textarea value={orderNote} onChange={e => setOrderNote(e.target.value.slice(0, 200))} rows={2} maxLength={200}
+                  placeholder={tx("note.ph")} className="w-full px-3 py-2 rounded-lg border text-sm resize-none" style={{ borderColor: "var(--line)" }} />
+                <div className="text-[10px] text-right mt-0.5" style={{ color: "var(--ink-soft)" }}>{num(orderNote.length)}/{num(200)}</div>
+              </div>
+              <div className="mb-4">
+                <label className="text-xs uppercase tracking-wide block mb-2" style={{ color: "var(--ink-soft)" }}>{tx("dnote.label")}</label>
+                <input type="text" value={deliveryNote} onChange={e => setDeliveryNote(e.target.value.slice(0, 200))} maxLength={200}
+                  placeholder={tx("dnote.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+              </div>
+              {/* Feature: Class-Break Quick Pre-Order Slots */}
+              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
+                <div className="text-xs font-700 flex items-center justify-between">
+                  <span>⏰ Class-Break Pickup Slots</span>
+                  <span className="text-[10px] opacity-70">Ready on break</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "11:15 AM (Break 1)", val: "11:15" },
+                    { label: "1:20 PM (Lunch)", val: "13:20" },
+                    { label: "3:45 PM (Break 2)", val: "15:45" },
+                    { label: "5:15 PM (Evening)", val: "17:15" }
+                  ].map(s => (
+                    <button key={s.val} type="button" onClick={() => { setScheduleLater(true); setPickupTime(s.val); }}
+                      className={`p-1.5 rounded-lg text-[11px] font-700 border text-left flex items-center gap-1 ${scheduleLater && pickupTime === s.val ? "btn-primary" : ""}`}
+                      style={scheduleLater && pickupTime === s.val ? {} : { borderColor: "var(--line)", background: "var(--panel)" }}>
+                      <span>🔔</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature: Bring Your Own Box (BYOB) Eco Discount */}
+              <label className="mb-3 p-3 rounded-xl border flex items-center gap-2.5 cursor-pointer"
+                style={{ background: byob ? "rgba(22,163,74,0.08)" : "var(--panel)", borderColor: byob ? "var(--leaf)" : "var(--line)" }}>
+                <input type="checkbox" checked={byob} onChange={e => setByob(e.target.checked)} className="rounded accent-emerald-600" />
+                <div className="text-xs">
+                  <div className="font-700">🌱 Bring Your Own Box / Mug</div>
+                  <div className="text-[11px]" style={{ color: "var(--ink-soft)" }}>Reduce single-use plastic & get <strong>৳5 Eco-Discount</strong></div>
+                </div>
+              </label>
+
+              {/* Feature: Bill Splitter with Friends */}
+              <div className="mb-4 p-3 rounded-xl border space-y-2" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-700 flex items-center gap-1.5">
+                    <span>🍕</span> Split Bill with Friends
+                  </span>
+                  <input type="checkbox" checked={splitBill} onChange={e => setSplitBill(e.target.checked)} className="rounded accent-emerald-600" />
+                </label>
+                {splitBill && (
+                  <div className="pt-2 border-t space-y-2 text-xs" style={{ borderColor: "var(--line)" }}>
+                    <div className="flex items-center justify-between">
+                      <span>Total Split Among:</span>
+                      <div className="flex items-center gap-2">
+                        {[2, 3, 4].map(n => (
+                          <button key={n} type="button" onClick={() => setSplitCount(n)}
+                            className={`px-2.5 py-0.5 rounded font-700 border ${splitCount === n ? "btn-primary" : ""}`}
+                            style={splitCount === n ? {} : { borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                            {n} Friends
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="p-2 rounded-lg font-700 text-center" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                      ৳{Math.ceil(Math.max(0, total - (byob ? 5 : 0) + tip) / splitCount)} per person
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="flex items-center gap-2 text-sm mb-2">
+                  <input type="checkbox" checked={scheduleLater} onChange={e => setScheduleLater(e.target.checked)} />
+                  {tx("schedule")}
+                </label>
+                {scheduleLater && (
+                  <>
+                    <input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)}
+                      min={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMin)}
+                      max={pickupCrossesMidnight ? undefined : fmtHHMM(pickupMax)}
+                      className="w-full px-3 py-2 rounded-lg border font-mono" style={{ borderColor: "var(--line)" }} />
+                    <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                      {tx("pick.hint", { a: fmtHHMM(pickupMin), b: fmtHHMM(pickupMax) })}
+                    </p>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2 mb-4 text-sm">
+                <button onClick={() => setPayMethod("wallet")}
+                  className={`flex-1 py-2 rounded-lg border ${payMethod === "wallet" ? "text-white" : ""}`}
+                  style={payMethod === "wallet" ? { background: "var(--teal)", borderColor: "var(--teal)" } : { borderColor: "var(--line)" }}>
+                  {tx("pay.wallet")}
+                </button>
+                <button onClick={() => setPayMethod("cash")}
+                  className={`flex-1 py-2 rounded-lg border ${payMethod === "cash" ? "text-white" : ""}`}
+                  style={payMethod === "cash" ? { background: "var(--teal)", borderColor: "var(--teal)" } : { borderColor: "var(--line)" }}>
+                  {tx("pay.cash")}
+                </button>
+              </div>
+              {payMethod === "wallet" && (
+                <div className="mb-3">
+                  <div className="text-xs mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("tip.label")}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {[0, 5, 10, 20].map(v => (
+                      <button key={v} type="button" onClick={() => setTip(v)}
+                        className={"chip text-xs px-3 py-1.5 rounded-full" + (tip === v ? " active-chip" : "")}>{v === 0 ? tx("tip.none") : "৳" + v}</button>
+                    ))}
+                  </div>
+                  {tip > 0 && <div className="text-xs mt-1.5 font-600">{tx("tip.total", { t: taka(total + tip) })}</div>}
+                </div>
+              )}
+              {budget && budget.limit > 0 && (() => {
+                const after = budget.spent + total;
+                const pct = Math.round((after / budget.limit) * 100);
+                if (pct < 80) return null;
+                const over = after > budget.limit;
+                return (
+                  <div className="mb-3 text-xs rounded-lg px-3 py-2 font-600" style={{ background: over ? "#FEF2F2" : "#FFFBEB", color: over ? "#B91C1C" : "#92400E" }}>
+                    ⚠️ {over ? tx("bud.cart.over", { o: taka(after - budget.limit), l: taka(budget.limit) }) : tx("bud.cart.near", { p: num(pct), l: taka(budget.limit) })}
+                  </div>
+                );
+              })()}
+              {payMethod === "wallet" && !canPay && (
+                <div className="mb-3">
+                  <p className="text-xs" style={{ color: "var(--brick)" }}>{tx("insufficient")}</p>
+                  {onTopUp && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs font-600">{tx("topup.short", { a: taka(Math.max(0, total + tip - walletBalance)) })}</span>
+                      <button type="button" onClick={() => onTopUp(Math.max(0, total + tip - walletBalance))} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("topup")}</button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {!quote && quoteError && (
+                <p className="text-xs mb-3" style={{ color: "var(--brick)" }}>
+                  Price preview unavailable ({quoteError}). The final price is calculated when you place the order.
+                </p>
+              )}
+              <button disabled={!canCheckout || busy || (!quote && !quoteError)} onClick={() => {
+                const finalNote = [orderNote, byob ? "🌱 BYOB Box Discount (-৳5)" : "", splitBill ? `🍕 Split Bill (${splitCount} friends)` : ""].filter(Boolean).join(" · ");
+                placeOrder(cart, payMethod, scheduleLater ? pickupTime : null, couponApplied, finalNote, rewardId, deliveryNote, tip);
+              }}
+                className="btn-primary w-full py-2.5 rounded-xl">
+                {busy ? tx("placing") : tx("checkout")}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Floating Lucky Reward Wheel/Scratch Trigger */}
+      <button type="button" onClick={() => setShowScratch(true)} className="floating-reward-btn">
+        <span>🎁</span>
+        <span>Daily Lucky Scratch</span>
+      </button>
+
+      {/* Modals for Smart Features */}
+      {showPlanner && (
+        <BudgetMealPlannerModal menu={menu} onAddToCart={add} onClose={() => setShowPlanner(false)} />
+      )}
+      {showScratch && (
+        <DailyScratchModal onClose={() => setShowScratch(false)} />
+      )}
+      {showBadges && (
+        <FoodieBadgesModal onClose={() => setShowBadges(false)} />
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Track order tab ---------------- */
+/* Feature: rate your rider */
+function RiderRating({ order, apiBase, token }) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [saved, setSaved] = useState(order.rider_rating ? { rating: Number(order.rider_rating), comment: order.rider_comment } : null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const send = async () => {
+    if (rating < 1) return;
+    setBusy(true); setError("");
+    try {
+      await api(apiBase, "/api/orders/" + order.id + "/rate-rider", { method: "POST", token, body: { rating, comment } });
+      setSaved({ rating, comment: comment.trim() });
+    } catch (e) { setError(e.message || "Could not save your rating"); }
+    finally { setBusy(false); }
+  };
+  if (saved) {
+    return (
+      <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+        <div className="flex items-center gap-2">
+          <StarPicker value={saved.rating} readOnly size="w-4 h-4" />
+          <span className="text-xs" style={{ color: "var(--ink-soft)" }}>✓ {tx("rr.done")}{order.rider_name ? " (" + order.rider_name + ")" : ""}</span>
+        </div>
+        {saved.comment && <p className="text-xs italic mt-1.5" style={{ color: "var(--ink-soft)" }}>"{saved.comment}"</p>}
+      </div>
+    );
+  }
+  return (
+    <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>🛵 {tx("rr.title")}{order.rider_name ? " — " + order.rider_name : ""}</div>
+      <StarPicker value={rating} onChange={setRating} />
+      <input type="text" value={comment} onChange={e => setComment(e.target.value.slice(0, 200))} placeholder={tx("rr.ph")}
+        className="w-full mt-2 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      {error && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{error}</p>}
+      <button type="button" disabled={busy || rating < 1} onClick={send} className="btn-primary text-xs px-3 py-1.5 rounded-lg mt-2">{tx("rr.send")}</button>
+    </div>
+  );
+}
+function StarPicker({ value, onChange, size = "w-6 h-6", readOnly = false }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(n => (
+        <button key={n} type="button" disabled={readOnly} aria-label={`${n} / 5`}
+          onClick={() => onChange && onChange(n)}
+          className={readOnly ? "cursor-default" : "transition-transform hover:scale-110"}>
+          <Icon path={I.star} className={size} style={{ color: n <= value ? "var(--gold)" : "var(--line)" }}
+            fill={n <= value ? "var(--gold)" : "none"} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const RATING_KEYS = ["", "fb.r1", "fb.r2", "fb.r3", "fb.r4", "fb.r5"];
+const FEEDBACK_CATS = [
+  { id: "food", emoji: "🍛" }, { id: "service", emoji: "🛎️" }, { id: "hygiene", emoji: "🧼" },
+  { id: "suggestion", emoji: "💡" }, { id: "other", emoji: "💬" },
+];
+
+/* ---------------- Print sheets (reports / feedback / bills) ----------------
+   A print sheet is a plain black-on-white page rendered outside the app (a portal on <body>).
+   While it prints, the whole app is hidden, so there are no blank pages, no dark-theme colours,
+   no clipped charts. Tables repeat their header on every page. */
+function PrintSheet({ title, meta, children }) {
+  const host = useMemo(() => {
+    let el = document.getElementById("print-sheet");
+    if (!el) { el = document.createElement("div"); el.id = "print-sheet"; document.body.appendChild(el); }
+    return el;
+  }, []);
+  useEffect(() => {
+    document.body.classList.add("printing-sheet");
+    const done = () => document.body.classList.remove("printing-sheet");
+    window.addEventListener("afterprint", done);
+    const t = setTimeout(() => window.print(), 120);
+    return () => { clearTimeout(t); window.removeEventListener("afterprint", done); done(); };
+  }, []);
+  return ReactDOM.createPortal(
+    <div>
+      <h1>CampusDine — {title}</h1>
+      <div className="ps-meta">{meta}</div>
+      {children}
+    </div>, host);
+}
+function PsTable({ head, rows, numCols = [], empty }) {
+  if (!rows.length) return <p className="ps-empty">{empty || "—"}</p>;
+  return (
+    <table>
+      <thead><tr>{head.map((h, i) => <th key={i} className={numCols.includes(i) ? "num" : ""} style={h === "" ? { width: "40%" } : undefined}>{h}</th>)}</tr></thead>
+      <tbody>{rows.map((r, ri) => (
+        <tr key={ri}>{r.map((c, i) => <td key={i} className={numCols.includes(i) ? "num" : ""}>{c}</td>)}</tr>
+      ))}</tbody>
+    </table>
+  );
+}
+const psStars = (n) => "★".repeat(Math.max(0, Math.min(5, n))) + "☆".repeat(5 - Math.max(0, Math.min(5, n)));
+
+function OrderFeedback({ order, onSubmit, busy }) {
+  const fb = order.feedback;
+  const [editing, setEditing] = useState(false);
+  const [rating, setRating] = useState(fb ? fb.rating : 0);
+  const [comment, setComment] = useState(fb && fb.comment ? fb.comment : "");
+
+  // keep the form in sync when the server copy changes (e.g. after saving)
+  useEffect(() => {
+    if (fb) { setRating(fb.rating); setComment(fb.comment || ""); }
+  }, [fb && fb.rating, fb && fb.comment]);
+
+  const send = async () => {
+    const ok = await onSubmit(order.id, rating, comment);
+    if (ok !== false) setEditing(false);
+  };
+
+  if (fb && !editing) {
+    return (
+      <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <StarPicker value={fb.rating} readOnly size="w-4 h-4" />
+            <span className="text-xs" style={{ color: "var(--ink-soft)" }}>✓ {tx("rated")}</span>
+          </div>
+          <button onClick={() => setEditing(true)} className="text-xs font-600" style={{ color: "var(--gold-deep)" }}>{tx("fb.edit")}</button>
+        </div>
+        {fb.comment && <p className="text-xs italic mt-1.5" style={{ color: "var(--ink-soft)" }}>"{fb.comment}"</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("rate")}</div>
+      <div className="flex items-center gap-3">
+        <StarPicker value={rating} onChange={setRating} />
+        {rating > 0 && <span className="text-sm font-600" style={{ color: "var(--gold-deep)" }}>{tx(RATING_KEYS[rating])}</span>}
+      </div>
+      <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("comment.ph")} maxLength={500}
+        rows="2" className="w-full mt-2 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <div className="flex items-center gap-2 mt-2">
+        <button disabled={busy || rating === 0} onClick={send} className="btn-primary px-4 py-1.5 rounded-lg text-xs">
+          {busy ? tx("submitting") : (fb ? tx("fb.update") : tx("submit"))}
+        </button>
+        {fb && (
+          <button onClick={() => { setEditing(false); setRating(fb.rating); setComment(fb.comment || ""); }}
+            className="px-3 py-1.5 rounded-lg text-xs border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+            {tx("fb.cancel")}
+          </button>
         )}
-          </>
-            <AdminFeedback summary={feedbackSummary} />
-            <ProblemReports apiBase={apiBase} token={session.token} refreshKey={issueTick} />
-          <>
-        {session.user.role === "admin" && tab === "feedback" && (
-        {session.user.role === "admin" && tab === "reports" && <AdminReports trend={trend} forecast={forecast} call={call} apiBase={apiBase} token={session.token} />}
+        {rating === 0 && !fb && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("fb.pickrating")}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Feedback tab (student / teacher) ---------------- */
+function FeedbackTab({ user, orders, onSubmitOrder, orderBusy, general, onSubmitGeneral, generalBusy }) {
+  const [category, setCategory] = useState("food");
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [sent, setSent] = useState(false);
+  const [printKey, setPrintKey] = useState(0);
+
+  useEffect(() => {
+    if (!sent) return;
+    const t = setTimeout(() => setSent(false), 4000);
+    return () => clearTimeout(t);
+  }, [sent]);
+
+  const rateable = orders.filter(o => o.status === "Ready");
+  const ratedOrders = orders.filter(o => o.feedback);
+  const allRatings = [...ratedOrders.map(o => o.feedback.rating), ...general.map(g => g.rating)];
+  const avgRating = allRatings.length ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length : 0;
+
+  const submit = async () => {
+    const ok = await onSubmitGeneral(category, rating, comment);
+    if (ok) { setRating(0); setComment(""); setSent(true); }
+  };
+
+  return (
+    <div className="max-w-2xl space-y-8">
+      {printKey > 0 && (
+        <PrintSheet key={printKey} title={tx("pr.feedback")}
+          meta={`${user.name}${user.externalId ? " (" + user.externalId + ")" : ""} · ${tx("pr.generated", { t: new Date().toLocaleString() })}`}>
+          <div className="ps-grid">
+            {[[tx("pr.totalrated"), num(allRatings.length)], [tx("pr.avgrating"), allRatings.length ? num(avgRating.toFixed(1)) + " / 5" : "—"]]
+              .map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <h2>{tx("pr.orderfb")}</h2>
+          <PsTable head={[tx("pr.order"), tx("pr.date"), tx("pr.items"), tx("pr.rating"), tx("pr.comment")]} empty={tx("pr.nofb")}
+            rows={ratedOrders.map(o => [o.token, new Date(o.created_at).toLocaleDateString(), (o.items || []).map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", "), psStars(o.feedback.rating), o.feedback.comment || "—"])} />
+          <h2>{tx("pr.generalfb")}</h2>
+          <PsTable head={[tx("pr.date"), tx("pr.category"), tx("pr.rating"), tx("pr.comment")]} empty={tx("pr.nofb")}
+            rows={general.map(g => [new Date(g.created_at).toLocaleDateString(), tx("fb.cat." + g.category), psStars(g.rating), g.comment || "—"])} />
+        </PrintSheet>
+      )}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-display font-700 text-xl" style={{ color: "var(--gold)" }}>{tx("fb.title")}</div>
+          <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>{tx("fb.sub")}</p>
+        </div>
+        <button onClick={() => setPrintKey(k => k + 1)} disabled={allRatings.length === 0} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-600 disabled:opacity-40" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+  <Icon path={I.printer} className="w-3.5 h-3.5" /> {tx("pr.print")}
+</button>
+      </div>
+
+      <section>
+        <div className="font-display font-700 mb-3">{tx("fb.orders")}</div>
+        {rateable.length === 0 ? (
+          <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("fb.orders.empty")}</div>
+        ) : (
+          <div className="space-y-3">
+            {rateable.map(o => (
+              <div key={o.id} className="card p-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-mono font-700">{o.token}</span>
+                  <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(o.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
+                  {(o.items || []).map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
+                </div>
+                <OrderFeedback order={o} onSubmit={onSubmitOrder} busy={orderBusy} />
+              </div>
+            ))}
+          </div>
         )}
-          <AdminVerify call={call} onCollected={(o) => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, picked_up_at: o.picked_up_at } : x))} />
-        {session.user.role === "admin" && tab === "verify" && (
+      </section>
+
+      <section>
+        <div className="font-display font-700">{tx("fb.general")}</div>
+        <p className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>{tx("fb.general.sub")}</p>
+        <div className="card p-4">
+          <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>{tx("fb.cat")}</div>
+          <div className="flex gap-2 flex-wrap mb-4">
+            {FEEDBACK_CATS.map(c => (
+              <button key={c.id} type="button" onClick={() => setCategory(c.id)}
+                className={`tab-btn px-3 py-1.5 rounded-full text-sm ${category === c.id ? "active" : ""}`}>
+                {c.emoji} {tx("fb.cat." + c.id)}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <StarPicker value={rating} onChange={setRating} />
+            {rating > 0 && <span className="text-sm font-600" style={{ color: "var(--gold-deep)" }}>{tx(RATING_KEYS[rating])}</span>}
+          </div>
+          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder={tx("fb.ph.general")} maxLength={500}
+            rows="3" className="w-full mt-3 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+          <div className="flex items-center justify-between gap-3 mt-2 flex-wrap">
+            <span className="text-xs font-mono" style={{ color: "var(--ink-soft)" }}>{comment.length}/500</span>
+            <div className="flex items-center gap-3">
+              {rating === 0 && <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("fb.pickrating")}</span>}
+              <button disabled={generalBusy || rating === 0} onClick={submit} className="btn-primary px-5 py-2 rounded-lg text-sm">
+                {generalBusy ? tx("submitting") : tx("fb.send")}
+              </button>
+            </div>
+          </div>
+          {sent && (
+            <div className="success-banner rounded-lg px-3 py-2 mt-3 text-sm">✓ {tx("fb.thanks")}</div>
+          )}
+        </div>
+      </section>
+
+      <section>
+        <div className="font-display font-700 mb-3">{tx("fb.history")}</div>
+        {general.length === 0 ? (
+          <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>{tx("fb.history.empty")}</div>
+        ) : (
+          <div className="space-y-3">
+            {general.map(g => (
+              <div key={g.id} className="card p-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <StarPicker value={g.rating} readOnly size="w-4 h-4" />
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                      {tx("fb.cat." + g.category)}
+                    </span>
+                  </div>
+                  <span className="text-xs" style={{ color: "var(--ink-soft)" }}>{new Date(g.created_at).toLocaleDateString()}</span>
+                </div>
+                {g.comment && <p className="text-sm mt-1.5">"{g.comment}"</p>}
+              </div>
+            ))}
+          </div>
         )}
-          <AdminOffers call={call} menu={restaurantMenu} notify={(m, isErr) => { if (isErr) showError(m); else showSuccess(m); setLoyaltyKey(k => k + 1); }} />
-        {session.user.role === "admin" && tab === "offers" && (
-        {session.user.role === "admin" && tab === "coupons" && <AdminCoupons coupons={coupons} onSave={updateCoupon} />}
-        {session.user.role === "admin" && tab === "adminOrders" && <AdminOrders orders={restaurantOrders} advance={advanceOrder} call={call} />}
-        {session.user.role === "admin" && tab === "hallFood" && <AdminHallFood call={call} />}
+      </section>
+    </div>
+  );
+}
+
+/* Feature: copy token */
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+  } catch (_) { /* fall through to the old way */ }
+  try {
+    const ta = document.createElement("textarea");
         )}
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         {session.user.role === "admin" && tab === "adminMenu" && (
