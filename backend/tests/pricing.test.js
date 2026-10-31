@@ -12,3 +12,7 @@ test("r2 rounds to two decimals", () => {
   assert.equal(r2("5"), 5);
   assert.equal(r2(0.1 + 0.2), 0.3);
 });
+
+test("happy hour is active inside its window", () => {
+  assert.equal(isHappyHourActive(hh(), at("2026-10-31T09:00:00Z")), true);
+});
