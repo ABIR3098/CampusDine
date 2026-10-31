@@ -3397,6 +3397,25 @@ function TopBar({
       </aside>
 
       {/* Mobile Backdrop overlay */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 md:hidden animate-fadeIn"
+        />
+      )}
+    </>
+  );
+}
+
+function PortalTopHeader({
+  role, name, avatar, connected, onToggleLang, onLogout,
+  notifications = [], notificationCount = 0, onToggleNotifications,
+  notificationOpen = false, onMarkAllRead, onClearNotifications,
+  onOpenMobileMenu, restaurant, onSwitchRestaurant, currentTabLabel
+}) {
+  return (
+    <header className="portal-header">
+      {/* Left: Mobile hamburger & Location/Restaurant crumb */}
       </div>
     </div>
     <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
