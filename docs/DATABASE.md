@@ -51,3 +51,13 @@ Created in `backend/schema.sql`.
 | `availability` | VARCHAR(12) |
 | `image` | VARCHAR(200) |
 | `created_at` | TIMESTAMP |
+
+## `favourites`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `item_id` | INT |
+| `created_at` | TIMESTAMP |
