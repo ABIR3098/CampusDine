@@ -715,3 +715,12 @@ Created in `backend/src/hall/schema.js`.
 | `old_status` | ENUM('on','off') |
 | `new_status` | ENUM('on','off') |
 | `created_at` | DATETIME |
+
+## `hall_menu`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `dow` | TINYINT |
+| `slot` | VARCHAR(12) |
+| `items` | VARCHAR(255) |
