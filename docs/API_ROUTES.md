@@ -314,3 +314,8 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/hall/waste`
 - `POST /api/hall/waste`
 - `GET /api/hall/forecast`
+
+## `/api/hall` — `src/hall/routes/slots.js`
+
+- `GET /api/hall/slots`
+- `PUT /api/hall/slots/:slot`
