@@ -813,6 +813,25 @@
     border-radius: 16px;
     padding: 16px;
     display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(16,24,40,0.03);
+    transition: all 0.2s ease;
+  }
+  .portal-kpi-card:hover {
+    border-color: var(--accent-border);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+  }
+  .portal-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
 
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
