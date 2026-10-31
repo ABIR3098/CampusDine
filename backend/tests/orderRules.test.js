@@ -100,3 +100,8 @@ test("buildOrderStats rounds the average order to two decimals and reads text nu
   assert.strictEqual(s.averageOrder, 25.25);
   assert.deepStrictEqual(s.favouriteItem, { name: "Cha", qty: 4 });
 });
+
+test("parseAdminFilters treats blank search text as no search", () => {
+  const { parseAdminFilters } = require("../src/utils/orderRules");
+  assert.strictEqual(parseAdminFilters({ q: "   " }).q, null);
+});
