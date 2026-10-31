@@ -34,3 +34,6 @@ Step 10 — "My bill" tab: what each meal costs, day by day, and the month's tot
 
 ## `core.jsx`
 Hall core: shared helpers + small UI pieces (card, ON/OFF switch, hero slider), the page shell
+
+## `cutoffReminder.jsx`
+Home: reminder for meals that are about to close ("Dinner closes in 40m — it is ON").
