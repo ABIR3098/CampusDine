@@ -88,3 +88,8 @@ test("matchesFor marks allergy above avoid", () => {
 test("matchesFor returns nothing when the meal is safe", () => {
   assert.deepEqual(matchesFor(["egg"], { allergies: [], avoid: ["beef"] }), []);
 });
+
+test("the vegetarian shortcut avoids meat and fish but allows egg and dairy", () => {
+  assert.ok(VEGETARIAN_AVOID.includes("beef") && VEGETARIAN_AVOID.includes("fish"));
+  assert.ok(!VEGETARIAN_AVOID.includes("egg") && !VEGETARIAN_AVOID.includes("milk"));
+});
