@@ -36,7 +36,7 @@ function HallMenu({ call, isAdmin, notify }) {
     <HallCard title="Weekly menu" icon="📋"
       right={!isAdmin && <button className="hl-btn sm ghost" title="Reload the weekly menu" onClick={load} disabled={refreshing}>{refreshing ? "Refreshing…" : "Refresh menu"}</button>}
       sub={`The same every week.${isAdmin ? " Click a meal, change the text and click outside to save." : ""}`}>
-      {!menu ? <div className="hl-empty">Loading…</div> : (
+      {!menu ? <div className="hl-empty">Loading menu…</div> : (
         <div className="hl-week">
           {HALL_WEEK_ORDER.map((dow) => {
             const day = menu.find((d) => d.dow === dow);
