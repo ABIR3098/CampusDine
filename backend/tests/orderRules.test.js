@@ -131,3 +131,8 @@ test("cleanCancelReason ignores values that are not text", () => {
   assert.equal(cleanCancelReason(42), null);
   assert.equal(cleanCancelReason(undefined), null);
 });
+
+test("cleanCancelReason keeps at most 100 characters", () => {
+  const { cleanCancelReason } = require("../src/utils/orderRules");
+  assert.equal(cleanCancelReason("a".repeat(150)).length, 100);
+});
