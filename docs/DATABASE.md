@@ -120,3 +120,18 @@ Created in `backend/schema.sql`.
 | `details_json` | JSON |
 | `ip_address` | VARCHAR(64) |
 | `created_at` | TIMESTAMP |
+
+## `audit_logs`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `actor_user_id` | INT |
+| `actor_role` | VARCHAR(20) |
+| `action` | VARCHAR(80) |
+| `entity_type` | VARCHAR(40) |
+| `entity_id` | VARCHAR(80) |
+| `details_json` | JSON |
+| `ip_address` | VARCHAR(64) |
+| `created_at` | TIMESTAMP |
