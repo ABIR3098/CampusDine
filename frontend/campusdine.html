@@ -756,6 +756,25 @@
     padding: 2px 7px;
     border-radius: 999px;
     font-size: 10px;
+    font-weight: 800;
+    background: var(--brick);
+    color: #FFFFFF;
+    line-height: 1.2;
+  }
+  .portal-nav-item.active .portal-nav-badge {
+    background: #FFFFFF;
+    color: var(--brick);
+  }
+
+  /* Main Viewport Container */
+  .portal-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
 
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
