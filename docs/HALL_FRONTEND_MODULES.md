@@ -22,3 +22,6 @@ Auto-pay, member side: one switch on My bill.
 
 ## `autopayAdmin.jsx`
 Auto-pay, admin side: run it right now for one month (it also runs by itself between the 1st and the 10th).
+
+## `balanceAlert.jsx`
+Home: warns when the wallet can't cover the Hall bill.
