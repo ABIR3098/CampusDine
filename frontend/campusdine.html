@@ -3359,6 +3359,25 @@ function TopBar({
         <nav className="portal-nav-list no-scrollbar">
           {filteredTabs.map(t => {
             const isActive = active === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => {
+                  setActive(t.key);
+                  if (setMobileMenuOpen) setMobileMenuOpen(false);
+                }}
+                title={t.label}
+                aria-label={t.label}
+                className={`portal-nav-item ${isActive ? "active" : ""}`}>
+                <span className="portal-nav-icon">
+                  <Icon path={t.icon} className="w-4 h-4" />
+                </span>
+                <span className="portal-nav-label">{t.label}</span>
+                {t.badge > 0 && (
+                  <span className="portal-nav-badge">
+                    {t.badge > 9 ? "9+" : t.badge}
+                  </span>
       </div>
     </div>
     <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
