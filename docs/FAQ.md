@@ -19,3 +19,6 @@ Set `CANTEEN_TZ` in `backend/.env` to the canteen's timezone. The default is `As
 
 ## How do I add more food items?
 See [Adding menu items](MENU_ITEMS_SQL.md).
+
+## How do I change the hall weekly menu?
+Hall admins can edit it in the app, or you can change the starting sample menu. See [Hall weekly menu](HALL_MENU.md).
