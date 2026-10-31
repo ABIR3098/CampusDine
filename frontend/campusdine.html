@@ -2799,6 +2799,471 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
               </div>
               <div className="p-4">
                 <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{item.name}</div>
+                <div className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>{item.tag}</div>
+                <div className="font-mono text-sm" style={{ color: "var(--gold)" }}>{item.price}</div>
+              </div>
+            </div>
+          ))}
+          <FullMenuCard onLogin={scrollToAuth} />
+        </div>
+      </section>
+
+      {/* About */}
+      <section id="about" className="border-t py-20 px-6" style={{ borderColor: "var(--line)", background: "rgba(22,163,74,0.05)" }}>
+        <div className="max-w-2xl mx-auto text-center space-y-5">
+          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>{tx("about.k")}</p>
+          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>{tx("about.h")}</h2>
+          <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
+          <p className="leading-relaxed text-[15px]" style={{ color: "var(--ink-soft)" }}>
+            {tx("about.p")}
+          </p>
+        </div>
+      </section>
+
+      {/* Auth */}
+      <section ref={authRef} className="py-20 px-6">
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-8 space-y-2">
+            <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>{tx("auth.k")}</p>
+            <h2 className="font-display text-2xl font-800" style={{ color: "var(--ink)" }}>{tx("auth.h")}</h2>
+          </div>
+
+          <div className="card p-8 fade-in">
+            {!role ? (
+              <div className="space-y-3">
+                <div className="mb-2 text-center">
+                  <a href="/role-select.html" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-700 transition-colors"
+                    style={{ background: "var(--gold-soft)", color: "var(--gold)", border: "1px solid var(--accent-border)" }}>
+                    <span>✨</span> Open dedicated role login page ↗
+                  </a>
+                </div>
+                {roleOptions.map((r) => (
+                  <button key={r.key} onClick={() => { if (r.key === "hall_admin") { window.location.href = "/hall-admin.html"; return; } setRole(r.key); if (r.key === "admin") setMode("login"); }}
+                    className="role-option w-full flex items-center gap-4 p-4 rounded-lg border text-left"
+                    style={{ borderColor: "var(--line)" }}>
+                    <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0" style={{ background: "var(--gold-soft)" }}>
+                      <Icon path={r.icon} className="w-5 h-5" style={{ color: "var(--teal-deep)" }} />
+                    </div>
+                    <div>
+                      <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{r.label}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>{r.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : mode === "forgot" ? (
+              <>
+                <button onClick={() => { setMode("login"); setError(null); }} className="text-sm mb-5 flex items-center gap-1" style={{ color: "var(--ink-soft)" }}>
+                  <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> {tx("back.login")}
+                </button>
+                <div className="font-display font-700 text-xl mb-1 text-center" style={{ color: "var(--gold)" }}>{tx("reset.h")}</div>
+                <p className="text-xs mb-5 text-center" style={{ color: "var(--ink-soft)" }}>{tx("reset.p")}</p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("id")}</label>
+                    <input value={externalId} onChange={e => setExternalId(e.target.value)} placeholder="e.g. 24524203098"
+                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("email")}</label>
+                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder={tx("email.ph")}
+                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                  </div>
+                  {otpRequired && resetSent && otpBox(sendResetCode)}
+                  {(!otpRequired || resetSent) && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("newpw")}</label>
+                      <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" placeholder={tx("atleast6")}
+                        className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                    </div>
+                  )}
+                  <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("reset.noemail")}</p>
+                  {otpRequired && resetSent && <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("otp.devhint")}</p>}
+                  {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
+                  {resetMsg && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
+                  <button disabled={busy} onClick={otpRequired && !resetSent ? sendResetCode : submitReset} className="btn-primary w-full py-2.5 rounded-xl">
+                    {busy ? tx("wait") : (otpRequired && !resetSent ? tx("reset.send") : tx("reset.h"))}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-5">
+                  <button onClick={() => { setRole(null); setError(null); }} className="text-sm flex items-center gap-1" style={{ color: "var(--ink-soft)" }}>
+                    <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> {tx("back")}
+                  </button>
+                  <a href="/role-select.html" className="text-xs font-600 flex items-center gap-1" style={{ color: "var(--gold)" }}>
+                    Switch Role Page ↗
+                  </a>
+                </div>
+                <div className="font-display font-700 text-lg mb-5 text-center" style={{ color: "var(--gold)" }}>
+                  {tx("access", { role: roleOptions.find(r => r.key === role).label })}
+                </div>
+
+                <div className="flex p-1 rounded-full mb-6" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
+                  {pillTab("login", tx("login"))}
+                  {["student", "teacher", "rider"].includes(role) && pillTab("register", tx("create"))}
+                </div>
+
+                <form className="space-y-3" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
+                  {mode === "register" && (
+                    <>
+                      <div>
+                        <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("fullname")}</label>
+                        <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Abir Hasan" autoComplete="name"
+                          className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("email")}</label>
+                        <input value={email} type="email" autoComplete="email" placeholder={tx("email.ph")}
+                          onChange={e => { setEmail(e.target.value); setTaken(t => ({ ...t, email: false })); }}
+                          onBlur={() => checkTaken("email")}
+                          className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: taken.email ? "#DC2626" : "var(--line)" }} />
+                        {taken.email && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.email")}</p>}
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{mode === "login" ? tx("idoremail") : tx("id")}</label>
+                    <input value={externalId} autoComplete="username" placeholder={mode === "login" ? "ID / email" : "e.g. 24524203098"}
+                      onChange={e => { setExternalId(e.target.value); setTaken(t => ({ ...t, externalId: false })); }}
+                      onBlur={() => mode === "register" && checkTaken("externalId")}
+                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: taken.externalId ? "#DC2626" : "var(--line)" }} />
+                    {mode === "register" && taken.externalId && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.id")}</p>}
+                  </div>
+
+                  {mode === "register" && role !== "rider" && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("acct.type")}</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[["regular", tx("acct.regular"), tx("acct.regular.d")], ["hall", tx("acct.hall"), tx("acct.hall.d")]].map(([key, label, desc]) => (
+                          <button type="button" key={key} onClick={() => setAccountType(key)}
+                            className="text-left px-3 py-2.5 rounded-xl border transition-all"
+                            style={accountType === key
+                              ? { borderColor: "var(--gold)", background: "var(--gold-soft)", color: "var(--teal-deep)" }
+                              : { borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                            <div className="text-sm font-700">{label}</div>
+                            <div className="text-[11px] mt-0.5 opacity-80">{desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {mode === "register" && accountType === "hall" && (
+                    <div className="rounded-xl border p-3 space-y-3" style={{ borderColor: "var(--line)", background: "var(--bg)" }}>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("hallname")}</label>
+                          <input value={hallName} onChange={e => setHallName(e.target.value)} placeholder={tx("hallname.ph")}
+                            className="w-full px-3 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                        </div>
+                        <div>
+                          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("room")}</label>
+                          <input value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={tx("room.signup.ph")}
+                            className="w-full px-3 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                        </div>
+                      </div>
+                      <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("hall.signup.note")}</p>
+                    </div>
+                  )}
+
+                  {mode === "register" && role !== "rider" && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("ref.label")}</label>
+                      <input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12))} placeholder={tx("ref.ph")}
+                        className="w-full px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+                      <p className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>{tx("ref.hint")}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("pw")}</label>
+                    <div className="relative">
+                      <input value={password} onChange={e => setPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("yourpw")}
+                        autoComplete={mode === "login" ? "current-password" : "new-password"}
+                        className="w-full pl-4 pr-16 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                      <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-600" style={{ color: "var(--gold)" }}>
+                        {showPw ? tx("hidepw") : tx("showpw")}
+                      </button>
+                    </div>
+                    {mode === "register" && password && (
+                      <div className="mt-1.5">
+                        <div className="flex gap-1">
+                          {[1, 2, 3].map(n => <div key={n} className="h-1 flex-1 rounded-full" style={{ background: n <= pwStrength ? strengthColor : "var(--line)" }} />)}
+                        </div>
+                        <div className="text-[11px] mt-1" style={{ color: strengthColor }}>{strengthLabel}</div>
+                      </div>
+                    )}
+                    {mode === "login" && (
+                      <button type="button" onClick={() => { setMode("forgot"); setError(null); setResetMsg(null); }}
+                        className="text-xs mt-1.5" style={{ color: "var(--gold)" }}>
+                        {tx("forgot")}
+                      </button>
+                    )}
+                  </div>
+                  {mode === "register" && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("confirmpw")}</label>
+                      <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} autoComplete="new-password"
+                        className="w-full px-4 py-2.5 rounded-xl border"
+                        style={{ borderColor: confirmPassword && confirmPassword !== password ? "#DC2626" : "var(--line)" }} />
+                    </div>
+                  )}
+                  {mode === "register" && otpRequired && otpSent && otpBox(resendSignupCode)}
+                  {mode === "login" && loginChallenge && otpBox(resendLoginCode, loginChallenge.email, tx("otp.loginnote"))}
+                  {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
+                  {resetMsg && mode === "login" && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
+                  <button type="submit" disabled={busy} className="btn-primary w-full py-2.5 rounded-xl">
+                    {busy ? tx("wait") : mode === "login" ? (loginChallenge ? tx("otp.verifylogin") : tx("login"))
+                      : (otpRequired ? (otpSent ? tx("otp.verify") : tx("otp.sendcode")) : tx("createlogin"))}
+                  </button>
+                </form>
+
+                <button onClick={() => setShowAdvanced(s => !s)} className="text-xs mt-5 flex items-center gap-1 mx-auto" style={{ color: "var(--ink-soft)" }}>
+                  <Icon path={I.plug} className="w-3.5 h-3.5" /> {tx("backend")} {apiBase}
+                </button>
+                {showAdvanced && (
+                  <input value={apiBase} onChange={e => setApiBase(e.target.value)} placeholder="http://localhost:5000"
+                    className="w-full mt-2 px-3 py-2 rounded-lg border text-sm font-mono" style={{ borderColor: "var(--line)" }} />
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer id="contact" className="border-t pt-14 pb-8 px-6" style={{ borderColor: "var(--line)" }}>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b" style={{ borderColor: "var(--line)" }}>
+          <div>
+            <h3 className="font-display gold-text text-xl font-800 mb-3">CampusDine</h3>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+              {tx("foot.p")}
+            </p>
+          </div>
+          <div>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>{tx("foot.hours")}</h4>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("foot.h1")}</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("foot.h2")}</p>
+          </div>
+          <div>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>{tx("foot.loc")}</h4>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("foot.loc1")}</p>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("foot.help")}</p>
+          </div>
+        </div>
+        <p className="text-center text-[11px] uppercase pt-8" style={{ color: "var(--ink-soft)" }}>
+          &copy; 2026 CampusDine — CSE 3208 Software Development Project I
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+/* ---------------- Top bar ---------------- */
+function TopBar({
+  role, name, avatar, tabs, active, setActive, onLogout, connected, onToggleLang,
+  notifications = [], notificationCount = 0, onToggleNotifications,
+  notificationOpen = false, onMarkAllRead, onClearNotifications,
+}) {
+  const deskRef = useRef(null);
+  const mobRef = useRef(null);
+  // keep the active tab visible when the bar has to scroll
+  useEffect(() => {
+    [deskRef.current, mobRef.current].forEach(root => {
+      const el = root && root.querySelector(".nav-pill.active");
+      if (el && el.scrollIntoView) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    });
+  }, [active]);
+
+  const renderTabs = (ref) => (
+    <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
+      {tabs.map(t => (
+        <button key={t.key} onClick={() => setActive(t.key)} title={t.label} aria-label={t.label}
+          className={`nav-pill ${active === t.key ? "active" : ""}`}>
+          <Icon path={t.icon} className="w-4 h-4" />
+          <span className="nav-label">{t.label}</span>
+          {t.badge > 0 && <span className="nav-badge">{t.badge > 9 ? "9+" : t.badge}</span>}
+        </button>
+      ))}
+    </nav>
+  );
+
+  return (
+    <>
+    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
+        <div className="flex items-center gap-2 shrink-0">
+          <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
+          <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
+          <span className="w-2 h-2 rounded-full" title={connected ? tx("live.on") : tx("live.off")}
+            style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
+        </div>
+        <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
+        <div className="flex-1 sm:hidden" />
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
+          <div className="relative">
+            <button type="button" onClick={onToggleNotifications} title={tx("notif")} aria-label={tx("notif")}
+              aria-expanded={notificationOpen} aria-controls="notification-panel"
+              className="relative w-10 h-10 rounded-lg grid place-items-center hover:bg-black/5 transition-colors">
+              <Icon path={I.bell} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-700 grid place-items-center text-white" style={{ background: "var(--brick)" }}>
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                </span>
+              )}
+            </button>
+            {notificationOpen && (
+              <div id="notification-panel" role="region" aria-label={tx("notif")}
+                className="absolute right-0 top-full mt-3 w-[min(92vw,360px)] rounded-2xl border shadow-2xl overflow-hidden" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--line)", background: "rgba(245,179,0,0.08)" }}>
+                  <div className="font-display font-700" style={{ color: "var(--gold)" }}>{tx("notif")}</div>
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide">
+                    {notificationCount > 0 && (
+                      <button type="button" onClick={onMarkAllRead} className="px-2 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                        {tx("notif.markall")}
+                      </button>
+                    )}
+                    {notifications.length > 0 && (
+                      <button type="button" onClick={onClearNotifications} className="px-2 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--brick)" }}>
+                        {tx("notif.clear")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-sm" style={{ color: "var(--ink-soft)" }}>{tx("notif.none")}</div>
+                ) : (
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.map(item => (
+                      <div key={item.id} className="px-4 py-3 border-b last:border-b-0 transition-colors" style={{ borderColor: "var(--line)", background: item.read ? "transparent" : "rgba(245,179,0,0.05)" }}>
+                        <div className="flex items-start gap-2">
+                          <span className="mt-1.5 w-2 h-2 rounded-full shrink-0" style={{ background: item.kind === "announcement" ? "var(--leaf)" : "var(--gold)" }} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="text-[10px] uppercase tracking-wide font-700" style={{ color: item.kind === "announcement" ? "var(--teal-deep)" : "var(--gold)" }}>{item.title}</div>
+                              {!item.read && <span className="w-2 h-2 rounded-full" style={{ background: "var(--brick)" }} />}
+                            </div>
+                            <div className="text-sm mt-1 leading-relaxed break-words" style={{ color: "var(--ink)" }}>{item.message}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="hidden min-[1400px]:block text-right mr-1">
+            <div className="text-sm font-600 leading-tight">{name}</div>
+            <div className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>{tx("r." + role)}</div>
+          </div>
+          <div className="hidden sm:block" title={`${name} · ${tx("r." + role)}`}><Avatar src={avatar} name={name} size={34} /></div>
+          <ThemeMenu />
+          {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
+          <span className="cd-divider hidden sm:block" />
+          <button onClick={onLogout} title="Log out" aria-label="Log out" className="cd-logout">
+            <Icon path={I.logout} className="w-4 h-4" />
+            <span className="cd-logout-text">Log out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div className="mobile-nav sm:hidden">{renderTabs(mobRef)}</div>
+    </>
+  );
+}
+
+/* ---------------- Menu & Order tab ---------------- */
+/* Veg / non-veg marker: green dot = vegetarian, red dot = non-vegetarian */
+function DietMark({ isVeg }) {
+  const c = isVeg ? "#16A34A" : "#B91C1C";
+  return (
+    <span title={isVeg ? tx("diet.veg") : tx("diet.nonveg")}
+      className="inline-grid place-items-center w-4 h-4 border-2 shrink-0"
+      style={{ borderColor: c, borderRadius: 3 }}>
+      <span className="w-2 h-2 rounded-full" style={{ background: c }} />
+    </span>
+  );
+}
+
+function MenuCategoryTabs({ category, setCategory }) {
+  return (
+    <div className="flex flex-wrap gap-2.5 mb-6">
+      {CATEGORIES.map(item => (
+        <button key={item.id} onClick={() => setCategory(item.id)}
+          className={`tab-btn ${category === item.id ? "active" : ""}`}>
+          <span>{item.id === "heavy" ? "🍛" : item.id === "snacks" ? "🥪" : "🥤"}</span>
+          <span>{tx("cat." + item.id)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MenuSearchSortControls({ search, setSearch, sortBy, setSortBy }) {
+  return (
+    <>
+      <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+        placeholder={tx("search.ph")}
+        className="flex-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+        className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>
+        <option value="default">{tx("sort.default")}</option>
+        <option value="priceAsc">{tx("sort.priceAsc")}</option>
+        <option value="priceDesc">{tx("sort.priceDesc")}</option>
+        <option value="name">{tx("sort.name")}</option>
+      </select>
+    </>
+  );
+}
+
+function MenuDietFilter({ diet, setDiet }) {
+  return (
+    <div className="flex rounded-lg border overflow-hidden text-sm" style={{ borderColor: "var(--line)" }}>
+      {[["all", tx("diet.all")], ["veg", tx("diet.veg")], ["nonveg", tx("diet.nonveg")]].map(([key, label]) => (
+        <button key={key} onClick={() => setDiet(key)} className="px-3 py-2 transition-colors whitespace-nowrap"
+          style={{ background: diet === key ? "var(--gold)" : "transparent", color: diet === key ? "#fff" : "var(--ink-soft)" }}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FavoritesFilterToggle({ favoritesOnly, onChange }) {
+  return (
+    <label className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none whitespace-nowrap"
+      style={{ borderColor: "var(--line)", color: favoritesOnly ? "var(--gold)" : "var(--ink-soft)" }}>
+      <input type="checkbox" checked={favoritesOnly} onChange={onChange} />
+      <Icon path={I.star} className="w-4 h-4" fill={favoritesOnly ? "currentColor" : "none"} />
+      {tx("fav")}
+    </label>
+  );
+}
+
+function FavoriteStarButton({ item, onToggleFavorite }) {
+  const isFavorite = Boolean(item.is_favorite);
+  return (
+    <button onClick={() => onToggleFavorite(item.id, item.is_favorite)}
+      type="button"
+      aria-pressed={isFavorite}
+      aria-label={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
+      title={item.is_favorite ? tx("fav.remove") : tx("fav.add")}
+      className="w-7 h-7 rounded-full grid place-items-center transition-colors hover:bg-black/5">
+      <Icon path={I.star} className="w-4 h-4" fill={isFavorite ? "currentColor" : "none"}
+        style={{ color: isFavorite ? "var(--gold)" : "var(--ink-soft)" }} />
+    </button>
+  );
+}
+
+// Feature: approximate calories + allergen chips shown on a menu card.
+// Renders nothing for items that have no nutrition data (e.g. items added later by the admin).
+function NutritionInfo({ item }) {
+  const allergens = Array.isArray(item.allergens) ? item.allergens : [];
+  const hasCalories = typeof item.calories === "number";
+  if (!hasCalories && allergens.length === 0) return null;
         )}
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
           <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
