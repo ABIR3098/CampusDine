@@ -7464,6 +7464,471 @@ function CouponEditor({ coupon, onSave }) {
                 className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
             </label>
             <label className="text-xs" style={{ color: "var(--ink-soft)" }}>
+              Expires at (optional)
+              <input type="datetime-local" value={draft.expiryDate} onChange={e => change("expiryDate", e.target.value)}
+                className="w-full mt-1 px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+            </label>
+            <label className="flex items-center gap-2 text-sm self-end pb-2">
+              <input type="checkbox" checked={draft.isActive} onChange={e => change("isActive", e.target.checked)} />
+              Coupon active
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button type="button" onClick={() => { setDraft(makeDraft(coupon)); setEditing(false); }}
+              className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>Cancel</button>
+            <button type="submit" disabled={saving} className="btn-primary px-3 py-2 rounded-lg text-sm disabled:opacity-50">
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function AdminCoupons({ coupons, onSave }) {
+  return (
+    <section>
+      <h2 className="font-display font-700 text-xl mb-4" style={{ color: "var(--gold)" }}>Manage coupons</h2>
+      {coupons.length === 0 ? (
+        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>No coupons have been created yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {coupons.map(coupon => <CouponEditor key={coupon.id} coupon={coupon} onSave={onSave} />)}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function fitChatInput(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  const border = el.offsetHeight - el.clientHeight;
+  const full = el.scrollHeight + border;
+  el.style.height = Math.min(full, 120) + "px";
+  el.style.overflowY = full > 120 ? "auto" : "hidden";
+}
+
+function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
+  const [conversations, setConversations] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [mobileChat, setMobileChat] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [myOrders, setMyOrders] = useState(null);
+  const [typing, setTyping] = useState(false);
+  const [menuFor, setMenuFor] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [pendingPhoto, setPendingPhoto] = useState(null);
+  const [lightbox, setLightbox] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [matchPos, setMatchPos] = useState(0);
+  const searchRef = useRef(null);
+  const [reactFor, setReactFor] = useState(null);
+  const fileRef = useRef(null);
+  const [onlineIds, setOnlineIds] = useState([]);
+  const [adminOnline, setAdminOnline] = useState(null);
+  const [lastSeen, setLastSeen] = useState({});
+  const [adminAgo, setAdminAgo] = useState(null);
+  const [flashId, setFlashId] = useState(null);
+  const [dividerId, setDividerId] = useState(null);
+  const [atBottom, setAtBottom] = useState(true);
+  const [newBelow, setNewBelow] = useState(0);
+  const scrollRef = useRef(null);
+  const dividerRef = useRef(null);
+  const initRef = useRef(null);
+  const pendingInit = useRef(null);
+  const unreadFromRef = useRef(null);
+  const stickRef = useRef(true);
+  const prevLen = useRef(0);
+  const typingTimer = useRef(null);
+  const lastTypingSent = useRef(0);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+  const isAdmin = role === "admin";
+  const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
+  const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+
+  const refreshConversations = async () => {
+    const data = await chatCall("/api/chat/conversations");
+    setConversations(data.conversations || []);
+  };
+  const refreshMessages = async (target = selectedUserId) => {
+    if (isAdmin && !target) { setMessages([]); return; }
+    const data = await chatCall(isAdmin ? `/api/chat/${target}/messages` : "/api/chat/messages");
+    if (data.firstUnreadId && initRef.current === null) unreadFromRef.current = data.firstUnreadId;
+    setMessages(data.messages || []);
+  };
+
+  const refreshPresence = async () => {
+    const d = await chatCall("/api/chat/presence");
+    if (isAdmin) { setOnlineIds((d.online || []).map(Number)); setLastSeen(d.lastSeen || {}); }
+    else { setAdminOnline(!!d.adminOnline); setAdminAgo(d.adminAgoSeconds ?? null); }
+  };
+  useEffect(() => {
+    (isAdmin ? refreshConversations() : refreshMessages()).catch(e => setError(e.message));
+    refreshPresence().catch(() => {});
+  }, [isAdmin, apiBase, sessionToken, refreshKey]);
+  useEffect(() => {
+    if (!isAdmin || selectedUserId || conversations.length === 0) return;
+    setSelectedUserId(conversations[0].user_id);
+  }, [isAdmin, selectedUserId, conversations]);
+  useEffect(() => {
+    if (!isAdmin || !selectedUserId) return;
+    refreshMessages(selectedUserId).catch(e => setError(e.message));
+  }, [isAdmin, apiBase, sessionToken, selectedUserId, refreshKey]);
+  // Fallback auto-refresh every 10s (live socket updates still work instantly)
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (document.hidden) return;
+      refreshPresence().catch(() => {});
+      (isAdmin ? Promise.all([refreshConversations(), refreshMessages()]) : refreshMessages()).catch(() => {});
+    }, 10000);
+    return () => clearInterval(t);
+  }, [isAdmin, apiBase, sessionToken, selectedUserId]);
+  // Reset scroll state whenever another conversation is opened
+  useEffect(() => {
+    initRef.current = null; pendingInit.current = null; unreadFromRef.current = null;
+    stickRef.current = true; prevLen.current = 0;
+    setDividerId(null); setNewBelow(0); setAtBottom(true); setReplyTo(null); setPendingPhoto(null); setSearchOpen(false); setQuery(""); setReactFor(null);
+    if (isAdmin) setMessages([]);
+  }, [selectedUserId]);
+  // First load of a conversation: remember where the unread messages start
+  useEffect(() => {
+    if (messages.length === 0 || initRef.current !== null) return;
+    initRef.current = String(selectedUserId || "me");
+    const fu = unreadFromRef.current ? messages.find(m => m.id === unreadFromRef.current && Number(m.sender_id) !== Number(userId)) : null;
+    pendingInit.current = { id: fu ? fu.id : null };
+    prevLen.current = messages.length;
+    setDividerId(fu ? fu.id : null);
+  }, [messages]);
+  // Smart scrolling: jump to first unread on open; afterwards only follow new messages if the reader is at the bottom
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+    const toBottom = (smooth) => { if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" }); else el.scrollTop = el.scrollHeight; };
+    if (pendingInit.current) {
+      const want = pendingInit.current.id;
+      if (want && !dividerRef.current) return;
+      pendingInit.current = null;
+      if (want) {
+        const top = dividerRef.current.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+        el.scrollTop = Math.max(0, top - 40);
+      } else toBottom(false);
+      return;
+    }
+    const grew = messages.length - prevLen.current;
+    prevLen.current = messages.length;
+    const last = messages[messages.length - 1];
+    if (stickRef.current || Number(last.sender_id) === Number(userId)) { toBottom(true); setNewBelow(0); }
+    else if (grew > 0) setNewBelow(n => n + grew);
+  }, [messages.length, typing, dividerId]);
+  const onScroll = (e) => {
+    const el = e.currentTarget;
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    stickRef.current = near; setAtBottom(near);
+    if (near) setNewBelow(0);
+  };
+  const jumpToBottom = () => {
+    const el = scrollRef.current; if (!el) return;
+    if (el.scrollTo) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); else el.scrollTop = el.scrollHeight;
+    stickRef.current = true; setNewBelow(0);
+  };
+
+  const send = async (text) => {
+    const photo = text === undefined ? pendingPhoto : null;
+    const message = (text ?? draft).trim();
+    if ((!message && !photo) || busy || (isAdmin && !selectedUserId)) return;
+    setBusy(true); setError("");
+    const reply = replyTo;
+    const temp = { id: `tmp-${Date.now()}`, sender_id: userId, message: message || "📷 Photo", created_at: new Date().toISOString(), pending: true,
+      ...(photo ? { image_local: photo.url } : {}),
+      ...(reply ? { reply_to_id: reply.id, reply_sender_id: reply.sender_id, reply_sender_name: reply.sender_name, reply_text: shortText(reply.message) } : {}) };
+    setMessages(m => [...m, temp]);
+    setDraft(""); setEmojiOpen(false); setOrderOpen(false); setReplyTo(null);
+    if (photo) setPendingPhoto(null);
+    lastTypingSent.current = 0; emitTyping(false);
+    if (inputRef.current) inputRef.current.style.height = "auto";
+    try {
+      const imageId = photo ? await uploadImage(photo.blob) : null;
+      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
+      await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
+    } catch (e) {
+      setMessages(m => m.filter(x => x.id !== temp.id));
+      setDraft(message); setReplyTo(reply); if (photo) setPendingPhoto(photo);
+      setError(e.message || tx("chat.sendfail"));
+    } finally { setBusy(false); }
+  };
+  const onKey = (e) => {
+    if (e.key === "Escape" && replyTo) { setReplyTo(null); return; }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  };
+  const onInput = (e) => {
+    setDraft(e.target.value);
+    const nowTs = Date.now();
+    if (e.target.value && nowTs - lastTypingSent.current > 2000) { lastTypingSent.current = nowTs; emitTyping(true); }
+    if (!e.target.value) { lastTypingSent.current = 0; emitTyping(false); }
+    fitChatInput(e.target);
+  };
+
+  const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const dayLabel = (d) => {
+    const x = new Date(d), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
+    if (x.toDateString() === now.toDateString()) return "Today";
+    if (x.toDateString() === y.toDateString()) return "Yesterday";
+    return x.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  };
+  const listTime = (d) => {
+    if (!d) return "";
+    const x = new Date(d);
+    return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
+  };
+
+  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const isOnline = (id) => onlineIds.includes(Number(id));
+  const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
+  const agoText = (sec) => {
+    if (sec === null || sec === undefined) return "";
+    if (sec < 60) return "just now";
+    const mins = Math.floor(sec / 60);
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  };
+  const headAgo = isAdmin ? (selectedUserId ? lastSeen[String(selectedUserId)] : undefined) : adminAgo;
+  const withDot = (name, size, online) => (
+    <span className="chat-avatar"><Avatar name={name} size={size} />{online !== undefined && <i className={`chat-dot ${online ? "on" : ""}`} />}</span>
+  );
+  const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+  const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
+  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+  const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
+  const uploadImage = async (blob) => {
+    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : ""}`, {
+      method: "POST", headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": blob.type || "image/jpeg" }, body: blob,
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) { /* empty body */ }
+    if (!res.ok) {
+      if (data.error) throw new Error(data.error);
+      if (res.status === 404 || res.status === 405) throw new Error("Photo upload is not available yet. Restart the server, then refresh the page (Ctrl + Shift + R).");
+      if (res.status === 401 || res.status === 403) throw new Error("Please log in again to send photos.");
+      throw new Error("Photo upload failed (error " + res.status + ").");
+    }
+    return data.id;
+  };
+  const pickPhoto = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { setError("Please choose an image file"); return; }
+    try {
+      setError("");
+      const blob = await compressChatPhoto(file);
+      setPendingPhoto({ blob, url: URL.createObjectURL(blob) });
+      inputRef.current?.focus();
+    } catch (err) { setError(err.message); }
+  };
+  const shortText = (t) => { const mt = /^🧾 Order (\S+)/.exec(t || ""); return mt ? `🧾 Order ${mt[1]}` : (t || ""); };
+  const startReply = (m) => { setReplyTo(m); setMenuFor(null); inputRef.current?.focus(); };
+  const jumpToMessage = (id) => {
+    const box = scrollRef.current, el = box && box.querySelector(`[data-mid="${id}"]`);
+    if (!el) return;
+    const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - 80;
+    if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
+    setFlashId(id); setTimeout(() => setFlashId(null), 1400);
+  };
+  const deleteMsg = async (m) => {
+    setMenuFor(null);
+    if (!window.confirm("Delete this message for everyone?")) return;
+    try {
+      await chatCall(`/api/chat/messages/${m.id}`, { method: "DELETE" });
+      setMessages(list => list.map(x => x.id === m.id ? { ...x, message: "", deleted_at: new Date().toISOString() } : x));
+      if (isAdmin) refreshConversations().catch(() => {});
+    } catch (e) { setError(e.message); }
+  };
+  const copyMsg = (m) => { setMenuFor(null); try { navigator.clipboard.writeText(m.message); } catch (e) {} };
+  useEffect(() => {
+    if (menuFor === null) return;
+    const close = () => setMenuFor(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuFor]);
+  useEffect(() => {
+    if (!lightbox) return;
+    const onEsc = (e) => { if (e.key === "Escape") setLightbox(null); };
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [lightbox]);
+  // ---- search inside this chat ----
+  const q = query.trim().toLowerCase();
+  const matchIds = q ? messages.filter(m => !m.deleted_at && !(m.image_id && m.message === "📷 Photo") && (m.message || "").toLowerCase().includes(q)).map(m => m.id) : [];
+  const curPos = matchIds.length ? Math.min(matchPos, matchIds.length - 1) : -1;
+  const curId = curPos >= 0 ? matchIds[curPos] : null;
+  useEffect(() => { setMatchPos(Math.max(0, matchIds.length - 1)); }, [q]);
+  useEffect(() => {
+    if (curId === null) return;
+    const box = scrollRef.current, el = box && box.querySelector(`[data-mid="${curId}"]`);
+    if (!el) return;
+    const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - 80;
+    if (box.scrollTo) box.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); else box.scrollTop = Math.max(0, top);
+  }, [curId, q]);
+  const stepMatch = (dir) => { if (matchIds.length) setMatchPos(p => (Math.min(p, matchIds.length - 1) + dir + matchIds.length) % matchIds.length); };
+  const closeSearch = () => { setSearchOpen(false); setQuery(""); };
+  const toggleSearch = () => { if (searchOpen) closeSearch(); else { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 30); } };
+  // ---- reactions (one per person per message; tap the same emoji again to remove it) ----
+  const REACTION_SET = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+  useEffect(() => {
+    if (!reactFor) return;
+    const close = () => setReactFor(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [reactFor]);
+  const withReaction = (list, next) => {
+    let out = (list || []).map(r => r.mine ? { ...r, count: r.count - 1, mine: false } : r).filter(r => r.count > 0);
+    if (next) {
+      const hit = out.find(r => r.emoji === next);
+      if (hit) out = out.map(r => r === hit ? { ...r, count: r.count + 1, mine: true } : r);
+      else out = [...out, { emoji: next, count: 1, mine: true, names: [] }];
+    }
+    return out;
+  };
+  const reactTo = async (m, emoji) => {
+    setReactFor(null);
+    const mineNow = (m.reactions || []).find(r => r.mine);
+    const next = mineNow && mineNow.emoji === emoji ? null : emoji;
+    setMessages(list => list.map(x => x.id === m.id ? { ...x, reactions: withReaction(x.reactions, next) } : x));
+    try {
+      await chatCall(`/api/chat/messages/${m.id}/reaction`, { method: "POST", body: { emoji: next } });
+      await refreshMessages(selectedUserId);
+    } catch (e) { setError(e.message); refreshMessages(selectedUserId).catch(() => {}); }
+  };
+  const reactControl = (m, side, boxEl) => (
+    <div className={`chat-react-wrap ${reactFor && reactFor.id === m.id ? "open" : ""}`}>
+      <button type="button" className="chat-react-btn" aria-label="React to message" title="React"
+        onClick={e => {
+          e.stopPropagation();
+          if (reactFor && reactFor.id === m.id) { setReactFor(null); return; }
+          const box = scrollRef.current;
+          const place = box && e.currentTarget.getBoundingClientRect().top - box.getBoundingClientRect().top < 70 ? "down" : "up";
+          setReactFor({ id: m.id, place });
+        }}>☺</button>
+      {reactFor && reactFor.id === m.id && (
+        <div className={`chat-reactbar ${reactFor.place} ${side}`} onClick={e => e.stopPropagation()}>
+          {REACTION_SET.map(em => {
+            const on = (m.reactions || []).some(r => r.mine && r.emoji === em);
+            return <button key={em} type="button" className={on ? "on" : ""} aria-label={`React ${em}`} onClick={() => reactTo(m, em)}>{em}</button>;
+          })}
+        </div>
+      )}
+    </div>
+  );
+  const highlight = (text) => {
+    if (!q) return text;
+    const out = [], low = text.toLowerCase();
+    let i = 0, k = 0;
+    for (;;) {
+      const j = low.indexOf(q, i);
+      if (j < 0) break;
+      if (j > i) out.push(text.slice(i, j));
+      out.push(<mark key={k++} className="chat-hit">{text.slice(j, j + q.length)}</mark>);
+      i = j + q.length;
+    }
+    out.push(text.slice(i));
+    return out;
+  };
+  const emitTyping = (on) => {
+    const sock = window.__campusSocket;
+    if (!sock || (isAdmin && !selectedUserId)) return;
+    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
+  };
+  useEffect(() => {
+    const onTyping = (e) => {
+      const d = e.detail || {};
+      if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
+      clearTimeout(typingTimer.current);
+      setTyping(!!d.typing);
+      if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
+    };
+    window.addEventListener("chat-typing", onTyping);
+    return () => { window.removeEventListener("chat-typing", onTyping); clearTimeout(typingTimer.current); };
+  }, [isAdmin, selectedUserId]);
+  useEffect(() => { setTyping(false); }, [selectedUserId, messages.length]);
+  const parseOrder = (text) => {
+    const mt = /^🧾 Order (\S+) \| ([^|]+) \| ([^|]+) \| ([\s\S]*)$/.exec(text || "");
+    return mt ? { token: mt[1], status: mt[2].trim(), total: mt[3].trim(), items: mt[4].trim() } : null;
+  };
+  const openOrders = async () => {
+    setEmojiOpen(false);
+    const next = !orderOpen;
+    setOrderOpen(next);
+    if (next && myOrders === null) {
+      try {
+        const list = await chatCall("/api/orders/mine");
+        setMyOrders(Array.isArray(list) ? list.slice(0, 6) : []);
+      } catch (e) { setMyOrders([]); setError(e.message); }
+    }
+  };
+  const shareOrder = (o) => {
+    const items = (o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 200) || "-";
+    send(`🧾 Order ${o.token} | ${o.status} | ${taka(o.total)} | ${items}`);
+  };
+  useEffect(() => {
+    const el = inputRef.current;
+    fitChatInput(el);
+  }, [draft]);
+
+  const di = dividerId ? messages.findIndex(m => m.id === dividerId) : -1;
+  const unreadN = di < 0 ? 0 : messages.slice(di).filter(m => Number(m.sender_id) !== Number(userId) && !m.deleted_at).length;
+  const rows = [];
+  messages.forEach((m, i) => {
+    const prev = messages[i - 1], next = messages[i + 1];
+    const mine = Number(m.sender_id) === Number(userId);
+    if (!prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString())
+      rows.push(<div key={`d${m.id}`} className="chat-day"><span>{dayLabel(m.created_at)}</span></div>);
+    if (m.id === dividerId && unreadN > 0)
+      rows.push(<div key={`u${m.id}`} ref={dividerRef} className="chat-unread"><span>{unreadN} new message{unreadN === 1 ? "" : "s"}</span></div>);
+    const first = !prev || Number(prev.sender_id) !== Number(m.sender_id) || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString();
+    const last = !next || Number(next.sender_id) !== Number(m.sender_id);
+    rows.push(
+      <div key={m.id} data-mid={m.id} className={`chat-row ${mine ? "mine" : ""} ${flashId === m.id ? "flash" : ""} ${curId === m.id ? "search-current" : ""}`}>
+        {!mine && <div style={{ width: 30 }}>{last && <Avatar name={m.sender_name || heading} size={30} />}</div>}
+        {mine && !m.pending && !m.deleted_at && (
+          <div className="chat-more-wrap">
+            <button type="button" className="chat-more" aria-label="Message options"
+              onClick={e => { e.stopPropagation(); setMenuFor(menuFor === m.id ? null : m.id); }}>⋯</button>
+            {menuFor === m.id && (
+              <div className="chat-menu" onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={() => copyMsg(m)}>Copy</button>
+                <button type="button" className="danger" onClick={() => deleteMsg(m)}>Delete</button>
+              </div>
+            )}
+          </div>
+        )}
+        {mine && !m.pending && !m.deleted_at && (
+          <button type="button" className="chat-reply-btn" aria-label="Reply" title="Reply" onClick={() => startReply(m)}>↩</button>
+        )}
+        {mine && !m.pending && !m.deleted_at && reactControl(m, "mine")}
+        <div className={`chat-bubble ${mine ? "mine" : "theirs"} ${first ? "first" : ""} ${last ? "last" : ""} ${m.pending ? "pending" : ""} ${!m.deleted_at && m.reactions && m.reactions.length ? "has-react" : ""}`}>
+          {!mine && first && isAdmin === false && <div className="chat-name">{m.sender_name}</div>}
+          {m.reply_to_id && !m.deleted_at && (
+            <button type="button" className="chat-quote" onClick={() => jumpToMessage(m.reply_to_id)}>
+              <b>{Number(m.reply_sender_id) === Number(userId) ? "You" : (m.reply_sender_name || "Message")}</b>
+              <span>{m.reply_deleted ? "🚫 Message deleted" : shortText(m.reply_text)}</span>
+            </button>
+          )}
+          {!m.deleted_at && (m.image_id || m.image_local) && (
+            m.image_local
 
   const unreadNotifications = notifications.filter(item => !item.read).length;
 
