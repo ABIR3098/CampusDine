@@ -182,3 +182,15 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/loyalty/me`
 - `GET /api/loyalty/settings`
 - `PUT /api/loyalty/settings`
+
+## `/api/offers` — `src/routes/offers.js`
+
+- `GET /api/offers`
+- `GET /api/offers/admin`
+- `POST /api/offers/admin/combos`
+- `PUT /api/offers/admin/combos/:id`
+- `POST /api/offers/admin/happy-hours`
+- `PUT /api/offers/admin/happy-hours/:id`
+- `POST /api/offers/admin/rewards`
+- `PUT /api/offers/admin/rewards/:id`
+- `DELETE /api/offers/admin/:kind/:id`
