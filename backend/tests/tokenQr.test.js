@@ -47,3 +47,8 @@ test("spaces and a new line around a scanned code are ignored", () => {
   const { buildPayload, parseCode } = require("../src/utils/tokenQr");
   assert.strictEqual(parseCode("  " + buildPayload("C-7") + "\n").valid, true);
 });
+
+test("two different tokens get different signatures", () => {
+  const { sign } = require("../src/utils/tokenQr");
+  assert.notStrictEqual(sign("C-105"), sign("C-106"));
+});
