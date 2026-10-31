@@ -17,3 +17,8 @@ test("a tampered signature is invalid", () => {
   const bad = "CD1|C-105|000000000000";
   assert.equal(parseCode(bad).valid, false);
 });
+
+test("a different token with an old signature is invalid", () => {
+  const sig = sign("C-105");
+  assert.equal(parseCode(`CD1|C-999|${sig}`).valid, false);
+});
