@@ -505,25 +505,8 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
           )}
 
           {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
+          <Active call={call} user={user} token={token} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} goTab={setTab} ui={ui} ext={ext} />
         </div>
-      )}
-
-      <div className="hl-strip">
-        <div className="flex items-center gap-2.5">
-          <img src="/images/restaurants/hall.svg" alt="" />
-          <div className="leading-tight">
-            <div className="text-sm font-700">Hall</div>
-            <div className="text-[11px] opacity-60">Hall student & services</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={onBack}>← Restaurants</button>
-        </div>
-      </div>
-
-      <div className="hl-wrap fade-in" key={tab}>
-        {(tab === "home" || tab === "meals") && <HallHero slides={slides} />}
-        <Active call={call} user={user} token={token} isAdmin={user.role === "admin"} notify={notify} refreshWallet={refreshWallet} goTab={setTab} ui={ui} ext={ext} />
       </div>
     </div>
   );
