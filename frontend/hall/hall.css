@@ -215,3 +215,4 @@
 .hl-sec:hover { box-shadow: 0 4px 14px rgba(16,24,40,.08); }
 .hl-dayc { transition: transform .15s ease, box-shadow .2s ease; }
 .hl-dayc:hover { transform: translateY(-2px); }
+.hl-dayc-row .tl { letter-spacing: .02em; }
