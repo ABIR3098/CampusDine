@@ -97,3 +97,8 @@ test("validateCartLimits explains the too-many-lines error", () => {
 test("validateCartLimits explains the too-many-of-one-item error", () => {
   assert.equal(validateCartLimits([{ id: 1, qty: 21 }]), "You can order at most 20 of one item");
 });
+
+test("parseListParams accepts the largest page size", () => {
+  const { parseListParams } = require("../src/utils/orderRules");
+  assert.equal(parseListParams({ limit: "100" }).limit, 100);
+});
