@@ -229,3 +229,15 @@ Created in `backend/schema.sql`.
 | `rating` | TINYINT |
 | `comment` | TEXT |
 | `created_at` | TIMESTAMP |
+
+## `general_feedback`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `category` | ENUM('food','service','hygiene','suggestion','other') |
+| `rating` | TINYINT |
+| `comment` | TEXT |
+| `created_at` | TIMESTAMP |
