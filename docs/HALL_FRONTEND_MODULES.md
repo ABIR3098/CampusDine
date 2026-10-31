@@ -73,3 +73,6 @@ Last call, member side: at the end of a meal the canteen puts leftover plates up
 
 ## `lastcallAdmin.jsx`
 Last call, admin side: put up leftover plates, see who took them, hand them over by code, refund a plate nobody collected.
+
+## `lastcallRepeat.jsx`
+Last call (admin): fill the form from the last time, in one tap.
