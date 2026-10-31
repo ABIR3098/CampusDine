@@ -182,3 +182,15 @@ Created in `backend/schema.sql`.
 | `message` | VARCHAR(1000) |
 | `created_at` | TIMESTAMP |
 | `read_at` | DATETIME |
+
+## `order_items`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `order_id` | INT |
+| `menu_item_id` | INT |
+| `name` | VARCHAR(100) |
+| `price` | DECIMAL(10,2) |
+| `qty` | INT |
