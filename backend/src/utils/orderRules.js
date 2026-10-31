@@ -72,7 +72,12 @@ function parseListParams(query = {}) {
 
 // Admin queue filters: ?status=Ready&q=C-105&from=2026-10-01&to=2026-10-31 (dates are YYYY-MM-DD, both ends included).
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const validDay = (v) => DAY.test(v) && !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime());
+// A real calendar day: "2026-02-30" has the right shape but is not a date, so compare it after a round trip.
+const validDay = (v) => {
+  if (!DAY.test(v)) return false;
+  const d = new Date(`${v}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+};
 
 function parseAdminFilters(query = {}) {
   const base = parseListParams({ status: query.status });
