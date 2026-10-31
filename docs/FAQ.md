@@ -28,3 +28,6 @@ Built-in items are listed per restaurant in `backend/src/catalog.js` (`ITEMS_BY_
 
 ## How do I run the tests?
 Run `npm test` inside the `backend` folder (Node 18 or newer).
+
+## Why is there no `.env` in the repository?
+It holds passwords and secrets, so `.gitignore` excludes it. Copy `backend/.env.example` to `backend/.env` and fill in your own values.
