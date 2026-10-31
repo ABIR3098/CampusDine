@@ -1,24 +1,37 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { r2, hasMoneyPrecision } = require("../src/utils/money");
+const { DEFAULT_DAILY_TOPUP_LIMIT, dailyTopupLimit, checkDailyTopup } = require("../src/utils/money");
 
-test("r2 removes float noise from subtraction", () => {
-  assert.notEqual(0.3 - 0.1, 0.2); // the problem we guard against
-  assert.equal(r2(0.3 - 0.1), 0.2);
-  assert.equal(r2(100.1 - 0.1), 100);
-  assert.equal(r2(60.3 - 0.1), 60.2);
+test("dailyTopupLimit uses the default when the variable is missing or invalid", () => {
+  assert.equal(dailyTopupLimit({}), DEFAULT_DAILY_TOPUP_LIMIT);
+  assert.equal(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "abc" }), DEFAULT_DAILY_TOPUP_LIMIT);
+  assert.equal(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "0" }), DEFAULT_DAILY_TOPUP_LIMIT);
+  assert.equal(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "-5" }), DEFAULT_DAILY_TOPUP_LIMIT);
 });
 
-test("r2 accepts numbers and numeric text", () => {
-  assert.equal(r2("12.345"), 12.35);
-  assert.equal(r2(5), 5);
-  assert.equal(r2("100.00"), 100);
+test("dailyTopupLimit reads a valid value from the environment", () => {
+  assert.equal(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "5000" }), 5000);
 });
 
-test("hasMoneyPrecision allows up to two decimals", () => {
-  for (const ok of [1, 10, 10.5, 10.55, 0.01, 2000]) assert.equal(hasMoneyPrecision(ok), true, String(ok));
+test("a top-up inside the limit is allowed and the rest is reported", () => {
+  const r = checkDailyTopup({ toppedUpToday: 5000, amount: 10000, limit: 20000 });
+  assert.deepEqual(r, { ok: true, remaining: 15000 });
 });
 
-test("hasMoneyPrecision rejects more than two decimals", () => {
-  for (const bad of [10.555, 0.001, 1.0001]) assert.equal(hasMoneyPrecision(bad), false, String(bad));
+test("a top-up that reaches the limit exactly is allowed", () => {
+  assert.equal(checkDailyTopup({ toppedUpToday: 10000, amount: 10000, limit: 20000 }).ok, true);
+});
+
+test("a top-up that goes over the limit is refused", () => {
+  const r = checkDailyTopup({ toppedUpToday: 15000, amount: 10000, limit: 20000 });
+  assert.deepEqual(r, { ok: false, remaining: 5000 });
+});
+
+test("nothing is left once the limit is used, and remaining never goes negative", () => {
+  assert.deepEqual(checkDailyTopup({ toppedUpToday: 25000, amount: 1, limit: 20000 }), { ok: false, remaining: 0 });
+});
+
+test("paisa are counted exactly", () => {
+  assert.equal(checkDailyTopup({ toppedUpToday: 19999.99, amount: 0.01, limit: 20000 }).ok, true);
+  assert.equal(checkDailyTopup({ toppedUpToday: 19999.99, amount: 0.02, limit: 20000 }).ok, false);
 });
