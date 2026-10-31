@@ -6725,6 +6725,39 @@ function ThermalReceiptModal({ order, onClose }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ─── Daily Check-in Wheel & Lucky Food Scratch Card ─── */
+const SPIN_SECTORS = [
+  { label: "৳5 Wallet Bonus", value: "৳5 Bonus", color: "#3b82f6", bonus: 5 },
+  { label: "10% Off Tehari", value: "10% Tehari", color: "#10b981", coupon: "TEHARI10" },
+  { label: "Free Kadak Chai", value: "Free Chai", color: "#f59e0b", coupon: "FREECHAI" },
+  { label: "৳10 Big Bonus", value: "৳10 Bonus", color: "#8b5cf6", bonus: 10 },
+  { label: "15% Study Snack", value: "15% Snack", color: "#ec4899", coupon: "STUDY15" },
+  { label: "৳3 Eco Cash", value: "৳3 Cash", color: "#06b6d4", bonus: 3 },
+  { label: "25 Points", value: "25 Points", color: "#f97316", points: 25 },
+  { label: "Better Luck!", value: "Try Again", color: "#64748b", bonus: 0 }
+];
+
+function DailySpinWheelModal({ user, onClose, onReward }) {
+  const [spinning, setSpinning] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [prize, setPrize] = useState(null);
+  const [alreadySpun, setAlreadySpun] = useState(() => {
+    try {
+      const last = localStorage.getItem("cd_last_spin_date");
+      return last === new Date().toISOString().slice(0, 10);
+    } catch (_) { return false; }
+  });
+
+  const spin = () => {
+    if (spinning || alreadySpun) return;
+    setSpinning(true);
+    setPrize(null);
+
+    // Pick random sector
+    const winningIndex = Math.floor(Math.random() * SPIN_SECTORS.length);
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
