@@ -172,3 +172,7 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `POST /api/campus/waste-challenge/join`
 - `POST /api/campus/waste-challenge/pledge`
 - `POST /api/campus/waste-challenge`
+
+## `/api/pricing` — `src/routes/offers.js`
+
+- `POST /api/pricing/quote`
