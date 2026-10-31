@@ -39,3 +39,8 @@ test("a valid pickup time comes back with its seconds set to zero", () => {
   assert.ok(got instanceof Date);
   assert.strictEqual(got.getSeconds(), 0);
 });
+
+test("a badly written pickup time throws status 400 and names the format", () => {
+  const { resolvePickupTime } = require("../src/utils/pickup");
+  assert.throws(() => resolvePickupTime("9:30"), (e) => e.status === 400 && /HH:MM/.test(e.message));
+});
