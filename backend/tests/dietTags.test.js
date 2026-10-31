@@ -30,3 +30,7 @@ test("tagsOf finds chicken", () => {
 test("tagsOf finds mutton by its Banglish name", () => {
   assert.deepEqual(tagsOf("Khashi bhuna, Polao"), ["mutton"]);
 });
+
+test("tagsOf finds fish", () => {
+  assert.deepEqual(tagsOf("Ilish bhat"), ["fish"]);
+});
