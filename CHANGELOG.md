@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Docs: riders API guide.
 - Fix: wallet transfer now rounds the balance it returns, so it can no longer show values like 60.199999999999996.
 - Tests: money helper tests.
 - Tests: one-time code (OTP) rules with an in-memory database, and catchAsync.
