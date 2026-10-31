@@ -257,3 +257,8 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `PATCH /api/hall/lastcall/:id/close`
 - `POST /api/hall/lastcall/serve`
 - `POST /api/hall/lastcall/claims/:id/cancel`
+
+## `/api/hall` — `src/hall/routes/meals.js`
+
+- `GET /api/hall/meals`
+- `PUT /api/hall/meals/:date/:slot`
