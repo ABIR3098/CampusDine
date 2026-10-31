@@ -64,6 +64,7 @@ const NUTRITION_BY_NAME = {
   "Haleem": { calories: 380, allergens: ["gluten"] },
   "Sugarcane Juice": { calories: 180, allergens: [] },
   "Chicken Fried Rice": { calories: 520, allergens: ["egg", "soy"] },
+  "Beef Tehari": { calories: 680, allergens: [] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
