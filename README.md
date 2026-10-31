@@ -100,11 +100,13 @@ running, database missing, wrong password, etc). On success you'll see:
 ✅ Demo account তৈরি হয়েছে: admin / admin123 (admin)
 ✅ Demo account তৈরি হয়েছে: student1 / student123 (student)
 ✅ Demo account তৈরি হয়েছে: teacher1 / teacher123 (teacher)
+✅ Demo account তৈরি হয়েছে: rider1 / rider123 (rider)
 
 🔑 LOGIN দিয়ে test করো:
    Admin   → ID: admin      Password: admin123
    Student → ID: student1   Password: student123
    Teacher → ID: teacher1   Password: teacher123
+   Rider   → ID: rider1     Password: rider123
 
 🚀 CampusDine চালু হয়েছে → http://localhost:5000
 ```
