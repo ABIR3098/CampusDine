@@ -73,3 +73,10 @@ test("validateNewCoupon rejects bad input", () => {
 test("a fixed discount may be above 100", () => {
   assert.equal(validateNewCoupon({ code: "FLAT200", discountType: "FIXED", discountValue: 200 }).value.discountValue, 200);
 });
+
+test("a percentage coupon may be exactly 100 but not more", () => {
+  const { validateNewCoupon } = require("../src/utils/couponRules");
+  const base = { code: "FREE100", discountType: "PERCENTAGE" };
+  assert.ok(validateNewCoupon({ ...base, discountValue: 100 }).value);
+  assert.ok(validateNewCoupon({ ...base, discountValue: 100.01 }).error);
+});
