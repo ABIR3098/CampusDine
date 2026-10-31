@@ -10,3 +10,6 @@ Admin Home: what needs attention right now, one tap away.
 
 ## `adminDayNav.jsx`
 Admin Home: look at another day with ‹ and › instead of only today.
+
+## `advanced.jsx`
+Advanced Hall workflows. Uses the shared Hall shell and authenticated call() helper.
