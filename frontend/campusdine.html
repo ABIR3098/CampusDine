@@ -9996,6 +9996,25 @@ function App() {
                   </div>
                 </div>
               </div>
+
+              {/* BUP Portal Style Quick Stat Cards Row */}
+              <div className="portal-kpi-grid">
+                <div className="portal-kpi-card">
+                  <div className="portal-kpi-icon" style={{ background: "rgba(59,130,246,0.1)", color: "#2563eb" }}>
+                    🍽️
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-bold text-slate-400">Total Orders</div>
+                    <div className="font-mono text-xl font-black mt-0.5" style={{ color: "var(--ink)" }}>{orders.length}</div>
+                    <div className="text-[10px] font-bold text-emerald-600 mt-0.5">● Active Account</div>
+                  </div>
+                </div>
+
+                <div className="portal-kpi-card">
+                  <div className="portal-kpi-icon" style={{ background: "rgba(245,158,11,0.1)", color: "#d97706" }}>
+                    ⭐
+                  </div>
+                  <div>
         <ErrorBoundary scope="tab">
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
