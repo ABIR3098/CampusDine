@@ -55,3 +55,6 @@ Step 7 — "Feasts" tab: special meals on a given date. Everyone sees the list; 
 
 ## `finance.jsx`
 Finance (admin): how the mess is doing this month — what was billed and collected, what was spent,
+
+## `financeCharts.jsx`
+Small charts drawn with plain divs (no library), so they also print cleanly.
