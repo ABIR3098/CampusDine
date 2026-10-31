@@ -66,7 +66,7 @@ async function ensureHallSchema(db) {
     (1,'breakfast','Khichuri, Egg fry, Banana'),        (1,'lunch','Rice, Dal, Beef curry, Salad'),          (1,'dinner','Rice, Dal, Egg curry, Mixed veg'),
     (2,'breakfast','Ruti, Vaji, Banana, Tea'),       (2,'lunch','Rice, Dal, Fish curry, Salad'),          (2,'dinner','Rice, Dal, Chicken curry, Salad'),
     (3,'breakfast','Porota, Dal, Egg'),              (3,'lunch','Rice, Dal, Chicken curry, Salad'),       (3,'dinner','Rice, Dal, Mixed veg, Egg, Lemon'),
-    (4,'breakfast','Suji, Banana'),             (4,'lunch','Rice, Dal, Beef curry, Mixed veg'),          (4,'dinner','Rice, Dal, Fish curry, Lemon'),
+    (4,'breakfast','Suji, Banana, Egg'),             (4,'lunch','Rice, Dal, Beef curry, Mixed veg'),          (4,'dinner','Rice, Dal, Fish curry, Lemon'),
     (5,'breakfast','Porota, Egg curry, Banana'),        (5,'lunch','Tehari, Borhani, Salad'),                (5,'dinner','Rice, Dal, Chicken curry, Salad'),
     (6,'breakfast','Khichuri, Egg, Pickle'),            (6,'lunch','Rice, Dal, Fish curry, Salad'),          (6,'dinner','Rice, Dal, Mixed veg, Egg')`);
 
