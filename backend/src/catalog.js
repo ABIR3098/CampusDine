@@ -72,6 +72,7 @@ const NUTRITION_BY_NAME = {
   "Chicken Curry & Rice": { calories: 560, allergens: [] },
   "Dal Sobji & Rice": { calories: 420, allergens: [] },
   "Ilish Bhat": { calories: 600, allergens: ["fish"] },
+  "Egg Khichuri": { calories: 480, allergens: ["egg", "milk"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
