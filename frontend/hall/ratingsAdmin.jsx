@@ -115,7 +115,7 @@ function HallRatingsAdmin({ call, notify }) {
         ))}
       </div>
     )}>
-      {err ? <div className="hl-error">⚠️ {err}</div> : !data ? <div className="hl-empty">Loading…</div> : <HallRatingsSummaryView data={data} />}
+      {err ? <div className="hl-error">⚠️ {err}</div> : !data ? <div className="hl-empty">Loading…</div> : <><HallRatingsSummaryView data={data} /><div className="mt-4"><HallRatingsTrend call={call} days={days} /></div></>}
     </HallCard>
   );
 }
