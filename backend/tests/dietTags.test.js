@@ -84,3 +84,7 @@ test("matchesFor marks allergy above avoid", () => {
     { key: "fish", label: "Fish", level: "allergy" },
   ]);
 });
+
+test("matchesFor returns nothing when the meal is safe", () => {
+  assert.deepEqual(matchesFor(["egg"], { allergies: [], avoid: ["beef"] }), []);
+});
