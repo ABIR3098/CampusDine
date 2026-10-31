@@ -113,3 +113,8 @@ test("parseListParams rejects a negative offset", () => {
   const { parseListParams } = require("../src/utils/orderRules");
   assert.equal(parseListParams({ offset: "-1" }).error, "offset must be 0 or more");
 });
+
+test("parseListParams names the allowed statuses on error", () => {
+  const { parseListParams } = require("../src/utils/orderRules");
+  assert.match(parseListParams({ status: "Burnt" }).error, /^status must be one of Received, Cooking, Ready, Cancelled/);
+});
