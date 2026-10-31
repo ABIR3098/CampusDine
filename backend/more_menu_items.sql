@@ -129,6 +129,7 @@ SELECT v.name, v.name_bn, v.category, v.price, v.stock, v.tag, v.is_veg, v.image
   UNION ALL SELECT 'Soft Drink (Cola)', 'কোলা', 'drinks', 30, 60, NULL, 1, '/images/food/lemon-soda.svg'
   UNION ALL SELECT 'Blue Lagoon', 'ব্লু লেগুন', 'drinks', 60, 30, NULL, 1, '/images/food/lemon-soda.svg'
   UNION ALL SELECT 'Pineapple Juice', 'আনারসের জুস', 'drinks', 45, 30, NULL, 1, '/images/food/mango-juice.svg'
+  UNION ALL SELECT 'Guava Juice', 'পেয়ারার জুস', 'drinks', 40, 30, NULL, 1, '/images/food/mango-juice.svg'
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM menu_items m WHERE m.name = v.name);
 
@@ -254,6 +255,7 @@ JOIN (
   UNION ALL SELECT 'Soft Drink (Cola)', 'thirdplace'
   UNION ALL SELECT 'Blue Lagoon', 'thirdplace'
   UNION ALL SELECT 'Pineapple Juice', 'thirdplace'
+  UNION ALL SELECT 'Guava Juice', 'thirdplace'
 ) AS r ON r.name = m.name
 ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value);
 
