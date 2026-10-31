@@ -95,27 +95,40 @@ function HallFeasts({ call, isAdmin, notify }) {
         unitPrice: slotObj.guestPrice || 65,
         totalCost,
         generatedAt: new Date().toLocaleString()
+      };
+      setGPass(passData);
+      notify("Guest meal tokens (" + gCount + " guests) successfully booked!");
+      window.dispatchEvent(new Event("hall-changed"));
+    } catch (e) {
+      notify(e, true);
+    } finally {
+      setGBusy(false);
+    }
+  };
+
+  const currentSlotPrice = (slots.find(s => s.slot === gSlot) || {}).guestPrice || 65;
+
   return (
-    <>
-      <HallCard title="Upcoming feasts" icon="🎉">
-        {!feasts ? <div className="hl-empty">Loading…</div> : feasts.length === 0 ? (
-          <div className="hl-empty">🍽 No feast in the next 60 days.</div>
-        ) : (
-          <div className="hl-grid2">
-            {feasts.map((x) => {
-              const dt = new Date(x.date + "T00:00:00Z");
-              return (
-                <div key={x.id} className={`hl-feast ${x.myRsvp === "going" ? "going" : ""}`}>
-                  <div className="hl-feast-date">
-                    <div className="d font-display">{dt.getUTCDate()}</div>
-                    <div className="m">{dt.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" })}</div>
-                  </div>
-                  <div className="hl-feast-body" style={{ paddingTop: 12 }}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="font-display font-700 leading-tight">{x.title}</div>
-                      {isAdmin && <button className="hl-btn sm danger" onClick={() => remove(x.id)}>Remove</button>}
-                    </div>
-                    <div className="flex gap-1.5 flex-wrap mt-1.5">
+    <div className="space-y-4">
+      {/* Tab Switcher */}
+      <div className="flex gap-2 border-b pb-3 border-slate-200">
+        <button
+          type="button"
+          onClick={() => setActiveTab("feasts")}
+          className={"px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 " + (activeTab === "feasts" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-700 hover:bg-slate-200")}>
+          <span>🎉</span>
+          <span>Grand Feasts Pre-Booking</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("guest")}
+          className={"px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 " + (activeTab === "guest" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-700 hover:bg-slate-200")}>
+          <span>🎟️</span>
+          <span>Guest Meal Token Counter</span>
+        </button>
+      </div>
+
+      {activeTab === "guest" && (
                       <span className="hl-chip">{HALL_SLOT_EMOJI[x.slot]} {HALL_SLOT_LABEL[x.slot]}</span>
                       {x.date === today && <span className="hl-chip warn">Today</span>}
                       <span className={`hl-chip ${x.extraPrice > 0 ? "plain" : "ok"}`}>{x.extraPrice > 0 ? `+${hallTaka(x.extraPrice)}` : "No extra charge"}</span>
