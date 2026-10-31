@@ -2332,8 +2332,473 @@ function FullMenuCard({ onLogin }) {
   }, []);
   // the book opens by itself (cover first, then it swings open); View Menu brings it back after it is closed with the cross
   useEffect(() => {
+    if (page !== "book" || !window.CampusDineMenuBook) return;
+    const t = setTimeout(() => window.CampusDineMenuBook.open(), 350);
+    return () => clearTimeout(t);
+  }, [page]);
+  // leaving the Menu Book page (Back, Esc, browser back) also closes the book
+  useEffect(() => {
+    if (page !== "book" && window.CampusDineMenuBook && window.CampusDineMenuBook.isOpen()) window.CampusDineMenuBook.close();
+  }, [page]);
+  useEffect(() => {
+    const sync = () => {
+      if (window.location.hash === "#menu-book") setPage("book");
+      else setPage(p => (p === "book" ? null : p));
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+  useEffect(() => {
+    if (!page) return;
+    const onKey = (e) => { if (e.key === "Escape" && !e.defaultPrevented) closePage(); };   // Esc inside the open book only closes the book
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [page]);
+
+  const closeX = (
+    <button type="button" className="cdl-fm-x" onClick={() => setPage(null)} aria-label={tx("more.close")}>&times;</button>
+  );
+
+  let overlay = null;
+  if (page === "special") {
+    overlay = ReactDOM.createPortal(
+      <div className="cdl-promo-backdrop darker" onClick={() => setPage(null)} role="dialog" aria-modal="true" aria-label={tx("more.sp")}>
+        <div className="cdl-promo-modal cdl-promo-wide" onClick={(e) => e.stopPropagation()}>
+          <button type="button" className="cdl-promo-close" onClick={() => setPage(null)} aria-label={tx("more.close")}>&times;</button>
+          <img className="cdl-promo-img" src="images/promo/special-offer-today.png" alt="CampusDine today's special offer discount" />
+        </div>
+      </div>, document.body);
+  } else if (page === "book") {
+    overlay = ReactDOM.createPortal(
+      <div className={"cdl-fm-page cdl-fm-book" + (bookOpen ? " is-reading" : "")} role="dialog" aria-modal="true" aria-label={tx("more.mb")}>
+        <div className="cdl-fm-bar">
+          <button type="button" className="cdl-fm-backbtn" onClick={closePage}>&larr; {tx("more.back")}</button>
+        </div>
+        <button type="button" className="cdl-fm-viewbtn" hidden={bookOpen} onClick={viewMenu}>&#128214; {tx("more.view")}</button>
+      </div>, document.body);
+  }
+
+  return (
+    <div className="card cdl-fm-card flex flex-col items-center justify-center text-center p-6 gap-3"
+      role={open ? undefined : "button"} tabIndex={open ? undefined : 0}
+      onClick={() => { if (!open) setOpen(true); }}
+      onKeyDown={(e) => { if (!open && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setOpen(true); } }}>
+      <Icon path={I.menu} className="w-7 h-7" style={{ color: "var(--gold)" }} />
+      <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{tx("more")}</div>
+      {open ? (
+        <div className="cdl-fm-actions">
+          <button type="button" className="cdl-fm-btn primary" onClick={() => setPage("special")}>{tx("more.sp")}</button>
+          <button type="button" className="cdl-fm-btn ghost" onClick={openBook}>{tx("more.mb")}</button>
+          <button type="button" className="cdl-fm-back" onClick={(e) => { e.stopPropagation(); setOpen(false); }}>&larr; {tx("more.back")}</button>
+        </div>
+      ) : (
+        <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("more.d")}</p>
+      )}
+      {overlay}
+    </div>
+  );
+}
+
+// Promotional popup: appears 1 second after the front page loads, dark backdrop, cross button to close
+function PromoPopup() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setOpen(true), 1000);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open]);
+  if (!open) return null;
+  return (
+    <div className="cdl-promo-backdrop" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Today's special offer">
+      <div className="cdl-promo-modal" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="cdl-promo-close" onClick={() => setOpen(false)} aria-label="Close offer">&times;</button>
+        <img className="cdl-promo-img" src="images/promo/special-offer.png" alt="CampusDine today's special offer discount" />
       </div>
-        </ErrorBoundary>
+    </div>
+  );
+}
+
+function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
+  const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
+  const [role, setRole] = useState(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const r = p.get("role");
+      if (r && ["student", "teacher", "admin", "rider"].includes(r)) return r;
+    } catch (_) {}
+    return null;
+  });
+
+  // Read ?role= from URL parameter (e.g. from /role-select.html) and smooth scroll to auth box
+  useEffect(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const r = p.get("role");
+      if (r && ["student", "teacher", "admin", "rider"].includes(r)) {
+        setRole(r);
+        if (r === "admin") setMode("login");
+        setTimeout(() => {
+          if (authRef.current) authRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+      }
+    } catch (_) {}
+  }, []);
+  const [name, setName] = useState("");
+  const [externalId, setExternalId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [accountType, setAccountType] = useState("regular"); // 'regular' | 'hall'
+  const [hallName, setHallName] = useState("");
+  const [roomNumber, setRoomNumber] = useState("");
+  /* Feature: referral code */
+  const [referralCode, setReferralCode] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [taken, setTaken] = useState({ email: false, externalId: false });
+  const [newPassword, setNewPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [resetMsg, setResetMsg] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const authRef = useRef(null);
+  // new landing header: mobile menu, language dropdown, dark-mode button
+  const [navOpen, setNavOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [themeKey, setThemeKey] = useState(0);
+  const [isDark, setIsDark] = useState(() => document.documentElement.getAttribute("data-theme") === "dark");
+  useEffect(() => {
+    const sync = () => setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
+    const mo = new MutationObserver(sync);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    const closeLang = () => setLangOpen(false);
+    document.addEventListener("click", closeLang);
+    return () => { mo.disconnect(); document.removeEventListener("click", closeLang); };
+  }, []);
+  const toggleDark = () => {
+    const t = readTheme();
+    const next = { ...t, mode: document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark" };
+    applyTheme(next);
+    try { localStorage.setItem("cd_theme", JSON.stringify(next)); } catch (e) {}
+    setThemeKey(k => k + 1); // re-read the saved theme in the colour picker
+  };
+
+  // Email OTP (sign-up verification + password reset). The server says whether it is switched on.
+  const [otpRequired, setOtpRequired] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);     // sign-up: code has been mailed
+  const [resetSent, setResetSent] = useState(false); // forgot password: code has been mailed
+  const [otpDev, setOtpDev] = useState(false);       // server has no SMTP: code is in the server console
+  const [cooldown, setCooldown] = useState(0);       // seconds until "Resend" works again
+  const [loginChallenge, setLoginChallenge] = useState(null); // login 2FA: { challenge, email (masked) } after the password step
+
+  useEffect(() => {
+    let alive = true;
+    api(apiBase, "/api/auth/config").then(c => { if (alive) setOtpRequired(!!c.otpRequired); }).catch(() => {});
+    return () => { alive = false; };
+  }, [apiBase]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  // Changing the email (or switching tab / role) throws away a half-finished OTP step
+  useEffect(() => { setOtpSent(false); setResetSent(false); setOtp(""); setOtpDev(false); }, [email, mode, role]);
+  // Login 2FA step is dropped when the person goes back, switches tab/role or edits the ID
+  useEffect(() => { setLoginChallenge(null); }, [externalId, mode, role]);
+
+  const roleOptions = [
+    { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
+    { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
+    { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
+    { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
+    { key: "hall_admin", label: "Hall Admin", desc: "Manage hall services, complaints, notices and operations.", icon: I.dashboard },
+  ];
+
+  const sampleMenu = [
+    { name: tx("sm.tehari"), tag: tx("sm.tehari.t"), price: "৳ " + num(80), img: "/images/popular/tehari.jpg" },
+    { name: tx("sm.roll"), tag: tx("sm.roll.t"), price: "৳ " + num(50), img: "/images/popular/chicken-roll.jpg" },
+    { name: tx("sm.brew"), tag: tx("sm.brew.t"), price: "৳ " + num(35), img: "/images/popular/cold-brew.jpg" },
+  ];
+
+  const scrollToAuth = () => {
+    window.location.href = "/role-select.html";
+  };
+
+  const submit = async () => {
+    setError(null);
+    const id = externalId.trim();
+    if (mode === "login") {
+      if (!id || !password) { setError(tx("err.fill")); return; }
+      if (loginChallenge && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
+    } else {
+      if (!name.trim() || !email.trim() || !id || !password || !confirmPassword) { setError(tx("err.fill")); return; }
+      if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+      if (!ID_RE.test(id)) { setError(tx("err.id")); return; }
+      if (password.length < 6) { setError(tx("err.pw6")); return; }
+      if (password !== confirmPassword) { setError(tx("err.pwmatch")); return; }
+      if (role !== "rider" && accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
+      if (otpRequired && otpSent && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
+    }
+    setBusy(true);
+    try {
+      // Step 1 of sign-up with OTP: mail the code, then wait for the person to type it
+      if (mode === "register" && otpRequired && !otpSent) {
+        const r = await api(apiBase, "/api/auth/otp/send-signup", { method: "POST", body: { email: email.trim(), externalId: id } });
+        setOtpSent(true); setOtp(""); setCooldown(60); setOtpDev(r.emailed === false);
+        return;
+      }
+      const data = mode === "login"
+        ? (loginChallenge
+            ? await api(apiBase, "/api/auth/login/verify", { method: "POST", body: { challenge: loginChallenge.challenge, otp: otp.trim() } })
+            : await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } }))
+        : await api(apiBase, "/api/auth/register", { method: "POST", body: {
+            name: name.trim(), email: email.trim(), externalId: id, role, password,
+            accountType: role === "rider" ? "regular" : accountType, hallName: role === "rider" ? "" : hallName.trim(), roomNumber: role === "rider" ? "" : roomNumber.trim(),
+            otp: otpRequired ? otp.trim() : undefined,
+            referralCode: referralCode.trim() || undefined,
+          } });
+      // Password was right but this account needs an emailed code: show the code box instead of logging in
+      if (data.otpRequired) {
+        setLoginChallenge({ challenge: data.challenge, email: data.email });
+        setOtp(""); setCooldown(data.resendIn || 60); setOtpDev(data.emailed === false);
+        return;
+      }
+      onAuth(data.token, data.user);
+    } catch (e) {
+      // Expired login session: go back to the password step
+      if (/expired|again/i.test(e.message) && loginChallenge) { setLoginChallenge(null); setOtp(""); }
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resendLoginCode = async () => {
+    if (!loginChallenge) return;
+    setError(null); setBusy(true);
+    try {
+      const r = await api(apiBase, "/api/auth/login/resend", { method: "POST", body: { challenge: loginChallenge.challenge } });
+      setOtp(""); setCooldown(r.resendIn || 60); setOtpDev(r.emailed === false);
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  // Tell the person right away if the ID / email already has an account
+  const checkTaken = async (field) => {
+    const v = field === "email" ? email.trim().toLowerCase() : externalId.trim();
+    if (!v || (field === "email" ? !EMAIL_RE.test(v) : !ID_RE.test(v))) return;
+    try {
+      const r = await api(apiBase, `/api/auth/availability?${field === "email" ? "email" : "externalId"}=${encodeURIComponent(v)}`);
+      setTaken(t => ({ ...t, [field]: field === "email" ? !!r.emailTaken : !!r.externalIdTaken }));
+    } catch (_) { /* the real check happens on submit */ }
+  };
+
+  const pwStrength = (() => {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Za-z]/.test(password) && /\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password) || (/[a-z]/.test(password) && /[A-Z]/.test(password))) score++;
+    return password.length < 6 ? 0 : Math.max(1, score);
+  })();
+  const strengthLabel = pwStrength <= 1 ? tx("pw.weak") : pwStrength === 2 ? tx("pw.ok") : tx("pw.strong");
+  const strengthColor = pwStrength <= 1 ? "#DC2626" : pwStrength === 2 ? "#D97706" : "var(--leaf)";
+
+  const resendSignupCode = async () => {
+    setError(null); setBusy(true);
+    try {
+      const r = await api(apiBase, "/api/auth/otp/send-signup", { method: "POST", body: { email: email.trim(), externalId: externalId.trim() } });
+      setOtp(""); setCooldown(60); setOtpDev(r.emailed === false);
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  // Forgot password, step 1: mail a reset code (the server answers the same whether or not the account exists)
+  const sendResetCode = async () => {
+    setError(null); setResetMsg(null);
+    if (!externalId.trim() || !email.trim()) { setError(tx("err.fill")); return; }
+    if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+    setBusy(true);
+    try {
+      await api(apiBase, "/api/auth/forgot-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim() } });
+      setResetSent(true); setOtp(""); setCooldown(60); setResetMsg(tx("reset.sent"));
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  };
+
+  const submitReset = async () => {
+    setError(null); setResetMsg(null);
+    if (!externalId.trim() || !email.trim() || !newPassword) { setError(tx("err.fill")); return; }
+    if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+    if (newPassword.length < 6) { setError(tx("err.pw6")); return; }
+    if (otpRequired && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
+    setBusy(true);
+    try {
+      await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim(), newPassword, otp: otpRequired ? otp.trim() : undefined } });
+      setOtp(""); setResetSent(false);
+      setMode("login");
+      setPassword("");
+      setNewPassword("");
+      setResetMsg(tx("reset.ok"));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const otpBox = (onResend, shownEmail, hintText) => (
+    <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: "var(--line)", background: "var(--bg)" }}>
+      <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("otp.sent", { e: shownEmail || email.trim() })}</p>
+      <label className="text-xs uppercase tracking-wide block" style={{ color: "var(--ink-soft)" }}>{tx("otp.label")}</label>
+      <input value={otp} inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder={tx("otp.ph")}
+        onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        className="w-full px-4 py-2.5 rounded-xl border text-center text-xl font-700" style={{ borderColor: "var(--line)", letterSpacing: "0.5em" }} />
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span style={{ color: "var(--ink-soft)" }}>{hintText || tx("otp.change")}</span>
+        <button type="button" disabled={busy || cooldown > 0} onClick={onResend}
+          className="font-600 shrink-0" style={{ color: cooldown > 0 ? "var(--ink-soft)" : "var(--gold)" }}>
+          {cooldown > 0 ? tx("otp.resendin", { s: cooldown }) : tx("otp.resend")}
+        </button>
+      </div>
+      {otpDev && <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("otp.devhint")}</p>}
+    </div>
+  );
+
+  const pillTab = (key, label) => (
+    <button onClick={() => { setMode(key); setError(null); }}
+      className="flex-1 py-2.5 rounded-full text-xs font-700 transition-all"
+      style={mode === key
+        ? { background: "var(--gold)", color: "#FFFFFF" }
+        : { color: "var(--ink-soft)" }}>
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen">
+      <PromoPopup />
+      {/* New CampusDine front: announcement bar, header and hero (styles live in landing.css, all scoped under .cdl) */}
+      <div className="cdl" data-lang={CURRENT_LANG}>
+        <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+          <defs>
+          <symbol id="cdl-i-mega" viewBox="0 0 24 24"><path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1Zm13-2.5a5 5 0 0 1 0 9M19 4a9 9 0 0 1 0 16" fill="currentColor" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></symbol>
+          <symbol id="cdl-i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.600-2.400H17a4 4 0 0 0 4-4c0-5-4-9.500-9-9.500Z" fill="none" stroke="currentColor" strokeWidth="1.800" strokeLinejoin="round"/><circle cx="7.500" cy="11" r="1.300" fill="currentColor"/><circle cx="10.500" cy="7" r="1.300" fill="currentColor"/><circle cx="15" cy="7.500" r="1.300" fill="currentColor"/></symbol>
+          <symbol id="cdl-i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+          <symbol id="cdl-i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></g></symbol>
+          <symbol id="cdl-i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" fill="currentColor"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7Z" fill="currentColor"/></symbol>
+          <symbol id="cdl-i-fork" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 2 2v9M5 3v5M9 3v5M5 8a2 2 0 0 0 2 2M9 8a2 2 0 0 1-2 2M16 21V3c-2.2 1.2-3.5 4-3.5 7.5 0 2 1 3.2 3.5 3.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-list" viewBox="0 0 24 24"><path d="M3 6h2.5M3 12h2.5M3 18h2.5M9 6h12M9 12h12M9 18h12" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></symbol>
+          <symbol id="cdl-i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></symbol>
+          <symbol id="cdl-i-bolt" viewBox="0 0 24 24"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.2Z" fill="currentColor"/></symbol>
+          <symbol id="cdl-i-shield" viewBox="0 0 24 24"><path d="M12 2.5 4.5 5.5v5.5c0 5 3.2 8.7 7.5 10 4.3-1.3 7.5-5 7.5-10V5.5Z" fill="currentColor"/><path d="M12 8v6M9 11h6" stroke="var(--cdl-icon-bg)" strokeWidth="2.2" strokeLinecap="round"/></symbol>
+          <symbol id="cdl-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.2"/><circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 9.5V12l2 1.5" stroke="var(--cdl-icon-bg)" strokeWidth="1.6" strokeLinecap="round" fill="none"/></symbol>
+          <symbol id="cdl-i-bank" viewBox="0 0 24 24"><path d="M12 2 3 7v2h18V7Zm-7 9v7H3v2h18v-2h-2v-7h-2v7h-3v-7h-2v7h-2v-7H9v7H7v-7Z" fill="currentColor"/></symbol>
+          </defs>
+        </svg>
+
+        <div className="cdl-announce">
+          <svg className="cdl-ic"><use href="#cdl-i-mega" /></svg>
+          <span>{tx("ann")}</span>
+          <svg className="cdl-ic cdl-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11Z" fill="currentColor" /></svg>
+        </div>
+
+        <header className="cdl-nav">
+          <a href="#" className="cdl-brand" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+            <span role="img" aria-label={tx("land.logoAlt")} className="cdl-brand-logo"></span>
+            <span className="cdl-brand-text">
+              <span className="cdl-brand-name">Campus<b>Dine</b></span>
+              <span className="cdl-brand-tag"><i></i><span>{tx("land.tag")}</span><i></i></span>
+            </span>
+          </a>
+
+          <nav className={"cdl-links" + (navOpen ? " cdl-open" : "")} onClick={() => setNavOpen(false)}>
+            <a href="#" className="cdl-active" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{tx("nav.home")}</a>
+            <a href="#menu">{tx("nav.menu")}</a>
+            <a href="#about">{tx("nav.about")}</a>
+            <a href="#contact">{tx("nav.contact")}</a>
+          </nav>
+
+          <div className="cdl-actions">
+            <div className="cdl-theme-slot"><ThemeMenu key={themeKey} /></div>
+            <button type="button" className="cdl-icon-btn" onClick={toggleDark} aria-label={tx("land.dark")} title={tx("land.dark")}>
+              <svg className="cdl-ic"><use href={isDark ? "#cdl-i-sun" : "#cdl-i-moon"} /></svg>
+            </button>
+            <div className="cdl-lang">
+              <button type="button" className="cdl-lang-btn" aria-haspopup="true" aria-expanded={langOpen} aria-label={tx("land.langBtn")}
+                onClick={e => { e.stopPropagation(); setLangOpen(o => !o); }}>
+                <svg className="cdl-ic"><use href="#cdl-i-globe" /></svg><span>{CURRENT_LANG.toUpperCase()}</span><svg className="cdl-ic cdl-sm"><use href="#cdl-i-chev" /></svg>
+              </button>
+              <ul className={"cdl-lang-menu" + (langOpen ? " cdl-open" : "")}>
+                <li><button type="button" onClick={() => { setLangOpen(false); if (CURRENT_LANG !== "en") onToggleLang(); }}>English</button></li>
+                <li><button type="button" onClick={() => { setLangOpen(false); if (CURRENT_LANG !== "bn") onToggleLang(); }}>বাংলা</button></li>
+              </ul>
+            </div>
+            <button type="button" onClick={scrollToAuth} className="cdl-btn cdl-signin"><svg className="cdl-ic"><use href="#cdl-i-user" /></svg><span>{tx("signin")}</span></button>
+            <button type="button" className="cdl-burger" aria-label={tx("land.menuBtn")} aria-expanded={navOpen} onClick={() => setNavOpen(o => !o)}><span></span><span></span><span></span></button>
+          </div>
+        </header>
+
+        <main className="cdl-hero">
+          <div className="cdl-hero-copy">
+            <div className="cdl-pill">
+              <span className="cdl-pill-ic"><svg className="cdl-ic"><use href="#cdl-i-fork" /></svg></span>
+              <span>{tx("land.pill")}</span>
+            </div>
+            <h1>
+              <span>{tx("hero.h1a")}</span>
+              <span className="cdl-accent">{tx("hero.h1b")}</span>
+            </h1>
+            <p className="cdl-lead">{tx("land.lead")}</p>
+            <div className="cdl-cta">
+              <button type="button" onClick={scrollToAuth} className="cdl-btn cdl-primary"><svg className="cdl-ic"><use href="#cdl-i-fork" /></svg><span>{tx("hero.start")}</span><svg className="cdl-ic"><use href="#cdl-i-arrow" /></svg></button>
+              <a href="#menu" className="cdl-btn cdl-outline"><svg className="cdl-ic"><use href="#cdl-i-list" /></svg><span>{tx("hero.explore")}</span></a>
+            </div>
+            <ul className="cdl-features">
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-bolt" /></svg></span><div><strong>{tx("land.f1t")}</strong><small>{tx("land.f1s")}</small></div></li>
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-shield" /></svg></span><div><strong>{tx("land.f2t")}</strong><small>{tx("land.f2s")}</small></div></li>
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-clock" /></svg></span><div><strong>{tx("land.f3t")}</strong><small>{tx("land.f3s")}</small></div></li>
+              <li><span className="cdl-f-ic"><svg className="cdl-ic"><use href="#cdl-i-bank" /></svg></span><div><strong>{tx("land.f4t")}</strong><small>{tx("land.f4s")}</small></div></li>
+            </ul>
+          </div>
+
+          <div className="cdl-hero-art">
+            <div className="cdl-art-wrap">
+              <div className="cdl-art" role="img" aria-label={tx("land.alt")}></div>
+            </div>
+            <svg className="cdl-wave" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 160C110 60 250 40 380 52c90 8 150-6 220-40V160Z" fill="var(--cdl-bg)" />
+              <path d="M0 160C110 60 250 40 380 52c90 8 150-6 220-40" fill="none" stroke="var(--cdl-accent)" strokeWidth="3" />
+            </svg>
+          </div>
+        </main>
+      </div>
+
+      {/* Menu preview */}
+      <section id="menu" className="max-w-6xl mx-auto px-6 py-20">
+        <div className="text-center mb-12 space-y-3">
+          <p className="font-display text-xs uppercase" style={{ color: "var(--gold)" }}>{tx("pop.k")}</p>
+          <h2 className="font-display text-3xl font-800" style={{ color: "var(--ink)" }}>{tx("pop.h")}</h2>
+          <div className="divider-flourish text-sm max-w-xs mx-auto">❖</div>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {sampleMenu.map(item => (
+            <div key={item.name} className="card overflow-hidden">
+              <div className="h-36 overflow-hidden" style={{ background: "var(--gold-soft)" }}>
+                <img src={item.img} alt={item.name} className="w-full h-full object-cover" style={{ opacity: 1 }} />
+              </div>
+              <div className="p-4">
+                <div className="font-display font-700 text-sm" style={{ color: "var(--ink)" }}>{item.name}</div>
         )}
             onUpdated={(u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } }))} />
           <ProfileTab user={session.user} call={call} liveBalance={session.user.role !== "admin" && wallet.loaded ? wallet.balance : null}
