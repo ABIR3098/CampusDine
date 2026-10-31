@@ -72,3 +72,10 @@ test("a breakfast is locked the evening before", () => {
 test("localStamp prints the Dhaka wall clock", () => {
   assert.equal(localStamp(new Date("2026-10-31T03:17:05Z")), "2026-10-31 09:17:05");
 });
+
+test("nowParts has a date key, weekday and minutes", () => {
+  const p = nowParts();
+  assert.match(p.dateKey, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(p.dow >= 0 && p.dow <= 6);
+  assert.ok(p.minutes >= 0 && p.minutes < 1440);
+});
