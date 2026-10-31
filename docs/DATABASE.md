@@ -530,3 +530,20 @@ Created in `backend/src/hall/dietSchema.js`.
 | `allergies` | VARCHAR(200) |
 | `note` | VARCHAR(160) |
 | `updated_at` | DATETIME |
+
+## `hall_requests`
+Created in `backend/src/hall/extraSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `type` | ENUM('maintenance','cleaning','laundry','guest','lost_found','facility_booking','feedback','emergency','event') |
+| `title` | VARCHAR(180) |
+| `description` | TEXT |
+| `location` | VARCHAR(180) |
+| `requested_date` | DATE |
+| `status` | ENUM('submitted','approved','in_progress','resolved','rejected','cancelled') |
+| `admin_note` | VARCHAR(500) |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
