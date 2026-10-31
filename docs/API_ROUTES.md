@@ -26,3 +26,18 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/menu/alerts`
 - `POST /api/menu/:id/notify`
 - `DELETE /api/menu/:id/notify`
+
+## `/api/orders` — `src/routes/orders.js`
+
+- `POST /api/orders`
+- `GET /api/orders/mine`
+- `GET /api/orders`
+- `PATCH /api/orders/:id/cancel`
+- `POST /api/orders/verify`
+- `PATCH /api/orders/:id/advance`
+- `POST /api/orders/:id/rate-rider`
+- `POST /api/orders/:id/feedback`
+- `POST /api/orders/:id/report`
+- `GET /api/orders/issues/mine`
+- `GET /api/orders/issues`
+- `PATCH /api/orders/issues/:id`
