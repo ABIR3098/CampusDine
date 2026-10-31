@@ -44,6 +44,7 @@ const hallAdminRoutes = require("./src/routes/hallAdmin");
 const campusFeatureRoutes = require("./src/routes/campusFeatures");
 const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
 const { ensureHallAdvancedSchema } = require("./src/hall/advancedSchema");
+const { shouldSeedDemoAccounts } = require("./src/utils/demoAccounts");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
@@ -626,6 +627,7 @@ async function runStartupCheck() {
   await ensureGroupOrderSchema(db);
   await ensureOrderChatSchema(db);
 
+  const seedDemo = shouldSeedDemoAccounts();
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },
     { name: "Demo Student", externalId: "student1", role: "student", password: "student123", bonus: SIGNUP_BONUS },
@@ -633,8 +635,7 @@ async function runStartupCheck() {
     { name: "Demo Rider", externalId: "rider1", role: "rider", password: "rider123", bonus: 0 },
   ];
 
-  const skipDemo = process.env.NODE_ENV === "production"; // never seed admin123 etc. on a live server
-  for (const acc of skipDemo ? [] : demoAccounts) {
+  for (const acc of seedDemo ? demoAccounts : []) {
     const [existing] = await db.query("SELECT id FROM users WHERE external_id = ?", [acc.externalId]);
     if (existing.length > 0) continue;
 
@@ -669,14 +670,16 @@ async function runStartupCheck() {
     await ensureHallExtraSchema(db); // Hall notices, service requests, inventory and audit trail
     await ensureHallAdvancedSchema(db); // Hall room workflow, visitors, facilities, laundry, kitchen and notifications
 
-  if (!skipDemo) {
-  console.log("\n════════════════════════════════════════");
-  console.log("🔑 Test the app with these logins:");
-  console.log("   Admin   → ID: admin      Password: admin123");
-  console.log("   Student → ID: student1   Password: student123");
-  console.log("   Teacher → ID: teacher1   Password: teacher123");
-  console.log("   Rider   → ID: rider1     Password: rider123");
-  console.log("════════════════════════════════════════\n");
+  if (seedDemo) {
+    console.log("\n════════════════════════════════════════");
+    console.log("🔑 Test the app with these logins:");
+    console.log("   Admin   → ID: admin      Password: admin123");
+    console.log("   Student → ID: student1   Password: student123");
+    console.log("   Teacher → ID: teacher1   Password: teacher123");
+    console.log("   Rider   → ID: rider1     Password: rider123");
+    console.log("════════════════════════════════════════\n");
+  } else {
+    console.log("\nDemo accounts were not created (NODE_ENV=production). Set SEED_DEMO_ACCOUNTS=true to create them.\n");
   }
 
   await db.end();
