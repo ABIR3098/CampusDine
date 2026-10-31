@@ -52,3 +52,8 @@ test("tagsOf finds milk and dairy dishes", () => {
 test("tagsOf finds nuts", () => {
   assert.deepEqual(tagsOf("Peanut chikki"), ["nuts"]);
 });
+
+test("tagsOf understands Bangla words", () => {
+  assert.deepEqual(tagsOf("গরুর মাংস"), ["beef"]);
+  assert.deepEqual(tagsOf("ইলিশ মাছ"), ["fish"]);
+});
