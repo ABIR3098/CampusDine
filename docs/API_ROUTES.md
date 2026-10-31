@@ -284,3 +284,10 @@ Every route registered in the backend, grouped by the file that defines it. Path
 ## `/api/hall` — `src/hall/routes/ratingsTrend.js`
 
 - `GET /api/hall/ratings/trend`
+
+## `/api/hall` — `src/hall/routes/report.js`
+
+- `GET /api/hall/report/day`
+- `GET /api/hall/report/guests`
+- `GET /api/hall/report/range`
+- `GET /api/hall/report/changes`
