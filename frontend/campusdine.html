@@ -6625,6 +6625,39 @@ function KitchenDisplaySystem({ orders = [], advance, onExit, call, onShowPosSli
         )}
       </div>
     </div>
+  );
+}
+
+/* ─── Thermal POS Receipt Modal (58mm / 80mm Printable Slip) ─── */
+function ThermalReceiptModal({ order, onClose }) {
+  if (!order) return null;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
+        {/* Modal Controls */}
+        <div className="flex items-center justify-between pb-3 border-b mb-4">
+          <div className="font-bold text-xs uppercase tracking-wider text-slate-500">Thermal POS Preview (80mm)</div>
+          <button onClick={onClose} className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold grid place-items-center text-xs">✕</button>
+        </div>
+
+        {/* The Printable Slip Body */}
+        <div id="print-area" className="font-mono text-slate-900 text-xs leading-relaxed border-2 border-dashed border-slate-300 p-4 bg-amber-50/20 rounded-xl">
+          <div className="text-center pb-2">
+            <div className="font-black text-base tracking-wider">CAMPUSDINE SMART CANTEEN</div>
+            <div className="text-[10px] text-slate-500">BUP Central Campus, Mirpur Cantonment</div>
+            <div className="text-[10px] text-slate-500">VAT Reg: BIN-842910394</div>
+            <div className="my-1 border-t border-dashed border-slate-400" />
+            <div className="flex justify-between text-[10px] text-slate-600">
+              <span>Date: {new Date(order.created_at || Date.now()).toLocaleDateString()}</span>
+              <span>Time: {new Date(order.created_at || Date.now()).toLocaleTimeString()}</span>
+            </div>
+            <div className="text-left text-[10px] text-slate-600 mt-0.5">
+              Cashier: Counter #1 · POS-04
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
