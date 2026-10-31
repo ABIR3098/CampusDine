@@ -446,14 +446,26 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
         setActive={setTab}
         onLogout={onLogout}
         ui={ui}
+        sidebarCollapsed={sidebarCollapsed}
+        setSidebarCollapsed={setSidebarCollapsed}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        searchTerm={sidebarSearch}
+        setSearchTerm={setSidebarSearch}
+      />
 
-      {toast && (
-        <div className="fixed top-[76px] right-4 z-50 w-[min(90vw,340px)]">
-          <div className="hl-toast fade-in shadow-lg"
-            style={toast.isError
-              ? { background: "var(--danger-bg)", color: "var(--danger-fg)", borderColor: "var(--danger-border)" }
-              : { background: "var(--ok-bg)", color: "var(--ok-fg)", borderColor: "var(--ok-border)" }}>
-            <span>{toast.isError ? "⚠️" : "✅"}</span><span className="flex-1">{toast.message}</span>
+      {/* ─── Main Content Viewport ─── */}
+      <div className="portal-main">
+        {/* Top Header */}
+        <HallPortalHeader
+          user={user}
+          onLogout={onLogout}
+          ui={ui}
+          onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          onBack={onBack}
+        />
+
+        {toast && (
           </div>
         </div>
       )}
