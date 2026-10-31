@@ -43,3 +43,6 @@ Dues (admin): who still owes money for a month, how much, whether their wallet c
 
 ## `diet.jsx`
 Diet, member side: say what you don't eat and what you are allergic to. The week's menu then shows
+
+## `dietAdmin.jsx`
+Diet, admin side: for one day, which meals contain what, and how many people who have that meal ON
