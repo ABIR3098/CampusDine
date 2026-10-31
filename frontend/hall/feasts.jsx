@@ -349,6 +349,22 @@ function HallFeasts({ call, isAdmin, notify }) {
           {isAdmin && (
             <HallCard title="Add a Grand Feast" icon="➕">
               <div className="grid gap-3 sm:grid-cols-2">
+                <div><label className="hl-label">Date</label><input type="date" className="hl-input" min={today} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></div>
+                <div><label className="hl-label">Meal Slot</label>
+                  <select className="hl-input" value={f.slot} onChange={(e) => setF({ ...f, slot: e.target.value })}>
+                    {HALL_SLOTS.map((s) => <option key={s} value={s}>{HALL_SLOT_LABEL[s]}</option>)}
+                  </select></div>
+                <div><label className="hl-label">Feast Name</label><input className="hl-input" placeholder="e.g. Grand Friday Biryani & Firni" maxLength={80} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
+                <div><label className="hl-label">Extra Price (৳)</label><input type="number" min="0" className="hl-input" placeholder="0" value={f.extraPrice} onChange={(e) => setF({ ...f, extraPrice: e.target.value })} /></div>
+                <div><label className="hl-label">Total Seats (Capacity)</label><input type="number" min="1" className="hl-input" placeholder="e.g. 250" value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label className="hl-label">Items Served</label><input className="hl-input" placeholder="e.g. Basmati Kacchi Biryani, Borhani, Shahi Firni" maxLength={255} value={f.items} onChange={(e) => setF({ ...f, items: e.target.value })} /></div>
+              </div>
+              <button className="hl-btn mt-4" disabled={!f.date || !f.title || !f.items} onClick={add}>Save & Announce Feast</button>
+            </HallCard>
+          )}
+        </>
+      )}
+    </div>
   );
 }
-Hall.register({ key: "feasts", label: "Feasts", icon: "🎉", order: 5, component: HallFeasts });
+Hall.register({ key: "feasts", label: "Feasts & Guest Pass", icon: "🎉", order: 5, component: HallFeasts });

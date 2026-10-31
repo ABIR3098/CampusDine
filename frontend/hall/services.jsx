@@ -1,9 +1,18 @@
 // Hall Services: complaints, maintenance, cleaning, laundry, lost & found, feedback and notices. Food/menu/pickup is handled by Canteen Admin.
 const HALL_SERVICE_TYPES = [
-  ["complaint","Complaint / help"],["maintenance","Maintenance / repair"],["cleaning","Cleaning request"],
+  ["maintenance","Room Maintenance & Repair"],["complaint","Complaint / help"],["cleaning","Cleaning request"],
   ["lost_found","Lost & found"],["feedback","Hall service feedback"],["emergency","Urgent hall issue"]
 ];
-const HALL_STATUS_LABEL = {submitted:"Submitted",approved:"Approved",in_progress:"In progress",resolved:"Resolved",rejected:"Rejected",cancelled:"Cancelled"};
+const MAINTENANCE_CATEGORIES = [
+  { key: "fan", label: "Fan & AC", icon: "🪭" },
+  { key: "light", label: "Light & Electrical", icon: "💡" },
+  { key: "toilet", label: "Toilet & Plumbing", icon: "🚰" },
+  { key: "furniture", label: "Bed & Furniture", icon: "🪑" },
+  { key: "door", label: "Door & Lock", icon: "🚪" },
+  { key: "other", label: "General Repair", icon: "🔧" }
+];
+const HALL_STATUS_LABEL = {submitted:"Submitted",approved:"Assigned",in_progress:"In Progress",resolved:"Resolved",rejected:"Rejected",cancelled:"Cancelled"};
+
 function HallServices({call,user,isAdmin,notify}) {
   const [section,setSection]=useState("requests");
   const [requests,setRequests]=useState([]);
@@ -14,9 +23,13 @@ function HallServices({call,user,isAdmin,notify}) {
   const [laundryForm,setLaundryForm]=useState({description:"",pieces:"1",pickupDate:new Date().toISOString().slice(0,10)});
   const [roomEdits,setRoomEdits]=useState({});
   const [type,setType]=useState("maintenance");
+  const [mCategory,setMCategory]=useState("fan");
+  const [photoPreview,setPhotoPreview]=useState(null);
+  const [viewPhoto,setViewPhoto]=useState(null);
   const [form,setForm]=useState({title:"",description:"",location:"",requestedDate:""});
   const [noticeForm,setNoticeForm]=useState({title:"",body:"",category:"General",pinned:false});
   const [busy,setBusy]=useState(false);
+
   const load=async()=>{
     try {
       const [r,n]=await Promise.all([call("/api/hall/services"),call("/api/hall/notices")]);
@@ -29,6 +42,7 @@ function HallServices({call,user,isAdmin,notify}) {
     } catch(e){notify(e,true);}
   };
   useEffect(()=>{load();},[isAdmin]);
+
   const submit=async()=>{
     if(!form.title.trim()){notify("Please enter a title",true);return;}
     setBusy(true);
