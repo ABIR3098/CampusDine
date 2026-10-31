@@ -1,3 +1,238 @@
+      await refreshAdminOrders();
+      await call(`/api/orders/${id}/advance`, { method: "PATCH" });
+    try {
+  const advanceOrder = async (id) => {
+
+  };
+    setTab("menu");
+    showSuccess(tx("reorder.added") + added.join(", ") + "." + (skipped.length ? tx("reorder.skipped") + skipped.join(", ") + "." : ""));
+    setCart(next);
+    if (switching) setRestaurant(target);
+      : `This order is from ${target.name}. Switching will empty your current cart. Continue?`)) return;
+      ? `এই অর্ডারটি ${target.name}-এর। সেখানে গেলে আপনার বর্তমান কার্ট খালি হয়ে যাবে। চালিয়ে যাবেন?`
+    if (switching && cart.length > 0 && !window.confirm(lang === "bn"
+    if (added.length === 0) { showError(tx("reorder.none")); return; }
+    }
+      added.push(qty < have + it.qty ? `${dispName(m.name)} (${num(m.stock)}${tx("reorder.left")})` : dispName(m.name));
+      if (idx >= 0) next[idx] = { ...next[idx], qty }; else next.push({ ...m, qty });
+      if (qty <= have) { skipped.push(dispName(it.name)); continue; }
+      const qty = Math.min(have + it.qty, m.stock);
+      const have = idx >= 0 ? next[idx].qty : 0;
+      const idx = next.findIndex(c => c.id === m.id);
+      if (!m || m.stock <= 0 || m.availability === "sold_out") { skipped.push(dispName(it.name)); continue; }
+        : x.name === it.name && (!target || x.restaurant === target.id)));
+        ? x.id === it.menuItemId
+      const m = menu.find(x => (it.menuItemId != null
+    for (const it of order.items) {
+    const skipped = [];
+    const added = [];
+    const next = switching ? [] : [...cart];
+    const switching = !!(target && restaurant && target.id !== restaurant.id);
+    const target = RESTAURANTS.find(r => r.id === order.restaurant) || restaurant;
+    // an order from another restaurant opens that restaurant, because one order = one restaurant.
+    // Fix 13: match items by id (name only as a fallback, and only inside the order's own restaurant);
+  const reorder = (order) => {
+    // Order again: put the items of a past order back into the cart (current prices, capped by stock).
+  }; 
+    } catch (e) { showError(e); window.scrollTo({ top: 0, behavior: "smooth" }); } finally { setBusy(false); }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showSuccess("✅ Order placed! Your token is " + placed.token + " — you can see it here in the Orders tab.");
+      setTab("track");
+      await Promise.all([refreshMyOrders(), refreshMenu(), paymentMethod === "wallet" ? refreshWallet() : Promise.resolve()]);
+      setLoyaltyKey(k => k + 1);
+      setCart([]);
+      });
+        },
+          deliveryLocation,
+          tip: tip > 0 ? tip : undefined,
+          deliveryNote: deliveryNote && deliveryNote.trim() ? deliveryNote.trim() : undefined,
+          rewardId: rewardId || undefined,
+          note: note && note.trim() ? note.trim() : undefined,
+          couponCode: coupon ? coupon.code : undefined,
+          couponId: coupon ? coupon.couponId : undefined,
+          pickupTime: pickupTime || undefined,
+          paymentMethod,
+          items: cartItems.map(c => ({ id: c.id, qty: c.qty })),
+        body: {
+        method: "POST",
+      const placed = await call("/api/orders", {
+      });
+        );
+          { enableHighAccuracy: false, maximumAge: 60000, timeout: 1800 }
+          () => resolve(undefined),
+          position => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+        navigator.geolocation.getCurrentPosition(
+        if (!navigator.geolocation) return resolve(undefined);
+        setTimeout(() => resolve(undefined), 2500); // give up on the location after 2.5s
+        /* Fix: order feedback */
+      const deliveryLocation = await new Promise(resolve => {
+    try {
+    setBusy(true); setError(null);
+  const placeOrder = async (cartItems, paymentMethod, pickupTime, coupon, note, rewardId, deliveryNote, tip) => {
+
+  };
+    setBudget(b);
+    const b = await call("/api/summary/budget", { method: "PUT", body: { limit } });
+  const saveBudget = async (limit) => {
+  }, [orders, session && session.token]);
+    refreshBudget().catch(() => {});
+    if (!session || (session.user.role !== "student" && session.user.role !== "teacher")) return;
+  useEffect(() => {
+  };
+    }
+      }
+          tx(level === 100 ? "bud.over" : "bud.near", { s: taka(b.spent), l: taka(b.limit) }));
+        pushNotification("wallet", tx(level === 100 ? "bud.over.t" : "bud.near.t"),
+        budgetNotifiedRef.current[b.month] = level;
+      if (level > (budgetNotifiedRef.current[b.month] || 0)) {
+      const level = pct >= 100 ? 100 : pct >= 80 ? 80 : 0;
+      const pct = (b.spent / b.limit) * 100;
+    if (b.limit) {
+    setBudget(b);
+    const b = await call("/api/summary/budget");
+  const refreshBudget = async () => {
+  const budgetNotifiedRef = useRef({});
+  const [budget, setBudget] = useState(null);
+  /* Feature: monthly budget */
+
+  const skipDue = async (plan) => { try { await markDueDone(plan); } catch (e) { showError(e); } };
+  };
+    if (anyAvailable) { try { await markDueDone(plan); } catch (e) { /* the cart is already filled */ } }
+    reorder({ items: plan.items.map(i => ({ menuItemId: i.id, name: i.name, qty: i.qty })) });
+    const anyAvailable = plan.items.some(i => { const m = menu.find(x => x.id === i.id); return m && m.stock > 0 && m.availability === "available"; });
+  const addDue = async (plan) => {
+  };
+    await refreshDue();
+    await call("/api/recurring/" + plan.id + "/done", { method: "POST" });
+  const markDueDone = async (plan) => {
+  }, [session && session.token]);
+    return () => clearInterval(timer);
+    const timer = setInterval(() => refreshDue().catch(() => {}), 60000);
+    refreshDue().catch(() => {});
+    if (!session || (session.user.role !== "student" && session.user.role !== "teacher")) return;
+  useEffect(() => {
+  };
+    }
+      if (!notifiedDueRef.current.has(key)) { notifiedDueRef.current.add(key); pushNotification("order", tx("rec.nt"), tx("rec.nm")); }
+      const key = p.id + ":" + p.today;
+    for (const p of list) {
+    setRecurringDue(list);
+    const list = await call("/api/recurring/due");
+  const refreshDue = async () => {
+  const notifiedDueRef = useRef(new Set());
+  const [recurringDue, setRecurringDue] = useState([]);
+  /* Feature: recurring order */
+
+  }, [tab]);
+    if (session && session.user.role !== "admin" && (tab === "wallet" || tab === "profile")) refreshWallet().catch(() => {});
+  useEffect(() => {
+
+  const [issueTick, setIssueTick] = useState(0); // bumps when a new problem report arrives (admin list reloads)
+
+  };
+    setTab("wallet");
+    setTopupSuggest(Math.min(10000, Math.max(10, Math.ceil(shortage / 10) * 10))); // rounded up to ৳10, within the ৳10,000 limit
+  const goTopUp = (shortage) => {
+  useEffect(() => { if (tab !== "wallet") setTopupSuggest(null); }, [tab]);
+  const [topupSuggest, setTopupSuggest] = useState(null);
+  /* Feature: cart top-up shortcut */
+
+  }, [session, apiBase]);
+    return () => socket.disconnect();
+
+    });
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+    socket.on("queue:changed", () => {
+    socket.on("menu:restocked", () => { refreshAlerts().catch(() => {}); });
+    socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
+    // Admin changed an item (sold out / hidden / price): refresh the menu live
+    // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
+    });
+      }
+        pushNotification("chat", tx("n.chat"), `${payload.senderName}: ${payload.message}`);
+      if (Number(payload.senderId) !== Number(session.user.id)) {
+      setChatRefreshKey(value => value + 1);
+    socket.on("chat:message", (payload) => {
+    });
+      pushNotification("announcement", tx("n.announce"), payload.message || tx("n.announce.def"));
+    socket.on("announcement", (payload) => {
+    });
+      if (p.bonus > 0) pushNotification("loyalty", tx("n.points.t"), tx("n.bonus", { s: num(p.streak), b: num(p.bonus) }));
+      if (p.points > 0) pushNotification("loyalty", tx("n.points.t"), tx("n.points", { p: num(p.points + (p.bonus || 0)), o: p.token, b: num(p.balance) }));
+      setLoyaltyKey(k => k + 1);
+    socket.on("loyalty:update", (p) => {
+    // Order became Ready: points (and maybe a streak bonus) landed
+    });
+      pushNotification("wallet", tx("n.received.t"), tx("n.received", { n: payload.from, a: taka(payload.amount) }));
+      refreshWallet().catch(() => {});
+    socket.on("wallet:received", (payload) => {
+    // Someone sent this user money: update the balance live
+    });
+      pushNotification("feedback", payload.updated ? "Feedback updated" : "New feedback", `${who} rated ${what} ${payload.rating}★`);
+      const what = payload.kind === "order" ? `order ${payload.token}` : `the canteen (${payload.category})`;
+      const who = payload.userName || "A user";
+      setNewFeedbackCount(c => c + 1);
+      refreshFeedback().catch(() => {});
+      if (session.user.role !== "admin") return;
+    socket.on("feedback:new", (payload) => {
+    // A student/teacher just sent feedback: refresh the admin's Feedback tab live
+    });
+      pushNotification("order", label, tx("n.status", { o: order.token || "#" + order.id, s: lookup("status", order.status) }));
+        : tx("n.other", { s: lookup("status", order.status) });
+        : order.status === "Ready" ? tx("n.ready")
+        : order.status === "Cooking" ? tx("n.cooking")
+      const label = order.status === "Received" ? tx("n.accepted")
+      }
+        return;
+        pushNotification("order", tx("n.collected.t"), tx("n.collected", { o: order.token || "#" + order.id }));
+      if (order.picked_up_at && session.user.role !== "admin") {
+      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+        ? { ...o, status: order.status, ...(order.picked_up_at !== undefined ? { picked_up_at: order.picked_up_at } : {}) } : o));
+      setOrders(prev => prev.map(o => o.id === order.id
+    socket.on("order:update", (order) => {
+    });
+      }
+        pushNotification("order", "New order", `Order ${order.token} has been placed.`);
+        setOrders(prev => [order, ...prev]);
+      if (session.user.role === "admin") {
+    socket.on("order:new", (order) => {
+    });
+      refreshMyOrders().catch(() => {});
+      pushNotification("order", tx("iss.upd.t"), tx("iss.upd", { o: p.token || "#" + p.order_id }));
+    socket.on("issue:update", (p) => {
+    });
+      setIssueTick(t => t + 1);
+      pushNotification("order", "New problem report", `Order ${p.token}: ${p.reason_label}`);
+      if (session.user.role !== "admin") return;
+    socket.on("issue:new", (p) => {
+    });
+      pushNotification("wallet", tx("ref.got.t"), tx(p.kind === "referrer" ? "ref.got.referrer" : "ref.got.friend", { a: taka(p.amount) }));
+      refreshWallet().catch(() => {});
+    socket.on("referral:bonus", (p) => {
+    socket.on("disconnect", () => setConnected(false));
+    });
+      if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
+      setConnected(true);
+    socket.on("connect", () => {
+    socketRef.current = socket;
+    const socket = io(apiBase, { auth: { token: session.token } });
+    if (!session) return;
+  useEffect(() => {
+  // Live updates via Socket.io
+
+  }, [session, year, month]);
+    refreshCalendar().catch(showError);
+    if (!session || session.user.role === "admin" || session.user.role === "rider") return;
+  useEffect(() => {
+  // Refetch the meal calendar & bill whenever the visible month changes
+
+  }, [restaurant]);
+    refreshOverview().catch(() => {});
+    refreshAdminOrders().catch(() => {});
+    if (!session || session.user.role !== "admin" || !restaurant || restaurant.isHall) return;
+  useEffect(() => {
+  // Admin: reload the queue and overview numbers for the restaurant they just picked / switched to
+
   }, [session]);
     })();
       } catch (e) { showError(e); }
