@@ -135,3 +135,16 @@ Created in `backend/schema.sql`.
 | `details_json` | JSON |
 | `ip_address` | VARCHAR(64) |
 | `created_at` | TIMESTAMP |
+
+## `group_orders`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `host_user_id` | INT |
+| `title` | VARCHAR(100) |
+| `join_code` | VARCHAR(12) |
+| `closes_at` | DATETIME |
+| `status` | ENUM('OPEN','CLOSED','CHECKED_OUT') |
+| `created_at` | TIMESTAMP |
