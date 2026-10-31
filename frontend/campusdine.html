@@ -9959,6 +9959,25 @@ function App() {
           {session.user.role === "student" && tab === "menu" && (
             <>
               <div className="portal-user-banner">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-2xl border-2 border-white/40 overflow-hidden shadow-xl bg-white/20 shrink-0 grid place-items-center">
+                      <Avatar src={session.user.avatar} name={session.user.name} size={80} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-display font-black uppercase tracking-wide">{session.user.name}</h2>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs opacity-95 mt-1.5 font-medium">
+                        <span>💳 ID: <strong>{session.user.externalId || "24524203174"}</strong></span>
+                        <span>🎓 Dept: <strong>Computer Science and Engineering</strong></span>
+                        <span>🏛️ Hall: <strong>{session.user.hallName || "Main Campus Hall"}</strong></span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] opacity-80 mt-1">
+                        <span>📧 {session.user.email || "student@campusdine.edu"}</span>
+                        <span>📱 {session.user.phone || "+8801XXXXXXXXX"}</span>
+                      </div>
+                    </div>
+                  </div>
+
         <ErrorBoundary scope="tab">
         {error && (
           <div className="error-banner rounded-xl px-4 py-3 mb-5 text-sm flex justify-between items-center">
