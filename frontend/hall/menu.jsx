@@ -52,6 +52,7 @@ function HallMenu({ call, isAdmin, notify }) {
                     <div className="flex-1 min-w-0">
                       <div className="tl">{HALL_SLOT_LABEL[s]}</div>
                       <HallMenuCell value={day.slots[s]} isAdmin={isAdmin} onSave={(items) => save(dow, s, items)} />
+                      {isAdmin && <HallMenuCopyButton call={call} notify={notify} slot={s} dow={dow} items={day.slots[s]} onDone={load} />}
                     </div>
                   </div>
                 ))}
