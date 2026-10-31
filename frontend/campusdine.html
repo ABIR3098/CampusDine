@@ -1,3 +1,238 @@
+            </div>
+              </div>
+                  className="btn-primary px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-50 shadow-sm">Post Announcement</button>
+                <button onClick={sendAnnouncement} disabled={!announcementText.trim() || busy}
+              <div className="mt-3 flex justify-end">
+                className="form-input resize-none text-sm" />
+                placeholder="Broadcast a message to all students and staff…"
+              <textarea value={announcementText} onChange={e => setAnnouncementText(e.target.value)} rows={3}
+              <div className="font-display font-800 text-sm mb-2" style={{ color: "var(--gold)" }}>📢 Campus-Wide Notice Broadcast</div>
+            <div className="card-accent rounded-xl p-4 mt-4">
+          {user.role === "admin" && (
+
+          </div>
+            </div>
+              <div className="font-bold text-sm capitalize text-slate-800">{tx("r." + user.role)}</div>
+              <label className="form-label">{tx("role")}</label>
+            <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+            </div>
+              <div className="font-mono font-bold text-sm text-slate-800">{user.externalId || "—"}</div>
+              <label className="form-label">{tx("id")}</label>
+            <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+          <div className="grid grid-cols-2 gap-4">
+
+          )}
+            </div>
+              <ProfileField label={tx("dept")} value={profile.department} />
+            <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--input-bg)" }}>
+          ) : (
+              onChange={e => setProfile({ ...profile, department: e.target.value })} />
+            <ProfileInput label={tx("dept")} value={profile.department} placeholder={tx("dept.ph")}
+          {editing ? (
+
+          )}
+            </div>
+              <ProfileField label={tx("address")} value={profile.address} />
+            <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--input-bg)" }}>
+          ) : (
+              onChange={e => setProfile({ ...profile, address: e.target.value })} />
+            <ProfileInput label={tx("address")} value={profile.address} placeholder={tx("addr.ph")}
+          {editing ? (
+
+          </div>
+            )}
+              </>
+                </div>
+                  <ProfileField label={tx("fphone")} value={profile.fatherPhone} />
+                <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--input-bg)" }}>
+                </div>
+                  <ProfileField label={tx("phone")} value={profile.phone} />
+                <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--input-bg)" }}>
+              <>
+            ) : (
+              </>
+                  onChange={e => setProfile({ ...profile, fatherPhone: e.target.value })} />
+                <ProfileInput label={tx("fphone")} value={profile.fatherPhone} placeholder="01XXXXXXXXX"
+                  onChange={e => setProfile({ ...profile, phone: e.target.value })} />
+                <ProfileInput label={tx("phone")} value={profile.phone} placeholder="01XXXXXXXXX"
+              <>
+            {editing ? (
+          <div className="grid grid-cols-2 gap-4">
+
+          )}
+            </div>
+              <ProfileField label={tx("email")} value={profile.email} />
+            <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--input-bg)" }}>
+          ) : (
+              onChange={e => setProfile({ ...profile, email: e.target.value })} />
+            <ProfileInput label={tx("email")} value={profile.email} placeholder={tx("email.ph")}
+          {editing ? (
+
+          )}
+            </div>
+              <ProfileField label={tx("fullname")} value={profile.name} />
+            <div className="p-3.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--input-bg)" }}>
+          ) : (
+            <ProfileInput label={tx("fullname")} value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} />
+          {editing ? (
+        <div className="space-y-4">
+
+        </div>
+          )}
+            </div>
+              {avatarChanged && <div className="text-[11px] text-slate-500">{tx("pic.hint")}</div>}
+              </div>
+                )}
+                  </button>
+                    {tx("pic.remove")}
+                    className="btn-danger text-xs py-1 px-3 rounded-lg font-semibold">
+                  <button type="button" onClick={() => { setAvatar(null); setAvatarChanged(true); }}
+                {avatar && (
+                </button>
+                  {avatar ? tx("pic.change") : tx("pic.add")}
+                  className="btn-outline text-xs py-1 px-3 rounded-lg font-semibold">
+                <button type="button" onClick={() => fileRef.current && fileRef.current.click()}
+              <div className="flex items-center gap-2">
+              <input ref={fileRef} type="file" accept="image/*" onChange={pickPhoto} className="hidden" />
+            <div className="flex flex-col items-center gap-2 mt-1">
+          {editing && (
+          </div>
+            <p className="text-xs text-slate-500 font-mono mt-0.5">{user.externalId || "Campus Member"}</p>
+            <h3 className="font-bold text-base" style={{ color: "var(--ink)" }}>{profile.name}</h3>
+          <div className="text-center">
+          </div>
+            <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white shadow"></span>
+            <Avatar src={avatar} name={profile.name} size={104} />
+          <div className="relative group">
+        <div className="flex flex-col items-center gap-3 mb-6 p-4 rounded-2xl" style={{ background: "var(--panel-soft)" }}>
+        {/* Profile Avatar & Badge Section */}
+
+        </div>
+          )}
+            </button>
+              {tx("edit")} Profile
+              <Icon path={I.edit} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
+              className="btn-outline text-xs py-1.5 px-3.5 rounded-xl font-bold flex items-center gap-1.5 shadow-sm">
+            <button onClick={() => setEditing(true)}
+          {!editing && (
+          </div>
+            <span className="font-bold text-sm" style={{ color: "var(--ink)" }}>Verified Account</span>
+            <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between pb-4 border-b mb-6" style={{ borderColor: "var(--line)" }}>
+      <div className="card-elevated shadow-md">
+
+      </div>
+        </div>
+          <p className="section-subtitle">Manage campus identity card, hall residency, contact info and security credentials</p>
+          <h2 className="section-title">👤 {tx("tab.profile")} &amp; Identity</h2>
+        <div>
+      <div className="section-header">
+    <div className="max-w-xl mx-auto space-y-6 page-enter">
+  return (
+
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message);
+    } catch (e) {
+      setSuccess("Announcement sent to all users.");
+      setAnnouncementText("");
+      await call("/api/admin/announcement", { method: "POST", body: { message: announcementText.trim() } });
+    try {
+    setBusy(true);
+    if (!announcementText.trim()) return;
+  const sendAnnouncement = async () => {
+
+  };
+    loadProfile();
+    setEditing(false);
+    setError(null); setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+  const cancelEdit = () => {
+
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message);
+    } catch (e) {
+      setEditing(false);
+      setSuccess(tx("pe.ok"));
+      setAvatarChanged(false);
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+      setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
+      onUpdated(data);
+      const data = await call("/api/auth/me", { method: "PUT", body });
+      if (avatarChanged) body.avatar = avatar;
+      if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
+      if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
+      if (profile.email.trim()) body.email = profile.email.trim();
+      };
+        department: profile.department, fatherPhone: profile.fatherPhone,
+        name: profile.name, phone: profile.phone, address: profile.address,
+      const body = {
+    try {
+    setBusy(true);
+    if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
+    if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
+    if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
+    if (!profile.name.trim()) { setError(tx("pe.name")); return; }
+    setError(null); setSuccess(null);
+  const save = async () => {
+
+  useEffect(() => { loadProfile(); }, []);
+
+  };
+    catch (_) { setError(tx("pic.bad")); }
+    try { setAvatar(await fileToAvatar(file)); setAvatarChanged(true); }
+    if (!/^image\/(png|jpe?g|webp|gif|bmp)$/i.test(file.type)) { setError(tx("pic.bad")); return; }
+    setError(null);
+    if (!file) return;
+    e.target.value = "";
+    const file = e.target.files && e.target.files[0];
+  const pickPhoto = async (e) => {
+
+  }).catch(() => {});
+    setAvatar(data.avatar || null); setAvatarChanged(false);
+    setWalletBalance(data.walletBalance);
+    });
+      hallName: data.hallName || "", roomNumber: data.roomNumber || "", hallId: data.hallId || null,
+      department: data.department || "", fatherPhone: data.fatherPhone || "",
+      phone: data.phone || "", address: data.address || "",
+      name: data.name, email: data.email || "", accountType: data.accountType || "regular",
+    setProfile({
+  const loadProfile = () => call("/api/auth/me").then(data => {
+
+  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [announcementText, setAnnouncementText] = useState("");
+  const fileRef = useRef(null);
+  const [avatarChanged, setAvatarChanged] = useState(false);
+  const [avatar, setAvatar] = useState(user.avatar || null);
+  const [showPw, setShowPw] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const shownBalance = liveBalance != null ? liveBalance : walletBalance;
+  /* Fix: profile balance = live wallet balance */
+  const [walletBalance, setWalletBalance] = useState(user.walletBalance);
+  });
+    name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
+  const [profile, setProfile] = useState({
+  const [editing, setEditing] = useState(false);
+function ProfileTab({ user, call, onUpdated, liveBalance }) {
+}
+  );
+    </div>
+        className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+      <input value={value} onChange={onChange} placeholder={placeholder}
+      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{label}</label>
+    <div>
+  return (
+function ProfileInput({ label, value, onChange, placeholder }) {
+}
   );
     </div>
       </div>
