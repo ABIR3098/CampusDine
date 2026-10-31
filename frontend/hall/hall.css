@@ -220,3 +220,4 @@
   .hl-btn, .hl-sec, .hl-dayc { transition: none; }
   .hl-dayc:hover { transform: none; }
 }
+.hl-empty { line-height: 1.5; }
