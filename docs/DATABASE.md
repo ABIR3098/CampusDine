@@ -736,3 +736,14 @@ Created in `backend/src/hall/schema.js`.
 | `title` | VARCHAR(80) |
 | `items` | VARCHAR(255) |
 | `extra_price` | DECIMAL(10,2) |
+
+## `hall_feast_rsvps`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `feast_id` | INT |
+| `user_id` | INT |
+| `status` | ENUM('going','not_going') |
+| `updated_at` | DATETIME |
