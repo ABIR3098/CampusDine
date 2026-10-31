@@ -58,3 +58,15 @@ test("sweep removes old entries only", () => {
   assert.equal(lock.lockedFor("old"), 0);
   assert.ok(lock.lockedFor("new") > 0);
 });
+
+test("a lock can be set up with its own limit and time", () => {
+  const { createAttemptLock } = require("../src/utils/attemptLock");
+  let t = 1000;
+  const lock = createAttemptLock({ max: 2, lockMs: 500, now: () => t });
+  lock.noteFail("a");
+  assert.strictEqual(lock.lockedFor("a"), 0);
+  lock.noteFail("a");
+  assert.strictEqual(lock.lockedFor("a"), 500);
+  t += 501;
+  assert.strictEqual(lock.lockedFor("a"), 0);
+});
