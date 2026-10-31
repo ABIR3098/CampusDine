@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Docs: `docs/HALL_API.md` lists every `/api/hall` route with who can call it, limits and error codes.
 - Docs: riders API guide.
 - Fix: wallet transfer now rounds the balance it returns, so it can no longer show values like 60.199999999999996.
 - Tests: money helper tests.
