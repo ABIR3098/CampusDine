@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix: wallet top-ups are limited to a daily total per account (default ৳20,000).
 - Fix: Lost & Found photos are validated in full and escaped in the Hall Admin page (stored XSS).
 - Docs: `docs/HALL_ADMIN_API.md` covers the Hall Admin sign-up, login with e-mail code, requests, notices and dashboard.
 - Fix: visitor requests and hall pickup tokens used the UTC date, so between 00:00 and 06:00 in Dhaka they used yesterday. They now use the canteen clock (`todayKey()` in `utils/clock.js`).
