@@ -883,3 +883,20 @@ Created in `backend/src/offersSchema.js`.
 | --- | --- |
 | `meta_key` | VARCHAR(60) |
 | `meta_value` | VARCHAR(255) |
+
+## `campus_lost_found`
+Created in `backend/src/routes/campusFeatures.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `user_id` | INT |
+| `item_type` | ENUM('lost','found') |
+| `title` | VARCHAR(160) |
+| `description` | TEXT |
+| `location` | VARCHAR(180) |
+| `contact` | VARCHAR(100) |
+| `image_data` | MEDIUMTEXT |
+| `status` | ENUM('open','claimed','returned','closed') |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
