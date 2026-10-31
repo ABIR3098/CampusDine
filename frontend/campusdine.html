@@ -1,3 +1,238 @@
+  );
+    </div>
+      </div>
+        {value || placeholder || tx("notset")}
+      <div className="text-sm font-600" style={{ color: value ? "var(--ink)" : "var(--ink-soft)" }}>
+      <div className="text-xs uppercase tracking-wide mb-1" style={{ color: "var(--ink-soft)" }}>{label}</div>
+    <div>
+  return (
+function ProfileField({ label, value, placeholder }) {
+}
+  });
+    reader.readAsDataURL(file);
+    };
+      img.src = reader.result;
+      };
+        resolve(c.toDataURL("image/jpeg", 0.85));
+        ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, size, size);
+        const ctx = c.getContext("2d");
+        const c = document.createElement("canvas"); c.width = size; c.height = size;
+        const size = 256, side = Math.min(img.width, img.height);
+      img.onload = () => {
+      img.onerror = () => reject(new Error("img"));
+      const img = new Image();
+    reader.onload = () => {
+    reader.onerror = () => reject(new Error("read"));
+    const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+function fileToAvatar(file) {
+// Reads an image file, crops it to a centred square and shrinks it to 256px (keeps the upload tiny).
+}
+  );
+      style={{ ...base, fontSize: size * 0.4, background: "linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%)" }}>{letter}</div>
+    <div className={`grid place-items-center text-white font-700 ${className}`}
+  return (
+  if (src) return <img src={src} alt={name || ""} className={className} style={{ ...base, objectFit: "cover" }} />;
+  const base = { width: size, height: size, borderRadius: 999, flexShrink: 0 };
+  const letter = (name || "?").trim().charAt(0).toUpperCase();
+function Avatar({ src, name, size = 34, className = "" }) {
+/* ---------------- Profile tab (all roles) ---------------- */
+/* ---------------- Profile tab (all roles) ---------------- */
+
+}
+  return <img className="chat-img" src={src} alt="Chat photo" onClick={() => onOpen(src)} />;
+  if (!src) return <div className="chat-img-skel" />;
+  if (failed) return <div className="chat-img-missing">📷 Photo unavailable</div>;
+  }, [id]);
+    return () => { alive = false; };
+      .catch(() => { if (alive) setFailed(true); });
+      })
+        if (alive) setSrc(url);
+        (window.__chatImgCache = window.__chatImgCache || {})[id] = url;
+        const url = URL.createObjectURL(b);
+      .then(b => {
+      .then(r => { if (!r.ok) throw new Error("missing"); return r.blob(); })
+    fetch(`${apiBase}/api/chat/images/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+    let alive = true;
+    if (src) return;
+  useEffect(() => {
+  const [failed, setFailed] = useState(false);
+  const [src, setSrc] = useState(() => (window.__chatImgCache && window.__chatImgCache[id]) || null);
+function ChatImage({ id, apiBase, token, onOpen }) {
+// A photo inside a chat bubble. Loaded with the login token, so only the two people in the chat can see it.
+
+}
+  });
+    img.src = url;
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("This file is not a supported photo")); };
+    };
+      } catch (e) { reject(new Error("Could not process this photo")); }
+        resolve(blob);
+        if (!blob || blob.size > 900 * 1024) return reject(new Error("This photo is too large. Please choose a smaller one."));
+        URL.revokeObjectURL(url);
+        }
+          quality = Math.max(0.5, quality - 0.1); scale *= 0.85;
+          if (blob && blob.size <= 700 * 1024) break;
+          blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const ctx = canvas.getContext("2d");
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          const canvas = document.createElement("canvas");
+        for (let i = 0; i < 6; i++) {
+        let scale = Math.min(1, 1280 / Math.max(img.width, img.height)), quality = 0.82, blob = null;
+      try {
+    img.onload = async () => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+  return new Promise((resolve, reject) => {
+function compressChatPhoto(file) {
+// Shrinks a chosen photo (max 1280px, JPEG) so it stays small enough to upload quickly.
+
+}
+  );
+    </section>
+      )}
+        </div>
+          <img src={lightbox} alt="Photo" />
+        <div className="chat-lightbox" onClick={() => setLightbox(null)}>
+      {lightbox && (
+      </div>
+        </form>
+          </button>
+            <Icon path="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" className="w-5 h-5" />
+            disabled={busy || (!draft.trim() && !pendingPhoto) || (isAdmin && !selectedUserId)}>
+          <button type="submit" className="chat-send" aria-label={tx("chat.send")}
+          </div>
+            {draft.length > 3500 && <span className="chat-count">{draft.length}/4000</span>}
+              disabled={isAdmin && !selectedUserId} placeholder={tx("chat.ph")} />
+            <textarea ref={inputRef} value={draft} onChange={onInput} onKeyDown={onKey} maxLength={4000} rows={1}
+          <div className="chat-input-wrap">
+          )}
+            </div>
+              {emojis.map(em => <button key={em} type="button" onClick={() => addEmoji(em)}>{em}</button>)}
+            <div className="chat-emoji-panel">
+          {emojiOpen && (
+            disabled={isAdmin && !selectedUserId}>😊</button>
+          <button type="button" className="chat-emoji-btn" aria-label="Emoji" onClick={() => { setOrderOpen(false); setEmojiOpen(o => !o); }}
+          )}
+            </div>
+                ))}
+                  </button>
+                    <small>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(", ").slice(0, 70)}</small>
+                    <b>{o.token} · {o.status} · {taka(o.total)}</b>
+                  <button key={o.token} type="button" className="chat-order-pick" onClick={() => shareOrder(o)}>
+                : myOrders.map(o => (
+                : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
+              {myOrders === null ? <p className="chat-order-note">Loading…</p>
+            <div className="chat-order-panel">
+          {orderOpen && !isAdmin && (
+          )}
+            <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
+          {!isAdmin && (
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
+            onClick={() => fileRef.current?.click()} disabled={isAdmin && !selectedUserId}>📷</button>
+          <button type="button" className="chat-emoji-btn" aria-label="Send a photo" title="Send a photo"
+        <form className="chat-composer" onSubmit={e => { e.preventDefault(); send(); }}>
+        )}
+          </div>
+            <button type="button" aria-label="Cancel reply" onClick={() => setReplyTo(null)}>✕</button>
+            </div>
+              <span>{shortText(replyTo.message)}</span>
+              <b>Replying to {Number(replyTo.sender_id) === Number(userId) ? "yourself" : (replyTo.sender_name || heading)}</b>
+            <div>
+          <div className="chat-replybar">
+        {replyTo && (
+        )}
+          </div>
+            <button type="button" aria-label="Remove photo" onClick={() => setPendingPhoto(null)}>✕</button>
+            <span>Photo ready. Add a caption (optional) and press send.</span>
+            <img src={pendingPhoto.url} alt="Selected photo" />
+          <div className="chat-photobar">
+        {pendingPhoto && (
+        )}
+          </div>
+            {templates.map(t => <button key={t} type="button" onClick={() => { setDraft(t); inputRef.current?.focus(); }}>{t}</button>)}
+          <div className="chat-templates">
+        {isAdmin && selectedUserId && (
+        </div>
+        )}
+          </button>
+            {newBelow > 0 && <span className="chat-jump-badge">{newBelow}</span>}
+            <Icon path="M12 5v14M19 12l-7 7-7-7" className="w-5 h-5" />
+          <button type="button" className="chat-jump" onClick={jumpToBottom} aria-label="Jump to latest message">
+        {!atBottom && messages.length > 0 && (
+        </div>
+          <div ref={bottomRef} />
+          )}
+            </div>
+              <div className="chat-bubble theirs first last chat-typing"><i /><i /><i /></div>
+              <div style={{ width: 30 }}><Avatar name={heading} size={30} /></div>
+            <div className="chat-row">
+          {typing && (
+          ) : rows}
+            </div>
+              )}
+                </div>
+                  {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
+                <div className="chat-quick">
+              {!isAdmin && (
+              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}</p>
+              <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
+            <div className="chat-empty">
+          {messages.length === 0 ? (
+        <div className="chat-scroll" ref={scrollRef} onScroll={onScroll} aria-live="polite">
+        <div className="chat-scroll-wrap">
+        {error && <p className="chat-error">{error}</p>}
+        )}
+          </div>
+            <button type="button" aria-label="Close search" onClick={closeSearch}>✕</button>
+            <button type="button" aria-label="Newer match" title="Newer match (Shift+Enter)" disabled={matchIds.length < 2} onClick={() => stepMatch(1)}>▼</button>
+            <button type="button" aria-label="Older match" title="Older match (Enter)" disabled={matchIds.length < 2} onClick={() => stepMatch(-1)}>▲</button>
+            <span className="chat-search-count">{q ? (matchIds.length ? `${curPos + 1} of ${matchIds.length}` : "No results") : ""}</span>
+              onKeyDown={e => { if (e.key === "Escape") closeSearch(); else if (e.key === "Enter") { e.preventDefault(); stepMatch(e.shiftKey ? 1 : -1); } }} />
+            <input ref={searchRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search in this chat…"
+          <div className="chat-searchbar">
+        {searchOpen && (
+        </header>
+          <span className="chat-pill">{tx("chat.support")}</span>
+          </button>
+            <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
+          <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
+          </div>
+            </p>
+            )}
+              </>
+                {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+                {headOnline !== undefined && " · "}
+                {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
+              <>
+              {typing ? <span className="chat-typing-text">typing…</span> : (
+            <p className="text-xs capitalize" style={{ color: "var(--ink-soft)" }}>
+            <h2 className="font-display font-700 truncate" style={{ color: "var(--ink)" }}>{heading}</h2>
+          <div style={{ minWidth: 0, flex: 1 }}>
+          {withDot(heading, 40, headOnline)}
+          {isAdmin && <button className="chat-back" onClick={() => setMobileChat(false)} aria-label="Back"><Icon path="M15 18l-6-6 6-6" /></button>}
+        <header className="chat-head">
+      <div className="card chat-panel">
+      )}
+        </aside>
+          </div>
+            })}
+              );
+                </button>
+                  </span>
+                    <span className="chat-item-role">{c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
+                    </span>
+                      {unread && <span className="chat-badge">{c.unread_count}</span>}
+                      <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
+                    <span className="chat-item-bottom">
+                    </span>
+                      <span className="chat-item-time">{listTime(c.updated_at || c.last_at)}</span>
+                      <span className="chat-item-name" style={{ fontWeight: unread ? 700 : 600 }}>{c.name}</span>
+                    <span className="chat-item-top">
                   <span className="chat-item-body">
                   {withDot(c.name, 42, isOnline(c.user_id))}
                   onClick={() => { setSelectedUserId(c.user_id); setMobileChat(true); }}>
