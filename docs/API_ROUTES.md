@@ -141,3 +141,18 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/summary`
 - `GET /api/summary/budget`
 - `PUT /api/summary/budget`
+
+## `/api/hall-admin` — `src/routes/hallAdmin.js`
+
+- `POST /api/hall-admin/auth/send-otp`
+- `POST /api/hall-admin/auth/register`
+- `POST /api/hall-admin/auth/login`
+- `POST /api/hall-admin/auth/verify-login`
+- `GET /api/hall-admin/requests`
+- `PATCH /api/hall-admin/requests/:id`
+- `GET /api/hall-admin/notices`
+- `POST /api/hall-admin/notices`
+- `DELETE /api/hall-admin/notices/:id`
+- `GET /api/hall-admin/dashboard`
+- `POST /api/hall-admin/items`
+- `PATCH /api/hall-admin/items/:id`
