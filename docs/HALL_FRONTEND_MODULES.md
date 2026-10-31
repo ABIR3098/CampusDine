@@ -40,3 +40,6 @@ Home: reminder for meals that are about to close ("Dinner closes in 40m — it i
 
 ## `defaulters.jsx`
 Dues (admin): who still owes money for a month, how much, whether their wallet can cover it,
+
+## `diet.jsx`
+Diet, member side: say what you don't eat and what you are allergic to. The week's menu then shows
