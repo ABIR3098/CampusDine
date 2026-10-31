@@ -378,3 +378,20 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `status` | ENUM('pending','approved','rejected','checked_in','checked_out','cancelled') |
 | `reviewed_by` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_facility_bookings`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `facility_name` | VARCHAR(160) |
+| `booking_date` | DATE |
+| `start_time` | TIME |
+| `end_time` | TIME |
+| `purpose` | VARCHAR(500) |
+| `status` | ENUM('pending','approved','rejected','cancelled','completed') |
+| `reviewed_by` | INT |
+| `review_note` | VARCHAR(500) |
+| `created_at` | TIMESTAMP |
