@@ -49,3 +49,11 @@ test("nutrition entries have non-negative calories and known allergens", () => {
     for (const a of info.allergens) assert.ok(known.includes(a), name + ": unknown allergen " + a);
   }
 });
+
+test("every nutrition entry matches a built-in item or one in more_menu_items.sql", () => {
+  const { NUTRITION_BY_NAME } = require("../src/catalog");
+  const sql = fs.readFileSync(path.join(__dirname, "..", "more_menu_items.sql"), "utf8");
+  for (const name of Object.keys(NUTRITION_BY_NAME)) {
+    assert.ok(name in IMAGE_BY_NAME || sql.includes("SELECT '" + name + "'"), name + " is not a known item");
+  }
+});
