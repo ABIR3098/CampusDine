@@ -228,3 +228,4 @@
 .hl-dayc-head { letter-spacing: .01em; }
 .hl-input { text-overflow: ellipsis; }
 .hl-input:hover:not(:disabled) { border-color: var(--gold); }
+.hl-sub { max-width: 60ch; }
