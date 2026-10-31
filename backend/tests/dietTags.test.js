@@ -28,3 +28,12 @@ test("tagsOf does not tag eggplant as egg, and tags butter as dairy", () => {
   assert.deepStrictEqual(tagsOf("Eggplant bhaji"), []);
   assert.deepStrictEqual(tagsOf("Butter chicken").sort(), ["chicken", "milk"]);
 });
+
+test("tagsOf finds mutton, shellfish, nuts, dairy and egg words", () => {
+  const { tagsOf } = require("../src/hall/dietTags");
+  assert.deepStrictEqual(tagsOf("Khashi curry"), ["mutton"]);
+  assert.deepStrictEqual(tagsOf("Chingri malai"), ["shellfish"]);
+  assert.deepStrictEqual(tagsOf("Badam sharbat"), ["nuts"]);
+  assert.deepStrictEqual(tagsOf("Mishti doi"), ["milk"]);
+  assert.deepStrictEqual(tagsOf("Dim bhuna"), ["egg"]);
+});
