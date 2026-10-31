@@ -51,6 +51,7 @@ const NUTRITION_BY_NAME = {
   "Borhani": { calories: 80, allergens: ["milk"] },
   "Falooda": { calories: 320, allergens: ["milk", "nuts"] },
   "Coconut Water": { calories: 45, allergens: [] },
+  "Club Sandwich": { calories: 450, allergens: ["gluten", "egg", "milk"] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
