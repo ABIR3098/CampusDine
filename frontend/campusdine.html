@@ -642,6 +642,25 @@
     border-right: 1.5px solid var(--line);
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 30;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 16px rgba(16,24,40,0.03);
+  }
+  .portal-sidebar.collapsed {
+    width: 78px;
+  }
+
+  .portal-sidebar-head {
+    padding: 18px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    min-height: 70px;
+  }
 
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
