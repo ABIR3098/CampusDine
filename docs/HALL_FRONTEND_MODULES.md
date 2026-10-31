@@ -103,3 +103,6 @@ Reports: download what is on the screen as a spreadsheet (CSV).
 
 ## `reportPrint.jsx`
 Reports: print the page, or choose "Save as PDF" in the print window. The top bar, tabs and buttons are hidden while printing.
+
+## `savings.jsx`
+Home: "your month so far" — how many closed meals were ON / OFF and how much the OFF meals saved.
