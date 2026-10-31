@@ -1015,3 +1015,14 @@ Created in `backend/server.js`.
 | `accuracy_m` | DECIMAL(8,2) |
 | `active` | TINYINT(1) |
 | `updated_at` | TIMESTAMP |
+
+## `order_status_history`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `order_id` | INT |
+| `status` | VARCHAR(40) |
+| `note` | VARCHAR(255) |
+| `created_at` | TIMESTAMP |
