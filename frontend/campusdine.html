@@ -6758,6 +6758,40 @@ function DailySpinWheelModal({ user, onClose, onReward }) {
 
     // Pick random sector
     const winningIndex = Math.floor(Math.random() * SPIN_SECTORS.length);
+    const sectorAngle = 360 / SPIN_SECTORS.length;
+    const extraRounds = 5 * 360; // 5 full rounds
+    const targetAngle = extraRounds + (360 - (winningIndex * sectorAngle + sectorAngle / 2));
+
+    setRotation(targetAngle);
+
+    // Audio clicks
+    const interval = setInterval(() => {
+      playChimeSound("click");
+    }, 180);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      setSpinning(false);
+      const won = SPIN_SECTORS[winningIndex];
+      setPrize(won);
+      playChimeSound("win");
+      try {
+        localStorage.setItem("cd_last_spin_date", new Date().toISOString().slice(0, 10));
+        setAlreadySpun(true);
+      } catch (_) {}
+      if (onReward && won.bonus > 0) {
+        onReward("🎉 You won " + won.label + " from Daily Spin!");
+      }
+    }, 4000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden border border-indigo-500/30 text-center" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-indigo-800/60 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl animate-bounce">🎡</span>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
