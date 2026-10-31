@@ -718,6 +718,25 @@
   }
   .portal-nav-item.active {
     background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+    color: #FFFFFF !important;
+    border-color: var(--gold);
+    box-shadow: 0 4px 16px -2px var(--accent-shadow);
+    transform: translateX(3px);
+  }
+  .portal-nav-item.active .portal-nav-icon {
+    color: #FFFFFF !important;
+  }
+  .portal-nav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+    transition: color 0.15s ease;
+  }
+  .portal-nav-label {
+    white-space: nowrap;
 
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
