@@ -61,3 +61,6 @@ Small charts drawn with plain divs (no library), so they also print cleanly.
 
 ## `financeCompare.jsx`
 Finance: how this month compares with the one before ("↑ 12% vs last month").
+
+## `financeExpenses.jsx`
+Mess finance: add an expense, and the list of this month's expenses.
