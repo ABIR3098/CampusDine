@@ -111,13 +111,14 @@ Hall.register({ key: "token", label: "Token", icon: "🎫", order: 7, roles: ["s
 function HallServe({ call, notify }) {
   const [slot, setSlot] = useState("lunch");
   const [q, setQ] = useState(null);
+  useHallServeSounds(q);
   const load = async (s, quiet) => {
     try { setQ(await call(`/api/hall/queue?slot=${s}`)); } catch (e) { if (!quiet) notify(e, true); }
   };
   useEffect(() => { setQ(null); load(slot); const t = setInterval(() => load(slot, true), 8000); return () => clearInterval(t); }, [slot]);
 
   const serve = async (serial) => {
-    try { await call("/api/hall/queue/serve", { method: "POST", body: { slot, serial } }); await load(slot, true); }
+    try { await call("/api/hall/queue/serve", { method: "POST", body: { slot, serial } }); hallBeep("ok"); await load(slot, true); }
     catch (e) { notify(e, true); }
   };
 
@@ -125,7 +126,7 @@ function HallServe({ call, notify }) {
     <HallCard title="Serve tokens — today" icon="🔔" right={
       <div className="flex gap-1.5">{HALL_SLOTS.map((s) => (
         <button key={s} onClick={() => setSlot(s)} className={`hl-btn sm ${s === slot ? "" : "ghost"}`}>{HALL_SLOT_EMOJI[s]} {HALL_SLOT_LABEL[s]}</button>
-      ))}</div>
+      ))}<HallServeSoundToggle /></div>
     }>
       {!q ? <div className="hl-empty">Loading…</div> : (
         <>
@@ -134,6 +135,7 @@ function HallServe({ call, notify }) {
             <HallStat icon="⏳" label="Waiting" value={q.waiting.length} sub={`${q.waitingPlates} plates`} />
             <HallStat icon="✅" label="Served" value={q.served} />
           </div>
+          <HallServeProgress q={q} />
           {q.waiting.length === 0 ? <div className="hl-empty">Nobody is waiting.</div> : (
             <div className="hl-scroll">
               <table className="hl-table">
