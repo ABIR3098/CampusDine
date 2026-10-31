@@ -6,3 +6,7 @@ node_modules/
 
 # Local credentials
 backend/.env
+
+# OS files
+.DS_Store
+Thumbs.db
