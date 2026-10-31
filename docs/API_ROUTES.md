@@ -280,3 +280,7 @@ Every route registered in the backend, grouped by the file that defines it. Path
 ## `/api/hall` — `src/hall/routes/ratingsReport.js`
 
 - `GET /api/hall/ratings/summary`
+
+## `/api/hall` — `src/hall/routes/ratingsTrend.js`
+
+- `GET /api/hall/ratings/trend`
