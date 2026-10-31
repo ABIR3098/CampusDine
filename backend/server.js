@@ -669,6 +669,7 @@ async function runStartupCheck() {
     await ensureHallExtraSchema(db); // Hall notices, service requests, inventory and audit trail
     await ensureHallAdvancedSchema(db); // Hall room workflow, visitors, facilities, laundry, kitchen and notifications
 
+  if (!skipDemo) {
   console.log("\n════════════════════════════════════════");
   console.log("🔑 Test the app with these logins:");
   console.log("   Admin   → ID: admin      Password: admin123");
@@ -676,6 +677,7 @@ async function runStartupCheck() {
   console.log("   Teacher → ID: teacher1   Password: teacher123");
   console.log("   Rider   → ID: rider1     Password: rider123");
   console.log("════════════════════════════════════════\n");
+  }
 
   await db.end();
 }
