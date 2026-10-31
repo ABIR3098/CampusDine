@@ -769,3 +769,18 @@ Created in `backend/src/hall/schema.js`.
 | `ym` | CHAR(7) |
 | `amount` | DECIMAL(10,2) |
 | `created_at` | DATETIME |
+
+## `hall_tokens`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `user_id` | INT |
+| `serial` | INT |
+| `plates` | TINYINT |
+| `status` | ENUM('waiting','served') |
+| `created_at` | DATETIME |
+| `served_at` | DATETIME |
