@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix: Hall Admin notices (no university) are now visible to students assigned to a university.
 - Fix: wallet top-ups are limited to a daily total per account (default ৳20,000).
 - Fix: Lost & Found photos are validated in full and escaped in the Hall Admin page (stored XSS).
 - Docs: `docs/HALL_ADMIN_API.md` covers the Hall Admin sign-up, login with e-mail code, requests, notices and dashboard.
