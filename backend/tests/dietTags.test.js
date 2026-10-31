@@ -63,3 +63,7 @@ test("tagsOf returns nothing for a plain meal or empty input", () => {
   assert.deepEqual(tagsOf(""), []);
   assert.deepEqual(tagsOf(null), []);
 });
+
+test("tagsOf returns several tags in the fixed tag order", () => {
+  assert.deepEqual(tagsOf("Egg, Rice, Beef curry"), ["beef", "egg"]);
+});
