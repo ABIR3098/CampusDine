@@ -1003,3 +1003,15 @@ Created in `backend/src/utils/otp.js`.
 | `expires_at` | DATETIME |
 | `used_at` | DATETIME |
 | `created_at` | TIMESTAMP |
+
+## `rider_locations`
+Created in `backend/server.js`.
+
+| Column | Type |
+| --- | --- |
+| `rider_id` | INT |
+| `latitude` | DECIMAL(10,7) |
+| `longitude` | DECIMAL(10,7) |
+| `accuracy_m` | DECIMAL(8,2) |
+| `active` | TINYINT(1) |
+| `updated_at` | TIMESTAMP |
