@@ -243,3 +243,7 @@ Every route registered in the backend, grouped by the file that defines it. Path
 ## `/api/hall` — `src/hall/routes/info.js`
 
 - `GET /api/hall/info`
+
+## `/api/hall` — `src/hall/routes/jobs.js`
+
+- `POST /api/hall/auto-fill`
