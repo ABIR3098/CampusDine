@@ -87,3 +87,10 @@ test("a coupon description is cut to 255 characters and a blank one becomes null
   assert.strictEqual(validateNewCoupon({ ...base, description: "x".repeat(300) }).value.description.length, 255);
   assert.strictEqual(validateNewCoupon({ ...base, description: "   " }).value.description, null);
 });
+
+test("a usage limit must be a positive whole number", () => {
+  const { validateNewCoupon } = require("../src/utils/couponRules");
+  const base = { code: "ABC", discountType: "FIXED", discountValue: 10 };
+  for (const bad of [0, 1.5, "abc", -3]) assert.ok(validateNewCoupon({ ...base, usageLimit: bad }).error, String(bad));
+  assert.strictEqual(validateNewCoupon({ ...base, usageLimit: "5" }).value.usageLimit, 5);
+});
