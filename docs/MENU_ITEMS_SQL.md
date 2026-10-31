@@ -19,3 +19,6 @@ Images live in `frontend/images/food/`; use `default.svg` if there is no matchin
 
 ## Current size
 The file adds **132** items: Amitie 33, Vista 33, Third Place 33 and Staff Canteen 33.
+
+## Checking the file
+`npm test` in `backend/` reads `more_menu_items.sql` and checks that every item appears in both blocks, has a valid restaurant and uses an image that exists.
