@@ -106,3 +106,6 @@ Reports: print the page, or choose "Save as PDF" in the print window. The top ba
 
 ## `savings.jsx`
 Home: "your month so far" — how many closed meals were ON / OFF and how much the OFF meals saved.
+
+## `serveExtras.jsx`
+Serve tab (admin): progress of the meal, a soft beep for each new token, and a sound switch.
