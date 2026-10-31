@@ -1,3 +1,238 @@
+  const [title, setTitle] = useState("Study group order");
+  const [detail, setDetail] = useState(null);
+  const [activeGroupId, setActiveGroupId] = useState(null);
+  const [groups, setGroups] = useState([]);
+function GroupOrderPanel({ menu, cart, setCart, apiBase, token, userId }) {
+
+}
+  return null;
+  }, []);
+    return () => clearInterval(timer);
+    tick(); const timer = setInterval(tick, 8000);
+    };
+      }, () => { busy = false; }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+        finally { busy = false; }
+        catch (_) {}
+        try { await api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy } }); }
+      navigator.geolocation.getCurrentPosition(async pos => {
+      busy = true;
+      if (!saved || !saved.token || !saved.apiBase) return;
+      try { saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); } catch (_) { saved = null; }
+      let saved;
+      if (busy || !navigator.geolocation) return;
+    const tick = () => {
+    let busy = false;
+  useEffect(() => {
+function RiderGpsBackground() {
+
+}
+  );
+    </div>
+      {showSos && <RiderEmergencyModal onClose={() => setShowSos(false)} />}
+
+      </div>
+
+        </div>
+          )}
+            </div>
+              )}
+                <div className="text-xs italic" style={{ color: "var(--ink-soft)" }}>No assigned orders have delivery GPS coordinates.</div>
+              ) : (
+                </div>
+                  ))}
+                    </div>
+                      <span className="font-mono text-[11px] opacity-80">{stop.distanceFromPreviousKm} km from previous</span>
+                      </div>
+                        <span className="font-700">Order #{stop.id}</span>
+                        </span>
+                          {index + 1}
+                        <span className="w-5 h-5 rounded-full grid place-items-center text-[10px] font-800 text-white" style={{ background: "var(--gold)" }}>
+                      <div className="flex items-center gap-2">
+                    <div key={stop.id} className="flex items-center justify-between p-2.5 rounded-xl border text-xs" style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                  {routePlan.route.map((stop, index) => (
+                <div className="space-y-1.5">
+              {routePlan.route && routePlan.route.length ? (
+              <p className="text-xs mb-3" style={{ color: "var(--ink-soft)" }}>Calculated sequential stops for minimal travel distance across campus.</p>
+              </div>
+                <span className="text-[11px] font-mono" style={{ color: "var(--ink-soft)" }}>Estimated stops</span>
+                </div>
+                  <span>🧭</span> Nearest-Neighbor Route Recommendations
+                <div className="font-display font-800 text-sm flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-2">
+            <div className="mt-5 p-4 rounded-2xl border" style={{ background: "var(--panel-soft)", borderColor: "var(--line)" }}>
+          {routePlan && (
+          {/* Route Optimization result */}
+
+          )}
+            </div>
+              ))}
+                </div>
+                  <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />
+                  {/* Clean collapsible chat panel */}
+
+                  </div>
+                    </div>
+                      </button>
+                        <span>📸</span> {deliveryProof[o.id] ? "Drop-off Verified" : "Drop-off Proof"}
+                        style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                      }} className="px-3 py-1.5 rounded-xl border text-xs font-700 flex items-center gap-1"
+                        if (note) setDeliveryProof(p => ({ ...p, [o.id]: { note, time: new Date().toLocaleTimeString() } }));
+                        const note = prompt("Enter Proof of Drop-off Note (e.g., Left at Faculty Room #204 with lab assistant):");
+                      <button type="button" onClick={() => {
+                      )}
+                        </button>
+                          {acceptingId === o.id ? "Accepting…" : "✓ Accept Delivery"}
+                          className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1 shadow-sm">
+                        <button disabled={acceptingId === o.id} onClick={() => acceptOrder(o.id)}
+                      {o.rider_assignment_status === "Assigned" && (
+                    <div className="flex items-center gap-2 self-start flex-wrap">
+
+                    </div>
+                      </div>
+                        )}
+                          </span>
+                            🪙 Tip: ৳{o.tip_amount}
+                          <span className="font-700 text-emerald-600 flex items-center gap-1">
+                        {Number(o.tip_amount) > 0 && (
+                        <span>🕒 Placed: {o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—"}</span>
+                      <div className="text-xs flex items-center gap-3 pt-1" style={{ color: "var(--ink-soft)" }}>
+
+                      )}
+                        </div>
+                          <span>🚪 Room/Location:</span> {o.delivery_note}
+                          style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                        <div className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-600 mt-1"
+                      {o.delivery_note && (
+
+                      </div>
+                        )}
+                          </span>
+                            Assignment: {o.rider_assignment_status}
+                          <span className="text-[10px] uppercase font-700 px-2 py-0.5 rounded-full" style={{ background: "var(--panel-soft)", border: "1px solid var(--line)" }}>
+                        {o.rider_assignment_status && (
+                        {getStatusBadge(o.status)}
+                        <span className="font-mono font-800 text-base" style={{ color: "var(--gold)" }}>Order #{o.id}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                    <div className="space-y-1">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                <div key={o.id} className="rider-order-card">
+              {summary.orders.map(o => (
+            <div className="space-y-3.5">
+          ) : (
+            </div>
+              </p>
+                {shift ? "You are on duty! New orders will pop up here in real-time as kitchen dispatch assigns them." : "Turn on your duty shift above to start receiving food delivery orders."}
+              <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--ink-soft)" }}>
+              <div className="text-base font-display font-700">No active delivery assignments</div>
+              <div className="text-4xl mb-2">📬</div>
+            <div className="py-14 text-center">
+          {summary.orders.length === 0 ? (
+
+          )}
+            </div>
+              <span>⚠️</span> {orderError}
+              style={{ background: "var(--danger-bg)", color: "var(--danger-fg)", border: "1px solid var(--danger-border)" }}>
+            <div className="p-3 mb-4 rounded-xl text-xs flex items-center gap-2"
+          {orderError && (
+
+          </div>
+            </button>
+              🗺 Optimize Route Plan
+              style={{ borderColor: "var(--line)" }}>
+            <button onClick={optimizeRoute} className="px-4 py-2 rounded-xl border text-xs font-700 flex items-center gap-1.5 hover:bg-black/5"
+            </div>
+              <p className="text-xs" style={{ color: "var(--ink-soft)" }}>Deliver meals directly to campus faculty & staff.</p>
+              </h2>
+                <span>📍</span> Assigned Delivery Orders
+              <h2 className="text-lg font-display font-800 flex items-center gap-2">
+            <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="card p-6">
+        {/* Assigned Deliveries List */}
+
+        )}
+          </div>
+            )}
+              </div>
+                ))}
+                  </div>
+                    <p className="italic leading-relaxed" style={{ color: "var(--ink)" }}>"{r.comment}"</p>
+                    <div className="font-600 text-amber-500 mb-0.5">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
+                  <div key={i} className="p-2.5 rounded-xl text-xs" style={{ background: "var(--panel-soft)", border: "1px solid var(--line)" }}>
+                {summary.reviews.filter(r => r.comment).slice(0, 4).map((r, i) => (
+              <div className="mt-4 pt-3 border-t grid sm:grid-cols-2 gap-2" style={{ borderColor: "var(--line)" }}>
+            {summary.reviews && summary.reviews.filter(r => r.comment).length > 0 && (
+            </div>
+              </div>
+                </div>
+                  </div>
+                    Based on {summary.rating_count} customer {summary.rating_count === 1 ? "review" : "reviews"}
+                  <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+                  </div>
+                    {Number(summary.rating_avg).toFixed(1)} <span className="text-xs font-normal" style={{ color: "var(--ink-soft)" }}>/ 5.0 Rating</span>
+                  <div className="text-xl font-display font-800">
+                <div>
+                <div className="text-3xl">⭐</div>
+              <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="card p-5">
+        {summary.rating_count > 0 && (
+        {/* Rider Rating & Reviews */}
+
+        </div>
+          ))}
+            </div>
+              {x.sub && <div className="text-[10px] font-mono mt-0.5 font-600" style={{ color: "var(--teal)" }}>{x.sub}</div>}
+              <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{x.label}</div>
+              <div className="text-2xl font-display font-800 mt-2">{x.value}</div>
+              </div>
+                <span className="text-[11px] font-700 uppercase tracking-wider" style={{ color: x.color }}>Live</span>
+                <span className="text-xl">{x.icon}</span>
+              <div className="flex items-center justify-between">
+            <div className="rider-metric-card" key={x.label}>
+          ].map(x => (
+            { label: "Tips Earned", value: `৳${summary.tips_today || 0}`, sub: `Total ৳${summary.tips_total || 0}`, icon: "🪙", color: "#7C3AED" },
+            { label: "Ready to Deliver", value: summary.ready, icon: "🔔", color: "#16A34A" },
+            { label: "Now Cooking", value: summary.cooking, icon: "🍳", color: "#D97706" },
+            { label: "Kitchen Received", value: summary.received, icon: "📥", color: "#2563EB" },
+            { label: "Active Orders", value: summary.total, icon: "📦", color: "var(--gold)" },
+          {[
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+        {/* 5 Innovative Metric Cards */}
+
+        </div>
+          </div>
+            </div>
+              </button>
+                🔄 Refresh
+              <button onClick={refreshOrders} className="px-3 py-1.5 rounded-lg border text-xs font-600 flex items-center gap-1" style={{ borderColor: "var(--line)" }}>
+              </label>
+                </select>
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} Orders</option>)}
+                  className="rounded-lg border px-2.5 py-1.5 text-xs font-700" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}>
+                <select disabled={shift} value={maxOrders} onChange={e => setMaxOrders(Number(e.target.value))}
+                Max active orders:
+              <label className="text-xs flex items-center gap-2" style={{ color: "var(--ink-soft)" }}>
+            <div className="flex items-center gap-3">
+
+            </div>
+              </span>
+                {shift ? "● On Duty" : "○ Off Duty"}
+              <span className={`order-status-badge ${shift ? "ready" : "received"}`}>
+              </button>
+                {shiftBusy ? "Updating…" : shift ? "⏹ End Duty Shift" : "▶ Start Duty Shift"}
+              <button disabled={shiftBusy} onClick={updateShift} className={shift ? "shift-btn-active" : "shift-btn-inactive"}>
+            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+          {/* Shift Controls */}
+
+          </div>
+            </div>
+              )}
+                </button>
+                  ⏹ Stop GPS
+                  style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
+                <button onClick={stop} className="px-4 py-2 rounded-xl text-xs font-700 border flex items-center gap-1.5"
               ) : (
                 </button>
                   📡 Enable GPS
