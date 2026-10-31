@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Docs: wallet API guide and corrected top-up limit.
+- Tests: new unit tests for diet tags and hall cut-off helpers.
 - Hall weekly menu: sample meals now include sides such as salad, banana and lemon.
 - `more_menu_items.sql`: 47 more items across the four restaurants.
 - Hall menu screen: input label and placeholder, loading text, and a guard for missing weekdays.
