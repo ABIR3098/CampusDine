@@ -1,10 +1,10 @@
 // Last call, admin side: put up leftover plates, see who took them, hand them over by code, refund a plate nobody collected.
 
-function HallLastCallForm({ slots, busy, onCreate }) {
-  const [slot, setSlot] = useState("lunch");
-  const [plates, setPlates] = useState("");
-  const [price, setPrice] = useState("");
-  const [note, setNote] = useState("");
+function HallLastCallForm({ slots, busy, onCreate, prefill }) {
+  const [slot, setSlot] = useState(prefill ? prefill.slot : "lunch");
+  const [plates, setPlates] = useState(prefill ? String(prefill.plates) : "");
+  const [price, setPrice] = useState(prefill ? String(prefill.price) : "");
+  const [note, setNote] = useState(prefill ? prefill.note : "");
   const [notify, setNotify] = useState(true);
   const normal = (slots.find((s) => s.slot === slot) || {}).price;
   const submit = async () => {
@@ -85,6 +85,7 @@ function HallLastCallAdmin({ call, notify }) {
   const [slots, setSlots] = useState([]);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [prefill, setPrefill] = useState(null);   // "repeat last time" fills the form from an older last call
   const load = async () => {
     try { setErr(null); setData(await call("/api/hall/lastcall/manage")); }
     catch (e) { setErr(e.message || String(e)); notify(e, true); }
@@ -109,7 +110,8 @@ function HallLastCallAdmin({ call, notify }) {
     <HallCard title="Last call" icon="🍱" sub="Sell leftover plates cheaply instead of throwing them away. Students take them with their wallet and show a code.">
       {err ? <div className="hl-error">⚠️ {err}</div> : !data ? <div className="hl-empty">Loading…</div> : (
         <>
-          <HallLastCallForm slots={slots} busy={busy} onCreate={create} />
+          <HallLastCallRepeat items={data.items} today={data.today} onPick={setPrefill} />
+          <HallLastCallForm key={prefill ? prefill.id : "blank"} prefill={prefill} slots={slots} busy={busy} onCreate={create} />
           <HallLastCallServe busy={busy} onServe={serve} />
           <HallLastCallAdminView data={data} busy={busy} onClose={close} onCancel={cancel} />
         </>
