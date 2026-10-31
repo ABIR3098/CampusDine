@@ -163,3 +163,14 @@ The updated project includes Smart Order Tracking (Received → Cooking → Read
 ## New Campus Command Center features
 
 See [CAMPUSDINE_NEW_FEATURES.md](CAMPUSDINE_NEW_FEATURES.md) for the new Canteen/Hall Command Center role split, Smart Live Order Tracking, Smart Queue Management, Food Waste Challenge, recommendation engine, Lost & Found image uploads, Emergency SOS endpoints and setup instructions.
+
+---
+
+## Running the tests
+
+The backend tests use Node's built-in test runner (Node 18+):
+
+```
+cd backend
+npm test
+```
