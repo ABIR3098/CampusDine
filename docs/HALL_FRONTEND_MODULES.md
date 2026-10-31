@@ -85,3 +85,6 @@ Step 6 — "Menu" tab: the fixed weekly menu, 7 days x 3 meals. Admin can edit a
 
 ## `menuCopy.jsx`
 Menu (admin): copy one meal to the same meal on every other day with one click.
+
+## `ratings.jsx`
+Ratings, student side: rate the meals you had (1-5 stars + an optional comment).
