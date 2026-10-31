@@ -425,3 +425,20 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `notes` | VARCHAR(500) |
 | `created_by` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_laundry_jobs`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `vendor_id` | BIGINT UNSIGNED |
+| `description` | VARCHAR(500) |
+| `pieces` | INT |
+| `pickup_date` | DATE |
+| `status` | ENUM('requested','accepted','picked_up','ready','delivered','cancelled') |
+| `rating` | TINYINT |
+| `feedback` | VARCHAR(500) |
+| `created_at` | TIMESTAMP |
+| `updated_at` | TIMESTAMP |
