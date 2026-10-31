@@ -1,3 +1,238 @@
+      setMode("login");
+      setOtp(""); setResetSent(false);
+      await api(apiBase, "/api/auth/reset-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim(), newPassword, otp: otpRequired ? otp.trim() : undefined } });
+    try {
+    setBusy(true);
+    if (otpRequired && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
+    if (newPassword.length < 6) { setError(tx("err.pw6")); return; }
+    if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+    if (!externalId.trim() || !email.trim() || !newPassword) { setError(tx("err.fill")); return; }
+    setError(null); setResetMsg(null);
+  const submitReset = async () => {
+
+  };
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+      setResetSent(true); setOtp(""); setCooldown(60); setResetMsg(tx("reset.sent"));
+      await api(apiBase, "/api/auth/forgot-password", { method: "POST", body: { externalId: externalId.trim(), email: email.trim() } });
+    try {
+    setBusy(true);
+    if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+    if (!externalId.trim() || !email.trim()) { setError(tx("err.fill")); return; }
+    setError(null); setResetMsg(null);
+  const sendResetCode = async () => {
+  // Forgot password, step 1: mail a reset code (the server answers the same whether or not the account exists)
+
+  };
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+      setOtp(""); setCooldown(60); setOtpDev(r.emailed === false);
+      const r = await api(apiBase, "/api/auth/otp/send-signup", { method: "POST", body: { email: email.trim(), externalId: externalId.trim() } });
+    try {
+    setError(null); setBusy(true);
+  const resendSignupCode = async () => {
+
+  const strengthColor = pwStrength <= 1 ? "#DC2626" : pwStrength === 2 ? "#D97706" : "var(--leaf)";
+  const strengthLabel = pwStrength <= 1 ? tx("pw.weak") : pwStrength === 2 ? tx("pw.ok") : tx("pw.strong");
+  })();
+    return password.length < 6 ? 0 : Math.max(1, score);
+    if (/[^A-Za-z0-9]/.test(password) || (/[a-z]/.test(password) && /[A-Z]/.test(password))) score++;
+    if (/[A-Za-z]/.test(password) && /\d/.test(password)) score++;
+    if (password.length >= 8) score++;
+    let score = 0;
+  const pwStrength = (() => {
+
+  };
+    } catch (_) { /* the real check happens on submit */ }
+      setTaken(t => ({ ...t, [field]: field === "email" ? !!r.emailTaken : !!r.externalIdTaken }));
+      const r = await api(apiBase, `/api/auth/availability?${field === "email" ? "email" : "externalId"}=${encodeURIComponent(v)}`);
+    try {
+    if (!v || (field === "email" ? !EMAIL_RE.test(v) : !ID_RE.test(v))) return;
+    const v = field === "email" ? email.trim().toLowerCase() : externalId.trim();
+  const checkTaken = async (field) => {
+  // Tell the person right away if the ID / email already has an account
+
+  };
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+      setOtp(""); setCooldown(r.resendIn || 60); setOtpDev(r.emailed === false);
+      const r = await api(apiBase, "/api/auth/login/resend", { method: "POST", body: { challenge: loginChallenge.challenge } });
+    try {
+    setError(null); setBusy(true);
+    if (!loginChallenge) return;
+  const resendLoginCode = async () => {
+
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message);
+      if (/expired|again/i.test(e.message) && loginChallenge) { setLoginChallenge(null); setOtp(""); }
+      // Expired login session: go back to the password step
+    } catch (e) {
+      onAuth(data.token, data.user);
+      }
+        return;
+        setOtp(""); setCooldown(data.resendIn || 60); setOtpDev(data.emailed === false);
+        setLoginChallenge({ challenge: data.challenge, email: data.email });
+      if (data.otpRequired) {
+      // Password was right but this account needs an emailed code: show the code box instead of logging in
+          } });
+            referralCode: referralCode.trim() || undefined,
+            otp: otpRequired ? otp.trim() : undefined,
+            accountType: role === "rider" ? "regular" : accountType, hallName: role === "rider" ? "" : hallName.trim(), roomNumber: role === "rider" ? "" : roomNumber.trim(),
+            name: name.trim(), email: email.trim(), externalId: id, role, password,
+        : await api(apiBase, "/api/auth/register", { method: "POST", body: {
+            : await api(apiBase, "/api/auth/login", { method: "POST", body: { externalId: id, password, role } }))
+            ? await api(apiBase, "/api/auth/login/verify", { method: "POST", body: { challenge: loginChallenge.challenge, otp: otp.trim() } })
+        ? (loginChallenge
+      const data = mode === "login"
+      }
+        return;
+        setOtpSent(true); setOtp(""); setCooldown(60); setOtpDev(r.emailed === false);
+        const r = await api(apiBase, "/api/auth/otp/send-signup", { method: "POST", body: { email: email.trim(), externalId: id } });
+      if (mode === "register" && otpRequired && !otpSent) {
+      // Step 1 of sign-up with OTP: mail the code, then wait for the person to type it
+    try {
+    setBusy(true);
+    }
+      if (otpRequired && otpSent && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
+      if (role !== "rider" && accountType === "hall" && (!hallName.trim() || !roomNumber.trim())) { setError(tx("err.hall")); return; }
+      if (password !== confirmPassword) { setError(tx("err.pwmatch")); return; }
+      if (password.length < 6) { setError(tx("err.pw6")); return; }
+      if (!ID_RE.test(id)) { setError(tx("err.id")); return; }
+      if (!EMAIL_RE.test(email.trim())) { setError(tx("err.email")); return; }
+      if (!name.trim() || !email.trim() || !id || !password || !confirmPassword) { setError(tx("err.fill")); return; }
+    } else {
+      if (loginChallenge && !/^\d{6}$/.test(otp.trim())) { setError(tx("otp.err")); return; }
+      if (!id || !password) { setError(tx("err.fill")); return; }
+    if (mode === "login") {
+    const id = externalId.trim();
+    setError(null);
+  const submit = async () => {
+
+  };
+    window.location.href = "/role-select.html";
+  const scrollToAuth = () => {
+
+  ];
+    { name: tx("sm.brew"), tag: tx("sm.brew.t"), price: "৳ " + num(35), img: "/images/popular/cold-brew.jpg" },
+    { name: tx("sm.roll"), tag: tx("sm.roll.t"), price: "৳ " + num(50), img: "/images/popular/chicken-roll.jpg" },
+    { name: tx("sm.tehari"), tag: tx("sm.tehari.t"), price: "৳ " + num(80), img: "/images/popular/tehari.jpg" },
+  const sampleMenu = [
+
+  ];
+    { key: "hall_admin", label: "Hall Admin", desc: "Manage hall services, complaints, notices and operations.", icon: I.dashboard },
+    { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
+    { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
+    { key: "teacher", label: tx("role.teacher.l"), desc: tx("role.teacher.d"), icon: I.user },
+    { key: "student", label: tx("role.student.l"), desc: tx("role.student.d"), icon: I.user },
+  const roleOptions = [
+
+  useEffect(() => { setLoginChallenge(null); }, [externalId, mode, role]);
+  // Login 2FA step is dropped when the person goes back, switches tab/role or edits the ID
+  useEffect(() => { setOtpSent(false); setResetSent(false); setOtp(""); setOtpDev(false); }, [email, mode, role]);
+  // Changing the email (or switching tab / role) throws away a half-finished OTP step
+
+  }, [cooldown]);
+    return () => clearTimeout(t);
+    const t = setTimeout(() => setCooldown(c => c - 1), 1000);
+    if (cooldown <= 0) return;
+  useEffect(() => {
+
+  }, [apiBase]);
+    return () => { alive = false; };
+    api(apiBase, "/api/auth/config").then(c => { if (alive) setOtpRequired(!!c.otpRequired); }).catch(() => {});
+    let alive = true;
+  useEffect(() => {
+
+  const [loginChallenge, setLoginChallenge] = useState(null); // login 2FA: { challenge, email (masked) } after the password step
+  const [cooldown, setCooldown] = useState(0);       // seconds until "Resend" works again
+  const [otpDev, setOtpDev] = useState(false);       // server has no SMTP: code is in the server console
+  const [resetSent, setResetSent] = useState(false); // forgot password: code has been mailed
+  const [otpSent, setOtpSent] = useState(false);     // sign-up: code has been mailed
+  const [otp, setOtp] = useState("");
+  const [otpRequired, setOtpRequired] = useState(false);
+  // Email OTP (sign-up verification + password reset). The server says whether it is switched on.
+
+  };
+    setThemeKey(k => k + 1); // re-read the saved theme in the colour picker
+    try { localStorage.setItem("cd_theme", JSON.stringify(next)); } catch (e) {}
+    applyTheme(next);
+    const next = { ...t, mode: document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark" };
+    const t = readTheme();
+  const toggleDark = () => {
+  }, []);
+    return () => { mo.disconnect(); document.removeEventListener("click", closeLang); };
+    document.addEventListener("click", closeLang);
+    const closeLang = () => setLangOpen(false);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    const mo = new MutationObserver(sync);
+    const sync = () => setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
+  useEffect(() => {
+  const [isDark, setIsDark] = useState(() => document.documentElement.getAttribute("data-theme") === "dark");
+  const [themeKey, setThemeKey] = useState(0);
+  const [langOpen, setLangOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  // new landing header: mobile menu, language dropdown, dark-mode button
+  const authRef = useRef(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [resetMsg, setResetMsg] = useState(null);
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [taken, setTaken] = useState({ email: false, externalId: false });
+  const [showPw, setShowPw] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  /* Feature: referral code */
+  const [roomNumber, setRoomNumber] = useState("");
+  const [hallName, setHallName] = useState("");
+  const [accountType, setAccountType] = useState("regular"); // 'regular' | 'hall'
+  const [email, setEmail] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [externalId, setExternalId] = useState("");
+  const [name, setName] = useState("");
+  }, []);
+    } catch (_) {}
+      }
+        }, 150);
+          if (authRef.current) authRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        setTimeout(() => {
+        if (r === "admin") setMode("login");
+        setRole(r);
+      if (r && ["student", "teacher", "admin", "rider"].includes(r)) {
+      const r = p.get("role");
+      const p = new URLSearchParams(window.location.search);
+    try {
+  useEffect(() => {
+  // Read ?role= from URL parameter (e.g. from /role-select.html) and smooth scroll to auth box
+
+  });
+    return null;
+    } catch (_) {}
+      if (r && ["student", "teacher", "admin", "rider"].includes(r)) return r;
+      const r = p.get("role");
+      const p = new URLSearchParams(window.location.search);
+    try {
+  const [role, setRole] = useState(() => {
+  const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
+function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
+
+}
+  );
+    </div>
+      </div>
+        <img className="cdl-promo-img" src="images/promo/special-offer.png" alt="CampusDine today's special offer discount" />
+        <button type="button" className="cdl-promo-close" onClick={() => setOpen(false)} aria-label="Close offer">&times;</button>
+      <div className="cdl-promo-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="cdl-promo-backdrop" onClick={() => setOpen(false)} role="dialog" aria-modal="true" aria-label="Today's special offer">
+  return (
+  if (!open) return null;
+  }, [open]);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    const prev = document.body.style.overflow;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    if (!open) return;
   useEffect(() => {
   }, []);
     return () => clearTimeout(t);
