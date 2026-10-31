@@ -68,3 +68,7 @@ test("a breakfast is locked the evening before", () => {
   assert.equal(isLocked(breakfast, "2026-10-22", { dateKey: "2026-10-21", minutes: 1261 }), true);
   assert.equal(isLocked(breakfast, "2026-10-22", { dateKey: "2026-10-21", minutes: 600 }), false);
 });
+
+test("localStamp prints the Dhaka wall clock", () => {
+  assert.equal(localStamp(new Date("2026-10-31T03:17:05Z")), "2026-10-31 09:17:05");
+});
