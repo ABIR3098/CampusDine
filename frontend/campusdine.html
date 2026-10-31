@@ -1,3 +1,238 @@
+            {notificationOpen && (
+            </button>
+              )}
+                </span>
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-700 grid place-items-center text-white" style={{ background: "var(--brick)" }}>
+              {notificationCount > 0 && (
+              <Icon path={I.bell} className="w-5 h-5" style={{ color: "var(--gold)" }} />
+              className="relative w-10 h-10 rounded-lg grid place-items-center hover:bg-black/5 transition-colors">
+              aria-expanded={notificationOpen} aria-controls="notification-panel"
+            <button type="button" onClick={onToggleNotifications} title={tx("notif")} aria-label={tx("notif")}
+          <div className="relative">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
+        <div className="flex-1 sm:hidden" />
+        <div className="hidden sm:flex flex-1 min-w-0 justify-center">{renderTabs(deskRef)}</div>
+        </div>
+            style={{ background: connected ? "var(--leaf)" : "var(--line)" }}></span>
+          <span className="w-2 h-2 rounded-full" title={connected ? tx("live.on") : tx("live.off")}
+          <span className="font-display gold-text font-700 hidden sm:inline">CampusDine</span>
+          <span role="img" aria-label="CampusDine logo" className="cd-logo"></span>
+        <div className="flex items-center gap-2 shrink-0">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center gap-2 sm:gap-3 flex-nowrap">
+    <div className="sticky top-0 z-20 backdrop-blur" style={{ background: "var(--panel-glass)", borderBottom: "1px solid var(--line)" }}>
+    <>
+  return (
+
+  );
+    </nav>
+      ))}
+        </button>
+          {t.badge > 0 && <span className="nav-badge">{t.badge > 9 ? "9+" : t.badge}</span>}
+          <span className="nav-label">{t.label}</span>
+          <Icon path={t.icon} className="w-4 h-4" />
+          className={`nav-pill ${active === t.key ? "active" : ""}`}>
+        <button key={t.key} onClick={() => setActive(t.key)} title={t.label} aria-label={t.label}
+      {tabs.map(t => (
+    <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
+  const renderTabs = (ref) => (
+
+  }, [active]);
+    });
+      if (el && el.scrollIntoView) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+      const el = root && root.querySelector(".nav-pill.active");
+    [deskRef.current, mobRef.current].forEach(root => {
+  useEffect(() => {
+  // keep the active tab visible when the bar has to scroll
+  const mobRef = useRef(null);
+  const deskRef = useRef(null);
+}) {
+  notificationOpen = false, onMarkAllRead, onClearNotifications,
+  notifications = [], notificationCount = 0, onToggleNotifications,
+  role, name, avatar, tabs, active, setActive, onLogout, connected, onToggleLang,
+function TopBar({
+/* ---------------- Top bar ---------------- */
+
+}
+  );
+    </div>
+      </footer>
+        </p>
+          &copy; 2026 CampusDine — CSE 3208 Software Development Project I
+        <p className="text-center text-[11px] uppercase pt-8" style={{ color: "var(--ink-soft)" }}>
+        </div>
+          </div>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("foot.help")}</p>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("foot.loc1")}</p>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>{tx("foot.loc")}</h4>
+          <div>
+          </div>
+            <p className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("foot.h2")}</p>
+            <p className="text-xs mb-1" style={{ color: "var(--ink-soft)" }}>{tx("foot.h1")}</p>
+            <h4 className="font-display text-sm uppercase mb-3" style={{ color: "var(--gold)" }}>{tx("foot.hours")}</h4>
+          <div>
+          </div>
+            </p>
+              {tx("foot.p")}
+            <p className="text-xs leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+            <h3 className="font-display gold-text text-xl font-800 mb-3">CampusDine</h3>
+          <div>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b" style={{ borderColor: "var(--line)" }}>
+      <footer id="contact" className="border-t pt-14 pb-8 px-6" style={{ borderColor: "var(--line)" }}>
+      {/* Footer */}
+
+      </section>
+        </div>
+          </div>
+            )}
+              </>
+                )}
+                    className="w-full mt-2 px-3 py-2 rounded-lg border text-sm font-mono" style={{ borderColor: "var(--line)" }} />
+                  <input value={apiBase} onChange={e => setApiBase(e.target.value)} placeholder="http://localhost:5000"
+                {showAdvanced && (
+                </button>
+                  <Icon path={I.plug} className="w-3.5 h-3.5" /> {tx("backend")} {apiBase}
+                <button onClick={() => setShowAdvanced(s => !s)} className="text-xs mt-5 flex items-center gap-1 mx-auto" style={{ color: "var(--ink-soft)" }}>
+
+                </form>
+                  </button>
+                      : (otpRequired ? (otpSent ? tx("otp.verify") : tx("otp.sendcode")) : tx("createlogin"))}
+                    {busy ? tx("wait") : mode === "login" ? (loginChallenge ? tx("otp.verifylogin") : tx("login"))
+                  <button type="submit" disabled={busy} className="btn-primary w-full py-2.5 rounded-xl">
+                  {resetMsg && mode === "login" && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
+                  {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
+                  {mode === "login" && loginChallenge && otpBox(resendLoginCode, loginChallenge.email, tx("otp.loginnote"))}
+                  {mode === "register" && otpRequired && otpSent && otpBox(resendSignupCode)}
+                  )}
+                    </div>
+                        style={{ borderColor: confirmPassword && confirmPassword !== password ? "#DC2626" : "var(--line)" }} />
+                        className="w-full px-4 py-2.5 rounded-xl border"
+                      <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type={showPw ? "text" : "password"} autoComplete="new-password"
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("confirmpw")}</label>
+                    <div>
+                  {mode === "register" && (
+                  </div>
+                    )}
+                      </button>
+                        {tx("forgot")}
+                        className="text-xs mt-1.5" style={{ color: "var(--gold)" }}>
+                      <button type="button" onClick={() => { setMode("forgot"); setError(null); setResetMsg(null); }}
+                    {mode === "login" && (
+                    )}
+                      </div>
+                        <div className="text-[11px] mt-1" style={{ color: strengthColor }}>{strengthLabel}</div>
+                        </div>
+                          {[1, 2, 3].map(n => <div key={n} className="h-1 flex-1 rounded-full" style={{ background: n <= pwStrength ? strengthColor : "var(--line)" }} />)}
+                        <div className="flex gap-1">
+                      <div className="mt-1.5">
+                    {mode === "register" && password && (
+                    </div>
+                      </button>
+                        {showPw ? tx("hidepw") : tx("showpw")}
+                      <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-600" style={{ color: "var(--gold)" }}>
+                        className="w-full pl-4 pr-16 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                        autoComplete={mode === "login" ? "current-password" : "new-password"}
+                      <input value={password} onChange={e => setPassword(e.target.value)} type={showPw ? "text" : "password"} placeholder={tx("yourpw")}
+                    <div className="relative">
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("pw")}</label>
+                  <div>
+
+                  )}
+                    </div>
+                      <p className="text-[11px] mt-1" style={{ color: "var(--ink-soft)" }}>{tx("ref.hint")}</p>
+                        className="w-full px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+                      <input value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12))} placeholder={tx("ref.ph")}
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("ref.label")}</label>
+                    <div>
+                  {mode === "register" && role !== "rider" && (
+
+                  )}
+                    </div>
+                      <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("hall.signup.note")}</p>
+                      </div>
+                        </div>
+                            className="w-full px-3 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                          <input value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={tx("room.signup.ph")}
+                          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("room")}</label>
+                        <div>
+                        </div>
+                            className="w-full px-3 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                          <input value={hallName} onChange={e => setHallName(e.target.value)} placeholder={tx("hallname.ph")}
+                          <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("hallname")}</label>
+                        <div>
+                      <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border p-3 space-y-3" style={{ borderColor: "var(--line)", background: "var(--bg)" }}>
+                  {mode === "register" && accountType === "hall" && (
+
+                  )}
+                    </div>
+                      </div>
+                        ))}
+                          </button>
+                            <div className="text-[11px] mt-0.5 opacity-80">{desc}</div>
+                            <div className="text-sm font-700">{label}</div>
+                              : { borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                              ? { borderColor: "var(--gold)", background: "var(--gold-soft)", color: "var(--teal-deep)" }
+                            style={accountType === key
+                            className="text-left px-3 py-2.5 rounded-xl border transition-all"
+                          <button type="button" key={key} onClick={() => setAccountType(key)}
+                        {[["regular", tx("acct.regular"), tx("acct.regular.d")], ["hall", tx("acct.hall"), tx("acct.hall.d")]].map(([key, label, desc]) => (
+                      <div className="grid grid-cols-2 gap-2">
+                      <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("acct.type")}</label>
+                    <div>
+                  {mode === "register" && role !== "rider" && (
+
+                  </div>
+                    {mode === "register" && taken.externalId && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.id")}</p>}
+                      className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: taken.externalId ? "#DC2626" : "var(--line)" }} />
+                      onBlur={() => mode === "register" && checkTaken("externalId")}
+                      onChange={e => { setExternalId(e.target.value); setTaken(t => ({ ...t, externalId: false })); }}
+                    <input value={externalId} autoComplete="username" placeholder={mode === "login" ? "ID / email" : "e.g. 24524203098"}
+                    <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{mode === "login" ? tx("idoremail") : tx("id")}</label>
+                  <div>
+                  )}
+                    </>
+                      </div>
+                        {taken.email && <p className="text-xs mt-1" style={{ color: "#DC2626" }}>{tx("taken.email")}</p>}
+                          className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: taken.email ? "#DC2626" : "var(--line)" }} />
+                          onBlur={() => checkTaken("email")}
+                          onChange={e => { setEmail(e.target.value); setTaken(t => ({ ...t, email: false })); }}
+                        <input value={email} type="email" autoComplete="email" placeholder={tx("email.ph")}
+                        <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("email")}</label>
+                      <div>
+                      </div>
+                          className="w-full px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+                        <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Abir Hasan" autoComplete="name"
+                        <label className="text-xs uppercase tracking-wide block mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("fullname")}</label>
+                      <div>
+                    <>
+                  {mode === "register" && (
+                <form className="space-y-3" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
+
+                </div>
+                  {["student", "teacher", "rider"].includes(role) && pillTab("register", tx("create"))}
+                  {pillTab("login", tx("login"))}
+                <div className="flex p-1 rounded-full mb-6" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
+
+                </div>
+                  {tx("access", { role: roleOptions.find(r => r.key === role).label })}
+                <div className="font-display font-700 text-lg mb-5 text-center" style={{ color: "var(--gold)" }}>
+                </div>
+                  </a>
+                    Switch Role Page ↗
+                  <a href="/role-select.html" className="text-xs font-600 flex items-center gap-1" style={{ color: "var(--gold)" }}>
+                  </button>
+                    <Icon path={I.arrow} className="w-4 h-4 rotate-180" /> {tx("back")}
+                  <button onClick={() => { setRole(null); setError(null); }} className="text-sm flex items-center gap-1" style={{ color: "var(--ink-soft)" }}>
+                <div className="flex items-center justify-between mb-5">
+              <>
+            ) : (
+              </>
+                </div>
+                  </button>
+                    {busy ? tx("wait") : (otpRequired && !resetSent ? tx("reset.send") : tx("reset.h"))}
+                  <button disabled={busy} onClick={otpRequired && !resetSent ? sendResetCode : submitReset} className="btn-primary w-full py-2.5 rounded-xl">
+                  {resetMsg && <p className="text-sm" style={{ color: "var(--leaf)" }}>{resetMsg}</p>}
                   {error && <p className="text-sm" style={{ color: "#DC2626" }}>{error}</p>}
                   {otpRequired && resetSent && <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("otp.devhint")}</p>}
                   <p className="text-[11px]" style={{ color: "var(--ink-soft)" }}>{tx("reset.noemail")}</p>
