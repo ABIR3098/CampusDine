@@ -80,3 +80,10 @@ test("a percentage coupon may be exactly 100 but not more", () => {
   assert.ok(validateNewCoupon({ ...base, discountValue: 100 }).value);
   assert.ok(validateNewCoupon({ ...base, discountValue: 100.01 }).error);
 });
+
+test("a coupon description is cut to 255 characters and a blank one becomes null", () => {
+  const { validateNewCoupon } = require("../src/utils/couponRules");
+  const base = { code: "ABC", discountType: "FIXED", discountValue: 10 };
+  assert.strictEqual(validateNewCoupon({ ...base, description: "x".repeat(300) }).value.description.length, 255);
+  assert.strictEqual(validateNewCoupon({ ...base, description: "   " }).value.description, null);
+});
