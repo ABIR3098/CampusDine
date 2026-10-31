@@ -851,6 +851,14 @@
       left: -260px;
       height: 100vh;
       box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+    }
+    .portal-sidebar.mobile-open {
+      left: 0;
+    }
+    .portal-header {
+      padding: 0 16px;
+    }
+  }
 
 /*chat-ui*/
 .chat-shell{display:grid;gap:16px;height:min(76vh,720px);min-height:480px}
@@ -3293,16 +3301,10 @@ function TopBar({
   role, name, avatar, tabs, active, setActive, onLogout, connected, onToggleLang,
   notifications = [], notificationCount = 0, onToggleNotifications,
   notificationOpen = false, onMarkAllRead, onClearNotifications,
+  sidebarCollapsed, setSidebarCollapsed, mobileMenuOpen, setMobileMenuOpen,
+  searchTerm, setSearchTerm
 }) {
-  const deskRef = useRef(null);
-  const mobRef = useRef(null);
-  // keep the active tab visible when the bar has to scroll
-  useEffect(() => {
-    [deskRef.current, mobRef.current].forEach(root => {
-      const el = root && root.querySelector(".nav-pill.active");
-      if (el && el.scrollIntoView) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
-    });
-  }, [active]);
+  const filteredTabs = tabs.filter(t => !searchTerm || t.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const renderTabs = (ref) => (
     <nav ref={ref} className="nav-track max-w-full flex items-center gap-1 overflow-x-auto no-scrollbar">
