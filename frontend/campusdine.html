@@ -4667,6 +4667,471 @@ async function copyText(text) {
   } catch (_) { /* fall through to the old way */ }
   try {
     const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) { return false; }
+}
+/* Feature: recurring order */
+const REC_DAYS = {
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  bn: ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহ", "শুক্র", "শনি"],
+};
+const recDay = (d) => REC_DAYS[CURRENT_LANG === "bn" ? "bn" : "en"][d];
+
+// the form that opens from an order's "Repeat weekly" button
+function RecurringForm({ order, apiBase, token, onClose, onSaved }) {
+  const [days, setDays] = useState([new Date().getDay()]);
+  const [time, setTime] = useState("12:30");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const toggle = (d) => setDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+  const save = async () => {
+    setBusy(true); setError("");
+    try {
+      await api(apiBase, "/api/recurring", { method: "POST", token, body: {
+        items: order.items.map(it => ({ id: it.menu_item_id, name: it.name, qty: it.qty })), days, time } });
+      onSaved();
+    } catch (e) { setError(e.message || "Could not save"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>🔁 {tx("rec.repeat")} — {order.token}</div>
+      <div className="text-sm mb-3" style={{ color: "var(--ink-soft)" }}>{order.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+      <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("rec.days")}</div>
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {[0, 1, 2, 3, 4, 5, 6].map(d => (
+          <button key={d} type="button" onClick={() => toggle(d)} className={"chip text-xs px-3 py-1.5 rounded-full" + (days.includes(d) ? " active-chip" : "")}>{recDay(d)}</button>
+        ))}
+      </div>
+      <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: "var(--ink-soft)" }}>{tx("rec.time")}</div>
+      <input type="time" value={time} onChange={e => setTime(e.target.value)} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+      <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>{tx("rec.hint")}</p>
+      {error && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="flex gap-2 mt-3">
+        <button type="button" disabled={busy || days.length === 0 || !time} onClick={save} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("rec.save")}</button>
+        <button type="button" onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("rec.cancel")}</button>
+      </div>
+    </div>
+  );
+}
+
+// "My weekly orders" list
+function RecurringPlans({ apiBase, token, reloadKey }) {
+  const [plans, setPlans] = useState([]);
+  const [error, setError] = useState("");
+  const load = () => api(apiBase, "/api/recurring", { token }).then(setPlans).catch(() => {});
+  useEffect(() => { load(); }, [reloadKey]);
+  const toggleActive = async (p) => {
+    try { await api(apiBase, "/api/recurring/" + p.id, { method: "PATCH", token, body: { active: !p.active } }); await load(); }
+    catch (e) { setError(e.message || "Could not update"); }
+  };
+  const remove = async (p) => {
+    try { await api(apiBase, "/api/recurring/" + p.id, { method: "DELETE", token }); await load(); }
+    catch (e) { setError(e.message || "Could not delete"); }
+  };
+  if (plans.length === 0) return null;
+  return (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>🔁 {tx("rec.title")}</div>
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="space-y-2.5">
+        {plans.map(p => (
+          <div key={p.id} className="rounded-lg border p-3 flex flex-wrap items-center gap-2" style={{ borderColor: "var(--line)", opacity: p.active ? 1 : 0.6 }}>
+            <div className="flex-1 min-w-[180px]">
+              <div className="text-sm font-600">{p.items.map(i => dispName(i.name) + (i.qty > 1 ? " ×" + num(i.qty) : "")).join(" + ")}</div>
+              <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{p.days.map(recDay).join(", ")} · {p.time}{!p.active && " · " + tx("rec.paused")}</div>
+            </div>
+            <button type="button" onClick={() => toggleActive(p)} className="text-xs px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--line)" }}>{p.active ? tx("rec.pause") : tx("rec.resume")}</button>
+            <button type="button" onClick={() => remove(p)} className="text-xs px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--line)", color: "var(--brick)" }}>{tx("rec.delete")}</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function TrackOrder({ orders, onSubmitFeedback, feedbackBusy, onCancel, cancelBusy, onReorder, apiBase, token })  {
+  const [printOrder, setPrintOrder] = useState(null);
+  const [planDraft, setPlanDraft] = useState(null); // the order a weekly plan is being made from
+  const [plansKey, setPlansKey] = useState(0);
+  /* Feature: order history filter */
+  const [hQuery, setHQuery] = useState("");
+  const [hStatus, setHStatus] = useState("all");
+  const [hRange, setHRange] = useState("all");
+  /* Feature: order problem report */
+  const [issues, setIssues] = useState({});          // order id -> my report
+  const [reporting, setReporting] = useState(null);  // order id whose form is open
+  const [rForm, setRForm] = useState({ reason: "", details: "" });
+  const [rBusy, setRBusy] = useState(false);
+  const [rError, setRError] = useState("");
+  useEffect(() => {
+    let dead = false;
+    api(apiBase, "/api/orders/issues/mine", { token })
+      .then(list => { if (!dead) setIssues(Object.fromEntries(list.map(i => [i.order_id, i]))); })
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [orders]);
+  const submitIssue = async (orderId) => {
+    if (!rForm.reason) return;
+    setRBusy(true); setRError("");
+    try {
+      const r = await api(apiBase, "/api/orders/" + orderId + "/report", { method: "POST", token, body: { reason: rForm.reason, details: rForm.details } });
+      setIssues(prev => ({ ...prev, [orderId]: r.issue }));
+      setReporting(null); setRForm({ reason: "", details: "" });
+    } catch (e) { setRError(e.message || "Could not send your report"); }
+    finally { setRBusy(false); }
+  };
+  const [copiedId, setCopiedId] = useState(null);
+
+  // Feature: print receipt — render the chosen order into a hidden #print-area,
+  // then trigger the browser print dialog; the CSS above hides everything else.
+  useEffect(() => {
+    if (!printOrder) return;
+    const clear = () => setPrintOrder(null);
+    window.addEventListener("afterprint", clear);
+    const t = setTimeout(() => window.print(), 50);
+    return () => { clearTimeout(t); window.removeEventListener("afterprint", clear); };
+  }, [printOrder]);
+
+  if (orders.length === 0) {
+    return <div className="card p-10 text-center" style={{ color: "var(--ink-soft)" }}>{tx("noorders")}</div>;
+  }
+  const hq = hQuery.trim().toLowerCase();
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const filtered = orders.filter(o => {
+    if (hStatus !== "all" && o.status !== hStatus) return false;
+    if (hRange !== "all") {
+      const t = new Date(o.created_at).getTime();
+      const limit = hRange === "today" ? startOfToday.getTime() : Date.now() - (hRange === "week" ? 7 : 30) * 86400000;
+      if (t < limit) return false;
+    }
+    if (hq) {
+      const hay = [o.token, o.status, o.note, o.restaurant, o.payment_method]
+        .concat((o.items || []).map(i => i.name)).join(" ").toLowerCase();
+      if (!hay.includes(hq)) return false;
+    }
+    return true;
+  });
+  return (
+    <div className="space-y-6 max-w-2xl">
+      {planDraft && <RecurringForm order={planDraft} apiBase={apiBase} token={token} onClose={() => setPlanDraft(null)} onSaved={() => { setPlanDraft(null); setPlansKey(k => k + 1); }} />}
+      <RecurringPlans apiBase={apiBase} token={token} reloadKey={plansKey} />
+      {printOrder && (
+        <div id="print-area">
+          <div className="receipt">
+            <div className="text-center mb-1">
+              <div className="font-display font-800" style={{ fontSize: 18 }}>🍽 CampusDine</div>
+              <div style={{ fontSize: 11, color: "#6B7280", letterSpacing: 1 }}>{tx("rc.title")}</div>
+            </div>
+            <div className="receipt-divider" />
+            <div className="text-center" style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, color: "#6B7280" }}>{tx("rc.token")}</div>
+              <div className="font-mono font-800" style={{ fontSize: 30, letterSpacing: 2 }}>{printOrder.token}</div>
+            </div>
+            {printOrder.qr && (
+              <div className="flex justify-center" style={{ marginBottom: 10 }}><QrCode value={printOrder.qr} size={120} /></div>
+            )}
+            <div className="receipt-row"><span>{tx("rc.status")}</span><span style={{ fontWeight: 600 }}>{lookup("status", printOrder.status)}</span></div>
+            <div className="receipt-row"><span>{tx("rc.payment")}</span><span>{printOrder.payment_method === "wallet" ? tx("pay.wallet") : tx("pay.cash")}</span></div>
+            {printOrder.note && (
+              <div className="receipt-row"><span>{tx("note.show")}</span><span>{printOrder.note}</span></div>
+            )}
+            {printOrder.delivery_note && (
+              <div className="receipt-row"><span>{tx("dnote.show")}</span><span>{printOrder.delivery_note}</span></div>
+            )}
+            {printOrder.pickup_time && (
+              <div className="receipt-row"><span>{tx("sched")}</span><span>{new Date(printOrder.pickup_time).toLocaleString()}</span></div>
+            )}
+            <div className="receipt-row"><span>{tx("rc.printed")}</span><span>{new Date().toLocaleString()}</span></div>
+            <div className="receipt-divider" />
+            {printOrder.items.map((i, idx) => (
+              <div key={idx} className="receipt-row"><span>{dispName(i.name)} ×{num(i.qty)}</span><span>{taka(i.price * i.qty)}</span></div>
+            ))}
+            <div className="receipt-divider" />
+            <div className="receipt-row" style={{ fontSize: 15, fontWeight: 800 }}><span>{tx("total")}</span><span>{taka(printOrder.total)}</span></div>
+            <div className="text-center" style={{ marginTop: 16, fontSize: 11, color: "#6B7280" }}>
+              {tx("rc.thanks")}
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="card p-4 space-y-3">
+        <input type="text" value={hQuery} onChange={e => setHQuery(e.target.value)}
+          placeholder="Search by token, item, note…"
+          className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+        <div className="flex flex-wrap gap-2">
+          {[["all", "All"], ["Received", "Received"], ["Cooking", "Cooking"], ["Ready", "Ready"], ["Cancelled", "Cancelled"]].map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setHStatus(v)}
+              className={"chip text-xs px-3 py-1.5 rounded-full" + (hStatus === v ? " active-chip" : "")}>{label}</button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {[["all", "Any time"], ["today", "Today"], ["week", "Last 7 days"], ["month", "Last 30 days"]].map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setHRange(v)}
+              className={"chip text-xs px-3 py-1.5 rounded-full" + (hRange === v ? " active-chip" : "")}>{label}</button>
+          ))}
+          <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{filtered.length} / {orders.length}</span>
+        </div>
+      </div>
+      {filtered.length === 0 && (
+        <div className="card p-8 text-center text-sm" style={{ color: "var(--ink-soft)" }}>
+          No orders match your filters.
+          <div className="mt-3">
+            <button type="button" className="chip text-xs px-3 py-1.5 rounded-full" onClick={() => { setHQuery(""); setHStatus("all"); setHRange("all"); }}>Clear filters</button>
+          </div>
+        </div>
+      )}
+      {filtered.map(o => {
+        const stepIndex = STATUSES.indexOf(o.status);
+        const isCancelled = o.status === "Cancelled";
+        return (
+          <div key={o.token} className="card overflow-hidden">
+            <div className="ticket p-5 flex items-center justify-between">
+              <div className="perf pl-4">
+                <div className="text-xs opacity-70">{tx("ticket.token")}</div>
+                <div className="font-mono text-2xl font-700 tracking-wide">{o.token}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs opacity-70">{tx("total")}</div>
+                <div className="font-mono text-lg">{taka(o.total)}</div>
+              </div>
+            </div>
+            <div className="p-5">
+              {o.pickup_time && (
+                <div className="text-xs mb-3 font-600" style={{ color: "var(--teal)" }}>
+                  {tx("sched")}: {new Date(o.pickup_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </div>
+              )}
+              {o.queue && (
+                <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-lg text-sm"
+                  style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                  <Icon path={I.clock} className="w-4 h-4 shrink-0" />
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-700">
+                      {o.queue.ahead === 0
+                        ? (o.status === "Cooking" ? tx("q.now") : tx("q.next"))
+                        : tx(o.queue.ahead === 1 ? "q.ahead1" : "q.aheadN", { p: num(o.queue.position), a: num(o.queue.ahead) })}
+                    </span>
+                    <span style={{ color: "var(--ink-soft)" }}>{tx("q.est", { m: num(o.queue.est_minutes) })}</span>
+                  </div>
+                </div>
+              )}
+              {isCancelled ? (
+                <div className="flex items-center gap-2 text-sm font-600" style={{ color: "var(--brick)" }}>
+                  <Icon path={I.x} className="w-4 h-4" />
+                  {lookup("status", "Cancelled")}
+                  {o.payment_method === "wallet" && (
+                    <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>{tx("refunded")}</span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between mb-2">
+                  {STATUSES.map((s, i) => (
+                    <React.Fragment key={s}>
+                      <div className="flex flex-col items-center gap-1.5 flex-1">
+                        <div className={`stepper-dot ${i < stepIndex ? "done" : i === stepIndex ? "current" : ""}`}></div>
+                        <span className="text-xs text-center" style={{ color: i <= stepIndex ? "var(--gold)" : "var(--ink-soft)", fontWeight: i === stepIndex ? 700 : 400 }}>{lookup("status", s)}</span>
+                      </div>
+                      {i < STATUSES.length - 1 && <div className="h-0.5 flex-1 -mt-5" style={{ background: i < stepIndex ? "var(--gold)" : "var(--line)" }} />}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+              {!isCancelled && o.qr && (
+                <div className="flex items-center gap-4 mt-4 p-3 rounded-xl border" style={{ borderColor: "var(--line)" }}>
+                  <QrCode value={o.qr} size={112} dim={!!o.picked_up_at} />
+                  <div className="min-w-0">
+                    <div className="text-sm font-700" style={{ color: o.picked_up_at ? "var(--leaf)" : "var(--ink)" }}>
+                      {o.picked_up_at ? tx("qr.collected") : tx("qr.title")}
+                    </div>
+                    <p className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+                      {o.picked_up_at ? new Date(o.picked_up_at).toLocaleString() : tx("qr.hint", { t: o.token })}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div className="text-sm mt-4" style={{ color: "var(--ink-soft)" }}>
+                {o.items.map(i => `${dispName(i.name)} ×${num(i.qty)}`).join(", ")}
+              </div>
+              {o.note && (
+                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                  {tx("note.show")}: {o.note}
+                </div>
+              )}
+              {Number(o.tip_amount) > 0 && (
+                <div className="text-xs mt-2 font-600" style={{ color: "var(--ink-soft)" }}>🪙 {tx("tip.show")}: ৳{o.tip_amount}{o.status === "Cancelled" && " " + tx("refunded")}</div>
+              )}
+              {(o.status === "Ready" || o.picked_up_at) && o.status !== "Cancelled" && (
+                <div className="mt-3">
+                  {issues[o.id] ? (
+                    <div className="rounded-lg border p-3 text-xs" style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                      <div className="font-700">{issues[o.id].status === "Resolved" ? "✅ " + tx("iss.resolved") : "⏳ " + tx("iss.open")} — {tx("iss.r." + issues[o.id].reason)}</div>
+                      {issues[o.id].details && <div className="mt-1" style={{ color: "var(--ink-soft)" }}>“{issues[o.id].details}”</div>}
+                      {issues[o.id].admin_reply && <div className="mt-1.5 font-600">💬 {tx("iss.reply")}: {issues[o.id].admin_reply}</div>}
+                    </div>
+                  ) : reporting === o.id ? (
+                    <div className="rounded-lg border p-3" style={{ borderColor: "var(--line)" }}>
+                      <div className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--ink-soft)" }}>⚠️ {tx("iss.title")}</div>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {["cold", "wrong", "missing", "late", "quality", "other"].map(r => (
+                          <button key={r} type="button" onClick={() => setRForm(f => ({ ...f, reason: r }))}
+                            className={"chip text-xs px-2.5 py-1 rounded-full" + (rForm.reason === r ? " active-chip" : "")}>{tx("iss.r." + r)}</button>
+                        ))}
+                      </div>
+                      <input type="text" value={rForm.details} onChange={e => setRForm(f => ({ ...f, details: e.target.value.slice(0, 300) }))}
+                        placeholder={tx("iss.ph")} className="w-full px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                      {rError && <p className="text-xs mt-1.5" style={{ color: "var(--brick)" }}>{rError}</p>}
+                      <div className="flex gap-2 mt-2">
+                        <button type="button" disabled={rBusy || !rForm.reason} onClick={() => submitIssue(o.id)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">{tx("iss.send")}</button>
+                        <button type="button" onClick={() => { setReporting(null); setRError(""); }} className="text-xs px-3 py-1.5 rounded-lg border" style={{ borderColor: "var(--line)" }}>{tx("iss.cancel")}</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setReporting(o.id); setRError(""); setRForm({ reason: "", details: "" }); }}
+                      className="text-xs px-3 py-1.5 rounded-lg border font-600 transition-colors hover:bg-black/5" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                      ⚠️ {tx("iss.report")}
+                    </button>
+                  )}
+                </div>
+              )}
+              {o.delivery_note && (
+                <div className="text-xs mt-2 px-2.5 py-1.5 rounded-lg" style={{ background: "var(--gold-soft)", color: "var(--teal-deep)" }}>
+                  🚪 {tx("dnote.show")}: {o.delivery_note}
+                </div>
+              )}
+              {o.rider_id && <RiderOrderChat apiBase={apiBase} token={token} orderId={o.id} />}
+              <div className="flex items-center gap-2 mt-3">
+                <button onClick={() => onReorder(o)}
+                  className="text-xs px-3 py-1.5 rounded-lg font-600 btn-primary flex items-center gap-1.5">
+                  {tx("reorder")}
+                </button>
+                <button onClick={() => setPrintOrder(o)}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>
+                  <Icon path={I.printer} className="w-3.5 h-3.5" style={{ color: "var(--gold)" }} />
+                  {tx("print")}
+                </button>
+                <button type="button"
+                  onClick={async () => {
+                    const ok = await copyText(o.token);
+                    if (ok) { setCopiedId(o.id); setTimeout(() => setCopiedId(null), 1500); }
+                    else window.prompt(tx("copytoken") + ":", o.token);
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                  style={{ borderColor: "var(--line)", color: copiedId === o.id ? "var(--leaf)" : "var(--ink-soft)" }}>
+                  {copiedId === o.id ? "✓ " + tx("copied") : "📋 " + tx("copytoken")}
+                </button>
+                {o.status !== "Cancelled" && (
+                  <button type="button" onClick={() => { setPlanDraft(o); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600 flex items-center gap-1.5 transition-colors hover:bg-black/5"
+                    style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>🔁 {tx("rec.repeat")}</button>
+                )}
+                {o.status === "Received" && (
+                  <button disabled={cancelBusy} onClick={() => onCancel(o.id)}
+                    className="text-xs px-3 py-1.5 rounded-lg border font-600"
+                    style={{ borderColor: "var(--brick)", color: "var(--brick)" }}>
+                    {tx("cancelorder")}
+                  </button>
+                )}
+              </div>
+              {o.status === "Ready" && (
+                <OrderFeedback order={o} onSubmit={onSubmitFeedback} busy={feedbackBusy} />
+              )}
+              {o.rider_id && o.picked_up_at && o.status !== "Cancelled" && (
+                <RiderRating order={o} apiBase={apiBase} token={token} />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- Meal calendar tab ---------------- */
+function MealCalendar({ user, role, year, month, calendar, paidDays, bill, onToggle, onPay, onRepeat, planBusy, onPrevMonth, onNextMonth, onJumpToday, isCurrentMonth }) {
+  const [printKey, setPrintKey] = useState(0);
+  const total = daysInMonth(year, month);
+  const monthName = new Date(year, month - 1).toLocaleString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { month: "long" });
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+  const now = new Date();
+  const todayDay = now.getDate();
+  const isThisMonthShown = now.getFullYear() === year && (now.getMonth() + 1) === month;
+
+  const markedDays = Array.from({ length: total }, (_, i) => i + 1).filter(d => calendar[d] === "full" || calendar[d] === "half");
+  return (
+    <div className="grid lg:grid-cols-3 gap-6">
+      {printKey > 0 && (
+        <PrintSheet key={printKey} title={tx("pr.bill")}
+          meta={`${user.name}${user.externalId ? " (" + user.externalId + ")" : ""} · ${monthName} ${num(year)} · ${tx("pr.generated", { t: new Date().toLocaleString() })}`}>
+          <div className="ps-grid">
+            {[[tx("pr.fullmeals"), num(bill.fullDays)], [tx("pr.halfmeals"), num(bill.halfDays)], [tx("total"), taka(bill.total)], [tx("mp.due"), taka(bill.dueAmount)]]
+              .map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <div className="ps-meta" style={{ marginTop: 6 }}>{tx("mp.paidamt")}: {taka(bill.paidAmount)} ({num(bill.paidDays)})</div>
+          <h2>{monthName} {num(year)}</h2>
+          <PsTable head={[tx("pr.date"), tx("pr.day"), tx("pr.meal"), tx("pr.rate"), tx("pr.status")]} numCols={[3]} empty={tx("pr.nodays")}
+            rows={markedDays.map(d => [
+              `${num(d)} ${monthName}`,
+              new Date(year, month - 1, d).toLocaleDateString(CURRENT_LANG === "bn" ? "bn-BD" : "default", { weekday: "long" }),
+              calendar[d] === "full" ? tx("cal.full") : tx("cal.half"),
+              taka(calendar[d] === "full" ? bill.fullRate : bill.halfRate),
+              paidDays && paidDays[d] ? tx("pr.paid") : tx("pr.unpaid"),
+            ])} />
+        </PrintSheet>
+      )}
+      <div className="lg:col-span-2 card p-5">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button onClick={onPrevMonth} aria-label={tx("prevm")}
+                    className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
+                    style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+              <Icon path={I.chevronLeft} className="w-4 h-4" />
+            </button>
+            <div className="font-display font-700 text-lg min-w-[150px] text-center" style={{ color: "var(--gold)" }}>{monthName} {num(year)}</div>
+            <button onClick={onNextMonth} aria-label={tx("nextm")}
+                    className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
+                    style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+              <Icon path={I.chevronRight} className="w-4 h-4" />
+            </button>
+            {!isCurrentMonth && (
+              <button onClick={onJumpToday} className="text-[11px] font-600 rounded-lg px-2 py-1 ml-1 border transition-colors"
+                      style={{ borderColor: "var(--line)", color: "var(--gold)" }}>
+                {tx("today")}
+              </button>
+            )}
+          </div>
+          <div className="text-xs" style={{ color: "var(--ink-soft)" }}>{tx("cal.hint")}</div>
+        </div>
+        <div className="grid grid-cols-7 gap-2 mb-2 text-xs text-center font-600" style={{ color: "var(--ink-soft)" }}>
+          {tx("wd").split(",").map((d, i) => <div key={i}>{d}</div>)}
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: firstWeekday }).map((_, i) => <div key={"e" + i}></div>)}
+          {Array.from({ length: total }).map((_, i) => {
+            const day = i + 1;
+            const status = calendar[day] || "off";
+            const isToday = isThisMonthShown && day === todayDay;
+            return (
+              <div key={day} onClick={() => onToggle(day, status)}
+                className={`cal-cell text-sm font-600 ${status === "full" ? "cal-full" : status === "half" ? "cal-half" : ""} ${isToday ? "cal-today" : ""}`}>
+                {num(day)}{paidDays && paidDays[day] && <span className="text-[9px] ml-0.5">✓</span>}
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex gap-4 mt-4 text-xs" style={{ color: "var(--ink-soft)" }}>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "var(--teal)" }}></span> {tx("cal.full")}</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "var(--gold)" }}></span> {tx("cal.half")}</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border" style={{ borderColor: "var(--line)" }}></span> {tx("cal.off")}</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border" style={{ borderColor: "var(--gold-bright)", boxShadow: "0 0 0 2px var(--gold-bright)" }}></span> {tx("today")}</span>
+          <span className="flex items-center gap-1.5">{tx("mp.legend")}</span>
+        </div>
+      </div>
         )}
           <AdminMenu menu={restaurantMenu} updateItem={updateMenuItem} addItem={addMenuItem} busy={busy} />
         {session.user.role === "admin" && tab === "adminMenu" && (
