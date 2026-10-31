@@ -6529,6 +6529,472 @@ function GroupOrderPanel({ menu, cart, setCart, apiBase, token, userId }) {
     } catch (e) {
       setError(e.message || "Could not add this item.");
     } finally {
+      setBusy(false);
+    }
+  };
+  const closeGroup = async () => {
+    try {
+      await api(apiBase, `/api/group-orders/${activeGroupId}/close`, { method: "POST", token });
+      await openGroup(activeGroupId);
+      await loadGroups();
+    } catch (e) {
+      setError(e.message || "Could not close this group.");
+    }
+  };
+  const loadCombinedCart = () => {
+    if (!detail || Number(detail.group.hostUserId) !== Number(userId)) {
+      setError("Only the group host can load and check out the combined cart.");
+      return;
+    }
+    if (cart.length && !window.confirm("Replace your current cart with the group order?")) return;
+    const combined = new Map();
+    for (const item of detail.items) {
+      const menuItem = menu.find(entry => Number(entry.id) === Number(item.menuItemId));
+      if (!menuItem || menuItem.availability !== "available" || Number(menuItem.stock) < Number(item.qty)) {
+        setError(`${item.itemName} is no longer available in the requested quantity.`);
+        return;
+      }
+      const current = combined.get(menuItem.id);
+      const combinedQuantity = Number(item.qty) + (current ? current.qty : 0);
+      if (combinedQuantity > Number(menuItem.stock)) {
+        setError(`${item.itemName} exceeds the remaining stock for the combined order.`);
+        return;
+      }
+      combined.set(menuItem.id, { ...menuItem, qty: combinedQuantity });
+    }
+    if (!combined.size) {
+      setError("Add available menu items before loading the group cart.");
+      return;
+    }
+    setCart([...combined.values()]);
+    setError("Group items loaded. Review the cart and place one order to pay.");
+  };
+
+  return <div className="card p-5 space-y-4">
+    <div><h2 className="font-display font-800 text-xl">Group orders</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share a join code, collect menu choices, and let the host place one combined order.</p></div>
+    {error && <div className="rounded-lg p-3 text-sm" style={{ background: "var(--gold-soft)" }}>{error}</div>}
+    <div className="grid md:grid-cols-2 gap-3">
+      <div className="rounded-xl p-3" style={{ background: "var(--panel-soft)" }}>
+        <label className="text-sm font-700 block mb-2">Create a group</label>
+        <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} className="w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+        <button disabled={busy || !title.trim()} onClick={createGroup} className="btn-primary rounded-lg px-3 py-2 mt-2 text-sm">Create group</button>
+      </div>
+      <div className="rounded-xl p-3" style={{ background: "var(--panel-soft)" }}>
+        <label className="text-sm font-700 block mb-2">Join a group</label>
+        <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={12} placeholder="Join code" className="w-full rounded-lg border px-3 py-2 text-sm uppercase" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+        <button disabled={busy || !joinCode.trim()} onClick={joinGroup} className="rounded-lg border px-3 py-2 mt-2 text-sm" style={{ borderColor: "var(--line)" }}>Join group</button>
+      </div>
+    </div>
+    {groups.length > 0 && <div><h3 className="font-700 mb-2">Your open groups</h3><div className="flex flex-wrap gap-2">{groups.map(group => <button key={group.id} onClick={() => openGroup(group.id)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: activeGroupId === group.id ? "var(--gold)" : "var(--line)" }}>{group.title} · {group.members} members · {group.joinCode}</button>)}</div></div>}
+    {detail && <div className="rounded-xl border p-4 space-y-3" style={{ borderColor: "var(--line)" }}>
+      <div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-800 text-lg">{detail.group.title}</h3><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Share code: <strong>{detail.group.joinCode}</strong> · {detail.members.length} members · closes {new Date(detail.group.closesAt).toLocaleString()}</p></div><div className="flex gap-2">{detail.group.status === "OPEN" && Number(detail.group.hostUserId) === Number(userId) && <button onClick={closeGroup} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Close group</button>}<button onClick={loadCombinedCart} className="btn-primary rounded-lg px-3 py-2 text-sm">Load combined cart</button></div></div>
+      {detail.group.status === "OPEN" && <div className="grid sm:grid-cols-[1fr_auto_auto] gap-2"><select value={menuItemId} onChange={e => setMenuItemId(e.target.value)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}><option value="">Choose food</option>{menu.filter(item => item.stock > 0 && item.availability === "available").map(item => <option key={item.id} value={item.id}>{item.name} — ৳{item.price}</option>)}</select><input type="number" min="1" max="20" value={quantity} onChange={e => setQuantity(Math.max(1, Math.min(20, Number(e.target.value) || 1)))} className="w-20 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} /><button disabled={busy || !menuItemId} onClick={addItem} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)" }}>Add food</button></div>}
+      {detail.items.length ? <div className="space-y-2">{detail.items.map(item => <div key={item.id} className="flex justify-between border-b pb-2 text-sm" style={{ borderColor: "var(--line)" }}><span>{item.itemName} × {item.qty} <span style={{ color: "var(--ink-soft)" }}>by {item.addedBy}</span></span><strong>৳{(Number(item.price) * Number(item.qty)).toFixed(2)}</strong></div>)}</div> : <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No items added yet.</p>}
+    </div>}
+  </div>;
+}
+
+function RiderOrderChat({ apiBase, token, orderId }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let active = true;
+    setLoading(true);
+    const load = async () => {
+      try {
+        const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, { token });
+        if (active) setMessages(result.messages || []);
+      } catch (e) {
+        if (active) setError(e.message || "Could not load order chat.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    const socket = io(apiBase, { auth: { token } });
+    socket.on("order-chat:message", message => {
+      if (Number(message.orderId) !== Number(orderId)) return;
+      setMessages(current => current.some(item => item.id === message.id)
+        ? current
+        : [...current, message].sort((a, b) => Number(a.id) - Number(b.id)));
+    });
+    load();
+    return () => { active = false; socket.disconnect(); };
+  }, [open, apiBase, token, orderId]);
+
+  useEffect(() => {
+    if (open && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, open]);
+
+  const send = async () => {
+    const message = draft.trim();
+    if (!message || sending) return;
+    setSending(true);
+    try {
+      const result = await api(apiBase, `/api/chat/order/${orderId}/messages`, {
+        method: "POST", token, body: { message },
+      });
+      setMessages(current => current.some(item => item.id === result.message.id)
+        ? current
+        : [...current, result.message].sort((a, b) => Number(a.id) - Number(b.id)));
+      setDraft("");
+      setError("");
+    } catch (e) {
+      setError(e.message || "Could not send message.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 border-t pt-3" style={{ borderColor: "var(--line)" }}>
+      <button onClick={() => setOpen(value => !value)}
+        className="inline-flex items-center gap-1.5 text-xs font-700 transition-colors"
+        style={{ color: "var(--gold)" }}>
+        <span>💬</span> {open ? "Hide Order Chat ▲" : "Chat with Customer / Kitchen ▼"}
+      </button>
+
+      {open && (
+        <div className="mt-2.5 rounded-xl border p-3 space-y-2.5" style={{ background: "var(--bg)", borderColor: "var(--line)" }}>
+          {error && (
+            <div className="p-2 rounded-lg text-xs" style={{ background: "var(--danger-bg)", color: "var(--danger-fg)" }}>
+              {error}
+            </div>
+          )}
+          {loading ? (
+            <div className="text-center py-4 text-xs font-600" style={{ color: "var(--ink-soft)" }}>Loading messages…</div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-4 text-xs italic" style={{ color: "var(--ink-soft)" }}>
+              No messages exchanged yet. Send a note to the teacher or canteen.
+            </div>
+          ) : (
+            <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+              {messages.map(message => (
+                <div key={message.id} className="rounded-xl p-2.5 text-xs border"
+                  style={{ background: "var(--panel)", borderColor: "var(--line)" }}>
+                  <div className="flex justify-between items-center gap-2 mb-1">
+                    <strong className="font-700" style={{ color: "var(--gold)" }}>{message.sender_name}</strong>
+                    <span className="text-[10px] font-mono" style={{ color: "var(--ink-soft)" }}>
+                      {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="leading-relaxed whitespace-pre-wrap">{message.message}</p>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <input value={draft} maxLength={1000} onChange={event => setDraft(event.target.value)}
+              onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } }}
+              placeholder="Type delivery update or question…"
+              className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-xs"
+              style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+            <button disabled={sending || !draft.trim()} onClick={send}
+              className="btn-primary rounded-xl px-4 py-2 text-xs font-700 disabled:opacity-50">
+              {sending ? "…" : "Send"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Teacher-only rider map ---------------- */
+function TeacherRiderTracking({ apiBase, token }) {
+  const [riders, setRiders] = useState([]); const [error, setError] = useState(""); const [updatedAt, setUpdatedAt] = useState(null);
+  const [shifts, setShifts] = useState([]); const [assignOrders, setAssignOrders] = useState([]); const [selectedRiders, setSelectedRiders] = useState({});
+  const [assignmentMessage, setAssignmentMessage] = useState("");
+  const refresh = async () => { try { setRiders(await api(apiBase, "/api/riders/locations", { token })); setError(""); setUpdatedAt(new Date()); } catch (e) { setError(e.message || "Could not load rider locations."); } };
+  const refreshAssignments = async () => {
+    try {
+      const [activeShifts, orders] = await Promise.all([
+        api(apiBase, "/api/operations/riders/shifts", { token }),
+        api(apiBase, "/api/operations/riders/assignable-orders", { token }),
+      ]);
+      setShifts(activeShifts);
+      setAssignOrders(orders);
+    } catch (e) {
+      setError(e.message || "Could not load rider assignment data.");
+    }
+  };
+  const assignRider = async (orderId) => {
+    const riderId = Number(selectedRiders[orderId]);
+    if (!riderId) { setAssignmentMessage("Select an on-duty rider first."); return; }
+    try {
+      await api(apiBase, `/api/operations/orders/${orderId}/assign-rider`, { method: "POST", token, body: { riderId } });
+      setAssignmentMessage(`Order #${orderId} assigned.`);
+      await refreshAssignments();
+    } catch (e) {
+      setAssignmentMessage(e.message || "Could not assign this rider.");
+    }
+  };
+  useEffect(() => {
+    refresh(); refreshAssignments();
+    const timer = setInterval(() => { refresh(); refreshAssignments(); }, 10000);
+    const socket = io(apiBase, { auth: { token } });
+    socket.on("rider:location", refresh); socket.on("connect", refresh);
+    return () => { clearInterval(timer); socket.disconnect(); };
+  }, [apiBase, token]);
+  const active = riders.filter(r => r.active && r.latitude != null && r.longitude != null);
+  return <div className="space-y-4"><div className="flex items-center justify-between gap-3"><div><h2 className="font-display font-800 text-xl">Rider Live Locations</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Teacher-only location view. Live events and automatic refresh every 10 seconds.</p></div><button onClick={refresh} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }}>↻ Refresh</button></div>
+    {updatedAt && <div className="text-xs" style={{ color: "var(--ink-soft)" }}>Last refreshed {updatedAt.toLocaleTimeString()}</div>}{error && <div className="card p-3" style={{ color: "var(--brick)" }}>{error}</div>}
+    {riders.length === 0 && !error && <div className="card p-6 text-center">No rider accounts found yet.</div>}{riders.length > 0 && active.length === 0 && <div className="card p-5">No riders are sharing their location right now.</div>}
+    <div className="grid md:grid-cols-2 gap-4">{active.map(r => <div className="card overflow-hidden" key={r.riderId}><div className="p-4"><div className="font-700">{r.name}</div><div className="text-xs" style={{ color: "var(--ink-soft)" }}>Rider ID: {r.external_id} · Updated {r.updated_at ? new Date(r.updated_at).toLocaleTimeString() : "just now"}</div></div><iframe title={`Location of ${r.name}`} width="100%" height="240" loading="lazy" style={{ border: 0 }} src={`https://www.openstreetmap.org/export/embed.html?bbox=${r.longitude-0.003}%2C${r.latitude-0.002}%2C${r.longitude+0.003}%2C${r.latitude+0.002}&layer=mapnik&marker=${r.latitude}%2C${r.longitude}`} /><div className="p-3"><a className="underline text-sm" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${r.latitude}&mlon=${r.longitude}#map=18/${r.latitude}/${r.longitude}`}>Open larger map ↗</a></div></div>)}</div>
+    <div className="card p-4"><h3 className="font-display font-800 text-lg">Assign order to a rider</h3><p className="text-sm mt-1 mb-3" style={{ color: "var(--ink-soft)" }}>Choose an on-duty rider with spare capacity. Accepted deliveries cannot be reassigned.</p>{assignmentMessage && <p className="text-sm mb-2">{assignmentMessage}</p>}{assignOrders.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No assignable orders.</p> : <div className="space-y-2">{assignOrders.map(order => <div key={order.id} className="grid sm:grid-cols-[1fr_1fr_auto] gap-2 items-center border-b pb-2" style={{ borderColor: "var(--line)" }}><div className="text-sm"><strong>Order #{order.id}</strong> · {order.status}<div className="text-xs" style={{ color: "var(--ink-soft)" }}>{order.rider_id ? `Current rider #${order.rider_id}` : "Unassigned"}</div></div><select value={selectedRiders[order.id] || ""} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }}><option value="">Select on-duty rider</option>{shifts.filter(rider => Number(rider.activeOrders) < Number(rider.maxOrders)).map(rider => <option key={rider.riderId} value={rider.riderId}>{rider.name} · {rider.activeOrders}/{rider.maxOrders} orders</option>)}</select><button onClick={() => assignRider(order.id)} className="btn-primary rounded-lg px-3 py-2 text-sm">Assign</button></div>)}</div>}</div>
+  </div>;
+}
+
+/* ---------------- Admin: Reports ---------------- */
+function AdminOperationsAnalytics({ apiBase, token }) {
+  const [data, setData] = useState(null);
+  const [fraudEvents, setFraudEvents] = useState([]);
+  const [auditEvents, setAuditEvents] = useState([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      api(apiBase, "/api/operations/analytics", { token }),
+      api(apiBase, "/api/operations/fraud-events", { token }),
+      api(apiBase, "/api/operations/audit?limit=30", { token }),
+    ])
+      .then(([result, events, audit]) => { if (active) { setData(result); setFraudEvents(events); setAuditEvents(audit); setError(""); } })
+      .catch(e => { if (active) setError(e.message || "Could not load analytics."); });
+    return () => { active = false; };
+  }, [apiBase, token]);
+
+  if (error) return <div className="card p-4" style={{ color: "var(--brick)" }}>{error}</div>;
+  if (!data) return <div className="card p-4">Loading operations analytics…</div>;
+  const table = (title, rows, columns) => (
+    <div className="card p-4">
+      <h3 className="font-display font-700 mb-3">{title}</h3>
+      {rows.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No data yet.</p> : (
+        <div className="space-y-2">{rows.map((row, index) => (
+          <div key={index} className="flex justify-between gap-3 border-b pb-2 text-sm" style={{ borderColor: "var(--line)" }}>
+            <span>{columns[0](row)}</span><strong>{columns[1](row)}</strong>
+          </div>
+        ))}</div>
+      )}
+    </div>
+  );
+  return <section className="space-y-4">
+    <div><h2 className="font-display font-800 text-xl">Operations analytics</h2><p className="text-sm" style={{ color: "var(--ink-soft)" }}>Today’s performance and recent campus demand.</p></div>
+    <div className="grid sm:grid-cols-3 gap-3">
+      {[["Orders today", data.today.orders], ["Revenue today", taka(data.today.revenue)], ["Cancelled today", data.today.cancelled]].map(([label, value]) =>
+        <div key={label} className="card p-4"><div className="text-sm" style={{ color: "var(--ink-soft)" }}>{label}</div><div className="font-display font-800 text-2xl mt-2">{value}</div></div>
+      )}
+    </div>
+    <div className="grid md:grid-cols-2 gap-4">
+      {table("Popular food · last 30 days", data.popular, [row => row.name, row => row.quantity])}
+      {table("Busiest hours · last 30 days", data.busyHours, [row => `${String(row.hour).padStart(2, "0")}:00`, row => `${row.order_count} orders`])}
+      {table("Completed deliveries", data.riders, [row => row.name, row => row.delivered])}
+    </div>
+    {table("Fraud and abuse alerts", fraudEvents.slice(0, 20), [
+      row => `${row.event_type} · ${row.user_name || "Unknown / OTP email"}`,
+      row => `${row.severity} · ${new Date(row.created_at).toLocaleString()}`,
+    ])}
+    {table("Recent admin audit log", auditEvents, [
+      row => `${row.action} · ${row.actor_name || "System"} · ${row.entity_type} #${row.entity_id || "—"}`,
+      row => new Date(row.created_at).toLocaleString(),
+    ])}
+  </section>;
+}
+
+function AdminReports({ trend, forecast, call, apiBase, token }) {
+  const max = Math.max(1, ...trend.map(r => r.revenue));
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+  const [from, setFrom] = useState(() => daysAgo(29));
+  const [to, setTo] = useState(() => iso(new Date()));
+  const [report, setReport] = useState(null);
+  const [printKey, setPrintKey] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const preset = (f, t) => { setFrom(f); setTo(t); };
+  const generate = async () => {
+    setBusy(true); setError(null);
+    try { setReport(await call(`/api/admin/reports/summary?from=${from}&to=${to}`)); }
+    catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  };
+  const download = async (type) => {
+    setError(null);
+    try {
+      const res = await fetch(`${apiBase}/api/admin/reports/export?type=${type}&from=${from}&to=${to}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        let msg = `Download failed (${res.status})`;
+        try { msg = (await res.json()).error || msg; } catch (_) {}
+        throw new Error(msg);
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url; a.download = `campusdine-${type}-${from}_to_${to}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { setError(e.message); }
+  };
+
+  const Tile = ({ label, value, sub }) => (
+    <div className="card p-4">
+      <div className="text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>{label}</div>
+      <div className="font-mono text-xl font-700 mt-1">{value}</div>
+      {sub && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>{sub}</div>}
+    </div>
+  );
+  const Table = ({ title, head, rows, empty }) => (
+    <div className="card p-5">
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>{title}</div>
+      {rows.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>{empty || "Nothing in this period."}</p> : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="text-left text-xs uppercase tracking-wide" style={{ color: "var(--ink-soft)" }}>
+              {head.map((h, i) => <th key={i} className={`py-1.5 pr-3 font-600 ${i > 0 ? "text-right" : ""}`}>{h}</th>)}
+            </tr></thead>
+            <tbody>{rows.map((r, ri) => (
+              <tr key={ri} className="border-t" style={{ borderColor: "var(--line)" }}>
+                {r.map((c, i) => <td key={i} className={`py-1.5 pr-3 ${i > 0 ? "text-right font-mono" : ""}`}>{c}</td>)}
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  const t = report && report.totals;
+  const dayMax = report ? Math.max(1, ...report.byDay.map(d => d.revenue)) : 1;
+  const nice = (s) => s === "hall" ? "Hall residents" : s === "regular" ? "Regular" : s;
+
+  return (
+    <div className="space-y-6">
+      <AdminOperationsAnalytics apiBase={apiBase} token={token} />
+      {printKey > 0 && report && (
+        <PrintSheet key={printKey} title="Sales report"
+          meta={`${report.range.from} to ${report.range.to} (${report.range.days} day${report.range.days === 1 ? "" : "s"}) · generated ${new Date(report.generatedAt).toLocaleString()}`}>
+          <div className="ps-grid">
+            {[
+              ["Orders", t.orders], ["Revenue", taka(t.revenue)], ["Average order", taka(Math.round(t.avgOrder))],
+              ["Collected", `${t.collected} / ${t.orders}`], ["Cancelled", `${t.cancelledOrders} (${taka(t.cancelledAmount)})`],
+              ["New sign-ups", report.users.joined], ["Avg. rating", report.feedback.count ? report.feedback.average.toFixed(1) + " / 5" : "—"],
+              ["Wallet top-ups", taka(report.wallet.topups)],
+            ].map(([k, v]) => <div key={k} className="ps-tile"><div className="ps-k">{k}</div><div className="ps-v">{v}</div></div>)}
+          </div>
+          <h2>Revenue by day</h2>
+          <PsTable head={["Date", "Orders", "Revenue", ""]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.byDay.map(d => [d.day, d.orders, taka(d.revenue), <div className="ps-bar" style={{ width: `${(d.revenue / dayMax) * 100}%` }}></div>])} />
+          <h2>Top selling items</h2>
+          <PsTable head={["Item", "Qty", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.topItems.map(i => [i.name, i.qty, taka(i.revenue)])} />
+          <h2>Hall residents vs regular</h2>
+          <PsTable head={["Group", "Customers", "Orders", "Revenue"]} numCols={[1, 2, 3]} empty="No orders in this period."
+            rows={report.byResidence.map(r => [nice(r.type), r.customers, r.orders, taka(r.revenue)])} />
+          <h2>Payment method</h2>
+          <PsTable head={["Method", "Orders", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.byPayment.map(p => [p.method === "wallet" ? "Wallet" : "Cash", p.orders, taka(p.revenue)])} />
+          <h2>Students vs teachers</h2>
+          <PsTable head={["Role", "Orders", "Revenue"]} numCols={[1, 2]} empty="No orders in this period."
+            rows={report.byRole.map(r => [r.role, r.orders, taka(r.revenue)])} />
+          <h2>{`Hall residents (${report.hallResidents.length})`}</h2>
+          <PsTable head={["Name", "Hall · Room", "Hall ID", "Orders", "Spent"]} numCols={[3, 4]} empty="No hall residents have signed up yet."
+            rows={report.hallResidents.map(h => [`${h.name} (${h.externalId})`, `${h.hallName || "—"} · ${h.roomNumber || "—"}`, h.hallId || "—", h.orders, taka(h.spent)])} />
+        </PrintSheet>
+      )}
+
+      {/* ---------- Generate a report ---------- */}
+      <div className="card p-5 no-print">
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Generate report</div>
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>Pick a period (up to one year), then generate it on screen, print / save as PDF, or download it as a spreadsheet (CSV).</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1" style={{ color: "var(--ink-soft)" }}>From</label>
+            <input type="date" value={from} max={to} onChange={e => setFrom(e.target.value)} className="px-3 py-2 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-wide block mb-1" style={{ color: "var(--ink-soft)" }}>To</label>
+            <input type="date" value={to} min={from} onChange={e => setTo(e.target.value)} className="px-3 py-2 rounded-xl border" style={{ borderColor: "var(--line)" }} />
+          </div>
+          <button onClick={generate} disabled={busy || !from || !to} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">{busy ? "Generating…" : "Generate report"}</button>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {[["Today", 0, 0], ["Last 7 days", 6, 0], ["Last 30 days", 29, 0], ["Last 90 days", 89, 0]].map(([label, a, b]) => (
+            <button key={label} onClick={() => preset(daysAgo(a), daysAgo(b))} className="chip text-xs px-3 py-1.5 rounded-full">{label}</button>
+          ))}
+          <button onClick={() => { const d = new Date(); preset(iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(d)); }} className="chip text-xs px-3 py-1.5 rounded-full">This month</button>
+        </div>
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
+          <button onClick={() => download("orders")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download orders (CSV)</button>
+          <button onClick={() => download("hall")} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Download hall residents (CSV)</button>
+          {report && <button onClick={() => setPrintKey(k => k + 1)} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Print / Save as PDF</button>}
+        </div>
+      </div>
+
+      {/* ---------- The generated report ---------- */}
+      {report && (
+        <div id="report-area" className="space-y-5">
+          <div>
+            <div className="font-display font-800 text-xl">CampusDine — Sales report</div>
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>
+              {report.range.from} to {report.range.to} ({report.range.days} day{report.range.days === 1 ? "" : "s"}) · generated {new Date(report.generatedAt).toLocaleString()}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Tile label="Orders" value={t.orders} sub={`${t.customers} customer${t.customers === 1 ? "" : "s"}`} />
+            <Tile label="Revenue" value={taka(t.revenue)} sub={`after ${taka(t.discounts)} in discounts`} />
+            <Tile label="Average order" value={taka(Math.round(t.avgOrder))} />
+            <Tile label="Collected" value={`${t.collected} / ${t.orders}`} sub="handed over by QR scan" />
+            <Tile label="Cancelled" value={t.cancelledOrders} sub={`${taka(t.cancelledAmount)} refunded / not counted`} />
+            <Tile label="New sign-ups" value={report.users.joined} sub={`${report.users.total} users, ${report.users.hall} in halls`} />
+            <Tile label="Avg. rating" value={report.feedback.count ? report.feedback.average.toFixed(1) + " ★" : "—"} sub={`${report.feedback.count} feedback`} />
+            <Tile label="Wallet top-ups" value={taka(report.wallet.topups)} sub={`${taka(report.wallet.balanceHeld)} held in wallets`} />
+          </div>
+
+          <div className="card p-5">
+            <div className="font-display font-700 mb-4" style={{ color: "var(--gold)" }}>Revenue by day</div>
+            {report.byDay.length === 0 ? <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No orders in this period.</p> : (
+              <div className="overflow-x-auto">
+                <div className="flex items-end gap-1 h-40" style={{ minWidth: report.byDay.length * 14 }}>
+                  {report.byDay.map(d => (
+                    <div key={d.day} className="flex-1 flex flex-col items-center justify-end" title={`${d.day}: ${taka(d.revenue)} · ${d.orders} orders`}>
+                      <div className="w-full rounded-t" style={{ height: `${Math.max(2, (d.revenue / dayMax) * 130)}px`, background: "var(--gold)" }}></div>
+                      <div className="text-[9px] mt-1 font-mono" style={{ color: "var(--ink-soft)" }}>{d.day.slice(8)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            <Table title="Top selling items" head={["Item", "Qty", "Revenue"]} rows={report.topItems.map(i => [i.name, i.qty, taka(i.revenue)])} />
+            <Table title="Hall residents vs regular" head={["Group", "Customers", "Orders", "Revenue"]}
+              rows={report.byResidence.map(r => [nice(r.type), r.customers, r.orders, taka(r.revenue)])} />
+            <Table title="Payment method" head={["Method", "Orders", "Revenue"]}
+              rows={report.byPayment.map(p => [p.method === "wallet" ? "Wallet" : "Cash", p.orders, taka(p.revenue)])} />
+            <Table title="Students vs teachers" head={["Role", "Orders", "Revenue"]}
+              rows={report.byRole.map(r => [r.role, r.orders, taka(r.revenue)])} />
+          </div>
+
+          <Table title={`Hall residents (${report.hallResidents.length})`} head={["Name", "Hall · Room", "Hall ID", "Orders", "Spent"]}
+            empty="No hall residents have signed up yet."
+            rows={report.hallResidents.map(h => [`${h.name} (${h.externalId})`, `${h.hallName || "—"} · ${h.roomNumber || "—"}`, h.hallId || "—", h.orders, taka(h.spent)])} />
+        </div>
+      )}
+
+      {/* ---------- Existing trend + forecast ---------- */}
+      <div className="grid lg:grid-cols-3 gap-6 no-print">
+      <div className="lg:col-span-2 card p-5">
         ))}
           </div>
             <div className="text-sm mt-1 leading-relaxed">{item.message}</div>
