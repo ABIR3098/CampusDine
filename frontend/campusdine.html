@@ -6891,6 +6891,40 @@ function LeaderboardAndBadges({ user, orders = [], onGoMenu }) {
 
   const leaderboardUsers = [
     { rank: 1, name: "Fahim Ahmed", dept: "CSE", points: 480, ecoCount: 14, avatar: null },
+    { rank: 2, name: "Nusrat Jahan", dept: "BBA", points: 410, ecoCount: 12, avatar: null },
+    { rank: 3, name: "Tanvir Hasan", dept: "EECE", points: 375, ecoCount: 9, avatar: null },
+    { rank: 4, name: "Sadia Islam", dept: "IR", points: 320, ecoCount: 8, avatar: null },
+    { rank: 5, name: user.name || "You", dept: "CSE", points: 280, ecoCount: 6, avatar: user.avatar, isMe: true },
+    { rank: 6, name: "Mehedi Hasan", dept: "Economics", points: 240, ecoCount: 5, avatar: null },
+    { rank: 7, name: "Afrin Sultana", dept: "Law", points: 210, ecoCount: 4, avatar: null },
+  ];
+
+  const badges = [
+    { id: "eco", title: "Green Eco Hero", desc: "Bring your own lunch box or water bottle (BYOB) 5+ times.", icon: "🌿", progress: 4, target: 5, unlocked: false },
+    { id: "waste", title: "Zero Waste Champion", desc: "Pledge zero plate food waste for 7 consecutive days.", icon: "🥣", progress: 7, target: 7, unlocked: true },
+    { id: "early", title: "Early Bird Diner", desc: "Order a nutritious campus breakfast before 9:30 AM.", icon: "⚡", progress: 3, target: 3, unlocked: true },
+    { id: "night", title: "Midnight Study Owl", desc: "Order hot snacks during exam night canteen hours.", icon: "🌙", progress: 2, target: 3, unlocked: false },
+    { id: "gourmet", title: "Campus Gourmet", desc: "Taste dishes from all campus cafeterias & halls.", icon: "🥇", progress: 4, target: 5, unlocked: false },
+    { id: "helper", title: "Community Guardian", desc: "Report or claim an item in the Campus Lost & Found.", icon: "🤝", progress: 1, target: 1, unlocked: true },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Tab Switcher */}
+      <div className="flex gap-2 border-b pb-3 border-slate-200">
+        <button
+          onClick={() => setActiveTab("leaderboard")}
+          className={"px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 " + (activeTab === "leaderboard" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-700 hover:bg-slate-200")}>
+          <span>🏆</span>
+          <span>Campus Diners Leaderboard</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("badges")}
+          className={"px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 " + (activeTab === "badges" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-700 hover:bg-slate-200")}>
+          <span>🏅</span>
+          <span>Sustainability & Achievement Badges</span>
+        </button>
+      </div>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
