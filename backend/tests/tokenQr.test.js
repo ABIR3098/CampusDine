@@ -6,3 +6,9 @@ test("sign is 12 uppercase hex characters and stable", () => {
   assert.match(sign("C-105"), /^[0-9A-F]{12}$/);
   assert.equal(sign("C-105"), sign("C-105"));
 });
+
+test("a built payload parses back as valid", () => {
+  const payload = buildPayload("C-105");
+  assert.ok(payload.startsWith("CD1|C-105|"));
+  assert.deepEqual(parseCode(payload), { token: "C-105", signed: true, valid: true });
+});
