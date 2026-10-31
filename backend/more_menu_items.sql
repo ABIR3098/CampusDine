@@ -98,6 +98,7 @@ SELECT v.name, v.name_bn, v.category, v.price, v.stock, v.tag, v.is_veg, v.image
   UNION ALL SELECT 'Oreo Shake', 'ওরিও শেক', 'drinks', 95, 25, 'Popular', 1, '/images/food/lassi.svg'
   UNION ALL SELECT 'Brownie', 'ব্রাউনি', 'snacks', 60, 30, NULL, 1, '/images/food/default.svg'
   UNION ALL SELECT 'Chocolate Muffin', 'চকলেট মাফিন', 'snacks', 50, 30, NULL, 1, '/images/food/default.svg'
+  UNION ALL SELECT 'Cupcake', 'কাপকেক', 'snacks', 40, 35, NULL, 1, '/images/food/default.svg'
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM menu_items m WHERE m.name = v.name);
 
@@ -192,6 +193,7 @@ JOIN (
   UNION ALL SELECT 'Oreo Shake', 'amitie'
   UNION ALL SELECT 'Brownie', 'amitie'
   UNION ALL SELECT 'Chocolate Muffin', 'amitie'
+  UNION ALL SELECT 'Cupcake', 'amitie'
 ) AS r ON r.name = m.name
 ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value);
 
