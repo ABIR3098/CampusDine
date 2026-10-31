@@ -58,3 +58,6 @@ Finance (admin): how the mess is doing this month — what was billed and collec
 
 ## `financeCharts.jsx`
 Small charts drawn with plain divs (no library), so they also print cleanly.
+
+## `financeCompare.jsx`
+Finance: how this month compares with the one before ("↑ 12% vs last month").
