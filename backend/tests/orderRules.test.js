@@ -118,3 +118,10 @@ test("parseListParams names the allowed statuses on error", () => {
   const { parseListParams } = require("../src/utils/orderRules");
   assert.match(parseListParams({ status: "Burnt" }).error, /^status must be one of Received, Cooking, Ready, Cancelled/);
 });
+
+test("parseAdminFilters trims the search text and caps it at 40 characters", () => {
+  const { parseAdminFilters } = require("../src/utils/orderRules");
+  assert.equal(parseAdminFilters({ q: "  C-105  " }).q, "C-105");
+  assert.equal(parseAdminFilters({ q: "x".repeat(60) }).q.length, 40);
+  assert.equal(parseAdminFilters({ q: "   " }).q, null);
+});
