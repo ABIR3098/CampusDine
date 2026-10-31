@@ -85,6 +85,7 @@ function HallFinance({ call, notify }) {
   const [ym, setYm] = useState(null);
   const [data, setData] = useState(null);
   const [exp, setExp] = useState(null);       // { categories, expenses }
+  const [prev, setPrev] = useState(null);     // last month's summary, for the comparison chips
   const [suppliers, setSuppliers] = useState([]);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -95,7 +96,10 @@ function HallFinance({ call, notify }) {
       const q = target ? `?year=${target.year}&month=${target.month}` : "";
       const d = await call("/api/hall/finance/summary" + q);
       const e = await call(`/api/hall/finance/expenses?year=${d.year}&month=${d.month}`);
-      setData(d); setExp(e); setYm({ year: d.year, month: d.month });
+      const p = hallPrevMonth(d.year, d.month);
+      let before = null;
+      try { before = await call(`/api/hall/finance/summary?year=${p.year}&month=${p.month}`); } catch (x) { /* the comparison is optional */ }
+      setData(d); setExp(e); setPrev(before); setYm({ year: d.year, month: d.month });
     } catch (e) { setErr(e.message || String(e)); notify(e, true); }
   };
   useEffect(() => {
@@ -140,6 +144,7 @@ function HallFinance({ call, notify }) {
     )}>
       {err ? <div className="hl-error">⚠️ {err}</div> : !data || !exp ? <div className="hl-empty">Loading…</div> : (
         <>
+          <HallFinanceCompare data={data} prev={prev} />
           <HallFinanceView data={data} />
           <div className="hl-no-print"><HallExpenseForm key={`${data.year}-${data.month}`} categories={exp.categories} suppliers={suppliers} defaultDate={defaultDate} busy={busy} onAdd={add} /></div>
           <div className="font-700 mb-2">Expenses in {label}</div>
