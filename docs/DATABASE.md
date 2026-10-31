@@ -71,3 +71,26 @@ Created in `backend/schema.sql`.
 | `user_id` | INT |
 | `menu_item_id` | INT |
 | `created_at` | TIMESTAMP |
+
+## `orders`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `token` | VARCHAR(20) |
+| `user_id` | INT |
+| `total` | DECIMAL(10,2) |
+| `discount_amount` | DECIMAL(10,2) |
+| `discount_applied` | TINYINT(1) |
+| `payment_method` | ENUM('wallet','cash') |
+| `pickup_time` | DATETIME |
+| `note` | VARCHAR(255) |
+| `delivery_note` | VARCHAR(255) |
+| `status` | ENUM('Received','Cooking','Ready','Cancelled') |
+| `rider_id` | INT |
+| `rider_assignment_status` | ENUM('Unassigned','Assigned','Accepted','Declined','Completed') |
+| `delivery_lat` | DECIMAL(10,7) |
+| `delivery_lng` | DECIMAL(10,7) |
+| `picked_up_at` | DATETIME |
+| `created_at` | TIMESTAMP |
