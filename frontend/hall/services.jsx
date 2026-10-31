@@ -83,12 +83,12 @@ function HallServices({call,user,isAdmin,notify}) {
   };
 
   const updateStatus=async(id,status)=>{
-    try{await call(`/api/hall/services/${id}`,{method:"PATCH",body:{status}});notify("Request updated");await load();}
+    try{await call("/api/hall/services/" + id,{method:"PATCH",body:{status}});notify("Request updated");await load();}
     catch(e){notify(e,true);}
   };
   const cancel=async(id)=>{
     if(!window.confirm("Cancel this request?"))return;
-    try{await call(`/api/hall/services/${id}`,{method:"DELETE"});notify("Request cancelled");await load();}
+    try{await call("/api/hall/services/" + id,{method:"DELETE"});notify("Request cancelled");await load();}
     catch(e){notify(e,true);}
   };
   const createNotice=async()=>{
@@ -97,24 +97,42 @@ function HallServices({call,user,isAdmin,notify}) {
   };
   const deleteNotice=async(id)=>{
     if(!window.confirm("Delete this notice?"))return;
-    try{await call(`/api/hall/notices/${id}`,{method:"DELETE"});await load();notify("Notice deleted");}
+    try{await call("/api/hall/notices/" + id,{method:"DELETE"});await load();notify("Notice deleted");}
     catch(e){notify(e,true);}
   };
-  const saveItem=async()=>{
-    try{await call("/api/hall/inventory",{method:"POST",body:{...itemForm,quantity:Number(itemForm.quantity),minQuantity:Number(itemForm.minQuantity||0)}});setItemForm({itemName:"",category:"Food",quantity:"",unit:"kg",minQuantity:""});notify("Inventory saved");await load();}
-    catch(e){notify(e,true);}
+
+  const btn=(key,label)=> <button key={key} className={"hl-btn " + (section===key?"":"ghost")} onClick={()=>setSection(key)}>{label}</button>;
+
+  const getStatusStep = (status) => {
+    switch(status) {
+      case "submitted": return 1;
+      case "approved": return 2;
+      case "in_progress": return 3;
+      case "resolved": return 4;
+      default: return 1;
+    }
   };
-  const btn=(key,label)=> <button key={key} className={`hl-btn ${section===key?"":"ghost"}`} onClick={()=>setSection(key)}>{label}</button>;
+
   return <div className="space-y-4">
-    <div className="flex gap-2 flex-wrap">{btn("requests",isAdmin?"Service desk":"My requests")}{btn("notices","Notice board")}{!isAdmin&&btn("laundry","Laundry service")}{isAdmin&&btn("overview","Services overview & audit")}</div>
+    <div className="flex gap-2 flex-wrap">
+      {btn("requests",isAdmin?"Service desk":"Room Maintenance & Requests")}
+      {btn("notices","Notice board")}
+      {!isAdmin&&btn("laundry","Laundry service")}
+      {isAdmin&&btn("overview","Services overview & audit")}
+    </div>
+
     {section==="requests"&&<>
-      {!isAdmin&&<HallCard title="Submit a hall request" icon="🛠️" sub="Requests are visible to you and authorized hall administrators. Do not use this form for immediate life-threatening emergencies.">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <label className="text-sm">Request type<select className="hl-input mt-1 w-full" value={type} onChange={e=>setType(e.target.value)}>{HALL_SERVICE_TYPES.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
-          <label className="text-sm">Title<input className="hl-input mt-1 w-full" maxLength="180" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="e.g. Room fan not working"/></label>
-          <label className="text-sm">Location / room<input className="hl-input mt-1 w-full" maxLength="180" value={form.location} onChange={e=>setForm({...form,location:e.target.value})} placeholder="Hall, block, room"/></label>
-          <label className="text-sm">Preferred date<input type="date" className="hl-input mt-1 w-full" value={form.requestedDate} onChange={e=>setForm({...form,requestedDate:e.target.value})}/></label>
-          <label className="text-sm sm:col-span-2">Details<textarea className="hl-input mt-1 w-full" rows="3" maxLength="5000" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Describe the issue or request"/></label>
+      {!isAdmin&&<HallCard title="Submit Room Maintenance / Repair Request" icon="🛠️" sub="Report issues with fan, light, plumbing, or room furniture. Upload a photo for rapid caretaker assignment.">
+        <div className="space-y-4">
+          {/* Category Chips */}
+          <div>
+            <label className="text-xs uppercase tracking-wide font-bold hl-muted block mb-1.5">Issue Category</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+              {MAINTENANCE_CATEGORIES.map(c => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => { setMCategory(c.key); setType("maintenance"); }}
         </div>
         <button className="hl-btn mt-3" disabled={busy} onClick={submit}>{busy?"Submitting…":"Submit request"}</button>
       </HallCard>}
