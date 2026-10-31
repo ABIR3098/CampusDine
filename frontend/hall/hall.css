@@ -221,3 +221,4 @@
   .hl-dayc:hover { transform: none; }
 }
 .hl-empty { line-height: 1.5; }
+.hl-label { user-select: none; }
