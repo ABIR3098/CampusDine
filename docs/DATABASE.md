@@ -169,3 +169,16 @@ Created in `backend/schema.sql`.
 | `menu_item_id` | INT |
 | `qty` | INT |
 | `created_at` | TIMESTAMP |
+
+## `direct_order_messages`
+Created in `backend/schema.sql`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT |
+| `order_id` | INT |
+| `sender_id` | INT |
+| `recipient_id` | INT |
+| `message` | VARCHAR(1000) |
+| `created_at` | TIMESTAMP |
+| `read_at` | DATETIME |
