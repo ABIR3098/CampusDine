@@ -121,3 +121,6 @@ Step 2 — "Meal times" tab: when each meal closes for changes, and its price. A
 
 ## `token.jsx`
 Step 13 — meal tokens. Student/teacher: "Token" tab, take a number for today's meal and watch the queue.
+
+## `wallet.jsx`
+Hall wallet tab: the same wallet as the restaurants (balance, add money, send money, history, referral).
