@@ -24,3 +24,8 @@ test("dayDiff counts whole days in both directions", () => {
 test("addDays rolls over the month", () => {
   assert.equal(addDays("2026-10-31", 1), "2026-11-01");
 });
+
+test("addDays handles leap day and negative numbers", () => {
+  assert.equal(addDays("2028-02-28", 1), "2028-02-29");
+  assert.equal(addDays("2026-03-01", -1), "2026-02-28");
+});
