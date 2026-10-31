@@ -291,3 +291,26 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/hall/report/guests`
 - `GET /api/hall/report/range`
 - `GET /api/hall/report/changes`
+
+## `/api/hall` — `src/hall/routes/services.js`
+
+- `GET /api/hall/services`
+- `POST /api/hall/services`
+- `PATCH /api/hall/services/:id`
+- `DELETE /api/hall/services/:id`
+- `GET /api/hall/notices`
+- `POST /api/hall/notices`
+- `DELETE /api/hall/notices/:id`
+- `GET /api/hall/inventory`
+- `POST /api/hall/inventory`
+- `DELETE /api/hall/inventory/:id`
+- `GET /api/hall/students`
+- `PATCH /api/hall/students/:id/room`
+- `GET /api/hall/overview`
+- `GET /api/hall/audit`
+- `GET /api/hall/pickup-tokens`
+- `POST /api/hall/pickup-tokens`
+- `PATCH /api/hall/pickup-tokens/:code/serve`
+- `GET /api/hall/waste`
+- `POST /api/hall/waste`
+- `GET /api/hall/forecast`
