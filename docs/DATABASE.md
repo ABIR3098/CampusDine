@@ -826,3 +826,16 @@ Created in `backend/src/offersSchema.js`.
 | `item_id` | INT |
 | `is_active` | TINYINT(1) |
 | `created_at` | TIMESTAMP |
+
+## `combo_deals`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `name` | VARCHAR(100) |
+| `name_bn` | VARCHAR(100) |
+| `description` | VARCHAR(255) |
+| `price` | DECIMAL(10,2) |
+| `is_active` | TINYINT(1) |
+| `created_at` | TIMESTAMP |
