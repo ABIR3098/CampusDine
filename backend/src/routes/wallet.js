@@ -3,7 +3,7 @@ const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { ensureCode, REFERRAL_BONUS, MAX_REWARDS_PER_REFERRER } = require("../referrals");
-const { r2, hasMoneyPrecision } = require("../utils/money");
+const { dailyTopupLimit, checkDailyTopup } = require("../utils/money");
 
 const router = express.Router();
 
@@ -41,12 +41,24 @@ router.post("/topup", verifyToken, catchAsync(async (req, res) => {
 
   /* Fix: wallet top-up limits */
   const MAX_PER_TOPUP = 10000;
-  if (!hasMoneyPrecision(amount)) return res.status(400).json({ error: "Amount can have at most 2 decimal places" });
+  if (Math.round(amount * 100) / 100 !== amount) return res.status(400).json({ error: "Amount can have at most 2 decimal places" });
   if (amount > MAX_PER_TOPUP) return res.status(400).json({ error: `You can top up at most ৳${MAX_PER_TOPUP} at a time` });
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
+    // Lock this wallet first, so two parallel top-ups cannot both pass the daily check
+    await conn.query("SELECT id FROM users WHERE id = ? FOR UPDATE", [req.user.id]);
+    const [[{ toppedUpToday }]] = await conn.query(
+      "SELECT COALESCE(SUM(amount), 0) AS toppedUpToday FROM wallet_transactions WHERE user_id = ? AND label LIKE 'Wallet top-up via %' AND created_at >= CURDATE()",
+      [req.user.id]
+    );
+    const dailyLimit = dailyTopupLimit();
+    const daily = checkDailyTopup({ toppedUpToday, amount, limit: dailyLimit });
+    if (!daily.ok) {
+      await conn.rollback();
+      return res.status(400).json({ error: `Daily top-up limit is ৳${dailyLimit} (you can add ৳${daily.remaining} more today)` });
+    }
     await conn.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [amount, req.user.id]);
     await conn.query("INSERT INTO wallet_transactions (user_id, label, amount) VALUES (?, ?, ?)", [
       req.user.id,
@@ -93,7 +105,7 @@ router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAs
 
   if (!toId) return res.status(400).json({ error: "Enter the ID number of the person you want to pay" });
   if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: "Enter an amount greater than zero" });
-  if (!hasMoneyPrecision(amount)) return res.status(400).json({ error: "Amount can have at most 2 decimal places" });
+  if (Math.round(amount * 100) / 100 !== amount) return res.status(400).json({ error: "Amount can have at most 2 decimal places" });
   if (amount > MAX_PER_TRANSFER) return res.status(400).json({ error: `You can send at most ৳${MAX_PER_TRANSFER} at a time` });
 
   const conn = await pool.getConnection();
@@ -129,7 +141,7 @@ router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAs
       return res.status(402).json({ error: "Insufficient wallet balance" });
     }
 
-    const newBalance = r2(Number(sender.wallet_balance) - amount); // rounded, so the answer never shows 59.900000000000006
+    const newBalance = Number(sender.wallet_balance) - amount;
     await conn.query("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?", [amount, sender.id]);
     await conn.query("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?", [amount, recipient.id]);
     const suffix = note ? ` — ${note}` : "";
