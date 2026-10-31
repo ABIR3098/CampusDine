@@ -1,5 +1,6 @@
 // Step 6 — "Menu" tab: the fixed weekly menu, 7 days x 3 meals. Admin can edit any cell.
 // Weekday numbers match hall_menu.dow in the database: 0 = Sunday ... 6 = Saturday.
+const HALL_MENU_MAX_LEN = 255; // matches hall_menu.items VARCHAR(255)
 const HALL_WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5]; // Saturday first
 
 function HallMenuCell({ value, isAdmin, onSave }) {
@@ -7,7 +8,7 @@ function HallMenuCell({ value, isAdmin, onSave }) {
   useEffect(() => { setText(value); }, [value]);
   if (!isAdmin) return <div className="font-600">{value || "—"}</div>;
   return (
-    <input className="hl-input" aria-label="Edit meal items" placeholder="e.g. Rice, Dal, Fish curry" value={text} maxLength={255} onChange={(e) => setText(e.target.value)}
+    <input className="hl-input" aria-label="Edit meal items" placeholder="e.g. Rice, Dal, Fish curry" value={text} maxLength={HALL_MENU_MAX_LEN} onChange={(e) => setText(e.target.value)}
       onBlur={() => { if (text.trim() && text.trim() !== value) onSave(text.trim()); else setText(value); }} />
   );
 }
