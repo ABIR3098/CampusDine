@@ -784,3 +784,16 @@ Created in `backend/src/hall/schema.js`.
 | `status` | ENUM('waiting','served') |
 | `created_at` | DATETIME |
 | `served_at` | DATETIME |
+
+## `loyalty_accounts`
+Created in `backend/src/offersSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `user_id` | INT |
+| `points` | INT |
+| `lifetime_points` | INT |
+| `streak` | INT |
+| `best_streak` | INT |
+| `last_order_date` | DATE |
+| `updated_at` | TIMESTAMP |
