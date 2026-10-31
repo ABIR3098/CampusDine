@@ -9920,21 +9920,25 @@ function App() {
       {/* ─── Main Content Viewport ─── */}
       <div className="portal-main">
         {/* Top Header Bar */}
-            borderColor: item.kind === "announcement" ? "rgba(22,163,74,0.35)" : "rgba(245,179,0,0.35)",
-            color: "var(--ink)"
-          }}>
-            <div className="text-[10px] uppercase tracking-wide font-700" style={{ color: item.kind === "announcement" ? "var(--teal-deep)" : "var(--gold)" }}>{item.title}</div>
-            <div className="text-sm mt-1 leading-relaxed">{item.message}</div>
-          </div>
-        ))}
-      </div>
-      <div className="max-w-6xl mx-auto px-5 pt-4 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2.5">
-          <img src={restaurant.logo} alt="" style={{ width: 36, height: 36 }} />
-          <div className="leading-tight">
-            <div className="text-sm font-700">{restaurant.name}</div>
-            {restaurant.subtitle && <div className="text-[11px] opacity-60">({restaurant.subtitle})</div>}
-          </div>
+        <PortalTopHeader
+          role={session.user.role}
+          name={session.user.name}
+          avatar={session.user.avatar}
+          connected={connected}
+          onToggleLang={toggleLang}
+          onLogout={logout}
+          notifications={notifications}
+          notificationCount={unreadNotifications}
+          notificationOpen={notificationCenterOpen}
+          onToggleNotifications={() => setNotificationCenterOpen(v => !v)}
+          onMarkAllRead={markAllNotificationsRead}
+          onClearNotifications={clearNotifications}
+          onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          restaurant={restaurant}
+          onSwitchRestaurant={switchRestaurant}
+          currentTabLabel={currentTabObj ? currentTabObj.label : ""}
+        />
+
         </div>
         <button className="btn-gold px-3 py-1.5 rounded-lg text-xs" onClick={switchRestaurant}>
           {session.user.role !== "admin" && lang === "bn" ? "রেস্টুরেন্ট বদলান" : "Switch restaurant"}
