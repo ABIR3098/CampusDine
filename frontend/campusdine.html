@@ -6692,6 +6692,39 @@ function ThermalReceiptModal({ order, onClose }) {
             <div>Payment Method: <strong>{order.payment_method === "wallet" ? "CAMPUS WALLET (PAID)" : "CASH ON PICKUP"}</strong></div>
             <div>Order Status: <strong>{order.status}</strong></div>
             {order.note && <div>Kitchen Note: <i>{order.note}</i></div>}
+          </div>
+
+          {/* Barcode & QR Simulation */}
+          <div className="text-center pt-2 border-t border-dashed border-slate-400">
+            <div className="font-mono text-xl tracking-widest text-slate-800 scale-y-125 my-1">
+              ||| | |||| || ||| |||| | ||
+            </div>
+            <div className="text-[9px] text-slate-500 tracking-wider">*{order.token}*</div>
+            <div className="mt-2 text-[10px] font-bold text-slate-700">
+              - - - - - - - - - - ✂ - - - - - - - - - -
+            </div>
+            <div className="text-[10px] text-slate-500 mt-1">
+              Thank you for dining sustainably!
+            </div>
+          </div>
+        </div>
+
+        {/* Print Action */}
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={handlePrint}
+            className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2">
+            <span>🖨️</span>
+            <span>Print POS Slip</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
