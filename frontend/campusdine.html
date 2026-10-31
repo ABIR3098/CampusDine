@@ -6592,6 +6592,39 @@ function KitchenDisplaySystem({ orders = [], advance, onExit, call, onShowPosSli
                         🚪 Deliver to: {o.delivery_note}
                       </div>
                     )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="p-3 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2">
+                    {onShowPosSlip && (
+                      <button
+                        onClick={() => onShowPosSlip(o)}
+                        className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 flex items-center gap-1">
+                        <span>🧾 Slip</span>
+                      </button>
+                    )}
+
+                    {o.status === "Received" ? (
+                      <button
+                        onClick={() => handleAdvance(o.id)}
+                        className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-sm transition-all flex items-center justify-center gap-1.5 shadow-lg">
+                        <span>🔥 Start Cooking</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleAdvance(o.id)}
+                        className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition-all flex items-center justify-center gap-1.5 shadow-lg">
+                        <span>✅ Mark Ready</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   const [assignmentMessage, setAssignmentMessage] = useState("");
   const retryAssignments = async () => {
     try {
