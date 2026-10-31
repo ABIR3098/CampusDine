@@ -471,3 +471,16 @@ Created in `backend/src/hall/advancedSchema.js`.
 | `notes` | VARCHAR(500) |
 | `created_by` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_notifications`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `user_id` | INT |
+| `title` | VARCHAR(180) |
+| `body` | TEXT |
+| `kind` | VARCHAR(60) |
+| `read_at` | DATETIME |
+| `created_at` | TIMESTAMP |
