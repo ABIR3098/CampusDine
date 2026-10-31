@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Docs: Campus Command Center API guide.
+- Tests: catalog tests, including a check that every menu image file exists.
 - Docs: wallet API guide and corrected top-up limit.
 - Tests: new unit tests for diet tags and hall cut-off helpers.
 - Hall weekly menu: sample meals now include sides such as salad, banana and lemon.
