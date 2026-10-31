@@ -1,3 +1,238 @@
+
+  const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const maxBar = Math.max(1, ...[1, 2, 3, 4, 5].map(n => distribution[n] || 0));
+  const shown = entries.filter(e => filter === "all" ? true : filter === "low" ? e.rating <= 2 : e.kind === filter);
+  const countFor = (key) => entries.filter(e => key === "all" ? true : key === "low" ? e.rating <= 2 : e.kind === key).length;
+  };
+    food: "🍛 Food", service: "🛎️ Service", hygiene: "🧼 Hygiene", suggestion: "💡 Suggestion", other: "💬 Other",
+  const CAT = {
+  ];
+    ["all", "All"], ["order", "Orders"], ["general", "General"], ["low", "Needs attention"],
+  const FILTERS = [
+
+  const [printKey, setPrintKey] = useState(0);
+  const [filter, setFilter] = useState("all");
+  const { average = 0, count = 0, entries = [], distribution = {} } = summary;
+function AdminFeedback({ summary }) {
+}
+  );
+    </div>
+      </div>
+        ))}
+          </div>
+            )}
+              </div>
+                <button type="button" disabled={busyId === r.id} onClick={() => act(r, true)} className="btn-primary text-xs px-3 py-1.5 rounded-lg">Resolve</button>
+                  className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)" }}>Send reply</button>
+                <button type="button" disabled={busyId === r.id || !(replies[r.id] || "").trim()} onClick={() => act(r, false)}
+                  placeholder="Reply to the student (optional)" className="flex-1 min-w-[180px] px-3 py-1.5 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} />
+                <input type="text" value={replies[r.id] || ""} onChange={e => setReplies(p => ({ ...p, [r.id]: e.target.value.slice(0, 500) }))}
+              <div className="mt-2 flex flex-wrap gap-2">
+            {r.status === "Open" && (
+            {r.admin_reply && <div className="text-sm mt-1.5 font-600">💬 {r.admin_reply}</div>}
+            {r.details && <div className="text-sm mt-1.5" style={{ color: "var(--ink-soft)" }}>“{r.details}”</div>}
+            </div>
+              <span className="text-xs ml-auto" style={{ color: "var(--ink-soft)" }}>{when(r.created_at)} · {r.status === "Open" ? "⏳ Open" : "✅ Resolved"}</span>
+              <span className="font-600">· {ISSUE_LABELS[r.reason] || r.reason}</span>
+              <span style={{ color: "var(--ink-soft)" }}>{r.user_name}{r.external_id ? " (" + r.external_id + ")" : ""}</span>
+              <span className="font-mono font-700">{r.token}</span>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div key={r.id} className="rounded-lg border p-3" style={{ borderColor: "var(--line)", background: r.status === "Open" ? "var(--panel-soft)" : "transparent" }}>
+        {rows.map(r => (
+      <div className="space-y-3">
+      {rows.length === 0 && <p className="text-sm" style={{ color: "var(--ink-soft)" }}>No problems reported 🎉</p>}
+      {error && <p className="text-xs mb-2" style={{ color: "var(--brick)" }}>{error}</p>}
+      <div className="font-display font-700 mb-3" style={{ color: "var(--gold)" }}>⚠️ Reported problems {openCount > 0 && <span className="ml-2 text-xs px-2 py-0.5 rounded-full text-white" style={{ background: "var(--brick)" }}>{openCount} open</span>}</div>
+    <div className="card p-5 mb-6">
+  return (
+  const openCount = rows.filter(r => r.status === "Open").length;
+  const when = (d) => new Date(d).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
+    finally { setBusyId(null); }
+    } catch (e) { setError(e.message || "Could not save"); }
+      await load();
+      setReplies(r => ({ ...r, [row.id]: "" }));
+      await api(apiBase, "/api/orders/issues/" + row.id, { method: "PATCH", token, body: { reply: reply || undefined, resolve } });
+      const reply = (replies[row.id] || "").trim();
+    try {
+    setBusyId(row.id); setError("");
+  const act = async (row, resolve) => {
+  useEffect(() => { load(); }, [refreshKey]);
+  const load = () => api(apiBase, "/api/orders/issues", { token }).then(setRows).catch(e => setError(e.message || "Could not load problem reports"));
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+  const [replies, setReplies] = useState({});
+  const [rows, setRows] = useState([]);
+function ProblemReports({ apiBase, token, refreshKey }) {
+const ISSUE_LABELS = { cold: "Food was cold", wrong: "Wrong item", missing: "Missing item", late: "Very late", quality: "Poor quality", other: "Other" };
+/* ---------------- Admin: Feedback ---------------- */
+
+
+}
+  );
+    </div>
+      )}
+        </div>
+          </div>
+            </div>
+                className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+              <button onClick={() => { setResult(null); setCode(""); setError(null); }}
+              )}
+                <button onClick={collect} disabled={busy} className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-50">Mark as collected</button>
+              {okToHandOver && (
+            <div className="flex gap-2">
+            {o.delivery_note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>🚪 {o.delivery_note}</div>}
+            {o.note && <div className="text-sm px-3 py-2 rounded-lg font-600" style={{ background: "var(--warn-bg, #FFFBEB)", color: "var(--warn-fg, #92400E)" }}>📝 {o.note}</div>}
+            <div className="text-sm" style={{ color: "var(--ink-soft)" }}>{o.items.map(i => `${i.name} ×${i.qty}`).join(", ")}</div>
+            </div>
+              )}
+                </div>
+                  Hall resident — {o.hall_name || "—"}, room {o.room_number || "—"}{o.hall_id ? ` · ${o.hall_id}` : ""}
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>
+              {o.account_type === "hall" && (
+              <div className="font-600">{o.customer_name} <span className="font-400" style={{ color: "var(--ink-soft)" }}>· {o.customer_id} · {o.customer_role}</span></div>
+            <div className="text-sm">
+            </div>
+              <div className="font-mono text-lg font-700">{taka(o.total)}</div>
+              </div>
+                <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Status: {o.status} · {o.payment_method === "wallet" ? "Paid by wallet" : "Cash at counter"}</div>
+                <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>{o.token}</div>
+              <div>
+            <div className="flex items-start justify-between gap-3">
+          <div className="p-5 space-y-4">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: banner.bg, color: banner.fg, borderBottom: `1px solid ${banner.bd}` }}>{banner.text}</div>
+        <div className="card overflow-hidden">
+      {o && (
+      )}
+        </div>
+          </div>
+            <button onClick={() => { setHallResult(null); setCode(""); setError(null); }} className="px-4 py-2 rounded-xl text-sm border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Next token</button>
+            <div className="text-xs" style={{ color: "var(--ink-soft)" }}>This QR is now marked as used. Scanning it again will be rejected.</div>
+            <div className="text-sm">Meal: <strong>{hallResult.slot}</strong> · Plates: <strong>{hallResult.plates}</strong></div>
+            <div className="text-sm">Student: <strong>{hallResult.name}</strong> · ID: {hallResult.externalId || "—"}</div>
+            <div className="font-mono text-2xl font-700" style={{ color: "var(--gold)" }}>Hall #{hallResult.serial}</div>
+          <div className="p-5 space-y-2">
+          <div className="px-5 py-3 text-sm font-700" style={{ background: "var(--ok-bg, #F0FDF4)", color: "var(--ok-fg, #15803D)", borderBottom: "1px solid var(--ok-border, #BBF7D0)" }}>Hall meal QR verified — pickup completed</div>
+        <div className="card overflow-hidden">
+      {hallResult && (
+
+      </div>
+        {error && <p className="text-sm mt-3" style={{ color: "#DC2626" }}>{error}</p>}
+        )}
+          </div>
+            <video ref={videoRef} playsInline muted className="w-full" style={{ maxHeight: 320, objectFit: "cover" }} />
+          <div className="mt-3 rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)", background: "#000" }}>
+        {scanning && (
+        </div>
+          )}
+            <button type="button" onClick={startScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--gold)" }}>Scan with camera</button>
+          ) : (
+            <button type="button" onClick={stopScan} className="text-xs px-3 py-1.5 rounded-lg border font-600" style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}>Stop camera</button>
+          {scanning ? (
+        <div className="mt-3">
+        </form>
+          <button type="submit" disabled={busy || !code.trim()} className="btn-primary px-4 py-2.5 rounded-xl text-sm disabled:opacity-50">Check</button>
+            className="flex-1 px-4 py-2.5 rounded-xl border font-mono" style={{ borderColor: "var(--line)" }} />
+          <input value={code} onChange={e => setCode(e.target.value)} placeholder="C-105" autoFocus
+        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); check(); }}>
+        </p>
+          Scan a canteen order QR or a Hall Student meal QR. Hall QR scans mark that meal token as served. You can also type the token text into the box.
+        <p className="text-xs mb-4" style={{ color: "var(--ink-soft)" }}>
+        <div className="font-display font-700 mb-1" style={{ color: "var(--gold)" }}>Scan pickup token</div>
+      <div className="card p-5">
+    <div className="max-w-xl space-y-5">
+  return (
+
+    : { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Genuine token, order is Ready — hand it over" };
+        : { bg: "var(--danger-bg)", fg: "var(--danger-fg)", bd: "var(--danger-border)", text: result.problem.message + (result.problem.code === "ALREADY_COLLECTED" && o.picked_up_at ? " at " + new Date(o.picked_up_at).toLocaleString() : "") })
+        ? { bg: "var(--warn-bg, #FFFBEB)", fg: "var(--warn-fg, #92400E)", bd: "var(--warn-border, #FDE68A)", text: result.problem.message }
+    : result.problem ? (result.problem.code === "NOT_READY"
+    : result.justCollected ? { bg: "var(--ok-bg, #F0FDF4)", fg: "var(--ok-fg, #15803D)", bd: "var(--ok-border, #BBF7D0)", text: "Handed over — marked as collected" }
+  const banner = !result ? null
+  const okToHandOver = result && !result.problem && !result.justCollected;
+  const o = result && result.order;
+
+  }, [scanning]);
+    return () => { stopped = true; };
+    tick();
+    };
+      setTimeout(tick, 250);
+      }
+        if (text && !stopped) { stopped = true; stopScan(); setCode(text); check(text); return; }
+        } catch (_) { /* keep trying */ }
+          }
+            if (hit) text = hit.data;
+            const hit = window.jsQR(img.data, img.width, img.height);
+            const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+          } else if (window.jsQR) {
+            if (found.length) text = found[0].rawValue;
+            const found = await detector.detect(video);
+          if (detector) {
+        try {
+        let text = null;
+      if (video.readyState >= 2 && video.videoWidth) {
+      if (stopped) return;
+    const tick = async () => {
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const canvas = document.createElement("canvas");
+    const detector = ("BarcodeDetector" in window) ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
+    let stopped = false;
+    video.play().catch(() => {});
+    video.srcObject = streamRef.current;
+    if (!video || !streamRef.current) return;
+    const video = videoRef.current;
+    if (!scanning) return;
+  useEffect(() => {
+  // While the camera is on, look for a QR code in the video about 4 times a second
+
+  };
+    }
+      setError("Couldn't open the camera — allow camera access, or type the token instead.");
+    } catch (e) {
+      setScanning(true);
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    try {
+    }
+      return;
+      setError("This browser can't open the camera here (the page must be on https:// or localhost). Type the token instead.");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setError(null);
+  const startScan = async () => {
+
+  useEffect(() => () => { if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop()); }, []);
+  };
+    setScanning(false);
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+  const stopScan = () => {
+
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message);
+    } catch (e) {
+      if (onCollected) onCollected(data.order);
+      setResult({ order: data.order, problem: null, justCollected: true });
+      const data = await call("/api/orders/verify", { method: "POST", body: { code: result.order.token, collect: true } });
+    try {
+    setBusy(true); setError(null);
+    if (!result) return;
+  const collect = async () => {
+
+  };
+    }
+      setBusy(false);
+    } finally {
+      setError(e.message);
+    } catch (e) {
+      }
+        setResult({ order: data.order, problem: data.problem || null, justCollected: false });
+        const data = await call("/api/orders/verify", { method: "POST", body: { code: text } });
+      } else {
+        setHallResult(data);
+        const data = await call("/api/hall/queue/scan", { method: "POST", body: { code: text } });
       if (text.startsWith("HALL|")) {
     try {
     setBusy(true); setError(null); setResult(null); setHallResult(null);
