@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- Fix: coupon routes now always release their database connection. Before, an error such as a duplicate code leaked one, and about ten errors could freeze the server.
+- Fix: `/api/coupon/apply` now checks active, expiry, usage limit, minimum order, one use per person and one discount per order, and caps the discount at the order total.
+- Fix: creating a coupon now validates the input and returns 409 for a duplicate code.
+- Docs: coupon API guide. Tests: coupon rules.
 - Docs: pricing guide.
 - Tests: combo and happy-hour pricing tests with a fake database.
 - Fix: admin order filters now reject impossible dates such as 2026-02-30.
