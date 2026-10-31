@@ -319,3 +319,11 @@ Every route registered in the backend, grouped by the file that defines it. Path
 
 - `GET /api/hall/slots`
 - `PUT /api/hall/slots/:slot`
+
+## `/api/hall` — `src/hall/routes/tokens.js`
+
+- `GET /api/hall/token`
+- `POST /api/hall/token`
+- `GET /api/hall/queue`
+- `POST /api/hall/queue/scan`
+- `POST /api/hall/queue/serve`
