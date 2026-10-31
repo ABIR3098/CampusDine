@@ -942,3 +942,13 @@ Created in `backend/src/routes/campusFeatures.js`.
 | `waste_percent` | DECIMAL(6,2) |
 | `log_date` | DATE |
 | `created_at` | TIMESTAMP |
+
+## `chat_reactions`
+Created in `backend/src/routes/chat.js`.
+
+| Column | Type |
+| --- | --- |
+| `message_id` | INT |
+| `user_id` | INT |
+| `emoji` | VARCHAR(16) |
+| `created_at` | TIMESTAMP |
