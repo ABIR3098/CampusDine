@@ -129,37 +129,39 @@ function HallFeasts({ call, isAdmin, notify }) {
       </div>
 
       {activeTab === "guest" && (
-                      <span className="hl-chip">{HALL_SLOT_EMOJI[x.slot]} {HALL_SLOT_LABEL[x.slot]}</span>
-                      {x.date === today && <span className="hl-chip warn">Today</span>}
-                      <span className={`hl-chip ${x.extraPrice > 0 ? "plain" : "ok"}`}>{x.extraPrice > 0 ? `+${hallTaka(x.extraPrice)}` : "No extra charge"}</span>
-                      <span className="hl-chip plain">👥 {x.goingCount} going</span>
-                      {x.capacity != null && (x.goingCount >= x.capacity
-                        ? <span className="hl-chip warn">Full</span>
-                        : <span className="hl-chip ok">{x.capacity - x.goingCount} seat{x.capacity - x.goingCount === 1 ? "" : "s"} left</span>)}
-                    </div>
-                    <div className="text-sm mt-2">{x.items}</div>
-                    <div className="flex gap-2 mt-3">
-                      <button className={`hl-btn sm ${x.myRsvp === "going" ? "" : "ghost"}`} disabled={busy === x.id || !x.rsvpOpen || isFull(x)} onClick={() => rsvp(x.id, "going")}>✅ Going</button>
-                      <button className={`hl-btn sm ${x.myRsvp === "not_going" ? "" : "ghost"}`} disabled={busy === x.id || !x.rsvpOpen} onClick={() => rsvp(x.id, "not_going")}>🚫 Not going</button>
-                      {x.myRsvp && x.rsvpOpen && <button className="hl-btn sm ghost" disabled={busy === x.id} onClick={() => clearRsvp(x.id)}>Clear</button>}
-                    </div>
-                    {!x.rsvpOpen ? <div className="text-xs mt-1.5 hl-muted">RSVP is closed, this meal has locked.</div>
-                      : isFull(x) && <div className="text-xs mt-1.5 hl-muted">This feast is full.</div>}
-                    {isAdmin && <button className="hl-btn sm ghost mt-2" onClick={() => showWho(x.id)}>👥 Who is going</button>}
-                    {isAdmin && open === x.id && list && (
-                      <div className="mt-2 text-sm">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="hl-muted text-xs">{list.going} going · {list.notGoing} not going</span>
-                          {list.people.length > 0 && <button className="hl-btn sm ghost" onClick={downloadCsv}>⬇ CSV</button>}
-                        </div>
-                        {list.people.length === 0 ? <div className="hl-empty">Nobody has answered yet.</div> : list.people.map((p, i) => (
-                          <div key={i} className="flex justify-between items-center gap-2 py-0.5">
-                            <span>{p.name} <span className="hl-muted">{p.externalId}</span></span>
-                            <span className={`hl-chip ${p.status === "going" ? "ok" : "plain"}`}>{p.status === "going" ? "Going" : "Not going"}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+        <HallCard title="Instant Guest Meal Token Counter" icon="🎟️" sub="Book guest tokens for your visiting friends or family members. Tokens are charged to your hall bill / wallet.">
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="font-bold text-sm text-slate-800">New Guest Meal Booking</div>
+              
+              <div>
+                <label className="hl-label">Meal Date</label>
+                <input type="date" min={today} value={gDate} onChange={e => setGDate(e.target.value)} className="hl-input w-full" />
+              </div>
+
+              <div>
+                <label className="hl-label">Meal Slot</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {HALL_SLOTS.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setGSlot(s)}
+                      className={"p-2 rounded-xl border text-center text-xs font-bold transition-all " + (gSlot === s ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm" : "border-slate-200 bg-white text-slate-600")}>
+                      <div>{HALL_SLOT_EMOJI[s]}</div>
+                      <div className="mt-1">{HALL_SLOT_LABEL[s]}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="hl-label">Guest Count</label>
+                  <select value={gCount} onChange={e => setGCount(Number(e.target.value))} className="hl-input w-full">
+                    {[1, 2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n} Guest{n > 1 ? "s" : ""}</option>)}
+                  </select>
+                </div>
                   </div>
                 </div>
               );
