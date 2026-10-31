@@ -133,6 +133,39 @@ function HallServices({call,user,isAdmin,notify}) {
                   key={c.key}
                   type="button"
                   onClick={() => { setMCategory(c.key); setType("maintenance"); }}
+                  className={"p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 " + (mCategory === c.key ? "border-blue-500 bg-blue-50 font-bold text-blue-700 shadow-sm" : "border-slate-200 hover:bg-slate-50 text-slate-600")}>
+                  <span className="text-xl">{c.icon}</span>
+                  <span className="text-[11px] leading-tight">{c.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="text-sm font-semibold">Request type
+              <select className="hl-input mt-1 w-full" value={type} onChange={e=>setType(e.target.value)}>
+                {HALL_SERVICE_TYPES.map(([v,l])=><option key={v} value={v}>{l}</option>)}
+              </select>
+            </label>
+            <label className="text-sm font-semibold">Issue Title
+              <input className="hl-input mt-1 w-full" maxLength="180" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="e.g. Ceiling fan speed regulator broken"/>
+            </label>
+            <label className="text-sm font-semibold">Location / Room
+              <input className="hl-input mt-1 w-full" maxLength="180" value={form.location} onChange={e=>setForm({...form,location:e.target.value})} placeholder="e.g. Hall A, 3rd Floor, Room 304"/>
+            </label>
+            <label className="text-sm font-semibold">Preferred Visit Date
+              <input type="date" className="hl-input mt-1 w-full" value={form.requestedDate} onChange={e=>setForm({...form,requestedDate:e.target.value})}/>
+            </label>
+            <label className="text-sm font-semibold sm:col-span-2">Detailed Description
+              <textarea className="hl-input mt-1 w-full" rows="3" maxLength="5000" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Describe the problem, when it started, and specific urgency..."/>
+            </label>
+          </div>
+
+          {/* Photo Upload with Live Preview */}
+          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-4 bg-slate-50">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold flex items-center gap-1.5 text-slate-800">
         </div>
         <button className="hl-btn mt-3" disabled={busy} onClick={submit}>{busy?"Submitting…":"Submit request"}</button>
       </HallCard>}
