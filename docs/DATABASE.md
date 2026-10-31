@@ -702,3 +702,16 @@ Created in `backend/src/hall/schema.js`.
 | `status` | ENUM('on','off') |
 | `source` | ENUM('manual','auto') |
 | `changed_at` | DATETIME |
+
+## `hall_meal_log`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `user_id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `old_status` | ENUM('on','off') |
+| `new_status` | ENUM('on','off') |
+| `created_at` | DATETIME |
