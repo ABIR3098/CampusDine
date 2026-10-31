@@ -724,3 +724,15 @@ Created in `backend/src/hall/schema.js`.
 | `dow` | TINYINT |
 | `slot` | VARCHAR(12) |
 | `items` | VARCHAR(255) |
+
+## `hall_feasts`
+Created in `backend/src/hall/schema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | INT |
+| `the_date` | DATE |
+| `slot` | VARCHAR(12) |
+| `title` | VARCHAR(80) |
+| `items` | VARCHAR(255) |
+| `extra_price` | DECIMAL(10,2) |
