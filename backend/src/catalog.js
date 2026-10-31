@@ -67,6 +67,7 @@ const NUTRITION_BY_NAME = {
   "Beef Tehari": { calories: 680, allergens: [] },
   "Chicken Pasta": { calories: 550, allergens: ["gluten", "milk"] },
   "Thai Soup": { calories: 90, allergens: ["soy"] },
+  "Orange Juice": { calories: 110, allergens: [] },
 };
 
 // Always returns { calories, allergens } so callers never have to check for undefined.
