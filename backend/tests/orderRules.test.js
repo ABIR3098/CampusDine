@@ -81,3 +81,9 @@ test("cleanCancelReason trims, limits and nulls empty input", () => {
   assert.equal(cleanCancelReason(undefined), null);
   assert.equal(cleanCancelReason(42), null);
 });
+
+test("the status lists keep their order and Cancelled comes last", () => {
+  const { STATUSES, ALL_STATUSES } = require("../src/utils/orderRules");
+  assert.deepStrictEqual(STATUSES, ["Received", "Cooking", "Ready"]);
+  assert.deepStrictEqual(ALL_STATUSES, ["Received", "Cooking", "Ready", "Cancelled"]);
+});
