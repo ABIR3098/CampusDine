@@ -280,3 +280,13 @@ Created in `backend/schema.sql`.
 | `coupon_id` | INT |
 | `order_id` | INT |
 | `created_at` | TIMESTAMP |
+
+## `hall_universities`
+Created in `backend/src/hall/advancedSchema.js`.
+
+| Column | Type |
+| --- | --- |
+| `id` | BIGINT UNSIGNED |
+| `name` | VARCHAR(180) |
+| `code` | VARCHAR(40) |
+| `created_at` | TIMESTAMP |
