@@ -111,3 +111,10 @@
     const requests = (mine.data && mine.data.requests) || [];
     const chosen = list.find((i) => String(i.id) === String(form.itemId));
 
+    const submit = async () => {
+      setBusy(true); setError(""); setInfo("");
+      try {
+        await call(apiBase, token, "/requests", { method: "POST", body: { ...form, itemId: Number(form.itemId) } });
+        setInfo("Sent to the canteen admin.");
+        setForm({ itemId: "", requestType: "request", currentQty: "", requiredQty: "", note: "" });
+        mine.reload(); setTab("mine");
