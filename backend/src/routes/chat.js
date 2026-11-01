@@ -430,7 +430,7 @@ const photoType = (buf) => {
 };
 const photoParser = express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" });
 // POST /images (student, teacher, staff, admin)
-router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "admin"),
+router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"),
   (req, res, next) => photoParser(req, res, (err) => (err ? res.status(413).json({ error: "Photo is too large. Please choose a smaller one." }) : next())),
   async (req, res) => {
     try {
@@ -440,7 +440,7 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
       const mime = photoType(buf);
       if (!mime) return res.status(400).json({ error: "This file is not a supported photo" });
       let ownerId = req.user.id;
-      if (req.user.role === "admin") {
+      if (isInboxOwner(req.user)) {
         ownerId = Number(req.query.userId);
         if (!Number.isInteger(ownerId) || ownerId <= 0) return res.status(400).json({ error: "Select a chat recipient" });
         const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff')", [ownerId]);
