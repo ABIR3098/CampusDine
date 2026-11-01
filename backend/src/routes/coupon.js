@@ -240,6 +240,7 @@ router.post("/apply", verifyToken, async (req, res) => {
 });
 
 // Get available coupons
+// GET /available (any logged-in user)
 router.get("/available", verifyToken, async (req, res) => {
   let db;
   try {
