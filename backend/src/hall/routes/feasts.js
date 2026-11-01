@@ -72,6 +72,7 @@ async function assertOpen(date, slot, universityId = null) {
 }
 
 // POST /api/hall/feasts (admin) body: { date, slot, title, items, extraPrice } — adds, or replaces the feast of that date + meal
+// POST /feasts (admin)
 router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
   const { date, slot, title, items, extraPrice, capacity: rawCapacity } = req.body || {};
   if (!isDateKey(date)) return res.status(400).json({ error: "Date must look like 2026-10-24" });
