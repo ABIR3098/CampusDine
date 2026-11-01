@@ -8,7 +8,8 @@ const { scopeOf, SCOPE_ROLE, isInboxOwner } = chat._test;
 const req = (role, { query = {}, body = {} } = {}) => ({ user: { id: 1, role }, query, body });
 
 test("canteen admin always works in the canteen inbox", () => {
-  assert.equal(scopeOf(req("admin", { query: { scope: "hall" } })), "canteen");
+  assert.equal(scopeOf(req("admin")), "canteen");
+  assert.equal(chat._test.inboxScope(req("admin", { query: { scope: "hall" } })), "canteen");
 });
 
 test("hall admin always works in the hall inbox", () => {
