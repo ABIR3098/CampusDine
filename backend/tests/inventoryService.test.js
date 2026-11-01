@@ -39,3 +39,9 @@ function fakePool() {
     query: async (s, p) => run(s, p),
     beginTransaction: async () => { snapshot = clone({ items: st.items, requests: st.requests, purchases: st.purchases, history: st.history }); },
     commit: async () => { st.commits++; },
+    rollback: async () => { st.rollbacks++; Object.assign(st, clone(snapshot)); },
+    release: () => {},
+  };
+  return { st, query: async (s, p) => run(s, p), getConnection: async () => conn };
+}
+
