@@ -236,7 +236,7 @@ function createService(pool) {
     return { pending: Number(s.pending), outOfStock: Number(s.out_of_stock), lowStock: Number(s.low_stock), monthSpend: Number(s.month_spend) };
   }
 
-  return { listItems, createRequest, listStaffRequests, listAllRequests, getRequest, decide, recordPurchase, adjustStock, addItem, listPurchases, listHistory, summary };
+  return { listItems, createRequest, listStaffRequests, listAllRequests, getRequest, decide, recordPurchase, adjustStock, addItem, listPurchases, listHistory, summary, recordUsage, listStaffUsage, listAllUsage };
 }
 
 module.exports = { createService, HttpError, itemView, requestView };
