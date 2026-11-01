@@ -120,3 +120,10 @@ test("daily usage deducts from official stock and writes history", async () => {
   assert.equal(pool.st.history[0][1], -4);
   assert.equal(pool.st.usage.length, 1);
 });
+
+test("using everything shows out-of-stock", async () => {
+  const out = await createService(fakePool()).recordUsage(3, { itemId: 1, quantity: 10, usageDate: "2026-11-01", note: "" });
+  assert.equal(out.stockAfter, 0);
+  assert.equal(out.level, "out");
+});
+
