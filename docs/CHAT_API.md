@@ -1,7 +1,16 @@
 # Chat API
 
-Base path: `/api/chat`. Two kinds of chat live here: **support chat** between a student or teacher and
-the canteen admin, and **order chat** between a customer and the rider of one order.
+Base path: `/api/chat`. Two kinds of chat live here: **support chat** and **order chat** between a customer and the rider of one order.
+
+Support chat has two separate inboxes, picked with `scope`:
+
+| Scope | Student/teacher talks to | Who answers | Where it shows |
+|---|---|---|---|
+| `canteen` (default) | the canteen admin | `admin` | the Chat tab inside a restaurant |
+| `hall` | the Hall Admin | `hall_admin` | Hall → "Hall Admin chat" tab; Hall Admin portal → "Student messages" |
+
+A student passes `?scope=hall` (or `scope` in the body of `POST /messages`). Admin and Hall Admin never pass it: the server uses their role.
+Canteen Admin cannot read Hall chats and Hall Admin cannot read canteen chats (messages, photos, reactions and typing are all separated). Staff accounts only have the canteen chat.
 
 ## Support chat
 | Method and path | Who | What it does |
