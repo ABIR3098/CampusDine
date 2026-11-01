@@ -459,13 +459,15 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
   });
 
 // GET /images/:id (student, teacher, staff, admin)
-router.get("/images/:id", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
+router.get("/images/:id", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid photo id" });
-    const [[row]] = await pool.query("SELECT owner_user_id, mime, data FROM chat_images WHERE id = ?", [id]);
+    const [[row]] = await pool.query("SELECT owner_user_id, mime, data, scope FROM chat_images WHERE id = ?", [id]);
     if (!row) return res.status(404).json({ error: "Photo not found" });
-    if (req.user.role !== "admin" && Number(row.owner_user_id) !== Number(req.user.id)) return res.status(403).json({ error: "Not allowed" });
+    // The canteen admin only sees canteen photos, the hall admin only hall photos, everyone else only their own.
+    const allowed = isInboxOwner(req.user) ? row.scope === scopeOf(req) : Number(row.owner_user_id) === Number(req.user.id);
+    if (!allowed) return res.status(403).json({ error: "Not allowed" });
     res.set({ "Content-Type": row.mime, "Cache-Control": "private, max-age=86400", "X-Content-Type-Options": "nosniff" });
     res.send(row.data);
   } catch (error) {
