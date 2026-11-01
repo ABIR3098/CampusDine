@@ -73,6 +73,7 @@ async function attachFeedback(orders) {
 
 // POST /api/orders  (student/teacher) — place an order
 // body: { items: [{ id, qty }], paymentMethod: 'wallet' | 'cash' }
+// POST / (student, teacher)
 router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { items, paymentMethod, couponCode, couponId } = req.body;
   const rewardId = Number(req.body.rewardId) > 0 ? Number(req.body.rewardId) : null; // loyalty reward to spend points on
