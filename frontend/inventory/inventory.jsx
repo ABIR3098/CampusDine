@@ -33,3 +33,10 @@
   const Pill = ({ s }) => (
     <span className="text-[11px] font-800 px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: s.bg, color: s.fg }}>{s.label}</span>
   );
+
+  const Notice = ({ error, info }) => (
+    <>
+      {error && <div className="text-sm px-3 py-2 rounded-lg mb-3" style={{ background: "#FEE2E2", color: "#991B1B" }}>{error}</div>}
+      {info && <div className="text-sm px-3 py-2 rounded-lg mb-3" style={{ background: "#DCFCE7", color: "#166534" }}>{info}</div>}
+    </>
+  );
