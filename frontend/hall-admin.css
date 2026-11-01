@@ -138,3 +138,8 @@ html{scroll-behavior:smooth}.card[id]{scroll-margin-top:150px}
 .sections a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;transition:background .15s,color .15s}
 .sections a:hover{background:var(--brand-soft);color:var(--accent)}
 @media(max-width:700px){.sections{top:8px}}
+
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:100;max-width:min(360px,calc(100vw - 32px))}
+.toast{padding:12px 14px;border-radius:12px;background:var(--text);color:var(--bg);font-size:14px;box-shadow:var(--shadow-lg);border-left:4px solid var(--brand-2);animation:toast-in .2s ease}
+.toast.err{border-left-color:#f04438}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}}
