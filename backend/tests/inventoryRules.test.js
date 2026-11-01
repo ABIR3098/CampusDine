@@ -7,3 +7,9 @@ test("toQty accepts numbers and numeric strings and rounds to 2 decimals", () =>
   assert.equal(r.toQty(10), 10);
   assert.equal(r.toQty(" 7 "), 7);
 });
+
+test("toQty rejects zero, negatives, NaN, empty and absurd values", () => {
+  for (const bad of [0, -1, "abc", "", null, undefined, Infinity, r.MAX_QTY + 1]) assert.equal(r.toQty(bad), null);
+  assert.equal(r.toQty(0, { allowZero: true }), 0);
+});
+
