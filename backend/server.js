@@ -831,6 +831,7 @@ app.use("/api/gamification", gamificationRoutes);
 app.use("/api/hall/maintenance", maintenanceRoutes);
 // Sandbox payment gateway
 app.use("/api/payment", paymentSandboxRoutes);
+// Notification center
 app.use("/api/notifications", notificationCenterRoutes);
 app.use("/api/waste-challenge", wasteChallengeRoutes);
 app.use("/api/analytics", analyticsRoutes);
