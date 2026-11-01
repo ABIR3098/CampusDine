@@ -78,3 +78,12 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--brand-2);bo
 ::placeholder{color:#9aa8bb}
 label{font-weight:600;letter-spacing:.01em;margin-top:14px}.twocol{gap:16px}
 select{appearance:none;-webkit-appearance:none;padding-right:34px;background-repeat:no-repeat;background-position:right 12px center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2368778d' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")}
+
+.auth{max-width:460px;margin:48px auto;padding:30px;border-top:4px solid var(--brand-2)}
+.auth h1{margin-top:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--soft);border-radius:11px;margin:16px 0 4px}
+.seg button.secondary{background:transparent;color:var(--muted);box-shadow:none;border:0}
+.seg button.secondary:hover{background:transparent;color:var(--text)}
+.seg button.secondary.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px #19324a22}
+.auth .actions button:not(.secondary){width:100%}
+#loginOtp,#regOtp{letter-spacing:.4em;text-align:center;font-size:20px;font-weight:700}
