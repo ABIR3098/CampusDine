@@ -8904,7 +8904,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
     setSelectedUserId(u.id); setMobileChat(true); setSearch("");
   };
   const filtered = people.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter === "all" || (inboxFilter === "rider" ? c.role === "rider" : Number(c.unread_count) > 0)) && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
-  const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? "Canteen Admin" : tx("chat.admin"));
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? tx("chat.rider.admin") : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
   const agoText = (sec) => {
@@ -9255,7 +9255,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
               <>
                 {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
                 {headOnline !== undefined && " · "}
-                {isAdmin ? selected?.role || (isHallChat ? "Hall admin inbox" : "Admin inbox") : (isHallChat ? "Private hall support conversation" : isRider ? "Private chat with the canteen admin" : tx("chat.private"))}
+                {isAdmin ? selected?.role || (isHallChat ? "Hall admin inbox" : "Admin inbox") : (isHallChat ? "Private hall support conversation" : isRider ? tx("chat.rider.private") : tx("chat.private"))}
               </>
             )}
             </p>
@@ -9263,7 +9263,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
           <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
             <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
           </button>
-          <span className="chat-pill">{isHallChat ? "Hall support" : isRider ? "Rider desk" : tx("chat.support")}</span>
+          <span className="chat-pill">{isHallChat ? "Hall support" : isRider ? tx("chat.rider.support") : tx("chat.support")}</span>
         </header>
         {searchOpen && (
           <div className="chat-searchbar">
@@ -9281,7 +9281,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
           {messages.length === 0 ? (
             <div className="chat-empty">
               <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
-              <p>{isAdmin && !selectedUserId ? "Select a student, teacher or rider to open their conversation." : (isHallChat ? "No messages yet. Start the conversation with the Hall Admin." : isRider ? "No messages yet. Write to the canteen admin about your deliveries." : tx("chat.empty"))}</p>
+              <p>{isAdmin && !selectedUserId ? "Select a student, teacher or rider to open their conversation." : (isHallChat ? "No messages yet. Start the conversation with the Hall Admin." : isRider ? tx("chat.rider.empty") : tx("chat.empty"))}</p>
               {!isAdmin && (
                 <div className="chat-quick">
                   {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
