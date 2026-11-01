@@ -127,3 +127,10 @@ test("using everything shows out-of-stock", async () => {
   assert.equal(out.level, "out");
 });
 
+test("usage above the remaining stock is refused and nothing changes", async () => {
+  const pool = fakePool();
+  await assert.rejects(createService(pool).recordUsage(3, { itemId: 1, quantity: 11, usageDate: "2026-11-01", note: "" }), (e) => e.status === 409);
+  assert.equal(pool.st.items[0].current_stock, 10);
+  assert.equal((pool.st.usage || []).length, 0);
+  assert.equal(pool.st.rollbacks, 1);
+});
