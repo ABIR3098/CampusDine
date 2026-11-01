@@ -74,3 +74,10 @@ test("staff can see only their own requests", async () => {
   assert.deepEqual(calls[0], ["listStaffRequests", 3]);
 });
 
+test("staff can never change stock, decide requests, buy or add items", async () => {
+  calls.length = 0;
+  const attempts = [
+    ["/admin/items/1/adjust", { newStock: 5000, note: "cheat" }],
+    ["/admin/purchases", { itemId: 1, quantity: 10 }],
+    ["/admin/requests/7/decision", { decision: "approved" }],
+    ["/admin/items", { name: "Gold", unit: "kg" }],
