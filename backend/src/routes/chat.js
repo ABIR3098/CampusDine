@@ -222,8 +222,8 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
       recipientId = userId;
     } else {
       userId = req.user.id;
-      recipientId = await getAdminId(connection);
-      if (!recipientId) return res.status(503).json({ error: "Admin chat is unavailable" });
+      recipientId = await getAdminId(connection, scope);
+      if (!recipientId) return res.status(503).json({ error: scope === "hall" ? "Hall admin chat is unavailable" : "Admin chat is unavailable" });
     }
 
     await connection.beginTransaction();
