@@ -87,3 +87,10 @@ test("staff can never change stock, decide requests, buy or add items", async ()
   assert.equal(calls.length, 0);
 });
 
+test("admin approves, rejects (reason required), records purchases and corrects stock", async () => {
+  assert.equal((await req("/admin/requests/7/decision", { role: "admin", method: "POST", body: { decision: "rejected" } })).status, 400);
+  const ok = await req("/admin/requests/7/decision", { role: "admin", method: "POST", body: { decision: "approved", reply: "Buy today" } });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).request.adminReply, "Buy today");
+  const buy = await req("/admin/purchases", { role: "admin", method: "POST", body: { requestId: 7, quantity: 10, unitCost: 60 } });
+  assert.equal(buy.status, 201);
