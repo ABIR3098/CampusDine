@@ -73,6 +73,7 @@ router.get('/live-tracking',requireRole('teacher'),async(req,res,next)=>{try{
 }catch(e){next(e)}});
 
 // Lightweight explainable recommendation: personal purchase frequency + popularity + current availability.
+// GET /recommendations (student, teacher)
 router.get('/recommendations',requireRole('student','teacher'),async(req,res,next)=>{try{
   const [rows]=await pool.query(`SELECT m.id,m.name,m.name_bn,m.category,m.price,m.stock,m.image,m.is_veg,
     COALESCE(mine.ordered,0) personal_orders, COALESCE(pop.popular,0) campus_orders
