@@ -63,6 +63,8 @@ const inboxScope = (req) => (req.user.role === "hall_admin" ? "hall" : "canteen"
 function scopeOf(req) {
   if (req.user.role === "hall_admin") return "hall";
   if (req.user.role === "admin") return askedScope(req) === "hall" ? "hall" : "canteen";
+  // Riders only talk to the canteen admin, even if the request asks for scope=hall.
+  if (req.user.role === "rider") return "canteen";
   // Hall chat is for hall residents (students and teachers); staff only have the canteen chat.
   return askedScope(req) === "hall" && ["student", "teacher"].includes(req.user.role) ? "hall" : "canteen";
 }
