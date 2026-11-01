@@ -7160,6 +7160,13 @@ function AdminOrders({ orders, advance, call, onShowPosSlip, onOpenKds }) {
 }
 
 /* ---------------- Rider-only GPS sharing ---------------- */
+// Waits for /inventory/inventory.jsx (compiled by Babel) and then shows the staff or admin inventory screen.
+function InventoryHost({ kind, apiBase, token }) {
+  const [ready, setReady] = useState(!!window.CDInventory);
+  useEffect(() => {
+    if (ready) return undefined;
+    const t = setInterval(() => { if (window.CDInventory) { setReady(true); clearInterval(t); } }, 150);
+    return () => clearInterval(t);
 function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
