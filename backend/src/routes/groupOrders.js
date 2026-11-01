@@ -7,6 +7,7 @@ const catchAsync = require("../utils/catchAsync");
 const router = express.Router();
 router.use(verifyToken, requireRole("student", "teacher"));
 
+// POST / (any logged-in user)
 router.post("/", catchAsync(async (req, res) => {
   const title = String((req.body && req.body.title) || "Campus group order").trim().slice(0, 100);
   if (!title) return res.status(400).json({ error: "Group title is required" });
