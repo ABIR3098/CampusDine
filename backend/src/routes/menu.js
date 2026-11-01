@@ -110,6 +110,7 @@ router.post("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) 
 }));
 
 // PUT /api/menu/:id  (admin only) — update price / stock / tag / veg flag
+// PUT /:id (admin)
 router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { price, stock, tag, isVeg, availability } = req.body;
   const fields = [];
