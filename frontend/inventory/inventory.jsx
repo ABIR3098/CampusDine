@@ -138,3 +138,10 @@
           </div>
         )}
 
+        {tab === "send" && (
+          <div className="card p-5 max-w-xl">
+            <label className="text-xs font-700">Raw material</label>
+            <select className={inputCls + " mb-3"} style={inputStyle} value={form.itemId} onChange={(e) => setForm({ ...form, itemId: e.target.value })}>
+              <option value="">Choose…</option>
+              {list.map((i) => <option key={i.id} value={i.id}>{i.name}{i.nameBn ? ` (${i.nameBn})` : ""}</option>)}
+            </select>
