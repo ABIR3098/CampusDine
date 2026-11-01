@@ -525,7 +525,7 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
       [id]
     );
     if (!row) return res.status(404).json({ error: "Message not found" });
-    const allowedReact = isInboxOwner(req.user) ? row.scope === scopeOf(req) : Number(row.owner_id) === Number(req.user.id);
+    const allowedReact = inboxMode(req) ? row.scope === scopeOf(req) : Number(row.owner_id) === Number(req.user.id);
     if (!allowedReact) return res.status(403).json({ error: "Not allowed" });
     if (emoji === null) {
       await pool.query("DELETE FROM chat_reactions WHERE message_id = ? AND user_id = ?", [id, req.user.id]);
