@@ -118,3 +118,7 @@
         setInfo("Sent to the canteen admin.");
         setForm({ itemId: "", requestType: "request", currentQty: "", requiredQty: "", note: "" });
         mine.reload(); setTab("mine");
+      } catch (e) { setError(e.message); }
+      setBusy(false);
+    };
+
