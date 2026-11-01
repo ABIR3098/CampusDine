@@ -7343,6 +7343,25 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
       .catch(e => setOrderError(e.message || "Could not load shift status."));
   }, [apiBase, token]);
 
+  // The background GPS sender uses the token saved in localStorage. After a new login that token is
+  // old (or belongs to another rider), the position never reaches the server and no order is assigned
+  // even though this screen says sharing is on. Keep the saved login in step with this session.
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null");
+      if (!saved) return;
+      if (user && user.id && saved.riderId && Number(saved.riderId) !== Number(user.id)) {
+        localStorage.removeItem("cd_rider_gps");
+        setSharing(false);
+        setMessage("Location sharing is off.");
+        return;
+      }
+      if (saved.token !== token || saved.apiBase !== apiBase) {
+        localStorage.setItem("cd_rider_gps", JSON.stringify({ ...saved, token, apiBase }));
+      }
+    } catch (_) {}
+  }, [apiBase, token, user]);
+
   const updateShift = async () => {
     setShiftBusy(true);
     try {
