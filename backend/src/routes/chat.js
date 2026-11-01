@@ -479,7 +479,7 @@ router.get("/images/:id", verifyToken, requireRole("student", "teacher", "staff"
     const [[row]] = await pool.query("SELECT owner_user_id, mime, data, scope FROM chat_images WHERE id = ?", [id]);
     if (!row) return res.status(404).json({ error: "Photo not found" });
     // The canteen admin only sees canteen photos, the hall admin only hall photos, everyone else only their own.
-    const allowed = isInboxOwner(req.user) ? row.scope === scopeOf(req) : Number(row.owner_user_id) === Number(req.user.id);
+    const allowed = inboxMode(req) ? row.scope === scopeOf(req) : Number(row.owner_user_id) === Number(req.user.id);
     if (!allowed) return res.status(403).json({ error: "Not allowed" });
     res.set({ "Content-Type": row.mime, "Cache-Control": "private, max-age=86400", "X-Content-Type-Options": "nosniff" });
     res.send(row.data);
