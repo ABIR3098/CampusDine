@@ -9,6 +9,7 @@ const router = express.Router();
 const memberOnly = requireRole("student", "teacher");
 
 // GET /api/hall/autopay → { enabled, graceDays, history: [{ ym, status, amount, due, balance, createdAt }] }  (last 6 runs, newest first)
+// GET /autopay
 router.get("/autopay", memberOnly, catchAsync(async (req, res) => {
   const [[row]] = await pool.query("SELECT enabled FROM hall_autopay WHERE user_id = ?", [req.user.id]);
   const [logs] = await pool.query(
