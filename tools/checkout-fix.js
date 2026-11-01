@@ -1,5 +1,5 @@
 // checkout-fix.js — "Checkout" button no longer stays grey forever when the price preview fails.
-// Run from the project main folder:  node checkout-fix.js
+// Run from the project main folder:  node tools/checkout-fix.js
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

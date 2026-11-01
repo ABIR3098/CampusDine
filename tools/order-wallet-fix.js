@@ -1,5 +1,5 @@
 // order-wallet-fix.js — fixes 3 bugs in order + wallet (backend only)
-// Run from the project main folder:  node order-wallet-fix.js
+// Run from the project main folder:  node tools/order-wallet-fix.js
 const fs = require("fs");
 
 const ORDERS = "backend/src/routes/orders.js";

@@ -1,6 +1,6 @@
 // cart-topup.js — Cart: when the wallet balance is too low, show "You need ৳X more" and a Top up button.
 // The button opens the Wallet tab with the top-up amount already filled in (the missing amount, rounded up to ৳10).
-// Run from the project main folder:  node cart-topup.js   (frontend only — no backend restart needed)
+// Run from the project main folder:  node tools/cart-topup.js   (frontend only — no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

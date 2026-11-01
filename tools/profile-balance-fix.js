@@ -1,5 +1,5 @@
 // profile-balance-fix.js — Profile balance and Wallet balance always show the same amount
-// Run from the project main folder:  node profile-balance-fix.js
+// Run from the project main folder:  node tools/profile-balance-fix.js
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

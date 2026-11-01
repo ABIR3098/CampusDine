@@ -1,6 +1,6 @@
 // order-feedback-fix.js — Checkout always gives feedback: success message with token, errors scroll into view,
 // and the location prompt can never freeze the button.
-// Run from the project main folder:  node order-feedback-fix.js
+// Run from the project main folder:  node tools/order-feedback-fix.js
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

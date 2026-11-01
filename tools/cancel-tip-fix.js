@@ -1,7 +1,7 @@
 // cancel-tip-fix.js — after cancelling an order that had a rider tip:
 //  • the green message now shows the full refund (order + tip), e.g. ৳55 instead of ৳50
 //  • the order card says the tip was refunded
-// Run from the project main folder:  node cancel-tip-fix.js   (frontend only — no backend restart needed)
+// Run from the project main folder:  node tools/cancel-tip-fix.js   (frontend only — no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 
