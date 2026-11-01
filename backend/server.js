@@ -762,9 +762,9 @@ io.on("connection", (socket) => {
       if (data && data.typing && now - (socket.lastTyping || 0) < 800) return;
       socket.lastTyping = now;
       const typing = !!(data && data.typing);
-      if (socket.user.role === "admin") {
+      if (socket.user.role === "admin" || socket.user.role === "hall_admin") {
         const to = Number(data && data.to);
-        if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing });
+        if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing, scope: socket.user.role === "hall_admin" ? "hall" : "canteen" });
       } else {
         io.to("admins").emit("chat:typing", { from: socket.user.id, typing });
       }
