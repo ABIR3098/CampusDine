@@ -167,6 +167,7 @@ async function getFeast(id, universityId = null) {
 }
 
 // POST /api/hall/feasts/:id/rsvp   body: { status: "going" | "not_going" }   (any Hall member)
+// POST /feasts/:id/rsvp
 router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   const status = parseRsvpStatus((req.body || {}).status);
   if (!status) return res.status(400).json({ error: "status must be going or not_going" });
