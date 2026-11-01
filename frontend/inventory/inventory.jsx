@@ -207,6 +207,13 @@
                 <tbody>
                   {usageList.map((u) => (
                     <tr key={u.id} className="border-t" style={{ borderColor: "var(--line)" }}>
+                      <td className="py-2 pr-3">{u.usageDate}</td><td className="pr-3">{u.itemName}</td>
+                      <td className="pr-3 font-mono">{fmt(u.quantity)} {u.unit}</td><td className="pr-3 font-mono">{fmt(u.stockAfter)} {u.unit}</td><td>{u.note || "—"}</td>
+                    </tr>
+                  ))}
+                  {!usageList.length && <tr><td colSpan={5} className="py-5 text-center" style={{ color: "var(--ink-soft)" }}>No usage recorded yet.</td></tr>}
+                </tbody>
+              </table>
 
         {tab === "stock" && (
           <div className="card p-5">
