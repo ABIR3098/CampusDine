@@ -512,7 +512,8 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
       [id]
     );
     if (!row) return res.status(404).json({ error: "Message not found" });
-    if (req.user.role !== "admin" && Number(row.owner_id) !== Number(req.user.id)) return res.status(403).json({ error: "Not allowed" });
+    const allowedReact = isInboxOwner(req.user) ? row.scope === scopeOf(req) : Number(row.owner_id) === Number(req.user.id);
+    if (!allowedReact) return res.status(403).json({ error: "Not allowed" });
     if (emoji === null) {
       await pool.query("DELETE FROM chat_reactions WHERE message_id = ? AND user_id = ?", [id, req.user.id]);
     } else {
@@ -524,7 +525,7 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
     const io = req.app.get("io");
     if (io) {
       io.to(`user:${row.owner_id}`).emit("chat:reaction", { id });
-      io.to("admins").emit("chat:reaction", { id });
+      io.to(row.scope === "hall" ? "hall_admins" : "admins").emit("chat:reaction", { id });
     }
     res.json({ ok: true });
   } catch (error) {
