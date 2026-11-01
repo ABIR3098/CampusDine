@@ -317,6 +317,7 @@ router.get("/feedback", catchAsync(async (req, res) => {
 }));
 
 // POST /api/admin/announcement — broadcast a live announcement to all users
+// POST /announcement (any logged-in user)
 router.post("/announcement", catchAsync(async (req, res) => {
   const { message } = req.body || {};
   const text = String(message || "").trim();
