@@ -55,3 +55,7 @@ Request flow: `pending → approved | rejected`, `approved → purchased`. Every
 
 ## Tests
 
+```
+cd backend
+npm test
+```
