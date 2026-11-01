@@ -72,6 +72,13 @@
     return { data, error, reload };
   }
 
+  // Low / out-of-stock warning list. onRestock (optional) adds a "Request restock" button per item.
+  function StockAlerts({ items, onRestock }) {
+    const bad = items.filter((i) => i.level === "out" || i.level === "low");
+    if (!bad.length) return null;
+    return (
+      <div className="mb-4 rounded-xl p-3" style={{ background: "#FFF7ED", border: "1px solid #FDBA74" }}>
+        <div className="text-sm font-800 mb-2" style={{ color: "#9A3412" }}>⚠ Stock alert</div>
   function StockTable({ items, actions }) {
     return (
       <div className="overflow-x-auto">
