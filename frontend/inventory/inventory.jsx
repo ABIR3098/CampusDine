@@ -269,3 +269,10 @@
                       <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => decide(r.id, "approved")}>Approve</button>
                       <button type="button" className="px-3 py-2 rounded-xl text-sm border" style={{ borderColor: "#FCA5A5", color: "#991B1B" }} onClick={() => decide(r.id, "rejected")}>Reject</button>
                     </div>
+                  )}
+                  {r.status === "approved" && (
+                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
+                      <div><label className="text-[11px] font-700">Qty bought ({r.unit})</label>
+                        <input className={inputCls} style={inputStyle} inputMode="decimal" defaultValue={r.requiredQty} onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), quantity: e.target.value } })} /></div>
+                      <div><label className="text-[11px] font-700">Unit cost (৳)</label>
+                        <input className={inputCls} style={inputStyle} inputMode="decimal" onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), unitCost: e.target.value } })} /></div>
