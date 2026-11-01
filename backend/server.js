@@ -827,6 +827,7 @@ app.use("/api/kds", kdsRoutes);
 app.use("/api/hall/guest-tokens", guestTokenRoutes);
 // Badges and leaderboard
 app.use("/api/gamification", gamificationRoutes);
+// Hall maintenance requests
 app.use("/api/hall/maintenance", maintenanceRoutes);
 // Sandbox payment gateway
 app.use("/api/payment", paymentSandboxRoutes);
