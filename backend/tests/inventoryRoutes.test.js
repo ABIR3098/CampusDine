@@ -22,3 +22,13 @@ const stub = {
   listPurchases: async () => [], listHistory: async () => [], summary: async () => ({ pending: 0 }),
 };
 
+const tokenFor = (role, id = 3) => jwt.sign({ id, name: role, role }, process.env.JWT_SECRET);
+let server, base;
+test.before(async () => {
+  const app = express();
+  app.use(express.json());
+  app.use("/api/inventory", createInventoryRouter(stub));
+  app.use((err, req, res, next) => res.status(500).json({ error: "boom" }));
+  await new Promise((r) => { server = app.listen(0, r); });
+  base = `http://127.0.0.1:${server.address().port}/api/inventory`;
+});
