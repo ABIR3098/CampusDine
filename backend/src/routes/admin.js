@@ -120,6 +120,7 @@ function readRange(req) {
 const IN_RANGE = "o.created_at >= ? AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)";
 
 // GET /api/admin/reports/summary?from=&to=
+// GET /reports/summary (any logged-in user)
 router.get("/reports/summary", catchAsync(async (req, res) => {
   const range = readRange(req);
   if (range.error) return res.status(400).json({ error: range.error });
