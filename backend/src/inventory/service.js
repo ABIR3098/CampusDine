@@ -156,6 +156,13 @@ function createService(pool) {
     });
   }
 
+  async function recordUsage(staffId, v) {
+    return withTx(pool, async (conn) => {
+      const [rows] = await conn.query("SELECT id, current_stock, min_stock, name, unit FROM inventory_items WHERE id = ? FOR UPDATE", [v.itemId]);
+      if (!rows.length) throw new HttpError(404, "That raw material does not exist.");
+      const before = Number(rows[0].current_stock);
+      if (v.quantity > before) throw new HttpError(409, `Only ${before} ${rows[0].unit} of ${rows[0].name} is in stock, so ${v.quantity} ${rows[0].unit} cannot be used. Send a restock request.`);
+      const after = Math.round((before - v.quantity) * 100) / 100;
   async function listPurchases() {
     const [rows] = await pool.query(
       `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
