@@ -58,3 +58,10 @@ function validatePurchase(body = {}) {
     unitCost = toQty(body.unitCost, { allowZero: true });
     if (unitCost === null) return { error: "Unit cost must be a number (0 or more)." };
   }
+  const itemId = body.itemId === undefined || body.itemId === null || body.itemId === "" ? null : Number(body.itemId);
+  if (itemId !== null && (!Number.isInteger(itemId) || itemId <= 0)) return { error: "Invalid item." };
+  const requestId = body.requestId === undefined || body.requestId === null || body.requestId === "" ? null : Number(body.requestId);
+  if (requestId !== null && (!Number.isInteger(requestId) || requestId <= 0)) return { error: "Invalid request." };
+  if (itemId === null && requestId === null) return { error: "Choose an item or a request to record the purchase for." };
+  return {
+    value: {
