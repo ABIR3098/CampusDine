@@ -32,3 +32,6 @@ All routes need `Authorization: Bearer <token>`. Base path: `/api/riders`.
 
 ## Locations for teachers
 `GET /locations` lists every rider, but latitude, longitude, accuracy and time are filled in only while the rider is sharing (last update under 30 seconds ago). For every other rider those fields are `null` and `active` is `false`, so a teacher never sees where an off-duty rider last was.
+
+## Chat with the canteen admin
+Riders do not have their own chat routes. They use the support chat under `/api/chat` in the canteen inbox (see [CHAT_API.md](CHAT_API.md)): `GET /messages`, `POST /messages`, `GET /unread`, photos, reactions and presence. A rider's message always goes to the canteen admin; `scope=hall` is ignored. Order chat with the customer is separate (`/api/chat/order/:orderId/messages`).
