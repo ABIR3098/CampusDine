@@ -23,3 +23,12 @@ const requestView = (r) => ({
   purchasedQty: r.purchased_qty === null || r.purchased_qty === undefined ? null : Number(r.purchased_qty),
   stockAfterPurchase: r.stock_after === null || r.stock_after === undefined ? null : Number(r.stock_after),
 });
+
+const REQUEST_SELECT = `SELECT q.*, i.name AS item_name, i.name_bn AS item_name_bn, i.unit, i.current_stock AS official_stock,
+    u.name AS staff_name, p.quantity AS purchased_qty, h.stock_after AS stock_after
+  FROM inventory_requests q
+  JOIN inventory_items i ON i.id = q.item_id
+  JOIN users u ON u.id = q.staff_id
+  LEFT JOIN inventory_purchases p ON p.request_id = q.id
+  LEFT JOIN inventory_stock_history h ON h.purchase_id = p.id`;
+
