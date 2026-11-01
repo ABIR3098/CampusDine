@@ -3415,6 +3415,7 @@ function TopBar({
 }
 
 function PortalTopHeader({
+  onOpenVoice,
   role, name, avatar, connected, onToggleLang, onLogout,
   notifications = [], notificationCount = 0, onToggleNotifications,
   notificationOpen = false, onMarkAllRead, onClearNotifications,
@@ -3511,6 +3512,7 @@ function PortalTopHeader({
           </div>
         </div>
 
+        {window.CDComponents && window.CDComponents.VoiceOrderButton && <window.CDComponents.VoiceOrderButton onVoiceClick={onOpenVoice} />}
         <ThemeMenu />
         {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
 
@@ -10147,6 +10149,9 @@ function App() {
   const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
   const [tab, setTab] = useState("menu");
   const [posReceiptOrder, setPosReceiptOrder] = useState(null);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showTableBooking, setShowTableBooking] = useState(false);
+  const [selectedBookingTable, setSelectedBookingTable] = useState(null);
   const [showDailySpin, setShowDailySpin] = useState(false);
   const [kdsActive, setKdsActive] = useState(false);
   const [error, setError] = useState(null);
@@ -10698,6 +10703,8 @@ function App() {
   const userTabs = [
     { key: "menu", label: tx("nav.menu"), icon: I.menu },
     { key: "groupOrders", label: "Group orders", icon: I.ticket },
+    { key: "seating", label: "Table Seating", icon: I.dashboard },
+    { key: "riderLive", label: "Live Rider Map", icon: I.clock },
     { key: "track", label: tx("nav.track"), icon: I.clock },
     { key: "campusHub", label: "Campus Hub", icon: I.dashboard },
     { key: "calendar", label: tx("nav.calendar"), icon: I.calendar },
@@ -10718,6 +10725,9 @@ function App() {
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "kds", label: "Kitchen Display (KDS)", icon: I.dashboard },
     { key: "inventory", label: "Inventory", icon: I.box },
+    { key: "ingredientStock", label: "Ingredient Stock", icon: I.box },
+    { key: "settlements", label: "Vendor Payouts", icon: I.wallet },
+    { key: "emergencyControls", label: "Emergency Control", icon: I.dashboard },
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "offers", label: "Offers", icon: I.gift },
@@ -10761,8 +10771,10 @@ function App() {
 
       {/* ─── Main Content Viewport ─── */}
       <div className="portal-main">
+        {window.CDComponents && window.CDComponents.EmergencyBannerAlert && <window.CDComponents.EmergencyBannerAlert />}
         {/* Top Header Bar */}
         <PortalTopHeader
+          onOpenVoice={() => setShowVoiceModal(true)}
           role={session.user.role}
           name={session.user.name}
           avatar={session.user.avatar}
@@ -10946,6 +10958,26 @@ function App() {
           <WalletTab apiBase={apiBase} token={session.token} balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
             onLookup={lookupRecipient} onSend={sendMoney} />
         )}
+        {tab === "seating" && window.CDComponents && window.CDComponents.CanteenFloorMap && (
+          <div className="space-y-4">
+            <window.CDComponents.CanteenFloorMap onSelectTable={(t) => { setSelectedBookingTable(t); setShowTableBooking(true); }} />
+            {showTableBooking && window.CDComponents.TableBookingModal && (
+              <window.CDComponents.TableBookingModal isOpen={showTableBooking} preselectedTable={selectedBookingTable} onClose={() => setShowTableBooking(false)} onBookingConfirmed={(b) => showSuccess("Table " + b.tableNo + " reserved!")} />
+            )}
+          </div>
+        )}
+        {tab === "riderLive" && window.CDComponents && window.CDComponents.LiveRiderMap && (
+          <window.CDComponents.LiveRiderMap orderId={orders[0]?.id || 101} onClose={() => setTab("menu")} />
+        )}
+        {session.user.role === "admin" && tab === "settlements" && window.CDComponents && window.CDComponents.VendorPayoutDashboard && (
+          <window.CDComponents.VendorPayoutDashboard />
+        )}
+        {session.user.role === "admin" && tab === "emergencyControls" && window.CDComponents && window.CDComponents.AdminEmergencyControls && (
+          <window.CDComponents.AdminEmergencyControls />
+        )}
+        {session.user.role === "admin" && tab === "ingredientStock" && window.CDComponents && window.CDComponents.IngredientStockDashboard && (
+          <window.CDComponents.IngredientStockDashboard />
+        )}
         {tab === "chat" && (
           <ChatWorkspace role={session.user.role} userId={session.user.id} apiBase={apiBase}
             sessionToken={session.token} refreshKey={chatRefreshKey} />
@@ -10987,6 +11019,15 @@ function App() {
         {/* Global Modals for Thermal POS Slip & Daily Spin Wheel */}
         {posReceiptOrder && (
           <ThermalReceiptModal order={posReceiptOrder} onClose={() => setPosReceiptOrder(null)} />
+        )}
+        {showVoiceModal && window.CDComponents && window.CDComponents.SpeechFeedbackModal && (
+          <window.CDComponents.SpeechFeedbackModal
+            isOpen={showVoiceModal}
+            onClose={() => setShowVoiceModal(false)}
+            onCommandExecute={(act) => {
+              if (act.dishName) showSuccess(act.message);
+            }}
+          />
         )}
         {showDailySpin && (
           <DailySpinWheelModal user={session.user} onClose={() => setShowDailySpin(false)} onReward={(msg) => { showSuccess(msg); refreshWallet(); }} />
