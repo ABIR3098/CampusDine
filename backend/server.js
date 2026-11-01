@@ -123,6 +123,7 @@ async function seedDefaultMenuAndRates(db) {
   }
 }
 
+// Adds the rider role, location table and order columns if missing
 async function ensureRiderSchema(db) {
   // Add the internal rider role without changing existing student/teacher/admin accounts.
   await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin','staff') NOT NULL");
