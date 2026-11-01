@@ -9002,12 +9002,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const emitTyping = (on) => {
     const sock = window.__campusSocket;
     if (!sock || (isAdmin && !selectedUserId)) return;
-    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
+    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on, ...(isHallChat && !isAdmin ? { scope: "hall" } : {}) });
   };
   useEffect(() => {
     const onTyping = (e) => {
       const d = e.detail || {};
       if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
+      if (d.scope && (d.scope === "hall") !== isHallChat) return;
       clearTimeout(typingTimer.current);
       setTyping(!!d.typing);
       if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
