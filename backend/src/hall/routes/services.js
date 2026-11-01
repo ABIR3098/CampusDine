@@ -76,6 +76,7 @@ router.delete("/services/:id", catchAsync(async(req,res)=>{
   res.json({id,status:"cancelled"});
 }));
 
+// GET /notices
 router.get("/notices", catchAsync(async(req,res)=>{
   const scope=noticeScope(req.user.universityId);
   const [rows]=await pool.query(`SELECT id,title,body,category,pinned,expires_at,created_at FROM hall_notices WHERE (expires_at IS NULL OR expires_at > NOW()) AND ${scope.sql} ORDER BY pinned DESC,created_at DESC LIMIT 100`,scope.params);
