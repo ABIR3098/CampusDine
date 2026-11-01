@@ -263,6 +263,7 @@ router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(a
 
 // GET /api/orders  (admin) — live queue
 // Optional ?restaurant=<id> keeps only that restaurant's orders.
+// GET / (admin)
 router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const restaurant = req.query.restaurant;
   if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
