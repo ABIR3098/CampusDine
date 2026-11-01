@@ -36,6 +36,7 @@ const recurringRoutes = require("./src/routes/recurring");
 const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
+const teacherRiderChatRoutes = require("./src/routes/teacherRiderChat");
 const feedbackRoutes = require("./src/routes/feedback");
 const kdsRoutes = require("./src/routes/kds");
 const guestTokenRoutes = require("./src/routes/guestTokens");
@@ -806,6 +807,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/coupon", couponRoutes);
 // Support chat and order chat
 app.use("/api/chat", chatRoutes);
+// Direct chat between a teacher and a rider
+app.use("/api/teacher-rider-chat", teacherRiderChatRoutes);
 // General feedback from users
 app.use("/api/feedback", feedbackRoutes);
 // Spending and order summaries
