@@ -82,6 +82,7 @@ router.get("/notices", catchAsync(async(req,res)=>{
   const [rows]=await pool.query(`SELECT id,title,body,category,pinned,expires_at,created_at FROM hall_notices WHERE (expires_at IS NULL OR expires_at > NOW()) AND ${scope.sql} ORDER BY pinned DESC,created_at DESC LIMIT 100`,scope.params);
   res.json(rows);
 }));
+// POST /notices (admin)
 router.post("/notices", requireRole("admin"), catchAsync(async(req,res)=>{
   const b=req.body||{}, title=String(b.title||"").trim(), body=String(b.body||"").trim(), category=String(b.category||"General").trim().slice(0,50);
   if(title.length<3||title.length>180||!body||body.length>10000) return res.status(400).json({error:"Enter a title and notice body"});
