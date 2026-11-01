@@ -789,6 +789,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/riders", riderRoutes);
 app.use("/api/operations", operationsRoutes);
 app.use("/api/group-orders", groupOrderRoutes);
+// Wallet balance, top-up and transfers
 app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/recurring", recurringRoutes);
