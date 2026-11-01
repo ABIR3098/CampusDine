@@ -188,6 +188,7 @@ router.post("/:id/items", catchAsync(async (req, res) => {
   }
 }));
 
+// POST /:id/close (any logged-in user)
 router.post("/:id/close", catchAsync(async (req, res) => {
   const groupId = Number(req.params.id);
   if (!Number.isInteger(groupId) || groupId < 1) return res.status(400).json({ error: "Invalid group ID" });
