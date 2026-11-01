@@ -45,7 +45,6 @@ const wasteChallengeRoutes = require("./src/routes/wasteChallenge");
 const analyticsRoutes = require("./src/routes/analytics");
 const tableRoutes = require("./src/routes/tableReservation");
 const settlementRoutes = require("./src/routes/settlements");
-const voiceRoutes = require("./src/routes/voiceAssistant");
 const emergencyRoutes = require("./src/routes/emergencyMode");
 const summaryRoutes = require("./src/routes/summary");
 const { pricingRouter, loyaltyRouter, offersRouter } = require("./src/routes/offers");
@@ -805,7 +804,6 @@ app.use("/api/waste-challenge", wasteChallengeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/tables", tableRoutes);
 app.use("/api/settlements", settlementRoutes);
-app.use("/api/voice", voiceRoutes);
 app.use("/api/emergency", emergencyRoutes);
 
 // Serve the frontend from this same server — one process, one port,

@@ -3511,8 +3511,6 @@ function PortalTopHeader({
             </div>
           </div>
         </div>
-
-        {window.CDComponents && window.CDComponents.VoiceOrderButton && <window.CDComponents.VoiceOrderButton onVoiceClick={onOpenVoice} />}
         <ThemeMenu />
         {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
 
@@ -10149,7 +10147,6 @@ function App() {
   const [session, setSession] = useState(null); // { token, user:{id,name,role,walletBalance} }
   const [tab, setTab] = useState("menu");
   const [posReceiptOrder, setPosReceiptOrder] = useState(null);
-  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showTableBooking, setShowTableBooking] = useState(false);
   const [selectedBookingTable, setSelectedBookingTable] = useState(null);
   const [showDailySpin, setShowDailySpin] = useState(false);
@@ -10774,7 +10771,6 @@ function App() {
         {window.CDComponents && window.CDComponents.EmergencyBannerAlert && <window.CDComponents.EmergencyBannerAlert />}
         {/* Top Header Bar */}
         <PortalTopHeader
-          onOpenVoice={() => setShowVoiceModal(true)}
           role={session.user.role}
           name={session.user.name}
           avatar={session.user.avatar}
@@ -11020,15 +11016,7 @@ function App() {
         {posReceiptOrder && (
           <ThermalReceiptModal order={posReceiptOrder} onClose={() => setPosReceiptOrder(null)} />
         )}
-        {showVoiceModal && window.CDComponents && window.CDComponents.SpeechFeedbackModal && (
-          <window.CDComponents.SpeechFeedbackModal
-            isOpen={showVoiceModal}
-            onClose={() => setShowVoiceModal(false)}
-            onCommandExecute={(act) => {
-              if (act.dishName) showSuccess(act.message);
-            }}
-          />
-        )}
+
         {showDailySpin && (
           <DailySpinWheelModal user={session.user} onClose={() => setShowDailySpin(false)} onReward={(msg) => { showSuccess(msg); refreshWallet(); }} />
         )}

@@ -30,8 +30,6 @@ window.CD_COMPONENT_FILES = [
   "student/TableBookingModal.jsx",
   "admin/VendorPayoutDashboard.jsx",
   "admin/SettlementInvoiceModal.jsx",
-  "ui/VoiceOrderButton.jsx",
-  "student/SpeechFeedbackModal.jsx",
   "ui/EmergencyBannerAlert.jsx",
   "admin/AdminEmergencyControls.jsx"
 ];
