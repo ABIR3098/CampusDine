@@ -54,3 +54,11 @@ test("stock adjustment needs a reason; new items need a valid unit", () => {
   assert.ok(r.validateNewItem({ name: "Salt", unit: "bucket" }).error);
   assert.equal(r.validateNewItem({ name: "Salt", unit: "kg" }).value.currentStock, 0);
 });
+
+test("stockLevel labels out, low and ok", () => {
+  assert.equal(r.stockLevel(0, 5), "out");
+  assert.equal(r.stockLevel(4, 5), "low");
+  assert.equal(r.stockLevel(5, 5), "low");
+  assert.equal(r.stockLevel(20, 5), "ok");
+  assert.equal(r.stockLevel(20, 0), "ok");
+});
