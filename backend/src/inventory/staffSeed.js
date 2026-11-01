@@ -12,3 +12,10 @@ async function ensureDevStaffAccount(db, { log = console.log } = {}) {
     if (existing[0].role !== "staff") {
       log(`⚠️  ID '${DEV_STAFF.externalId}' already belongs to a ${existing[0].role} account, so the dev staff login was not created.`);
     }
+    return { created: false, skipped: false, existingRole: existing[0].role };
+  }
+  const hash = await bcrypt.hash(DEV_STAFF.password, 10);
+  await db.query(
+    "INSERT INTO users (name, external_id, role, password_hash, wallet_balance) VALUES (?, ?, 'staff', ?, 0)",
+    [DEV_STAFF.name, DEV_STAFF.externalId, hash]
+  );
