@@ -262,3 +262,10 @@
                   </div>
                   <div className="text-sm mt-2">Staff says current <strong>{fmt(r.currentQty)} {r.unit}</strong>, needs <strong>{fmt(r.requiredQty)} {r.unit}</strong> · Official stock: <strong>{fmt(r.officialStock)} {r.unit}</strong></div>
                   {r.note && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Note: {r.note}</div>}
+                  {r.adminReply && <div className="text-xs mt-1"><strong>Your reply:</strong> {r.adminReply}</div>}
+                  {r.status === "pending" && (
+                    <div className="mt-3 flex flex-wrap gap-2 items-center">
+                      <input className={inputCls + " flex-1 min-w-[200px]"} style={inputStyle} placeholder="Reply to staff (required for reject)" value={reply[r.id] || ""} onChange={(e) => setReply({ ...reply, [r.id]: e.target.value })} />
+                      <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => decide(r.id, "approved")}>Approve</button>
+                      <button type="button" className="px-3 py-2 rounded-xl text-sm border" style={{ borderColor: "#FCA5A5", color: "#991B1B" }} onClick={() => decide(r.id, "rejected")}>Reject</button>
+                    </div>
