@@ -1,3 +1,7 @@
+// A rider only gets an order while on duty AND sharing a position that is at most this old.
+// The rider app sends its position about every 8 seconds, so 90 seconds allows a few missed sends.
+const LOCATION_FRESH_SECONDS = 90;
+
 async function assignOrderToBestRider(connection, orderId) {
   await connection.query(`
     SELECT rider_id FROM rider_shifts
@@ -14,7 +18,7 @@ async function assignOrderToBestRider(connection, orderId) {
       AND o.rider_assignment_status IN ('Assigned', 'Accepted') AND o.status <> 'Cancelled'
     WHERE u.role = 'rider' AND location.active = 1
       AND location.latitude IS NOT NULL AND location.longitude IS NOT NULL
-      AND location.updated_at >= NOW() - INTERVAL 90 SECOND
+      AND location.updated_at >= NOW() - INTERVAL ${LOCATION_FRESH_SECONDS} SECOND
     GROUP BY u.id, shift.max_orders, location.updated_at
     HAVING COUNT(o.id) < shift.max_orders
     ORDER BY active_orders ASC, location.updated_at DESC, u.id ASC
@@ -30,4 +34,4 @@ async function assignOrderToBestRider(connection, orderId) {
   return result.affectedRows === 1 ? riderId : null;
 }
 
-module.exports = { assignOrderToBestRider };
+module.exports = { assignOrderToBestRider, LOCATION_FRESH_SECONDS };
