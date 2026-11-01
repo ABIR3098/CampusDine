@@ -456,7 +456,7 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
       if (inboxMode(req)) {
         ownerId = Number(req.query.userId);
         if (!Number.isInteger(ownerId) || ownerId <= 0) return res.status(400).json({ error: "Select a chat recipient" });
-        const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff')", [ownerId]);
+        const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff', 'admin') AND (? = 'hall' OR role <> 'admin')", [ownerId, scopeOf(req)]);
         if (!target) return res.status(404).json({ error: "Chat user not found" });
       }
       const [result] = await pool.execute("INSERT INTO chat_images (owner_user_id, uploader_id, mime, data, scope) VALUES (?, ?, ?, ?, ?)", [ownerId, req.user.id, mime, buf, scopeOf(req)]);
