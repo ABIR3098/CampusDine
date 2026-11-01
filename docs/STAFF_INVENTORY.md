@@ -38,6 +38,11 @@ required quantity; see status, the admin's reply and the updated stock; message 
 (quantity, unit cost, supplier) which update the official stock, correct stock with a reason, add raw materials, and see
 purchase and stock history.
 
+**Restocking (admin)** – in the *Stock* tab every row has a **Restock** button, and so does each low-stock alert.
+It opens the *Purchases* form with that material and a suggested quantity; enter what was bought (and cost/supplier),
+press **Save**, and the official stock goes up and is written to the history. The form shows the stock before and after.
+While not in production, a database failure shows its real reason on the admin screen (the server terminal prints it too).
+
 **Daily usage** – staff record how much of a material was used (date, quantity, note). The system deducts it from the
 official stock automatically, refuses usage above what is left, and shows **Low stock / Out of stock** alerts with a
 "Request restock" button. Admin sees all usage in the *Daily usage* tab. Quantities like `35kg` or `৩৫` are accepted.

@@ -472,7 +472,14 @@
         {tab === "purchases" && (
           <div className="space-y-4">
             <div className="card p-5">
-              <div className="font-700 mb-2 text-sm">Record a purchase (without a request)</div>
+              <div className="font-700 mb-2 text-sm">Restock / record a purchase (without a request)</div>
+              {(() => {
+                const it = list.find((i) => String(i.id) === String(direct.itemId));
+                if (!it) return <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>Choose a material to see its current stock.</p>;
+                const qty = Number(String(direct.quantity).replace(/[^\d.]/g, ""));
+                const after = Number.isFinite(qty) && qty > 0 ? Math.round((it.currentStock + qty) * 100) / 100 : null;
+                return <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>{it.name}: <strong>{fmt(it.currentStock)} {it.unit}</strong> now{after !== null ? <> → <strong>{fmt(after)} {it.unit}</strong> after this purchase</> : null}.</p>;
+              })()}
               <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                 <select className={inputCls} style={inputStyle} value={direct.itemId} onChange={(e) => setDirect({ ...direct, itemId: e.target.value })}>
                   <option value="">Item…</option>{list.map((i) => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
