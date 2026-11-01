@@ -175,6 +175,7 @@ router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAs
 }));
 
 // Feature: referral code — GET /api/wallet/referral: my code and how it is doing
+// GET /referral (student, teacher)
 router.get("/referral", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const code = await ensureCode(pool, req.user.id);
   const [[st]] = await pool.query(
