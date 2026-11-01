@@ -143,6 +143,13 @@
     };
     const saveUsage = async () => {
       setBusy(true); setError(""); setInfo("");
+      try {
+        const r = await call(apiBase, token, "/usage", { method: "POST", body: { ...use, itemId: Number(use.itemId) } });
+        setInfo(`Saved. ${r.itemName}: ${fmt(r.stockBefore)} → ${fmt(r.stockAfter)} ${r.unit} remaining${r.level === "out" ? " (OUT OF STOCK — send a restock request)" : r.level === "low" ? " (low stock — consider a restock request)" : ""}.`);
+        setUse({ ...use, itemId: "", quantity: "", note: "" });
+        items.reload(); usage.reload();
+      } catch (e) { setError(e.message); }
+      setBusy(false);
     const chosen = list.find((i) => String(i.id) === String(form.itemId));
 
     const submit = async () => {
