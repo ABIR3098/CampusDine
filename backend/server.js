@@ -1,3 +1,4 @@
+// Load environment variables from backend/.env
 require("dotenv").config();
 
 // Fix 8: run the whole app on the canteen's clock, whatever timezone the host machine is in.
