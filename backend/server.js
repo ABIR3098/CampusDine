@@ -23,6 +23,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const mysql = require("mysql2/promise");
 
+// Route modules
 const authRoutes = require("./src/routes/auth");
 const menuRoutes = require("./src/routes/menu");
 const orderRoutes = require("./src/routes/orders");
