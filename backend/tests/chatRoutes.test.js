@@ -165,3 +165,9 @@ test("rider removes only their own message and reacts inside their own chat", as
   r = await call(RIDER, "POST", "/messages/9/reaction", { emoji: "💩" });
   assert.equal(r.status, 400);
 });
+
+test("rider presence only asks about the canteen admin", async () => {
+  const r = await call(RIDER, "GET", "/presence");
+  assert.equal(r.status, 200);
+  assert.ok(r.calls.some((c) => /FROM chat_presence p JOIN users u/.test(c.sql) && c.params[0] === "admin"));
+});
