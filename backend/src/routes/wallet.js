@@ -32,6 +32,7 @@ const PAY_METHOD_LABELS = {
 // POST /api/wallet/topup  body: { amount, method } — method is one of the keys in PAY_METHOD_LABELS
 // NOTE: this is a simulated payment confirmation (no real bKash/Nagad/bank gateway call).
 // It just requires a valid method key so the wallet can't be credited without picking one.
+// POST /topup (student, teacher)
 router.post("/topup", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { method } = req.body;
   const amount = Number(req.body.amount);
