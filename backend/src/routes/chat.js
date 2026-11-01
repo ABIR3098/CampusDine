@@ -109,8 +109,8 @@ router.get("/messages", verifyToken, requireRole("student", "teacher", "staff"),
   try {
     connection = await pool.getConnection();
     const [[conversation]] = await connection.query(
-      "SELECT id FROM chat_conversations WHERE user_id = ?",
-      [req.user.id]
+      "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ?",
+      [req.user.id, scopeOf(req)]
     );
     if (!conversation) return res.json({ conversationId: null, messages: [] });
 
