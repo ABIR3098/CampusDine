@@ -99,3 +99,8 @@ function stockLevel(current, min) {
   return "ok";
 }
 
+module.exports = {
+  UNITS, REQUEST_TYPES, REQUEST_STATUSES, MAX_QTY, TRANSITIONS,
+  canTransition, toQty, cleanText, stockLevel,
+  validateStaffRequest, validateDecision, validatePurchase, validateAdjustment, validateNewItem,
+};
