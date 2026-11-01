@@ -46,3 +46,10 @@ async function withTx(pool, fn) {
     conn.release();
   }
 }
+
+function createService(pool) {
+  async function listItems() {
+    const [rows] = await pool.query("SELECT * FROM inventory_items ORDER BY category, name");
+    return rows.map(itemView);
+  }
+
