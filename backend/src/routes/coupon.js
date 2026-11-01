@@ -7,6 +7,7 @@ const { couponUnusable, validateNewCoupon } = require("../utils/couponRules");
 const router = express.Router();
 
 // Validate and apply coupon code
+// POST /validate (any logged-in user)
 router.post("/validate", verifyToken, async (req, res) => {
   let db;
   try {
