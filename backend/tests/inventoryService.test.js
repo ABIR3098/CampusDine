@@ -142,3 +142,9 @@ test("recording a purchase can replace the admin reply the staff member sees", a
   assert.equal(r.status, "purchased");
   assert.equal(r.adminReply, "Bought today");
 });
+
+test("recording a purchase without a reply keeps the earlier admin reply", async () => {
+  const svc = createService(fakePool());
+  await svc.recordPurchase(1, { requestId: 2, itemId: null, quantity: 5, unitCost: null, totalCost: null, supplier: "", note: "", reply: "" });
+  assert.equal((await svc.getRequest(2)).adminReply, "ok");
+});
