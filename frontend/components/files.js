@@ -25,5 +25,13 @@ window.CD_COMPONENT_FILES = [
   "admin/ExpiryAlertBanner.jsx",
   "admin/SupplierPurchaseOrderModal.jsx",
   "admin/IngredientStockDashboard.jsx",
-  "admin/RevenueAnalyticsCard.jsx"
+  "admin/RevenueAnalyticsCard.jsx",
+  "student/CanteenFloorMap.jsx",
+  "student/TableBookingModal.jsx",
+  "admin/VendorPayoutDashboard.jsx",
+  "admin/SettlementInvoiceModal.jsx",
+  "ui/VoiceOrderButton.jsx",
+  "student/SpeechFeedbackModal.jsx",
+  "ui/EmergencyBannerAlert.jsx",
+  "admin/AdminEmergencyControls.jsx"
 ];
