@@ -170,7 +170,7 @@ router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"),
 
     const [[conversation]] = await connection.query(
       "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ?",
-      [userId, scopeOf(req)]
+      [userId, inboxScope(req)]
     );
     if (!conversation) return res.json({ conversationId: null, user, messages: [] });
 
