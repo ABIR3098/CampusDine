@@ -3,3 +3,10 @@
 
 ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin','staff') NOT NULL;
 
+CREATE TABLE IF NOT EXISTS inventory_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(80) NOT NULL,
+  name_bn VARCHAR(80) NULL,
+  category VARCHAR(40) NOT NULL DEFAULT 'General',
+  unit VARCHAR(12) NOT NULL,
+  current_stock DECIMAL(12,2) NOT NULL DEFAULT 0,
