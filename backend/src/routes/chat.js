@@ -336,7 +336,7 @@ function hookPresence(io) {
 
 // Online status + "last seen". Admin: online students/teachers, and how long ago the offline ones were seen.
 // Everyone else: only whether an admin is online and when an admin was last seen.
-router.get("/presence", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+router.get("/presence", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
   try {
     const io = req.app.get("io");
     const live = io && io.sockets && io.sockets.sockets ? [...io.sockets.sockets.values()].filter((s) => s.user) : [];
