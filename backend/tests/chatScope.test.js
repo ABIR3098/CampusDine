@@ -60,3 +60,16 @@ test("the hall admin is never a member and always answers the hall inbox", () =>
   assert.equal(inboxScope(r), "hall");
   assert.equal(scopeOf(r), "hall");
 });
+
+test("a rider is a member of the canteen inbox and never of the hall inbox", () => {
+  const { memberMode, inboxMode, inboxScope } = chat._test;
+  for (const query of [{}, { scope: "hall" }, { scope: "canteen" }]) {
+    const r = req("rider", { query });
+    assert.equal(scopeOf(r), "canteen");
+    assert.equal(memberMode(r), true);
+    assert.equal(inboxMode(r), false);
+  }
+  assert.equal(scopeOf(req("rider", { body: { scope: "hall" } })), "canteen");
+  assert.equal(isInboxOwner({ role: "rider" }), false);
+  assert.equal(inboxScope(req("rider")), "canteen");
+});
