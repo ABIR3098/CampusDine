@@ -148,6 +148,7 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
   }
 });
 
+// POST /messages (student, teacher, staff, admin)
 router.post("/messages", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
   let connection;
   try {
