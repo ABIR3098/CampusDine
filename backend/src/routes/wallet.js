@@ -101,6 +101,7 @@ router.get("/recipient", verifyToken, requireRole("student", "teacher"), catchAs
 // POST /api/wallet/transfer  body: { toId, amount, note? }
 // Moves money between two wallets in ONE database transaction (both balances and both history rows
 // change together or not at all). Limits: ৳2,000 per transfer, ৳5,000 sent per day.
+// POST /transfer (student, teacher)
 router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const toId = clean(req.body.toId);
   const amount = Number(req.body.amount);
