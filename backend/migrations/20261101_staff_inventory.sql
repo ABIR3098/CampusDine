@@ -57,3 +57,11 @@ CREATE TABLE IF NOT EXISTS inventory_stock_history (
   change_qty DECIMAL(12,2) NOT NULL,
   stock_before DECIMAL(12,2) NOT NULL,
   stock_after DECIMAL(12,2) NOT NULL,
+  reason ENUM('opening','purchase','adjustment') NOT NULL,
+  purchase_id INT NULL,
+  actor_id INT NULL,
+  note VARCHAR(500) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_inv_hist_item (item_id, created_at),
+  CONSTRAINT fk_inv_hist_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+);
