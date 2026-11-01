@@ -803,6 +803,7 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
+// Hall meals, tokens, bills and finance
 app.use("/api/hall", hall.router);
 app.use("/api/hall-admin", hallAdminRoutes);
 app.use("/api/campus", campusFeatureRoutes);
