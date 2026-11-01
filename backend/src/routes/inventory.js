@@ -51,3 +51,13 @@ function createInventoryRouter(service) {
     if (io) io.to(`user:${updated.staffId}`).emit("inventory:decision", { id: updated.id, status: updated.status, adminReply: updated.adminReply, itemName: updated.itemName });
     res.json({ request: updated });
   }));
+
+  router.post("/admin/purchases", requireRole("admin"), catchAsync(async (req, res) => {
+    const v = rules.validatePurchase(req.body);
+    if (v.error) return fail(res, v.error);
+    const result = await service.recordPurchase(req.user.id, v.value);
+    const io = req.app && req.app.get && req.app.get("io");
+    if (io && result.requestId) {
+      const request = await service.getRequest(result.requestId);
+      if (request) io.to(`user:${request.staffId}`).emit("inventory:decision", { id: request.id, status: request.status, adminReply: request.adminReply, itemName: request.itemName });
+    }
