@@ -339,6 +339,13 @@
       () => call(apiBase, token, "/admin/purchases", { method: "POST", body: { requestId: r.id, ...(buy[r.id] || { quantity: r.requiredQty }) } }),
       "Purchase recorded and official stock updated."
     );
+    // Approve and record the purchase in one go (purchase requests only).
+    const approveAndBuy = (r) => run(async () => {
+      await call(apiBase, token, `/admin/requests/${r.id}/decision`, { method: "POST", body: { decision: "approved", reply: reply[r.id] || "" } });
+      await call(apiBase, token, "/admin/purchases", { method: "POST", body: { requestId: r.id, ...(buy[r.id] || { quantity: r.requiredQty }) } });
+    }, "Approved, purchase recorded and official stock updated.");
+    // A stock report carries the staff member's own count; the admin may accept it as the official stock.
+    const useStaffCount = (r) => {
     const adjust = (it) => {
       const v = window.prompt(`New official stock for ${it.name} (${it.unit}). Current: ${fmt(it.currentStock)}`);
       if (v === null) return;
