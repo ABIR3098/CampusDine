@@ -74,3 +74,10 @@ function createInventoryRouter(service) {
     res.status(201).json({ item: await service.addItem(req.user.id, v.value) });
   }));
 
+  router.post("/admin/items/:id/adjust", requireRole("admin"), catchAsync(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return fail(res, "Invalid item id.");
+    const v = rules.validateAdjustment(req.body);
+    if (v.error) return fail(res, v.error);
+    res.json(await service.adjustStock(req.user.id, id, v.value));
+  }));
