@@ -317,3 +317,20 @@
               <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                 <select className={inputCls} style={inputStyle} value={direct.itemId} onChange={(e) => setDirect({ ...direct, itemId: e.target.value })}>
                   <option value="">Item…</option>{list.map((i) => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
+                </select>
+                <input className={inputCls} style={inputStyle} placeholder="Quantity" inputMode="decimal" value={direct.quantity} onChange={(e) => setDirect({ ...direct, quantity: e.target.value })} />
+                <input className={inputCls} style={inputStyle} placeholder="Unit cost ৳" inputMode="decimal" value={direct.unitCost} onChange={(e) => setDirect({ ...direct, unitCost: e.target.value })} />
+                <input className={inputCls} style={inputStyle} placeholder="Supplier" value={direct.supplier} onChange={(e) => setDirect({ ...direct, supplier: e.target.value })} />
+                <input className={inputCls} style={inputStyle} placeholder="Note" value={direct.note} onChange={(e) => setDirect({ ...direct, note: e.target.value })} />
+                <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => run(async () => { await call(apiBase, token, "/admin/purchases", { method: "POST", body: { ...direct, itemId: Number(direct.itemId) } }); setDirect({ itemId: "", quantity: "", unitCost: "", supplier: "", note: "" }); }, "Purchase recorded and official stock updated.")}>Save</button>
+              </div>
+            </div>
+            <div className="card p-5 overflow-x-auto">
+              <table className="w-full text-sm"><thead><tr className="text-left text-xs uppercase" style={{ color: "var(--ink-soft)" }}><th className="py-2 pr-3">When</th><th className="pr-3">Item</th><th className="pr-3">Qty</th><th className="pr-3">Unit ৳</th><th className="pr-3">Total ৳</th><th>Supplier</th></tr></thead>
+                <tbody>{((purchases.data && purchases.data.purchases) || []).map((p) => (
+                  <tr key={p.id} className="border-t" style={{ borderColor: "var(--line)" }}><td className="py-2 pr-3">{when(p.purchasedAt)}</td><td className="pr-3">{p.itemName}</td><td className="pr-3">{fmt(p.quantity)} {p.unit}</td><td className="pr-3">{fmt(p.unitCost)}</td><td className="pr-3">{fmt(p.totalCost)}</td><td>{p.supplier || "—"}</td></tr>
+                ))}</tbody></table>
+            </div>
+          </div>
+        )}
+
