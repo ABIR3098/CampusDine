@@ -262,6 +262,7 @@ router.get("/reports/export", catchAsync(async (req, res) => {
 
 // GET /api/admin/feedback — summary + rating breakdown + recent feedback
 // Combines per-order ratings with general (not order-linked) feedback.
+// GET /feedback (any logged-in user)
 router.get("/feedback", catchAsync(async (req, res) => {
   const [orderRows] = await pool.query(`
     SELECT f.id, f.rating, f.comment, f.created_at, o.token, u.name AS userName, u.role AS userRole,
