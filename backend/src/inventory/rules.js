@@ -42,3 +42,10 @@ function validateStaffRequest(body = {}) {
   return { value: { itemId, requestType, currentQty, requiredQty, note } };
 }
 
+function validateDecision(body = {}) {
+  const decision = body.decision;
+  if (decision !== "approved" && decision !== "rejected") return { error: "Decision must be approved or rejected." };
+  const reply = cleanText(body.reply, 500);
+  if (decision === "rejected" && reply.length < 3) return { error: "Write a short reason when rejecting a request." };
+  return { value: { decision, reply } };
+}
