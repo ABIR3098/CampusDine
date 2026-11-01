@@ -93,3 +93,9 @@ function validateNewItem(body = {}) {
   return { value: { name, nameBn: cleanText(body.nameBn, 80) || null, unit, currentStock: stock, minStock, category: cleanText(body.category, 40) || "General" } };
 }
 
+function stockLevel(current, min) {
+  if (Number(current) <= 0) return "out";
+  if (Number(min) > 0 && Number(current) <= Number(min)) return "low";
+  return "ok";
+}
+
