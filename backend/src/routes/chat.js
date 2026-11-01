@@ -501,14 +501,14 @@ async function attachReactions(messages, myId) {
 }
 
 // POST /messages/:id/reaction (student, teacher, staff, admin)
-router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
+router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid message id" });
     const emoji = req.body && req.body.emoji ? String(req.body.emoji) : null;
     if (emoji !== null && !REACTIONS.includes(emoji)) return res.status(400).json({ error: "Unsupported reaction" });
     const [[row]] = await pool.query(
-      "SELECT m.id, c.user_id AS owner_id FROM chat_messages m JOIN chat_conversations c ON c.id = m.conversation_id WHERE m.id = ? AND m.deleted_at IS NULL",
+      "SELECT m.id, c.user_id AS owner_id, c.scope FROM chat_messages m JOIN chat_conversations c ON c.id = m.conversation_id WHERE m.id = ? AND m.deleted_at IS NULL",
       [id]
     );
     if (!row) return res.status(404).json({ error: "Message not found" });
