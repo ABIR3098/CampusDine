@@ -408,9 +408,10 @@ router.get("/presence", verifyToken, requireRole("student", "teacher", "staff", 
       for (const row of rows) if (!online.includes(Number(row.user_id))) lastSeen[row.user_id] = Math.max(0, Number(row.ago));
       return res.json({ online, lastSeen });
     }
-    const adminOnline = live.some((s) => s.user.role === "admin");
+    const adminOnline = live.some((s) => s.user.role === inboxRole);
     const [[row]] = await pool.query(
-      "SELECT TIMESTAMPDIFF(SECOND, MAX(p.last_seen), NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role = 'admin'"
+      "SELECT TIMESTAMPDIFF(SECOND, MAX(p.last_seen), NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role = ?",
+      [inboxRole]
     );
     res.json({ adminOnline, adminAgoSeconds: row && row.ago !== null ? Math.max(0, Number(row.ago)) : null });
   } catch (error) {
