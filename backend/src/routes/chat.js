@@ -103,7 +103,7 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
     if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: "Invalid user ID" });
     connection = await pool.getConnection();
     const [[user]] = await connection.query(
-      "SELECT id, name, role FROM users WHERE id = ? AND role IN ('student', 'teacher')",
+      "SELECT id, name, role FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff')",
       [userId]
     );
     if (!user) return res.status(404).json({ error: "Chat user not found" });
