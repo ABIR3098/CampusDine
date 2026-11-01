@@ -92,3 +92,12 @@ function createService(pool) {
     });
   }
 
+  async function recordPurchase(adminId, v) {
+    return withTx(pool, async (conn) => {
+      let itemId = v.itemId;
+      if (v.requestId) {
+        const [reqRows] = await conn.query("SELECT id, item_id, status FROM inventory_requests WHERE id = ? FOR UPDATE", [v.requestId]);
+        if (!reqRows.length) throw new HttpError(404, "Request not found.");
+        if (!canTransition(reqRows[0].status, "purchased")) {
+          throw new HttpError(409, reqRows[0].status === "pending" ? "Approve the request before recording the purchase." : `This request is already ${reqRows[0].status}.`);
+        }
