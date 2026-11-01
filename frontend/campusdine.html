@@ -9326,6 +9326,7 @@ function ProfileInput({ label, value, onChange, placeholder }) {
 }
 function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [editing, setEditing] = useState(false);
+  const [savedEmail, setSavedEmail] = useState("");
   const [profile, setProfile] = useState({
     name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
   });
@@ -9346,6 +9347,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [savedEmail, setSavedEmail] = useState(""); // e-mail on the server; changing it asks for the current password
 
   const loadProfile = () => call("/api/auth/me").then(data => {
+    setSavedEmail(String(data.email || "").toLowerCase());
     setProfile({
       name: data.name, email: data.email || "", accountType: data.accountType || "regular",
       phone: data.phone || "", address: data.address || "",
@@ -9384,6 +9386,13 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
         department: profile.department, fatherPhone: profile.fatherPhone,
       };
       if (profile.email.trim()) body.email = profile.email.trim();
+      if (body.email && body.email.toLowerCase() !== savedEmail) {
+        // a new email address: we send a code to it first, then the server checks that code on save
+        await call("/api/auth/me/email-code", { method: "POST", body: { email: body.email } });
+        const code = window.prompt("We sent a 6-digit code to " + body.email + ". Type it here to confirm your new email:");
+        if (!code || !code.trim()) { setError("Your email was not changed because no code was entered."); return; }
+        body.emailCode = code.trim();
+      }
       if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
       if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
       if (avatarChanged) body.avatar = avatar;
@@ -9391,6 +9400,7 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
       onUpdated(data);
       setSavedEmail(data.email || "");
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
+      if (body.email) setSavedEmail(body.email.toLowerCase());
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setAvatarChanged(false);
       setSuccess(tx("pe.ok"));
