@@ -88,6 +88,7 @@ router.get("/", catchAsync(async (req, res) => {
   res.json(groups);
 }));
 
+// GET /:id (any logged-in user)
 router.get("/:id", catchAsync(async (req, res) => {
   const groupId = Number(req.params.id);
   if (!Number.isInteger(groupId) || groupId < 1) return res.status(400).json({ error: "Invalid group ID" });
