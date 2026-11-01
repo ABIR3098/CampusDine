@@ -172,6 +172,7 @@ router.patch("/lastcall/:id/close", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall/serve   body: { code }   → the student shows the code at the counter
+// POST /lastcall/serve
 router.post("/lastcall/serve", admin, catchAsync(async (req, res) => {
   const code = String((req.body || {}).code || "").trim().toUpperCase();
   if (!code) return res.status(400).json({ error: "Enter the code" });
