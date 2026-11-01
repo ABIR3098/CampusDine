@@ -10286,6 +10286,8 @@ function App() {
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [chatRefreshKey, setChatRefreshKey] = useState(0);
+  const [riderChatKey, setRiderChatKey] = useState(0); // bumped when a teacher-rider chat message arrives
+  const [riderChatUnread, setRiderChatUnread] = useState(0);
   const [loyaltyKey, setLoyaltyKey] = useState(0); // bumped whenever points / offers may have changed
 
   const now = new Date();
@@ -10317,6 +10319,15 @@ function App() {
   };
 
   const call = (path, opts) => api(apiBase, path, { ...opts, token: session && session.token });
+
+  // Teachers: how many rider messages are waiting (badge on the "Rider chat" tab). It refreshes whenever a new one arrives.
+  useEffect(() => {
+    if (!session || session.user.role !== "teacher" || tab === "riderChat") { setRiderChatUnread(0); return; }
+    let live = true;
+    api(apiBase, "/api/teacher-rider-chat/unread", { token: session.token })
+      .then(d => { if (live) setRiderChatUnread(Number(d.unread) || 0); }).catch(() => {});
+    return () => { live = false; };
+  }, [session, tab, apiBase, riderChatKey]);
 
   const mapMenu = (rows) => rows.map(m => ({ ...m, bn: m.name_bn }));
   const mapWallet = (data) => ({
@@ -10499,6 +10510,13 @@ function App() {
       setChatRefreshKey(value => value + 1);
       if (Number(payload.senderId) !== Number(session.user.id)) {
         pushNotification("chat", payload.scope === "hall" ? "New message from Hall Admin" : tx("n.chat"), `${payload.senderName}: ${payload.message}`);
+      }
+    });
+    // A teacher and a rider wrote to each other: refresh the Rider chat tab and show a notice for the one who received it
+    socket.on("teacher-rider-chat:message", (payload) => {
+      setRiderChatKey(value => value + 1);
+      if (Number(payload.senderId) !== Number(session.user.id)) {
+        pushNotification("chat", payload.senderRole === "rider" ? "Message from your rider" : "Message from a teacher", `${payload.senderName}: ${payload.message}`);
       }
     });
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
@@ -10812,7 +10830,11 @@ function App() {
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
-  const teacherTabs = [...userTabs, { key: "riderTracking", label: "Rider Tracking", icon: I.ticket }];
+  const teacherTabs = [
+    ...userTabs,
+    { key: "riderTracking", label: "Rider Tracking", icon: I.ticket },
+    { key: "riderChat", label: "Rider chat", icon: I.chat, badge: riderChatUnread },
+  ];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "commandCenter", label: "Command Center", icon: I.chart },
@@ -11067,6 +11089,10 @@ function App() {
         {tab === "chat" && (
           <ChatWorkspace role={session.user.role} userId={session.user.id} apiBase={apiBase}
             sessionToken={session.token} refreshKey={chatRefreshKey} />
+        )}
+        {session.user.role === "teacher" && tab === "riderChat" && window.CDComponents && window.CDComponents.TeacherRiderChat && (
+          <window.CDComponents.TeacherRiderChat role="teacher" userId={session.user.id} apiBase={apiBase}
+            token={session.token} tx={tx} refreshKey={riderChatKey} />
         )}
 
         {session.user.role === "admin" && tab === "inventory" && <InventoryHost kind="admin" apiBase={apiBase} token={session.token} />}
