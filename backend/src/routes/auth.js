@@ -409,16 +409,16 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
   if (email !== undefined) {
     const e = clean(email).toLowerCase();
     if (!EMAIL_RE.test(e) || e.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
-    // The e-mail receives password-reset codes, so changing it needs the current password
-    const [[me]] = await pool.query("SELECT email, password_hash FROM users WHERE id = ?", [req.user.id]);
-    if (!me) return res.status(404).json({ error: "Account not found" });
-    if (emailChangeNeedsPassword(me.email, e)) {
-      if (!currentPassword) return res.status(400).json({ error: "Enter your current password to change your email" });
-      if (!(await bcrypt.compare(String(currentPassword), me.password_hash))) return res.status(401).json({ error: "Current password is incorrect" });
+    const [[currentUser]] = await pool.query("SELECT email FROM users WHERE id = ?", [req.user.id]);
+    // Sending the email you already have changes nothing. A different email needs the code sent to it.
+    if (String((currentUser && currentUser.email) || "").toLowerCase() !== e) {
+      const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
+      if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
+      if (!req.body.emailCode) return res.status(400).json({ error: "Changing your email needs the code we send to the new address.", needsEmailCode: true });
+      const check = await verifyOtp(pool, e, "change_email", req.body.emailCode);
+      if (!check.ok) return res.status(check.status).json({ error: check.error });
+      fields.push("email = ?"); values.push(e);
     }
-    const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
-    if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
-    fields.push("email = ?"); values.push(e);
   }
   if (phone !== undefined) { fields.push("phone = ?"); values.push(clean(phone) || null); }
   if (address !== undefined) { fields.push("address = ?"); values.push(clean(address) || null); }
