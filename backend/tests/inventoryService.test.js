@@ -80,3 +80,9 @@ test("a pending request must be approved before it can be bought", async () => {
   assert.equal(pool.st.items[0].current_stock, 10);
 });
 
+test("a request cannot be purchased twice", async () => {
+  const svc = createService(fakePool());
+  await svc.recordPurchase(1, { requestId: 2, quantity: 5, unitCost: null, totalCost: null });
+  await assert.rejects(svc.recordPurchase(1, { requestId: 2, quantity: 5 }), (e) => e.status === 409);
+});
+
