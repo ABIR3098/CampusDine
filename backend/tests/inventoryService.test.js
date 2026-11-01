@@ -63,3 +63,13 @@ test("unknown request gives 404", async () => {
   await assert.rejects(createService(fakePool()).decide(1, 55, { decision: "approved", reply: "" }), (e) => e.status === 404);
 });
 
+test("recording a purchase for an approved request updates stock, history and status together", async () => {
+  const pool = fakePool(); const svc = createService(pool);
+  const out = await svc.recordPurchase(1, { requestId: 2, itemId: null, quantity: 5, unitCost: 60, totalCost: 300, supplier: "Karim", note: "" });
+  assert.equal(out.stockBefore, 10);
+  assert.equal(out.stockAfter, 15);
+  assert.equal(pool.st.items[0].current_stock, 15);
+  assert.equal(pool.st.requests[1].status, "purchased");
+  assert.equal(pool.st.history.length, 1);
+  assert.equal(pool.st.history[0][4], out.purchaseId);
+});
