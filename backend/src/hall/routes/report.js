@@ -74,6 +74,7 @@ router.get("/report/guests", catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/report/range?from=&to=  (at most 31 days) → [{ date, breakfast: plates, lunch: plates, dinner: plates, total }]
+// GET /report/range
 router.get("/report/range", catchAsync(async (req, res) => {
   const now = nowParts();
   const from = req.query.from || now.dateKey;
