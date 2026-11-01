@@ -796,6 +796,7 @@ app.use("/api/recurring", recurringRoutes);
 app.use("/api/admin", adminRoutes);
 // Coupon validation and admin management
 app.use("/api/coupon", couponRoutes);
+// Support chat and order chat
 app.use("/api/chat", chatRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/summary", summaryRoutes);
