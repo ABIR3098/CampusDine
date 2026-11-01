@@ -13,3 +13,8 @@ const DEFAULT_ITEMS = [
   { name: "Chicken", nameBn: "মুরগি", category: "Protein", unit: "kg", stock: 28, min: 10 },
 ];
 
+const ROLE_ENUM = "ENUM('student','teacher','admin','rider','hall_admin','staff')";
+
+async function ensureInventorySchema(db) {
+  await db.query(`ALTER TABLE users MODIFY COLUMN role ${ROLE_ENUM} NOT NULL`);
+
