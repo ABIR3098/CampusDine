@@ -61,6 +61,13 @@ function validateUsage(body = {}, today = todayKey()) {
   if (quantity === null) return { error: "Used quantity must be a number greater than 0." };
   let usageDate = today;
   if (body.usageDate) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(body.usageDate))) return { error: "Date must look like 2026-11-01." };
+    if (String(body.usageDate) > today) return { error: "Usage date cannot be in the future." };
+    usageDate = String(body.usageDate);
+  }
+  return { value: { itemId, quantity, usageDate, note: cleanText(body.note, 500) } };
+}
+
 function validateDecision(body = {}) {
   const decision = body.decision;
   if (decision !== "approved" && decision !== "rejected") return { error: "Decision must be approved or rejected." };
