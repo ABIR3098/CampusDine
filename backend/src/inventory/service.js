@@ -154,3 +154,11 @@ function createService(pool) {
       const [rows] = await conn.query("SELECT * FROM inventory_items WHERE id = ?", [r.insertId]);
       return itemView(rows[0]);
     });
+  }
+
+  async function listPurchases() {
+    const [rows] = await pool.query(
+      `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
+       FROM inventory_purchases p JOIN inventory_items i ON i.id = p.item_id LEFT JOIN users u ON u.id = p.admin_id
+       ORDER BY p.purchased_at DESC, p.id DESC LIMIT 300`
+    );
