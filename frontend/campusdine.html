@@ -10300,7 +10300,7 @@ function App() {
 
   // Initial data load after login
   useEffect(() => {
-    if (!session || session.user.role === "rider") return;
+    if (!session || session.user.role === "rider" || session.user.role === "staff") return;
     (async () => {
       try {
         if (session.user.role === "admin") {
