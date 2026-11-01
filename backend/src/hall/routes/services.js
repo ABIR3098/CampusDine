@@ -20,6 +20,7 @@ const audit = async (userId, action, type, id, details={}) => {
 };
 
 // Hall service requests: students can create and see their own; admins can manage all.
+// GET /services
 router.get("/services", catchAsync(async (req,res) => {
   const type = String(req.query.type || "");
   if (type && !TYPES.has(type)) return res.status(400).json({error:"Invalid service type"});
