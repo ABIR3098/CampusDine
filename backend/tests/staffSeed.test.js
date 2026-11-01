@@ -17,3 +17,13 @@ test("dev staff account is stored as a bcrypt hash, never as plain text", async 
   const [name, externalId, hash] = db.inserts[0].p;
   assert.equal(externalId, DEV_STAFF.externalId);
   assert.notEqual(hash, DEV_STAFF.password);
+  assert.match(hash, /^\$2[aby]\$/);
+  assert.ok(await bcrypt.compare(DEV_STAFF.password, hash));
+  assert.ok(name);
+});
+
+test("an existing staff account is left alone", async () => {
+  const db = fakeDb([{ id: 4, role: "staff" }]);
+  assert.equal((await ensureDevStaffAccount(db, { log() {} })).created, false);
+  assert.equal(db.inserts.length, 0);
+});
