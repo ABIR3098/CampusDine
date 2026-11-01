@@ -163,6 +163,15 @@ function createService(pool) {
       const before = Number(rows[0].current_stock);
       if (v.quantity > before) throw new HttpError(409, `Only ${before} ${rows[0].unit} of ${rows[0].name} is in stock, so ${v.quantity} ${rows[0].unit} cannot be used. Send a restock request.`);
       const after = Math.round((before - v.quantity) * 100) / 100;
+      await conn.query("UPDATE inventory_items SET current_stock = ? WHERE id = ?", [after, v.itemId]);
+      const [u] = await conn.query(
+        "INSERT INTO inventory_usage (item_id, staff_id, quantity, usage_date, note, stock_before, stock_after) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [v.itemId, staffId, v.quantity, v.usageDate, v.note || null, before, after]
+      );
+      await conn.query(
+        "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, actor_id, note) VALUES (?, ?, ?, ?, 'usage', ?, ?)",
+        [v.itemId, -v.quantity, before, after, staffId, v.note || `Used on ${v.usageDate}`]
+      );
   async function listPurchases() {
     const [rows] = await pool.query(
       `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
