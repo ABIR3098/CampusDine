@@ -56,6 +56,7 @@ router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, 
   res.json(orders);
 }));
 
+// POST /orders/:orderId/accept (rider)
 router.post("/orders/:orderId/accept", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
