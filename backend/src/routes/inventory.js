@@ -87,3 +87,11 @@ function createInventoryRouter(service) {
     res.json({ history: await service.listHistory(Number.isInteger(itemId) && itemId > 0 ? itemId : null) });
   }));
 
+  // Turn HttpError into a clean JSON response; anything else goes to the app-wide handler.
+  router.use((err, req, res, next) => {
+    if (err instanceof HttpError) return res.status(err.status).json({ error: err.message });
+    next(err);
+  });
+
+  return router;
+}
