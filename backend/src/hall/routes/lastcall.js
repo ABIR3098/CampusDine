@@ -38,6 +38,7 @@ async function broadcast(universityId, title, body, kind) {
 
 // GET /api/hall/lastcall → { today, maxPerPerson, items: [{ id, date, slot, label, plates, remaining, price, normalPrice, note, open, mine: [{ id, code, status, price, at }] }] }
 // Today's last calls, newest first. `open` is false once the admin closed it (your plates stay visible).
+// GET /lastcall
 router.get("/lastcall", memberOnly, catchAsync(async (req, res) => {
   const now = nowParts();
   const uni = req.user.universityId || null;
