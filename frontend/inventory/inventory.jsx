@@ -211,3 +211,13 @@
     const list = (items.data && items.data.items) || [];
     const s = summary.data || {};
 
+    const refreshAll = () => { summary.reload(); items.reload(); reqs.reload(); purchases.reload(); history.reload(); };
+    const run = async (fn, okMsg) => {
+      setError(""); setInfo("");
+      try { await fn(); setInfo(okMsg); refreshAll(); } catch (e) { setError(e.message); }
+    };
+
+    const decide = (id, decision) => run(
+      () => call(apiBase, token, `/admin/requests/${id}/decision`, { method: "POST", body: { decision, reply: reply[id] || "" } }),
+      decision === "approved" ? "Request approved." : "Request rejected."
+    );
