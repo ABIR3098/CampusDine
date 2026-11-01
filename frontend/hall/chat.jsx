@@ -5,7 +5,7 @@ function HallChat({ ui, ext, user, token }) {
   const Chat = ui && ui.ChatWorkspace;
   if (!Chat) return <HallCard title="Hall Admin chat" icon="💬"><div className="hl-empty">Chat is not available right now.</div></HallCard>;
   return (
-    <Chat role={user.role} userId={user.id} apiBase={ext && ext.apiBase} sessionToken={token}
+    <Chat role={user.role === "admin" ? "member" : user.role} userId={user.id} apiBase={ext && ext.apiBase} sessionToken={token}
       refreshKey={(ext && ext.chatRefreshKey) || 0} scope="hall" />
   );
 }
