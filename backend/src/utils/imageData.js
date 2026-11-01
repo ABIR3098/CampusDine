@@ -1,14 +1,14 @@
-// Checks an image that arrives as a data URL, e.g. "data:image/png;base64,iVBORw0...".
-//
-// The whole string must be a data URL with a base64 body. Checking only the start of the string
-// is not enough: a value like  data:image/png;base64,AAAA" onerror="...  starts correctly but can
-// break out of an HTML attribute when a page prints it.
-const ALLOWED = /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
-const DEFAULT_MAX_CHARS = 2800000; // about 2 MB of image once base64-encoded
+// Checks an image sent as a data URL (Lost & Found photo).
+// The whole string must match: a prefix check alone lets a value such as
+//   data:image/png;base64,x" onerror="..."
+// through, and that text ends up inside an HTML attribute in the Hall Admin page.
+const IMAGE_DATA_URL = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
-function isSafeImageDataUrl(value, maxChars = DEFAULT_MAX_CHARS) {
-  if (typeof value !== "string" || value.length > maxChars) return false;
-  return ALLOWED.test(value);
+// 2,800,000 characters is about 2 MB of image once decoded.
+const MAX_IMAGE_DATA_LENGTH = 2800000;
+
+function isSafeImageDataUrl(value) {
+  return typeof value === "string" && value.length <= MAX_IMAGE_DATA_LENGTH && IMAGE_DATA_URL.test(value);
 }
 
-module.exports = { isSafeImageDataUrl, DEFAULT_MAX_CHARS };
+module.exports = { isSafeImageDataUrl, MAX_IMAGE_DATA_LENGTH };
