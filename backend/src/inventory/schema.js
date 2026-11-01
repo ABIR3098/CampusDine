@@ -86,3 +86,10 @@ async function ensureInventorySchema(db) {
         "INSERT INTO inventory_items (name, name_bn, category, unit, current_stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)",
         [it.name, it.nameBn, it.category, it.unit, it.stock, it.min]
       );
+      await db.query(
+        "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, note) VALUES (?, ?, 0, ?, 'opening', 'Opening stock')",
+        [r.insertId, it.stock, it.stock]
+      );
+    }
+  }
+}
