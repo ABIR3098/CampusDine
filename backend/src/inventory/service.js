@@ -53,3 +53,8 @@ function createService(pool) {
     return rows.map(itemView);
   }
 
+  async function getRequest(id, conn = pool) {
+    const [rows] = await conn.query(`${REQUEST_SELECT} WHERE q.id = ?`, [id]);
+    return rows[0] ? requestView(rows[0]) : null;
+  }
+
