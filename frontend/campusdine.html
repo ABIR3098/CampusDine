@@ -2717,10 +2717,20 @@ function FullMenuCard({ onLogin }) {
 }
 
 // Promotional popup: appears 1 second after the front page loads, dark backdrop, cross button to close
+// It is shown only once per browser session (the first time the site is opened), never again when the person returns to the front page.
+const PROMO_SEEN_KEY = "cd_promo_seen";
+let promoShownInMemory = false; // fallback for browsers that block sessionStorage, so going back to the front page still does not repeat it
 function PromoPopup() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setOpen(true), 1000);
+    let seen = false;
+    try { seen = sessionStorage.getItem(PROMO_SEEN_KEY) === "1"; } catch (e) {}
+    if (seen || promoShownInMemory) return;
+    const t = setTimeout(() => {
+      promoShownInMemory = true;
+      try { sessionStorage.setItem(PROMO_SEEN_KEY, "1"); } catch (e) {}
+      setOpen(true);
+    }, 1000);
     return () => clearTimeout(t);
   }, []);
   useEffect(() => {

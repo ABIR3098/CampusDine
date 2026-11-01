@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Front page: the "Today's Special Offer" popup now appears only once per browser session (when the site is first opened) and no longer comes back every time the person returns to the front page.
 - Riders: `GET /api/riders/orders/summary` returns `waiting_orders` (a count of teacher orders with no rider yet) and the rider app uses it, and explains in the empty list why no order comes when the GPS is off. Accepting a delivery is written to the audit log as `RIDER_ACCEPT`.
 - Docs: FAQ and the Bangla README explain the duty shift, Demo GPS and accepting a delivery.
 - Rider app: a **Demo GPS** button shares a fixed campus position (with a tiny drift) so a rider can be on duty and receive teacher orders without phone GPS or HTTPS.
