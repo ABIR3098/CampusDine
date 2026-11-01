@@ -98,3 +98,12 @@ select{appearance:none;-webkit-appearance:none;padding-right:34px;background-rep
 .tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8}
 .tag.t-ok{background:var(--ok-soft);color:var(--ok)}.tag.t-warn{background:var(--warn-soft);color:var(--warn)}
 .tag.t-bad{background:var(--danger-soft);color:var(--danger)}.tag.t-info{background:var(--brand-soft);color:var(--accent)}
+
+.item{background:var(--surface);border-left:4px solid var(--border-strong);padding:16px;margin:12px 0;transition:box-shadow .2s,border-color .2s}
+.item:hover{box-shadow:var(--shadow);border-left-color:var(--brand-2)}
+.item .itemhead strong{font-size:15px;line-height:1.35}
+.item p{margin:10px 0;line-height:1.55;font-size:14px}.item .muted{font-size:12.5px}
+.item img{display:block;margin:6px 0 10px;border:1px solid var(--border);object-fit:cover}
+
+.actions{gap:8px}
+.item .actions{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);gap:6px}
