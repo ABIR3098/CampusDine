@@ -35,3 +35,12 @@ test("a clashing ID that belongs to another role is not overwritten", async () =
   assert.equal(db.inserts.length, 0);
   assert.ok(msgs.length === 1);
 });
+
+test("no dev account is created in production", async () => {
+  const old = process.env.NODE_ENV; process.env.NODE_ENV = "production";
+  try {
+    const db = fakeDb();
+    assert.equal((await ensureDevStaffAccount(db)).skipped, true);
+    assert.equal(db.inserts.length, 0);
+  } finally { process.env.NODE_ENV = old; }
+});
