@@ -89,7 +89,7 @@
   }
 
   // Low / out-of-stock warning list. onRestock (optional) adds a "Request restock" button per item.
-  function StockAlerts({ items, onRestock }) {
+  function StockAlerts({ items, onRestock, actionLabel = "Request restock" }) {
     const bad = items.filter((i) => i.level === "out" || i.level === "low");
     if (!bad.length) return null;
     return (
@@ -99,7 +99,7 @@
           {bad.map((i) => (
             <div key={i.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <span><strong>{i.name}</strong>: {fmt(i.currentStock)} {i.unit} left <Pill s={LEVEL_STYLE[i.level]} /></span>
-              {onRestock && <button type="button" className="text-xs font-700 px-2.5 py-1 rounded-lg border" style={{ borderColor: "#FB923C", color: "#9A3412" }} onClick={() => onRestock(i)}>Request restock</button>}
+              {onRestock && <button type="button" className="text-xs font-700 px-2.5 py-1 rounded-lg border" style={{ borderColor: "#FB923C", color: "#9A3412" }} onClick={() => onRestock(i)}>{actionLabel}</button>}
             </div>
           ))}
         </div>
@@ -385,7 +385,7 @@
           { key: "history", label: "History" },
         ]} />
         <Notice error={error || items.error || reqs.error} info={info} />
-        <StockAlerts items={list} />
+        <StockAlerts items={list} onRestock={restock} actionLabel="Restock" />
 
         {tab === "usage" && (
           <div className="card p-5 overflow-x-auto">
