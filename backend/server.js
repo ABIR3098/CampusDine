@@ -780,6 +780,7 @@ app.use("/api/offers", offersRouter);
 app.use("/api/hall", hall.router);
 app.use("/api/hall-admin", hallAdminRoutes);
 app.use("/api/campus", campusFeatureRoutes);
+app.use("/api/inventory", createInventoryRouter(createInventoryService(require("./src/db"))));
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
