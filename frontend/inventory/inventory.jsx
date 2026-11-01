@@ -179,6 +179,13 @@
           <div className="space-y-4">
             <div className="card p-5 max-w-xl">
               <div className="font-700 mb-3 text-sm">Record material used</div>
+              <label className="text-xs font-700">Raw material</label>
+              <select className={inputCls + " mb-1"} style={inputStyle} value={use.itemId} onChange={(e) => setUse({ ...use, itemId: e.target.value })}>
+                <option value="">Choose…</option>
+                {list.map((i) => <option key={i.id} value={i.id}>{i.name}{i.nameBn ? ` (${i.nameBn})` : ""}</option>)}
+              </select>
+              {usedItem && <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>Remaining now: <strong>{fmt(usedItem.currentStock)} {usedItem.unit}</strong></p>}
+              <div className="grid grid-cols-2 gap-3 mb-3 mt-2">
 
         {tab === "stock" && (
           <div className="card p-5">
