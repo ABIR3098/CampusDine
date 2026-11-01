@@ -30,3 +30,9 @@ CREATE TABLE IF NOT EXISTS inventory_requests (
   decided_at DATETIME NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_inv_req_staff (staff_id, created_at),
+  KEY idx_inv_req_status (status, created_at),
+  CONSTRAINT fk_inv_req_staff FOREIGN KEY (staff_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_inv_req_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+);
+
