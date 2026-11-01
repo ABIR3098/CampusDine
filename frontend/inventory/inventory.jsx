@@ -77,3 +77,10 @@
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs uppercase" style={{ color: "var(--ink-soft)" }}>
+              <th className="py-2 pr-3">Raw material</th><th className="py-2 pr-3">Current stock</th><th className="py-2 pr-3">Unit</th><th className="py-2 pr-3">Status</th>
+              {actions && <th className="py-2" />}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it) => (
+              <tr key={it.id} className="border-t" style={{ borderColor: "var(--line)" }}>
