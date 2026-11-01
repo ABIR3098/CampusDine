@@ -45,6 +45,10 @@ function createInventoryRouter(service) {
   }));
 
   // ───── Admin ─────
+  router.get("/admin/usage", requireRole("admin"), catchAsync(async (req, res) => {
+    res.json({ usage: await service.listAllUsage() });
+  }));
+
   router.get("/admin/summary", requireRole("admin"), catchAsync(async (req, res) => {
     res.json(await service.summary());
   }));
