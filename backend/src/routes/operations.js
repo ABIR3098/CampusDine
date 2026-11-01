@@ -3,6 +3,7 @@ const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { recordAuditEvent } = require("../utils/audit");
+const riderDispatcher = require("../services/riderDispatcher");
 
 const router = express.Router();
 
@@ -40,6 +41,8 @@ router.post("/riders/shift/start", verifyToken, requireRole("rider"), catchAsync
     await recordAuditEvent(connection, req, "RIDER_SHIFT_START", "rider", req.user.id, { maxOrders });
     await connection.commit();
     res.status(201).json({ ok: true, shiftId: result.insertId, status: "ON_DUTY", maxOrders });
+    // Teacher orders that found no rider while nobody was on duty are handed over now.
+    riderDispatcher.dispatchQuietly({ io: req.app.get("io"), req });
   } catch (error) {
     await connection.rollback();
     throw error;
