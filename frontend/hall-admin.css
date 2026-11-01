@@ -49,3 +49,9 @@ h1{font-size:28px;letter-spacing:-.02em;line-height:1.2}
 h2{font-size:18px;letter-spacing:-.01em;font-weight:700}
 h3{font-size:15px;margin:22px 0 8px;color:var(--text-2)}
 .muted{line-height:1.45}.metric b{font-variant-numeric:tabular-nums}
+
+body{background:radial-gradient(900px 380px at 10% -10%,var(--brand-soft),transparent 70%),var(--bg);background-attachment:fixed}
+.top{position:sticky;top:12px;z-index:20;background:color-mix(in srgb,var(--surface) 82%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);border:1px solid var(--border);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;letter-spacing:-.02em}
+.brand .logo{width:34px;height:34px;border-radius:9px;object-fit:contain}.brand .accent{color:var(--accent)}
+.top .muted{font-size:12.5px;margin-top:2px}
