@@ -1,10 +1,10 @@
-// chat-upgrade11.js -- run from the project root:  node chat-upgrade11.js
+// chat-upgrade11.js -- run from the project root:  node tools/chat-upgrade11.js
 // Adds "send a photo" to the chat (📷 button, preview, photo bubbles, tap to enlarge).
 // Photos are shrunk in the browser, saved in a new database table (chat_images) and can only be opened by the two people in that chat.
 // Changes: frontend/campusdine.html and backend/src/routes/chat.js. server.js and package.json are not touched, nothing to install.
 // Run AFTER chat-upgrade.js ... chat-upgrade9.js (chat-upgrade10 is already included). Safe to run twice.
 const fs = require("fs"), path = require("path");
-const F = { fe: path.join(__dirname, "frontend", "campusdine.html"), chat: path.join(__dirname, "backend", "src", "routes", "chat.js") };
+const F = { fe: path.join(__dirname, "..", "frontend", "campusdine.html"), chat: path.join(__dirname, "..", "backend", "src", "routes", "chat.js") };
 for (const f of Object.values(F)) if (!fs.existsSync(f)) { console.error(f + " not found. Run this from the project root folder."); process.exit(1); }
 const b64 = (s) => Buffer.from(s.replace(/\s+/g, ""), "base64").toString("utf8").replace(/\r\n/g, "\n");
 const JSX = b64(`

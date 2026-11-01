@@ -1,8 +1,8 @@
-// chat-upgrade12.js -- run from the project root:  node chat-upgrade12.js
+// chat-upgrade12.js -- run from the project root:  node tools/chat-upgrade12.js
 // Makes "Photo upload failed" tell you the real reason (server not restarted, database limit, not logged in, ...).
 // Changes: frontend/campusdine.html and backend/src/routes/chat.js. Run AFTER chat-upgrade11.js. Safe to run twice.
 const fs = require("fs"), path = require("path");
-const F = { fe: path.join(__dirname, "frontend", "campusdine.html"), chat: path.join(__dirname, "backend", "src", "routes", "chat.js") };
+const F = { fe: path.join(__dirname, "..", "frontend", "campusdine.html"), chat: path.join(__dirname, "..", "backend", "src", "routes", "chat.js") };
 for (const f of Object.values(F)) if (!fs.existsSync(f)) { console.error(f + " not found. Run this from the project root folder."); process.exit(1); }
 const read = (f) => { const raw = fs.readFileSync(f, "utf8"); return { raw, crlf: raw.includes("\r\n"), text: raw.replace(/\r\n/g, "\n") }; };
 const save = (f, o, text) => { if (!fs.existsSync(f + ".bak12")) fs.writeFileSync(f + ".bak12", o.raw); fs.writeFileSync(f, o.crlf ? text.replace(/\n/g, "\r\n") : text); };
