@@ -38,6 +38,10 @@ required quantity; see status, the admin's reply and the updated stock; message 
 (quantity, unit cost, supplier) which update the official stock, correct stock with a reason, add raw materials, and see
 purchase and stock history.
 
+**Daily usage** – staff record how much of a material was used (date, quantity, note). The system deducts it from the
+official stock automatically, refuses usage above what is left, and shows **Low stock / Out of stock** alerts with a
+"Request restock" button. Admin sees all usage in the *Daily usage* tab. Quantities like `35kg` or `৩৫` are accepted.
+
 Request flow: `pending → approved | rejected`, `approved → purchased`. Every stock change is saved in
 `inventory_stock_history`.
 
