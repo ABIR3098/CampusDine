@@ -8867,7 +8867,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = isHallChat
     ? ["Thanks for reaching out, we are looking into it.", "Your hall service request has been received.", "Please visit the hall office with your ID card.", "The issue has been resolved. Please tell us if it comes back."]
-    : ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+    : selected && selected.role === "rider"
+      ? ["Please pick up the order now.", "The order is almost ready, please wait at the counter.", "Please deliver it to the main gate.", "Thank you, drive safe!"]
+      : ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
   const uploadImage = async (blob) => {
     const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : (isHallChat ? "?scope=hall" : "")}`, {
