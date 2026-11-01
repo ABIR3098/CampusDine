@@ -87,3 +87,9 @@ function validateNewItem(body = {}) {
   const unit = String(body.unit || "").toLowerCase();
   if (!UNITS.includes(unit)) return { error: `Unit must be one of: ${UNITS.join(", ")}.` };
   const stock = body.currentStock === undefined || body.currentStock === "" ? 0 : toQty(body.currentStock, { allowZero: true });
+  if (stock === null) return { error: "Opening stock must be a number (0 or more)." };
+  const minStock = body.minStock === undefined || body.minStock === "" ? 0 : toQty(body.minStock, { allowZero: true });
+  if (minStock === null) return { error: "Minimum stock must be a number (0 or more)." };
+  return { value: { name, nameBn: cleanText(body.nameBn, 80) || null, unit, currentStock: stock, minStock, category: cleanText(body.category, 40) || "General" } };
+}
+
