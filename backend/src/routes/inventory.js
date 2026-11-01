@@ -35,3 +35,19 @@ function createInventoryRouter(service) {
   router.get("/admin/summary", requireRole("admin"), catchAsync(async (req, res) => {
     res.json(await service.summary());
   }));
+
+  router.get("/admin/requests", requireRole("admin"), catchAsync(async (req, res) => {
+    const status = rules.REQUEST_STATUSES.includes(req.query.status) ? req.query.status : null;
+    res.json({ requests: await service.listAllRequests(status) });
+  }));
+
+  router.post("/admin/requests/:id/decision", requireRole("admin"), catchAsync(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return fail(res, "Invalid request id.");
+    const v = rules.validateDecision(req.body);
+    if (v.error) return fail(res, v.error);
+    const updated = await service.decide(req.user.id, id, v.value);
+    const io = req.app && req.app.get && req.app.get("io");
+    if (io) io.to(`user:${updated.staffId}`).emit("inventory:decision", { id: updated.id, status: updated.status, adminReply: updated.adminReply, itemName: updated.itemName });
+    res.json({ request: updated });
+  }));
