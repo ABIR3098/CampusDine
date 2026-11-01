@@ -169,6 +169,7 @@ router.post("/:id/notify", verifyToken, requireRole("student", "teacher"), catch
   res.json({ ok: true });
 }));
 
+// DELETE /:id/notify (student, teacher)
 router.delete("/:id/notify", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   await pool.query("DELETE FROM stock_alerts WHERE user_id = ? AND menu_item_id = ?", [req.user.id, Number(req.params.id)]);
   res.json({ ok: true });
