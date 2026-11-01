@@ -227,6 +227,7 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
   }
 });
 
+// GET /order/:orderId/messages (student, teacher, rider)
 router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teacher", "rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
