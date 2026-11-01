@@ -23,3 +23,12 @@ function fakePool() {
     if (q.startsWith("SELECT id, current_stock FROM inventory_items")) return [st.items.filter((i) => i.id === Number(p[0])).map(({ id, current_stock }) => ({ id, current_stock }))];
     if (q.startsWith("UPDATE inventory_requests SET status = ?, admin_id")) { const r = st.requests.find((x) => x.id === p[3]); Object.assign(r, { status: p[0], admin_id: p[1], admin_reply: p[2] }); return [{}]; }
     if (q.startsWith("UPDATE inventory_requests SET status = 'purchased'")) { const r = st.requests.find((x) => x.id === p[1]); r.status = "purchased"; r.admin_id = r.admin_id ?? p[0]; return [{}]; }
+    if (q.startsWith("INSERT INTO inventory_purchases")) { const id = ++seq; st.purchases.push({ id, request_id: p[0], item_id: p[1], quantity: p[3] }); return [{ insertId: id }]; }
+    if (q.startsWith("UPDATE inventory_items SET current_stock")) { st.items.find((i) => i.id === Number(p[1])).current_stock = p[0]; return [{}]; }
+    if (q.startsWith("INSERT INTO inventory_stock_history")) { st.history.push(p); return [{ insertId: ++seq }]; }
+    if (q.includes("FROM inventory_requests q")) {
+      const r = st.requests.find((x) => x.id === p[0]);
+      const i = st.items.find((x) => x.id === r.item_id);
+      const pur = st.purchases.find((x) => x.request_id === r.id);
+      return [[{ ...r, item_name: i.name, item_name_bn: i.name_bn, unit: i.unit, official_stock: i.current_stock, staff_name: "Staff", purchased_qty: pur ? pur.quantity : null, stock_after: pur ? i.current_stock : null }]];
+    }
