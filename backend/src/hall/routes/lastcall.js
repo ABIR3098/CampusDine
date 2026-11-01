@@ -161,6 +161,7 @@ router.post("/lastcall", admin, catchAsync(async (req, res) => {
 }));
 
 // PATCH /api/hall/lastcall/:id/close   → no more claims (plates already claimed stay valid)
+// PATCH /lastcall/:id/close
 router.patch("/lastcall/:id/close", admin, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid last call" });
