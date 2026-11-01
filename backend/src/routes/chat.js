@@ -534,4 +534,7 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
   }
 });
 
+// Exposed for unit tests only
+router._test = { scopeOf, SCOPE_ROLE, isInboxOwner };
+
 module.exports = router;
