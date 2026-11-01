@@ -7167,6 +7167,12 @@ function InventoryHost({ kind, apiBase, token }) {
     if (ready) return undefined;
     const t = setInterval(() => { if (window.CDInventory) { setReady(true); clearInterval(t); } }, 150);
     return () => clearInterval(t);
+  }, [ready]);
+  if (!ready) return <div className="card p-6 text-sm" style={{ color: "var(--ink-soft)" }}>Loading inventory…</div>;
+  const Panel = kind === "admin" ? window.CDInventory.AdminInventoryPanel : window.CDInventory.StaffInventoryPanel;
+  return <Panel apiBase={apiBase} token={token} />;
+}
+
 function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
