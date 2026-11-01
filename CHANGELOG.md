@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Chore: the helper and patch scripts moved from the project root into `tools/`.
 - Config: `TRUST_PROXY` makes the login lock-out count per visitor when the server is behind a reverse proxy.
 - Performance: the Lost & Found screen no longer downloads every photo on each 15-second refresh (`?images=0` plus `GET /api/campus/lost-found/:id/image`).
 - Privacy: `GET /api/riders/locations` shows a position only while the rider is sharing it.

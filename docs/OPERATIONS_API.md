@@ -1,6 +1,6 @@
 # Operations API (rider shifts, assignment, analytics)
 
-These routes are mounted under `/api` (for example `/api/riders/shift/start`).
+All paths on this page start with `/api/operations`, for example `/api/operations/riders/shift/start`.
 Rider GPS and accepting deliveries are in [RIDERS_API.md](RIDERS_API.md).
 
 ## Rider shifts
