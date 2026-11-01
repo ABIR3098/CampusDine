@@ -55,7 +55,7 @@ router.get("/conversations", verifyToken, requireRole("admin"), async (req, res)
   }
 });
 
-router.get("/messages", verifyToken, requireRole("student", "teacher"), async (req, res) => {
+router.get("/messages", verifyToken, requireRole("student", "teacher", "staff"), async (req, res) => {
   let connection;
   try {
     connection = await pool.getConnection();
