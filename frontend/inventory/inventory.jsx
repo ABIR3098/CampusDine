@@ -214,6 +214,9 @@
                   {!usageList.length && <tr><td colSpan={5} className="py-5 text-center" style={{ color: "var(--ink-soft)" }}>No usage recorded yet.</td></tr>}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
 
         {tab === "stock" && (
           <div className="card p-5">
