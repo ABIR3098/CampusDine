@@ -114,9 +114,11 @@ router.get("/directory", verifyToken, requireRole("admin", "hall_admin"), async 
 });
 
 // GET /messages (student, teacher, staff)
-router.get("/messages", verifyToken, requireRole("student", "teacher", "staff"), async (req, res) => {
+router.get("/messages", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
   let connection;
   try {
+    // The canteen admin may only open this "my conversation" view inside the Hall (scope=hall), where it talks to the Hall Admin.
+    if (!memberMode(req)) return res.status(403).json({ error: "Open the admin inbox to read these messages" });
     connection = await pool.getConnection();
     const [[conversation]] = await connection.query(
       "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ?",
