@@ -9391,7 +9391,6 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [savedEmail, setSavedEmail] = useState(""); // e-mail on the server; changing it asks for the current password
 
   const loadProfile = () => call("/api/auth/me").then(data => {
     setSavedEmail(String(data.email || "").toLowerCase());
