@@ -124,6 +124,7 @@ router.get("/:id", catchAsync(async (req, res) => {
   });
 }));
 
+// POST /:id/items (any logged-in user)
 router.post("/:id/items", catchAsync(async (req, res) => {
   const groupId = Number(req.params.id);
   const menuItemId = Number(req.body && req.body.menuItemId);
