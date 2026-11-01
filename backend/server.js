@@ -783,6 +783,7 @@ app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 // Menu items and stock
 app.use("/api/menu", menuRoutes);
+// Placing, tracking and cancelling orders
 app.use("/api/orders", orderRoutes);
 app.use("/api/riders", riderRoutes);
 app.use("/api/operations", operationsRoutes);
