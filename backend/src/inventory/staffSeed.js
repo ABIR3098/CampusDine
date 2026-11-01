@@ -26,3 +26,4 @@ function printStaffCredentials(log = console.log) {
   log("   Staff   → ID: " + DEV_STAFF.externalId + "     Password: " + DEV_STAFF.password + "   (temporary dev password)");
 }
 
+module.exports = { DEV_STAFF, ensureDevStaffAccount, printStaffCredentials };
