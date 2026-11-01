@@ -100,6 +100,7 @@ router.delete("/notices/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   res.json({ok:true});
 }));
 
+// GET /inventory (admin)
 router.get("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT * FROM hall_inventory WHERE (? IS NULL OR university_id=?) ORDER BY category,item_name",[req.user.universityId||null,req.user.universityId||null]); res.json(rows);
 }));
