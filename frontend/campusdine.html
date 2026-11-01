@@ -7441,7 +7441,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
           </div>
         </div>
 
-        {view === "chat" && <ChatWorkspace role="rider" userId={user.id} apiBase={apiBase} sessionToken={token} refreshKey={0} />}
+        {view === "chat" && <ChatWorkspace role="rider" userId={user.id} apiBase={apiBase} sessionToken={token} refreshKey={chatRefreshKey} />}
 
         {view === "deliveries" && (<>
         {/* 5 Innovative Metric Cards */}
@@ -10760,7 +10760,7 @@ function App() {
 
   if (session.user.role === "staff") return <StaffShell apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} />;
 
-  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} /></>;
+  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} chatRefreshKey={chatRefreshKey} /></>;
 
   if (!restaurant) {
     return <><RiderGpsBackground /><RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
