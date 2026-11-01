@@ -136,6 +136,7 @@ router.get("/lastcall/manage", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall   body: { slot, plates, price, note?, notify? (default true) }   → puts up today's leftover plates
+// POST /lastcall
 router.post("/lastcall", admin, catchAsync(async (req, res) => {
   const b = req.body || {};
   const plates = Number(b.plates), price = Number(b.price);
