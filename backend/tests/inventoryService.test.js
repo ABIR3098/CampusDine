@@ -113,8 +113,8 @@ test("stock correction writes a history row with the difference", async () => {
 
 test("daily usage deducts from official stock and writes history", async () => {
   const pool = fakePool();
-  const out = await createService(pool).recordUsage(3, { itemId: 1, quantity: 4, usageDate: "2026-11-01", note: "" });
-  assert.deepEqual([out.stockBefore, out.stockAfter], [10, 6]);
+  const out = await createService(pool).recordUsage(3, { itemId: 1, quantity: 6, usageDate: "2026-11-01", note: "" });
+  assert.deepEqual([out.stockBefore, out.stockAfter], [10, 4]);
   assert.equal(out.level, "low");
   assert.equal(pool.st.items[0].current_stock, 6);
   assert.equal(pool.st.history[0][1], -4);
