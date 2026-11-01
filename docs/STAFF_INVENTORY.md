@@ -26,3 +26,11 @@ On start-up the server applies the migrations automatically (adds the `staff` ro
 | Staff ID | `staff01` |
 | Temporary password | `Staff@2026-Temp` |
 
+The password is stored in the database only as a bcrypt hash. The account is not created when `NODE_ENV=production`.
+Change the password before any real use.
+
+## What each role can do
+
+**Staff** – see raw material, current stock and unit (read-only); send a *stock report* or *purchase request* with current and
+required quantity; see status, the admin's reply and the updated stock; message the admin in chat. Staff cannot change stock.
+
