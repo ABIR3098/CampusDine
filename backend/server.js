@@ -779,6 +779,7 @@ io.on("connection", (socket) => {
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
+// Login, sign-up, OTP and profile
 app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
