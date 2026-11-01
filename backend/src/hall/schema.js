@@ -96,6 +96,7 @@ async function ensureHallSchema(db) {
   await addIndexIfMissing(db, "hall_feast_rsvps", "idx_rsvp_feast_status", "KEY idx_rsvp_feast_status (feast_id, status)");
 
   await addColumnIfMissing(db, "hall_feasts", "capacity", "INT NULL");   // most people who can say "going"; NULL = no limit
+  await addColumnIfMissing(db, "hall_feasts", "university_id", "BIGINT UNSIGNED NULL");
 
   // Step 8 — guest meals: extra plates a person books for their own guests (billed to that person)
   await db.query(`CREATE TABLE IF NOT EXISTS hall_guests (
