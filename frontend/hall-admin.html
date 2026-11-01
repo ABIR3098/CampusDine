@@ -1,41 +1,149 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CampusDine · Hall Admin</title><meta name="theme-color" content="#155e75"><link rel="icon" type="image/png" href="/images/landing/logo-green.png"><meta name="description" content="CampusDine Hall Admin: manage hall notices, service requests, emergencies and lost &amp; found."><link rel="stylesheet" href="/hall-admin.css"></head><body><div class="wrap"><div class="top"><div><div class="brand"><img class="logo" src="/images/landing/logo-green.png" alt="" width="34" height="34"><span>CampusDine <span class="accent">/ Hall Admin</span></span></div><div class="muted">Hall services, operations, complaints and notices — no canteen food management.</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/" class="back">&larr; Back to CampusDine</a><button id="logout" class="secondary hidden">Log out</button></div></div>
-<section id="auth" class="auth card"><h1>Hall Admin Access</h1><p class="muted">Only one Hall Admin account can be registered. Email OTP verification is required.</p><div class="seg" role="group" aria-label="Access mode"><button id="showLogin" class="secondary on">Log in</button><button id="showRegister" class="secondary">Create first account</button></div>
-<div id="loginForm"><label>ID or email</label><input id="loginId" aria-label="Admin ID or email" autocomplete="username"><label>Password</label><input id="loginPw" aria-label="Password" type="password" autocomplete="current-password"><div class="actions"><button id="loginBtn">Continue</button></div><div id="loginOtpArea" class="hidden"><label>Email OTP</label><input id="loginOtp" aria-label="Email OTP" inputmode="numeric" maxlength="6"><div class="actions"><button id="verifyLogin">Verify & log in</button></div></div></div>
-<div id="registerForm" class="hidden"><label>Full name</label><input id="regName" aria-label="Full name" autocomplete="name"><label>Admin email</label><input id="regEmail" aria-label="Admin email" type="email" autocomplete="email"><label>Admin ID</label><input id="regId" aria-label="Admin ID" autocomplete="username"><label>Password (minimum 8 characters)</label><input id="regPw" aria-label="New password" type="password" autocomplete="new-password"><div class="actions"><button id="sendOtp">Send email OTP</button></div><div id="regOtpArea" class="hidden"><label>6-digit email OTP</label><input id="regOtp" aria-label="Registration email OTP" inputmode="numeric" maxlength="6"><div class="actions"><button id="createAdmin">Verify OTP & create account</button></div></div></div><div id="authMsg" role="status" aria-live="polite"></div></section>
-<section id="dashboard" class="hidden"><div class="card"><h1 id="welcome">Hall Command Center</h1><p class="muted">Manage student-facing hall services here. Canteen Admin remains responsible for menus, food orders, kitchen stock and meal pickup.</p><div id="metrics" class="grid"></div></div><nav class="sections" aria-label="Sections"><a href="#hallChatCard">Messages</a><a href="#secNotices">Notices</a><a href="#secCreate">Create</a><a href="#secServices">Services</a><a href="#secOps">Operations</a><a href="#secSos">Emergency</a><a href="#secLf">Lost &amp; Found</a></nav>
-<div class="card" id="hallChatCard"><div class="itemhead"><div><h2>Student messages</h2><div class="muted">Private chat between hall students and you. Canteen Admin cannot see these messages.</div></div><span id="hcUnread" class="hc-badge hidden"></span></div>
-<div class="hc"><div class="hc-list"><div class="hc-search"><input id="hcSearch" placeholder="New message: search student name or ID" aria-label="Find student" autocomplete="off"><div id="hcFound" class="hc-found hidden"></div></div><div id="hcConvs"></div></div>
-<div class="hc-pane"><div class="hc-head" id="hcHead">Select a conversation</div><div class="hc-msgs" id="hcMsgs"><div class="hc-empty">Choose a student on the left to read and reply.</div></div><form class="hc-form" id="hcForm"><textarea id="hcInput" placeholder="Write a message…" maxlength="4000" aria-label="Message" disabled></textarea><button id="hcSend" disabled>Send</button></form></div></div><div id="hcMsg" role="status" aria-live="polite"></div></div>
-<div class="card" id="secNotices"><div class="itemhead"><h2>Published hall notices</h2><span class="muted">Visible to hall students</span></div><div id="noticeList"></div></div><div class="card" id="secCreate"><h2>Create a hall record</h2><div class="twocol"><div><label>Service / record type</label><select id="itemType" aria-label="Record type"><option value="complaint">Student complaint</option><option value="service">General service request</option><option value="notice">Hall notice</option><option value="incident">Incident report</option><option value="leave">Leave request</option><option value="visitor">Visitor entry</option><option value="booking">Facility booking</option><option value="lost_found">Lost & found</option><option value="event">Hall event request</option></select></div><div><label>Student ID (optional)</label><input id="studentId" aria-label="Student ID (optional)" placeholder="Student database ID"></div></div><label>Title</label><input id="itemTitle" aria-label="Record title" placeholder="e.g. Bathroom light not working"><label>Details</label><textarea id="itemDetails" aria-label="Record details" placeholder="Describe the problem or notice"></textarea><div class="actions"><button id="createItem">Save record</button></div><div id="createMsg" role="status" aria-live="polite"></div></div>
-<div class="card" id="secServices"><div class="itemhead"><div><h2>Hall Services</h2><div class="muted">Student-facing requests that need a response: complaints, maintenance, cleaning, laundry and general help.</div></div><button id="refreshRequests" class="secondary small">Refresh</button></div><div class="grid" style="margin:12px 0"><div class="metric"><span class="muted">Complaints & help requests</span><b id="serviceCount">0</b></div><div class="metric"><span class="muted">Awaiting action</span><b id="servicePending">0</b></div><div class="metric"><span class="muted">Resolved</span><b id="serviceResolved">0</b></div></div><div id="studentRequests"></div><h3>Hall service records</h3><div id="hallServiceRecords"></div></div><div class="card" id="secOps"><div class="itemhead"><div><h2>Hall Operations</h2><div class="muted">Operational records and approvals: leave, visitors, facility bookings, incidents, lost & found, and hall events. These are managed separately from service complaints.</div></div><button id="refresh" class="secondary small">Refresh</button></div><div class="grid" style="margin:12px 0"><div class="metric"><span class="muted">Leave requests</span><b id="leaveCount">0</b></div><div class="metric"><span class="muted">Visitor entries</span><b id="visitorCount">0</b></div><div class="metric"><span class="muted">Bookings & events</span><b id="bookingCount">0</b></div><div class="metric"><span class="muted">Incidents / lost & found</span><b id="incidentCount">0</b></div></div><div id="records"></div></div><div class="card" id="secSos"><div class="itemhead"><div><h2>Emergency SOS & Campus Help</h2><div class="muted">Urgent alerts submitted by students. Acknowledge and update response status.</div></div><button id="refreshEmergencies" class="secondary small">Refresh</button></div><div id="emergencyRecords"></div></div><div class="card" id="secLf"><div class="itemhead"><div><h2>Campus Lost & Found</h2><div class="muted">Review student lost/found posts and update their status.</div></div><button id="refreshLostFound" class="secondary small">Refresh</button></div><div id="lostFoundRecords"></div></div></section></div>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CampusDine · Hall Admin</title>
+<meta name="theme-color" content="#4F7F5F">
+<meta name="description" content="CampusDine Hall Admin: manage hall notices, service requests, emergencies, messages and lost &amp; found.">
+<link rel="icon" type="image/png" href="/images/landing/logo-green.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){try{var t=JSON.parse(localStorage.getItem("cd_theme")||"{}");var d=t.mode==="dark"||((t.mode==="auto"||!t.mode)&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);var h=document.documentElement;h.setAttribute("data-theme",d?"dark":"light");h.setAttribute("data-accent",t.accent||"green")}catch(e){}})();
+</script>
+<link rel="stylesheet" href="/hall-admin.css">
+<link rel="stylesheet" href="/hall-admin-chat.css">
+</head>
+<body>
+
+<!-- Login / register -->
+<div id="auth" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand"><img src="/images/landing/logo-green.png" alt=""><div><b>CampusDine</b><span>Hall Admin</span></div></div>
+    <h1>Hall Admin Access</h1>
+    <p class="muted">Only one Hall Admin account can be registered. Email OTP verification is required.</p>
+    <div class="seg" role="group" aria-label="Access mode"><button id="showLogin" class="on">Log in</button><button id="showRegister">Create first account</button></div>
+
+    <div id="loginForm">
+      <label class="field"><span>ID or email</span><input id="loginId" autocomplete="username"></label>
+      <label class="field"><span>Password</span><input id="loginPw" type="password" autocomplete="current-password"></label>
+      <button class="btn" id="loginBtn">Continue</button>
+      <div id="loginOtpArea" class="hidden">
+        <label class="field"><span>Email OTP</span><input id="loginOtp" class="otp" inputmode="numeric" maxlength="6"></label>
+        <button class="btn" id="verifyLogin">Verify &amp; log in</button>
+      </div>
+    </div>
+
+    <div id="registerForm" class="hidden">
+      <label class="field"><span>Full name</span><input id="regName" autocomplete="name"></label>
+      <label class="field"><span>Admin email</span><input id="regEmail" type="email" autocomplete="email"></label>
+      <label class="field"><span>Admin ID</span><input id="regId" autocomplete="username"></label>
+      <label class="field"><span>Password (minimum 8 characters)</span><input id="regPw" type="password" autocomplete="new-password"></label>
+      <button class="btn" id="sendOtp">Send email OTP</button>
+      <div id="regOtpArea" class="hidden">
+        <label class="field"><span>6-digit email OTP</span><input id="regOtp" class="otp" inputmode="numeric" maxlength="6"></label>
+        <button class="btn" id="createAdmin">Verify OTP &amp; create account</button>
+      </div>
+    </div>
+    <div id="authMsg" class="msg" role="status" aria-live="polite"></div>
+    <a class="back-link" href="/">&larr; Back to CampusDine</a>
+  </div>
+</div>
+
+<!-- Portal -->
+<div id="app" class="portal-shell hidden">
+  <aside class="portal-sidebar" id="sidebar">
+    <div class="portal-sidebar-head">
+      <a class="brand" href="/"><img src="/images/landing/logo-green.png" alt="CampusDine"><div><b>CampusDine</b><span>Hall Admin</span></div></a>
+      <button class="collapse-btn" id="collapseBtn" title="Collapse menu" aria-label="Collapse menu"></button>
+    </div>
+    <div class="portal-search-box"><span class="ico" id="navSearchIco"></span><input id="navSearch" class="portal-search-input" placeholder="Search menu..." aria-label="Search menu"></div>
+    <nav class="portal-nav-list" id="nav" aria-label="Hall Admin menu"></nav>
+    <div class="portal-foot"><i></i><span>System Online</span><em>Hall Admin</em></div>
+  </aside>
+  <div class="portal-scrim" id="scrim"></div>
+
+  <div class="portal-main">
+    <div id="sosBanner" class="alert-banner hidden" role="alert"><span id="sosBannerText"></span><button id="sosBannerClose" aria-label="Dismiss"></button></div>
+    <header class="portal-header">
+      <div class="hdr-left">
+        <button class="icon-btn menu" id="menuBtn" aria-label="Open menu"></button>
+        <div><div class="hdr-title" id="hdrTitle">Overview</div><div class="hdr-sub">Hall services, operations, complaints and notices</div></div>
+      </div>
+      <div class="hdr-right">
+        <button class="icon-btn" id="refreshAll" title="Refresh" aria-label="Refresh"></button>
+        <button class="icon-btn" id="bellBtn" title="Messages" aria-label="Messages"><span class="ico" id="bellIco"></span><span class="dot hidden" id="bellDot"></span></button>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"></button>
+        <div class="user-chip"><div class="avatar">H</div><div><b>Hall Admin</b><small>Admin</small></div></div>
+        <button class="logout" id="logout"><span class="ico" id="logoutIco"></span><span>Logout</span></button>
+      </div>
+    </header>
+
+    <main class="portal-content">
+      <!-- Overview -->
+      <section class="view" id="v-overview">
+        <div class="kpi-grid" id="kpis"></div>
+        <div class="grid2">
+          <div class="panel"><div class="panel-head"><div><h2>Needs attention</h2><div class="muted">Open requests, records and alerts waiting for your action.</div></div></div><div id="attention"></div></div>
+          <div class="panel"><div class="panel-head"><div><h2>Active notices</h2><div class="muted">Currently visible to hall students.</div></div><button class="btn ghost sm" data-go="notices">Manage</button></div><div id="noticeMini"></div></div>
+        </div>
+      </section>
+
+      <!-- Messages -->
+      <section class="view hidden" id="v-messages">
+        <div id="chatRoot"></div>
+      </section>
+
+      <!-- Notices -->
+      <section class="view hidden" id="v-notices">
+        <div class="panel"><div class="panel-head"><div><h2>Published hall notices</h2><div class="muted">Visible to hall students.</div></div><button class="btn sm" data-go="create">New notice</button></div><div id="noticeList" class="stack"></div></div>
+      </section>
+
+      <!-- Create -->
+      <section class="view hidden" id="v-create">
+        <div class="panel">
+          <div class="panel-head"><div><h2>Create a hall record</h2><div class="muted">Publish a notice or save a record for a student.</div></div></div>
+          <div class="two">
+            <label class="field"><span>Service / record type</span><select id="itemType"><option value="complaint">Student complaint</option><option value="service">General service request</option><option value="notice">Hall notice</option><option value="incident">Incident report</option><option value="leave">Leave request</option><option value="visitor">Visitor entry</option><option value="booking">Facility booking</option><option value="lost_found">Lost &amp; found</option><option value="event">Hall event request</option></select></label>
+            <label class="field"><span>Student ID (optional)</span><input id="studentId" placeholder="Student database ID"></label>
+          </div>
+          <label class="field"><span>Title</span><input id="itemTitle" placeholder="e.g. Bathroom light not working"></label>
+          <label class="field"><span>Details</span><textarea id="itemDetails" placeholder="Describe the problem or notice"></textarea></label>
+          <div style="margin-top:16px"><button class="btn" id="createItem">Save record</button></div>
+          <div id="createMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- Hall services -->
+      <section class="view hidden" id="v-services">
+        <div class="kpi-grid" id="serviceKpis"></div>
+        <div class="panel"><div class="panel-head"><div><h2>Student requests</h2><div class="muted">Complaints, maintenance, cleaning, laundry and general help submitted by students.</div></div></div><div id="studentRequests" class="stack"></div>
+          <h3 class="subhead">Hall service records</h3><div id="hallServiceRecords" class="stack"></div></div>
+      </section>
+
+      <!-- Operations -->
+      <section class="view hidden" id="v-ops">
+        <div class="kpi-grid" id="opsKpis"></div>
+        <div class="panel"><div class="panel-head"><div><h2>Hall operations</h2><div class="muted">Leave, visitors, facility bookings, incidents, lost &amp; found and hall events.</div></div></div><div id="records" class="stack"></div></div>
+      </section>
+
+      <!-- SOS -->
+      <section class="view hidden" id="v-sos">
+        <div class="panel"><div class="panel-head"><div><h2>Emergency SOS &amp; Campus Help</h2><div class="muted">Urgent alerts submitted by students. Acknowledge and update the response status.</div></div></div><div id="emergencyRecords" class="stack"></div></div>
+      </section>
+
+      <!-- Lost & found -->
+      <section class="view hidden" id="v-lost">
+        <div class="panel"><div class="panel-head"><div><h2>Campus Lost &amp; Found</h2><div class="muted">Review student lost/found posts and update their status.</div></div></div><div id="lostFoundRecords" class="stack"></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
 <div id="toasts" aria-live="polite"></div>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script>
-const $=id=>document.getElementById(id);let token='',challenge='';const msg=(id,text,ok=false)=>{$(id).className=ok?'ok':'error';$(id).textContent=text};async function api(path,opts={}){const r=await fetch('/api/hall-admin'+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(opts.body?{body:JSON.stringify(opts.body)}:{})});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||'Request failed');return d}
-async function campusApi(path,opts={}){const r=await fetch('/api/campus'+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},...(opts.body?{body:JSON.stringify(opts.body)}:{})});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||'Campus request failed');return d}
-function authMode(mode){$('loginForm').classList.toggle('hidden',mode!=='login');$('registerForm').classList.toggle('hidden',mode!=='register');$('showLogin').classList.toggle('on',mode==='login');$('showRegister').classList.toggle('on',mode==='register');$('authMsg').textContent=''}$('showLogin').onclick=()=>authMode('login');$('showRegister').onclick=()=>authMode('register');
-$('sendOtp').onclick=async()=>{try{const d=await api('/auth/send-otp',{method:'POST',body:{email:$('regEmail').value}});$('regOtpArea').classList.remove('hidden');msg('authMsg',d.message||'OTP sent',true)}catch(e){msg('authMsg',e.message)}};
-$('createAdmin').onclick=async()=>{try{const d=await api('/auth/register',{method:'POST',body:{name:$('regName').value,email:$('regEmail').value,externalId:$('regId').value,password:$('regPw').value,otp:$('regOtp').value}});msg('authMsg',d.message||'Account created. Log in now.',true);authMode('login')}catch(e){msg('authMsg',e.message)}};
-$('loginBtn').onclick=async()=>{try{const d=await api('/auth/login',{method:'POST',body:{identifier:$('loginId').value,password:$('loginPw').value}});challenge=d.challenge;$('loginOtpArea').classList.remove('hidden');msg('authMsg',d.emailed?'OTP sent to your email.':'OTP generated; check backend console in development.',true)}catch(e){msg('authMsg',e.message)}};
-$('verifyLogin').onclick=async()=>{try{const d=await api('/auth/verify-login',{method:'POST',body:{challenge,otp:$('loginOtp').value}});token=d.token;localStorage.setItem('campusdine_hall_admin_token',token);showDashboard(d.user)}catch(e){msg('authMsg',e.message)}};
-async function showDashboard(user){$('auth').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('welcome').textContent='Hall Command Center · '+user.name;$('logout').onclick=()=>{token='';localStorage.removeItem('campusdine_hall_admin_token');location.reload()};await loadData();hcStart()}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function toast(t,k){const e=document.createElement('div');e.className='toast'+(k==='err'?' err':'');e.setAttribute('role',k==='err'?'alert':'status');e.textContent=t;$('toasts').appendChild(e);setTimeout(()=>e.remove(),4500)}
-function paintTags(){document.querySelectorAll('#dashboard .tag').forEach(t=>{const s=t.textContent.toLowerCase();t.classList.remove('t-ok','t-warn','t-bad','t-info');t.classList.add(/resolved|approved|returned|closed|claimed/.test(s)?'t-ok':/rejected|false.alarm/.test(s)?'t-bad':/pending|open|new|submitted/.test(s)?'t-warn':'t-info')})}
-async function loadData(){try{const [d,requests,notices,emergencies,lostFound]=await Promise.all([api('/dashboard'),api('/requests'),api('/notices'),campusApi('/emergency'),campusApi('/lost-found')]);const tally={};d.counts.forEach(x=>tally[x.item_type]=(tally[x.item_type]||0)+Number(x.total));$('metrics').innerHTML=[['Open complaints',d.counts.filter(x=>x.item_type==='complaint'&&!['Resolved','Closed'].includes(x.status)).reduce((a,x)=>a+Number(x.total),0)],['Pending services',d.counts.filter(x=>x.item_type==='service'&&x.status==='Pending').reduce((a,x)=>a+Number(x.total),0)],['Active notices',d.recent.filter(x=>x.item_type==='notice'&&!['Closed','Expired'].includes(x.status)).length],['All hall records',d.recent.length]].map(([t,n])=>`<div class="metric"><span class="muted">${t}</span><b>${n}</b></div>`).join('');$('noticeList').innerHTML=notices.length?notices.map(n=>`<div class="item"><div class="itemhead"><strong>${esc(n.title)}</strong><span class="tag">${esc(n.category||'General')}${n.pinned?' · Pinned':''}</span></div><p>${esc(n.body)}</p><div class="actions"><button class="small danger" onclick="deleteNotice(${n.id})">Delete notice</button></div></div>`).join(''):'<div class="empty">No active notices.</div>'; const serviceTypes=['complaint','service','maintenance','cleaning','laundry'];const operationTypes=['incident','leave','visitor','booking','lost_found','event'];const serviceItems=d.recent.filter(x=>serviceTypes.includes(String(x.item_type).toLowerCase()));const operationItems=d.recent.filter(x=>operationTypes.includes(String(x.item_type).toLowerCase()));const pendingServices=serviceItems.filter(x=>!['resolved','closed'].includes(String(x.status).toLowerCase()));$('serviceCount').textContent=serviceItems.length;$('servicePending').textContent=pendingServices.length;$('serviceResolved').textContent=serviceItems.length-pendingServices.length;$('leaveCount').textContent=operationItems.filter(x=>x.item_type==='leave').length;$('visitorCount').textContent=operationItems.filter(x=>x.item_type==='visitor').length;$('bookingCount').textContent=operationItems.filter(x=>['booking','event'].includes(x.item_type)).length;$('incidentCount').textContent=operationItems.filter(x=>['incident','lost_found'].includes(x.item_type)).length;const renderRecords=(items,empty)=>items.length?items.map(x=>`<div class="item"><div class="itemhead"><strong>${esc(x.title)}</strong><span class="tag">${esc(x.item_type)} · ${esc(x.status)}</span></div><p>${esc(x.details||'No details provided')}</p><div class="muted">Record #${x.id} · ${esc(x.created_at||'')}</div><div class="actions"><button class="small secondary" onclick="updateStatus(${x.id},'In Progress')">In progress</button><button class="small" onclick="updateStatus(${x.id},'Resolved')">Resolve</button><button class="small secondary" onclick="updateStatus(${x.id},'Approved')">Approve</button><button class="small danger" onclick="updateStatus(${x.id},'Rejected')">Reject</button><button class="small secondary" onclick="updateStatus(${x.id},'Closed')">Close</button></div></div>`).join(''):`<div class="empty">${empty}</div>`;$('studentRequests').innerHTML=requests.length?requests.map(x=>`<div class=\"item\"><div class=\"itemhead\"><strong>${esc(x.title)} <span class=\"muted\">· ${esc(x.student_name||'Student')} (${esc(x.student_external_id||'ID n/a')})</span></strong><span class=\"tag\">${esc(x.type)} · ${esc(x.status)}</span></div><p>${esc(x.description||'No details provided')}${x.location?'\\nLocation: '+esc(x.location):''}</p><div class=\"actions\"><button class=\"small secondary\" onclick=\"updateRequest(${x.id},'in_progress')\">In progress</button><button class=\"small\" onclick=\"updateRequest(${x.id},'resolved')\">Resolve</button><button class=\"small secondary\" onclick=\"updateRequest(${x.id},'approved')\">Approve</button><button class=\"small danger\" onclick=\"updateRequest(${x.id},'rejected')\">Reject</button></div></div>`).join(''):'<div class=\"empty\">No student-submitted hall requests found.</div>';$('hallServiceRecords').innerHTML=renderRecords(serviceItems,'No hall service records found.');$('records').innerHTML=renderRecords(operationItems,'No hall operation records found. Create or wait for leave, visitor, booking, incident, lost & found or event records.');$('emergencyRecords').innerHTML=emergencies.length?emergencies.map(x=>`<div class="item"><div class="itemhead"><strong>${esc(x.emergency_type)} · ${esc(x.student_name)}</strong><span class="tag">${esc(x.status)}</span></div><p>${esc(x.details||'No details')}\nLocation: ${esc(x.location)} · ${esc(x.contact||'No contact')}</p><div class="actions"><button class="small secondary" onclick="updateEmergency(${x.id},'acknowledged')">Acknowledge</button><button class="small secondary" onclick="updateEmergency(${x.id},'responding')">Responding</button><button class="small" onclick="updateEmergency(${x.id},'resolved')">Resolve</button><button class="small danger" onclick="updateEmergency(${x.id},'false_alarm')">False alarm</button></div></div>`).join(''):'<div class="empty">No emergency alerts.</div>';$('lostFoundRecords').innerHTML=lostFound.length?lostFound.map(x=>`<div class="item">${x.image_data?`<img src="${esc(x.image_data)}" style="max-width:180px;max-height:130px;border-radius:8px" alt="Lost/found item">`:''}<div class="itemhead"><strong>${esc(x.title)} · ${esc(x.item_type)}</strong><span class="tag">${esc(x.status)}</span></div><p>${esc(x.description||'')}\n${esc(x.location)} · ${esc(x.posted_by)}</p><div class="actions"><button class="small secondary" onclick="updateLostFound(${x.id},'claimed')">Claimed</button><button class="small secondary" onclick="updateLostFound(${x.id},'returned')">Returned</button><button class="small" onclick="updateLostFound(${x.id},'closed')">Close</button></div></div>`).join(''):'<div class="empty">No open Lost & Found posts.</div>';paintTags();}catch(e){msg('createMsg',e.message)}}
-window.updateEmergency=async(id,status)=>{try{await campusApi('/emergency/'+id,{method:'PATCH',body:{status}});await loadData();toast('Updated','ok')}catch(e){toast(e.message,'err')}};window.updateLostFound=async(id,status)=>{try{await campusApi('/lost-found/'+id,{method:'PATCH',body:{status}});await loadData();toast('Updated','ok')}catch(e){toast(e.message,'err')}};$('refreshEmergencies').onclick=loadData;$('refreshLostFound').onclick=loadData;window.deleteNotice=async(id)=>{if(!confirm('Delete this notice?'))return;try{await api('/notices/'+id,{method:'DELETE'});await loadData();toast('Updated','ok')}catch(e){toast(e.message,'err')}}; window.updateRequest=async(id,status)=>{try{await api('/requests/'+id,{method:'PATCH',body:{status}});await loadData();toast('Updated','ok')}catch(e){toast(e.message,'err')}}; $('refreshRequests').onclick=loadData; window.updateStatus=async(id,status)=>{try{await api('/items/'+id,{method:'PATCH',body:{status}});await loadData();toast('Updated','ok')}catch(e){toast(e.message,'err')}};$('refresh').onclick=loadData;setInterval(()=>{if(token&&!$('dashboard').classList.contains('hidden'))loadData()},20000);$('createItem').onclick=async()=>{try{const type=$('itemType').value,title=$('itemTitle').value,details=$('itemDetails').value;if(type==='notice'){await api('/notices',{method:'POST',body:{title,body:details,category:'General'}})}else{await api('/items',{method:'POST',body:{item_type:type,title,details,student_id:$('studentId').value||null}})}$('itemTitle').value='';$('itemDetails').value='';msg('createMsg',type==='notice'?'Notice published for hall students.':'Record saved.',true);await loadData()}catch(e){msg('createMsg',e.message)}};
-(async()=>{const t=localStorage.getItem('campusdine_hall_admin_token');if(t){token=t;try{const r=await api('/dashboard');$('auth').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');await loadData();hcStart()}catch(_){localStorage.removeItem('campusdine_hall_admin_token');token=''}}})();
-
-/* ---- Student messages (Hall Admin chat) ---- */
-const hc={started:false,convs:[],sel:null,selName:'',me:0,sock:null,timer:null,typingTimer:null,lastSig:''};
-async function chatApi(path,opts={}){const r=await fetch('/api/chat'+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},...(opts.body?{body:JSON.stringify(opts.body)}:{})});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||'Chat request failed');return d}
-function hcTime(t){const d=new Date(t);return isNaN(d)?'':(d.toDateString()===new Date().toDateString()?d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString([],{day:'numeric',month:'short'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}))}
-async function hcLoadConvs(){try{const d=await chatApi('/conversations');hc.convs=d.conversations||[];const unread=hc.convs.reduce((n,c)=>n+Number(c.unread_count||0),0);const b=$('hcUnread');b.textContent=unread+' unread';b.classList.toggle('hidden',!unread);$('hcConvs').innerHTML=hc.convs.length?hc.convs.map(c=>`<button class="hc-item ${Number(c.user_id)===Number(hc.sel)?'on':''}" data-u="${c.user_id}" data-n="${esc(c.name)}" data-r="${esc(c.role)}"><b><span>${esc(c.name)}${c.role==='admin'?' · Canteen Admin':''}</span>${Number(c.unread_count)?`<i class="hc-badge">${Number(c.unread_count)}</i>`:''}</b><span>${esc(c.last_message||'')}</span></button>`).join(''):'<div class="hc-empty" style="padding:20px">No conversations yet. Students can message you from the Hall → Hall Admin chat tab.</div>';document.querySelectorAll('#hcConvs .hc-item').forEach(el=>el.onclick=()=>hcOpen(Number(el.dataset.u),el.dataset.n,el.dataset.r))}catch(e){$('hcMsg').className='error';$('hcMsg').textContent=e.message}}
-async function hcLoadMsgs(scroll){if(!hc.sel)return;try{const d=await chatApi('/'+hc.sel+'/messages');const msgs=d.messages||[];const sig=msgs.map(m=>m.id+(m.deleted_at?'x':'')).join(',');if(sig===hc.lastSig&&!scroll)return;hc.lastSig=sig;const box=$('hcMsgs');const near=box.scrollHeight-box.scrollTop-box.clientHeight<80;box.innerHTML=msgs.length?msgs.map(m=>`<div class="hc-b ${Number(m.sender_id)===hc.me?'me':''}">${m.deleted_at?'<i>Message deleted</i>':esc(m.message)}<small>${hcTime(m.created_at)}</small></div>`).join(''):'<div class="hc-empty">No messages yet. Say hello below.</div>';if(scroll||near)box.scrollTop=box.scrollHeight}catch(e){$('hcMsg').className='error';$('hcMsg').textContent=e.message}}
-async function hcOpen(id,name,role){hc.sel=id;hc.selName=name||'';hc.selRole=role||'';hc.lastSig='';$('hcHead').innerHTML=esc(hc.selName)+(hc.selRole==='admin'?' <small>Canteen Admin</small>':'')+'<small id="hcTyping"></small>';$('hcInput').disabled=false;$('hcSend').disabled=false;$('hcFound').classList.add('hidden');await hcLoadMsgs(true);await hcLoadConvs();$('hcInput').focus()}
-function hcStart(){if(hc.started)return;hc.started=true;try{hc.me=Number(JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).id)||0}catch{}hcLoadConvs();hc.timer=setInterval(()=>{if(document.hidden)return;hcLoadConvs();hcLoadMsgs(false)},6000);try{if(window.io){hc.sock=io(location.origin,{auth:{token}});hc.sock.on('chat:message',()=>{hcLoadConvs();hcLoadMsgs(false)});hc.sock.on('chat:typing',p=>{if(!p||Number(p.from)!==Number(hc.sel))return;const t=$('hcTyping');if(!t)return;t.textContent=p.typing?'typing…':'';clearTimeout(hc.typingTimer);if(p.typing)hc.typingTimer=setTimeout(()=>{t.textContent=''},4000)})}}catch{}}
-window.startHallChat=hcStart;
-$('hcForm').onsubmit=async e=>{e.preventDefault();const text=$('hcInput').value.trim();if(!text||!hc.sel)return;$('hcSend').disabled=true;try{await chatApi('/messages',{method:'POST',body:{message:text,userId:hc.sel}});$('hcInput').value='';$('hcMsg').textContent='';await hcLoadMsgs(true);await hcLoadConvs()}catch(err){$('hcMsg').className='error';$('hcMsg').textContent=err.message}finally{$('hcSend').disabled=false;$('hcInput').focus()}};
-$('hcInput').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('hcForm').requestSubmit()}};
-let hcSearchT;$('hcSearch').oninput=()=>{clearTimeout(hcSearchT);const q=$('hcSearch').value.trim();if(q.length<2){$('hcFound').classList.add('hidden');return}hcSearchT=setTimeout(async()=>{try{const d=await chatApi('/directory?q='+encodeURIComponent(q));const box=$('hcFound');box.innerHTML=(d.users||[]).length?d.users.map(u=>`<button type="button" data-u="${u.id}" data-n="${esc(u.name)}" data-r="${esc(u.role)}">${esc(u.name)} <span class="muted">· ${u.role==='admin'?'Canteen Admin':esc(u.external_id||u.role)}</span></button>`).join(''):'<div class="muted" style="padding:10px">No student found</div>';box.classList.remove('hidden');box.querySelectorAll('button').forEach(b=>b.onclick=()=>{$('hcSearch').value='';hcOpen(Number(b.dataset.u),b.dataset.n,b.dataset.r)})}catch(err){$('hcMsg').className='error';$('hcMsg').textContent=err.message}},250)};
-</script></body></html>
+<script src="/hall-admin.js"></script>
+<script src="/hall-admin-chat.js"></script>
+</body>
+</html>
