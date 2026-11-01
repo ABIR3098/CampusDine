@@ -8842,7 +8842,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   };
 
   const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
-  const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : tx("chat.admin"));
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? "Canteen Admin" : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
   const agoText = (sec) => {
@@ -9169,7 +9169,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
               <>
                 {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
                 {headOnline !== undefined && " · "}
-                {isAdmin ? selected?.role || (isHallChat ? "Hall admin inbox" : "Admin inbox") : (isHallChat ? "Private hall support conversation" : tx("chat.private"))}
+                {isAdmin ? selected?.role || (isHallChat ? "Hall admin inbox" : "Admin inbox") : (isHallChat ? "Private hall support conversation" : isRider ? "Private chat with the canteen admin" : tx("chat.private"))}
               </>
             )}
             </p>
@@ -9177,7 +9177,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
           <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
             <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
           </button>
-          <span className="chat-pill">{isHallChat ? "Hall support" : tx("chat.support")}</span>
+          <span className="chat-pill">{isHallChat ? "Hall support" : isRider ? "Rider desk" : tx("chat.support")}</span>
         </header>
         {searchOpen && (
           <div className="chat-searchbar">
