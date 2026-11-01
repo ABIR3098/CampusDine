@@ -209,8 +209,8 @@ router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"),
   }
 });
 
-// POST /messages (student, teacher, staff, admin)
-router.post("/messages", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"), async (req, res) => {
+// POST /messages (student, teacher, staff, rider, admin)
+router.post("/messages", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   let connection;
   try {
     const message = String(req.body.message || "").trim();
