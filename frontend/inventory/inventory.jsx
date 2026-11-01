@@ -221,3 +221,7 @@
       () => call(apiBase, token, `/admin/requests/${id}/decision`, { method: "POST", body: { decision, reply: reply[id] || "" } }),
       decision === "approved" ? "Request approved." : "Request rejected."
     );
+    const purchase = (r) => run(
+      () => call(apiBase, token, "/admin/purchases", { method: "POST", body: { requestId: r.id, ...(buy[r.id] || { quantity: r.requiredQty }) } }),
+      "Purchase recorded and official stock updated."
+    );
