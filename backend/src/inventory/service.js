@@ -147,3 +147,10 @@ function createService(pool) {
         "INSERT INTO inventory_items (name, name_bn, category, unit, current_stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)",
         [v.name, v.nameBn, v.category, v.unit, v.currentStock, v.minStock]
       );
+      await conn.query(
+        "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, actor_id, note) VALUES (?, ?, 0, ?, 'opening', ?, 'Item added')",
+        [r.insertId, v.currentStock, v.currentStock, adminId]
+      );
+      const [rows] = await conn.query("SELECT * FROM inventory_items WHERE id = ?", [r.insertId]);
+      return itemView(rows[0]);
+    });
