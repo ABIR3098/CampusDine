@@ -42,6 +42,14 @@ purchase and stock history.
 official stock automatically, refuses usage above what is left, and shows **Low stock / Out of stock** alerts with a
 "Request restock" button. Admin sees all usage in the *Daily usage* tab. Quantities like `35kg` or `৩৫` are accepted.
 
+**Live updates** – the screens listen to the server's socket events (`inventory:request`, `inventory:decision`,
+`inventory:alert`), so a new staff request shows up for the admin, and the admin's answer shows up for the staff member,
+without a page reload.  Polling every 20 seconds stays as a fallback.
+
+**How the admin answers a request** – *Purchase request*: **Approve** (then **Record purchase** with an optional message to
+staff) or **Approve & record purchase** in one click, or **Reject** with a reason. *Stock report*: **Acknowledge**, then
+optionally **Use staff count as official stock**, which saves a stock correction in the history.
+
 Request flow: `pending → approved | rejected`, `approved → purchased`. Every stock change is saved in
 `inventory_stock_history`.
 
