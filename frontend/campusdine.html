@@ -8696,7 +8696,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [inboxFilter, setInboxFilter] = useState("all"); // canteen admin inbox: "all" or "rider"
+  const [inboxFilter, setInboxFilter] = useState("all"); // canteen admin inbox: "all", "rider" or "unread"
   const [extraPeople, setExtraPeople] = useState([]); // riders the canteen admin started a chat with before any message exists
   const [found, setFound] = useState([]); // directory results for the search box
   const [mobileChat, setMobileChat] = useState(false);
@@ -8895,7 +8895,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
     setExtraPeople(list => [...list, { conversation_id: null, user_id: u.id, name: u.name, role: u.role, updated_at: null, last_message: "", unread_count: 0 }]);
     setSelectedUserId(u.id); setMobileChat(true); setSearch("");
   };
-  const filtered = people.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter !== "rider" || c.role === "rider") && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
+  const filtered = people.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter === "all" || (inboxFilter === "rider" ? c.role === "rider" : Number(c.unread_count) > 0)) && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
   const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? "Canteen Admin" : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
@@ -9187,7 +9187,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
             {!isHallChat && (
               <div className="chat-filter" role="tablist" aria-label="Filter conversations">
-                {[["all", "All"], ["rider", "Riders"]].map(([k, l]) => {
+                {[["all", "All"], ["unread", "Unread"], ["rider", "Riders"]].map(([k, l]) => {
                   const waiting = k === "rider" ? people.filter(c => c.role === "rider").reduce((n, c) => n + (Number(c.unread_count) || 0), 0) : 0;
                   return (
                     <button key={k} type="button" role="tab" aria-selected={inboxFilter === k} className={inboxFilter === k ? "on" : ""} onClick={() => setInboxFilter(k)}>{l}{waiting > 0 && <b className="chat-filter-count">{waiting}</b>}</button>
