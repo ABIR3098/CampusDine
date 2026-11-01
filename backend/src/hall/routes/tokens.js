@@ -99,6 +99,7 @@ router.post("/token", people, catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/queue?slot=lunch (admin) → today's queue for that meal
+// GET /queue (admin)
 router.get("/queue", requireRole("admin"), catchAsync(async (req, res) => {
   const slot = req.query.slot;
   if (!SLOTS.includes(slot)) return res.status(400).json({ error: "Choose breakfast, lunch or dinner" });
