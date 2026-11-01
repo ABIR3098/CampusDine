@@ -9163,7 +9163,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
               <>
                 {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
                 {headOnline !== undefined && " · "}
-                {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+                {isAdmin ? selected?.role || (isHallChat ? "Hall admin inbox" : "Admin inbox") : (isHallChat ? "Private hall support conversation" : tx("chat.private"))}
               </>
             )}
             </p>
@@ -9171,7 +9171,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
           <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
             <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
           </button>
-          <span className="chat-pill">{tx("chat.support")}</span>
+          <span className="chat-pill">{isHallChat ? "Hall support" : tx("chat.support")}</span>
         </header>
         {searchOpen && (
           <div className="chat-searchbar">
