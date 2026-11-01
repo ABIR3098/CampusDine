@@ -41,6 +41,7 @@ router.post("/", catchAsync(async (req, res) => {
   }
 }));
 
+// POST /join (any logged-in user)
 router.post("/join", catchAsync(async (req, res) => {
   const joinCode = String((req.body && req.body.joinCode) || "").trim().toUpperCase();
   if (!joinCode) return res.status(400).json({ error: "joinCode is required" });
