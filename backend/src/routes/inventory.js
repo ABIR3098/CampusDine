@@ -26,3 +26,12 @@ function createInventoryRouter(service) {
     if (io) io.to("admins").emit("inventory:request", { id: created.id, itemName: created.itemName, staffName: created.staffName });
     res.status(201).json({ request: created });
   }));
+
+  router.get("/requests/mine", requireRole("staff"), catchAsync(async (req, res) => {
+    res.json({ requests: await service.listStaffRequests(req.user.id) });
+  }));
+
+  // ───── Admin ─────
+  router.get("/admin/summary", requireRole("admin"), catchAsync(async (req, res) => {
+    res.json(await service.summary());
+  }));
