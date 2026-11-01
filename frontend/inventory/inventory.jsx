@@ -303,3 +303,10 @@
                   {["kg", "g", "litre", "ml", "piece", "dozen", "packet", "bottle"].map((u) => <option key={u}>{u}</option>)}
                 </select>
                 <input className={inputCls} style={inputStyle} placeholder="Opening stock" inputMode="decimal" value={newItem.currentStock} onChange={(e) => setNewItem({ ...newItem, currentStock: e.target.value })} />
+                <input className={inputCls} style={inputStyle} placeholder="Low-stock level" inputMode="decimal" value={newItem.minStock} onChange={(e) => setNewItem({ ...newItem, minStock: e.target.value })} />
+                <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => run(async () => { await call(apiBase, token, "/admin/items", { method: "POST", body: newItem }); setNewItem({ name: "", nameBn: "", unit: "kg", currentStock: "", minStock: "", category: "" }); }, "Item added.")}>Add</button>
+              </div>
+            </div>
+          </div>
+        )}
+
