@@ -1,0 +1,20 @@
+window.CD_COMPONENT_FILES = [
+  "ui/Button.jsx",
+  "ui/Badge.jsx",
+  "ui/Modal.jsx",
+  "ui/Input.jsx",
+  "ui/Card.jsx",
+  "ui/Toast.jsx",
+  "ui/Dropdown.jsx",
+  "ui/Table.jsx",
+  "ui/Skeleton.jsx",
+  "ui/Drawer.jsx",
+  "ui/AudioPlayer.jsx",
+  "ui/Tooltip.jsx",
+  "ui/Avatar.jsx",
+  "student/NightCanteenBanner.jsx",
+  "student/DailySpinWheelModal.jsx",
+  "student/LeaderboardAndBadges.jsx",
+  "student/ThermalReceiptModal.jsx",
+  "admin/KitchenDisplaySystem.jsx"
+];
