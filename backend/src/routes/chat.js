@@ -13,6 +13,10 @@ function ensureChatColumns() {
         const [rows] = await pool.query("SHOW COLUMNS FROM chat_messages LIKE '" + col + "'");
         if (rows.length === 0) await pool.query("ALTER TABLE chat_messages ADD COLUMN " + ddl);
       };
+      const add2 = async (table, col, ddl) => {
+        const [rows] = await pool.query("SHOW COLUMNS FROM " + table + " LIKE '" + col + "'");
+        if (rows.length === 0) await pool.query("ALTER TABLE " + table + " ADD COLUMN " + ddl);
+      };
       await add("deleted_at", "deleted_at DATETIME NULL");
       await add("reply_to_id", "reply_to_id INT NULL");
       await add("image_id", "image_id INT NULL");
