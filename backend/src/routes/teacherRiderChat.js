@@ -113,6 +113,9 @@ router.get("/:peerId/messages", async (req, res) => {
        JOIN users u ON u.id = m.sender_id ORDER BY m.id ASC`,
       [thread.id]
     );
+    // Tell the other side their messages were seen.
+    const io = req.app.get("io");
+    if (io && firstUnread && firstUnread.id) io.to(`user:${peer.id}`).emit("teacher-rider-chat:read", { threadId: thread.id, readerId: Number(req.user.id) });
     res.json({ threadId: thread.id, peer, messages, firstUnreadId: firstUnread && firstUnread.id ? firstUnread.id : null });
   } catch (error) { fail(res, error, "Failed to load messages"); }
 });
@@ -169,6 +172,12 @@ router.post("/:peerId/messages", async (req, res) => {
       message: cleaned.text,
       createdAt: new Date().toISOString(),
     };
+    // Both people get it live: the other side sees the message arrive, my other open tabs stay in sync.
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user:${req.user.id}`).emit("teacher-rider-chat:message", payload);
+      io.to(`user:${peer.id}`).emit("teacher-rider-chat:message", payload);
+    }
     res.status(201).json({ message: payload });
   } catch (error) {
     if (connection) await connection.rollback().catch(() => {});
