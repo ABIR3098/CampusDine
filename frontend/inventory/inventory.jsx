@@ -200,6 +200,13 @@
               <button type="button" className="btn-primary px-4 py-2 rounded-xl text-sm" disabled={busy || !use.itemId || !use.quantity} onClick={saveUsage}>{busy ? "Saving…" : "Save usage"}</button>
               <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>The remaining stock is calculated automatically. You cannot edit the official stock directly.</p>
             </div>
+            <div className="card p-5 overflow-x-auto">
+              <div className="font-700 mb-2 text-sm">Used today ({usedToday.length})</div>
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-xs uppercase" style={{ color: "var(--ink-soft)" }}><th className="py-2 pr-3">Date</th><th className="pr-3">Material</th><th className="pr-3">Used</th><th className="pr-3">Remaining</th><th>Note</th></tr></thead>
+                <tbody>
+                  {usageList.map((u) => (
+                    <tr key={u.id} className="border-t" style={{ borderColor: "var(--line)" }}>
 
         {tab === "stock" && (
           <div className="card p-5">
