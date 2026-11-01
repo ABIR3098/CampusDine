@@ -501,6 +501,7 @@ router.post("/:id/rate-rider", verifyToken, requireRole("student", "teacher"), c
   res.json({ ok: true, rating, comment });
 }));
 
+// POST /:id/feedback (student, teacher)
 router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { rating } = req.body;
   const comment = String(req.body.comment || "").trim();
