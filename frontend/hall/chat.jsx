@@ -9,4 +9,4 @@ function HallChat({ ui, ext, user, token }) {
       refreshKey={(ext && ext.chatRefreshKey) || 0} scope="hall" />
   );
 }
-Hall.register({ key: "chat", label: "Hall Admin chat", icon: "💬", order: 8.5, roles: ["student", "teacher"], component: HallChat });
+Hall.register({ key: "chat", label: "Hall Admin chat", icon: "💬", order: 8.5, roles: ["student", "teacher", "admin"], component: HallChat });
