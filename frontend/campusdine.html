@@ -9243,10 +9243,10 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
           <button type="button" className="chat-emoji-btn" aria-label="Send a photo" title="Send a photo"
             onClick={() => fileRef.current?.click()} disabled={isAdmin && !selectedUserId}>📷</button>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
-          {!isAdmin && (
+          {!isAdmin && !isRider && (
             <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
           )}
-          {orderOpen && !isAdmin && (
+          {orderOpen && !isAdmin && !isRider && (
             <div className="chat-order-panel">
               {myOrders === null ? <p className="chat-order-note">Loading…</p>
                 : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
