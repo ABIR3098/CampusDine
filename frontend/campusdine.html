@@ -7211,7 +7211,7 @@ function StaffShell({ apiBase, token, user, onLogout }) {
   );
 }
 
-function RiderDashboard({ apiBase, token, user, onLogout }) {
+function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -7225,6 +7225,16 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [showSos, setShowSos] = useState(false);
   const [deliveryProof, setDeliveryProof] = useState({});
   const [view, setView] = useState("deliveries"); // "deliveries" or "chat"
+  const [chatUnread, setChatUnread] = useState(0);
+  // Badge on the chat tab: messages from the canteen admin that the rider has not opened yet.
+  useEffect(() => {
+    if (view === "chat") { setChatUnread(0); return; }
+    let live = true;
+    const load = () => api(apiBase, "/api/chat/unread", { token }).then(d => { if (live) setChatUnread(Number(d.unread) || 0); }).catch(() => {});
+    load();
+    const timer = setInterval(load, 15000);
+    return () => { live = false; clearInterval(timer); };
+  }, [apiBase, token, view, chatRefreshKey]);
 
   const refreshOrders = async () => {
     try {
@@ -7424,7 +7434,9 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
           <div className="flex gap-2 mt-4">
             {[["deliveries", "🛵 Deliveries"], ["chat", "💬 Canteen admin chat"]].map(([k, l]) => (
               <button key={k} type="button" onClick={() => setView(k)} className="px-3 py-1.5 rounded-full text-sm font-700 border"
-                style={view === k ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>{l}</button>
+                style={view === k ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>
+                {l}{k === "chat" && chatUnread > 0 && <span className="chat-badge" style={{ display: "inline-grid", marginLeft: 8 }}>{chatUnread}</span>}
+              </button>
             ))}
           </div>
         </div>
