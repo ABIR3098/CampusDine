@@ -45,6 +45,10 @@ const campusFeatureRoutes = require("./src/routes/campusFeatures");
 const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
 const { ensureHallAdvancedSchema } = require("./src/hall/advancedSchema");
 const { shouldSeedDemoAccounts } = require("./src/utils/demoAccounts");
+const { ensureInventorySchema } = require("./src/inventory/schema");
+const { ensureDevStaffAccount, printStaffCredentials } = require("./src/inventory/staffSeed");
+const { createService: createInventoryService } = require("./src/inventory/service");
+const { createInventoryRouter } = require("./src/routes/inventory");
 
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
