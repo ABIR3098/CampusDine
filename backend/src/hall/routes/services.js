@@ -51,6 +51,7 @@ router.post("/services", catchAsync(async (req,res) => {
   for (const a of admins) await sendNotice(a.id,'New Hall service request',`A student submitted ${type.replaceAll("_"," ")} request #${r.insertId}.`,'admin_action');
   res.status(201).json({id:r.insertId,type,title,status:"submitted",message:"Request submitted"});
 }));
+// PATCH /services/:id (admin)
 router.patch("/services/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   const id=Number(req.params.id), b=req.body||{}, status=String(b.status||"");
   if(!Number.isSafeInteger(id)||id<1) return res.status(400).json({error:"Invalid request ID"});
