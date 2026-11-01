@@ -589,6 +589,7 @@ router.get("/issues/mine", verifyToken, requireRole("student", "teacher"), catch
 }));
 
 // GET /api/orders/issues  (admin) — all reports, open ones first
+// GET /issues (admin)
 router.get("/issues", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     `SELECT i.id, i.order_id, i.reason, i.details, i.status, i.admin_reply, i.created_at, i.resolved_at,
