@@ -13,3 +13,7 @@ const TRANSITIONS = {
   purchased: [],
 };
 
+function canTransition(from, to) {
+  return Array.isArray(TRANSITIONS[from]) && TRANSITIONS[from].includes(to);
+}
+
