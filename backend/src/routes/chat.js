@@ -74,9 +74,10 @@ router.get("/conversations", verifyToken, requireRole("admin", "hall_admin"), as
        FROM chat_conversations c
        JOIN users u ON u.id = c.user_id
        LEFT JOIN chat_messages m ON m.conversation_id = c.id
+       WHERE c.scope = ?
        GROUP BY c.id, u.id, u.name, u.role, c.updated_at
        ORDER BY c.updated_at DESC`,
-      [req.user.id]
+      [req.user.id, scope]
     );
     res.json({ conversations });
   } catch (error) {
