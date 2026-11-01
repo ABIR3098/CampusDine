@@ -59,3 +59,7 @@ test("a request cannot be decided twice", async () => {
   await assert.rejects(svc.decide(1, 1, { decision: "approved", reply: "" }), (e) => e instanceof HttpError && e.status === 409);
 });
 
+test("unknown request gives 404", async () => {
+  await assert.rejects(createService(fakePool()).decide(1, 55, { decision: "approved", reply: "" }), (e) => e.status === 404);
+});
+
