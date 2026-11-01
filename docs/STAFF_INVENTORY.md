@@ -18,3 +18,11 @@ On start-up the server applies the migrations automatically (adds the `staff` ro
 10 raw materials and creates the development staff account). The same SQL is in
 `backend/migrations/20261101_staff_inventory.sql` if you prefer to run it by hand. Nothing existing is dropped or rewritten.
 
+## Development staff login
+
+| Field | Value |
+| --- | --- |
+| Portal | Kitchen Staff (role-select page) |
+| Staff ID | `staff01` |
+| Temporary password | `Staff@2026-Temp` |
+
