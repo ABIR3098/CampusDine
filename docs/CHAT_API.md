@@ -10,7 +10,8 @@ Support chat has two separate inboxes, picked with `scope`:
 | `hall` | the Hall Admin | `hall_admin` | Hall → "Hall Admin chat" tab; Hall Admin portal → "Student messages" |
 
 A student passes `?scope=hall` (or `scope` in the body of `POST /messages`). Admin and Hall Admin never pass it: the server uses their role.
-Canteen Admin cannot read Hall chats and Hall Admin cannot read canteen chats (messages, photos, reactions and typing are all separated). Staff accounts only have the canteen chat.
+Inside the Hall the canteen admin is a member of the hall inbox too (the app sends `scope=hall`), so the canteen admin and the Hall Admin can talk to each other there. The inbox routes (`/conversations`, `/:userId/messages`, `/directory`) ignore `scope`: the canteen admin always gets the canteen inbox, the Hall Admin the hall inbox.
+Canteen Admin cannot read Hall chats of students and Hall Admin cannot read canteen chats (messages, photos, reactions and typing are all separated). Staff accounts only have the canteen chat.
 
 ## Support chat
 | Method and path | Who | What it does |
