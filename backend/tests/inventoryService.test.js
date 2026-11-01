@@ -86,3 +86,11 @@ test("a request cannot be purchased twice", async () => {
   await assert.rejects(svc.recordPurchase(1, { requestId: 2, quantity: 5 }), (e) => e.status === 409);
 });
 
+test("a failure in the middle of a purchase rolls everything back", async () => {
+  const pool = fakePool(); pool.st.failOn = "INSERT INTO inventory_stock_history";
+  await assert.rejects(createService(pool).recordPurchase(1, { requestId: 2, quantity: 5, unitCost: null, totalCost: null }), /db down/);
+  assert.equal(pool.st.rollbacks, 1);
+  assert.equal(pool.st.items[0].current_stock, 10);
+  assert.equal(pool.st.purchases.length, 0);
+  assert.equal(pool.st.requests[1].status, "approved");
+});
