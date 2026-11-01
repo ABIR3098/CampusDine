@@ -49,6 +49,6 @@ Two-step login follows `LOGIN_OTP`: `all` (default), `admin` or `off`. Accounts 
 Changing the email address needs a code sent to the **new** address, so a stolen login cannot move the account to a mailbox the owner does not control.
 
 1. `POST /me/email-code` with `{ "email": "new@example.com" }`. A 6-digit code is emailed to that address. It is valid for 10 minutes, and a new one can be asked for once a minute.
-2. `PUT /me` with `email` and `emailCode`. Without the code the answer is 400 with `needsEmailCode: true`.
+2. `PUT /me` with `email`, `emailCode` and `currentPassword`. Without the password the answer is 400 (a wrong one is 401); without the code it is 400 with `needsEmailCode: true`.
 
 Sending the email the account already has changes nothing and needs no code.
