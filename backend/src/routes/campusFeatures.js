@@ -67,7 +67,7 @@ router.get('/live-tracking',requireRole('teacher'),async(req,res,next)=>{try{
     ru.name AS rider_name,l.latitude,l.longitude,l.updated_at AS location_updated_at,
     CASE WHEN l.updated_at>=NOW()-INTERVAL 30 SECOND AND l.active=1 THEN 1 ELSE 0 END AS rider_live
     FROM orders o LEFT JOIN users ru ON ru.id=o.rider_id LEFT JOIN rider_locations l ON l.rider_id=o.rider_id
-    WHERE o.user_id=? AND o.rider_id IS NOT NULL AND o.status IN ('Received','Cooking','Ready') AND o.picked_up_at IS NULL
+    WHERE o.user_id=? AND o.status IN ('Received','Cooking','Ready') AND o.picked_up_at IS NULL
     ORDER BY o.created_at DESC LIMIT 20`,[req.user.id]);
   res.json(rows.map(x=>({...x,latitude:x.latitude==null?null:Number(x.latitude),longitude:x.longitude==null?null:Number(x.longitude),rider_live:!!x.rider_live})));
 }catch(e){next(e)}});
