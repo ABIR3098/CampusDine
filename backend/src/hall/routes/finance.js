@@ -141,6 +141,7 @@ router.post("/finance/expenses", admin, catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/hall/finance/expenses/:id   (for a wrong entry)
+// DELETE /finance/expenses/:id
 router.delete("/finance/expenses/:id", admin, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
