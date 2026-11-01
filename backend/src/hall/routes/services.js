@@ -161,6 +161,7 @@ router.get("/audit", requireRole("admin"), catchAsync(async(req,res)=>{
 // Food-waste recording and a simple historical demand estimate (no AI service/API required).
 
 // Meal pickup QR/token. The token only verifies collection; it never charges a wallet.
+// GET /pickup-tokens
 router.get("/pickup-tokens", catchAsync(async(req,res)=>{
   const date=String(req.query.date||todayKey());
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Date must be YYYY-MM-DD"});
