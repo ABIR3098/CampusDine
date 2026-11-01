@@ -45,3 +45,10 @@ test("everything needs a login", async () => {
   assert.equal((await req("/admin/summary")).status, 401);
 });
 
+test("students, teachers and riders cannot use the inventory", async () => {
+  for (const role of ["student", "teacher", "rider", "hall_admin"]) {
+    assert.equal((await req("/items", { role })).status, 403, role);
+    assert.equal((await req("/requests", { role, method: "POST", body: { itemId: 1, currentQty: 1, requiredQty: 2 } })).status, 403, role);
+  }
+});
+
