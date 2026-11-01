@@ -74,3 +74,12 @@ test("quantities typed with a unit or Bengali digits are understood", () => {
   assert.equal(r.validateStaffRequest({ itemId: 1, currentQty: "35kg", requiredQty: "5kg" }).value.currentQty, 35);
 });
 
+test("usage validation", () => {
+  assert.ok(r.validateUsage({ itemId: 1, quantity: 0 }).error);
+  assert.ok(r.validateUsage({ quantity: 2 }).error);
+  assert.ok(r.validateUsage({ itemId: 1, quantity: 2, usageDate: "2026-13" }).error);
+  assert.ok(r.validateUsage({ itemId: 1, quantity: 2, usageDate: "2099-01-01" }, "2026-11-01").error);
+  const ok = r.validateUsage({ itemId: "2", quantity: "3kg", usageDate: "2026-10-30", note: " lunch " }, "2026-11-01");
+  assert.deepEqual(ok.value, { itemId: 2, quantity: 3, usageDate: "2026-10-30", note: "lunch" });
+  assert.equal(r.validateUsage({ itemId: 1, quantity: 1 }, "2026-11-01").value.usageDate, "2026-11-01");
+});
