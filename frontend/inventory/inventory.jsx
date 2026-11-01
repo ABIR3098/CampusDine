@@ -72,6 +72,13 @@
     return { data, error, reload };
   }
 
+  // Opens a socket.io connection (the page already loads the client as the global `io`) and runs a handler per
+  // server event, so the admin sees a new staff request, and staff see the admin's answer, without waiting for polling.
+  function useInventorySocket(apiBase, token, handlers) {
+    const ref = React.useRef(handlers);
+    ref.current = handlers;
+    useEffect(() => {
+      if (typeof io !== "function" || !token) return undefined;
   // Low / out-of-stock warning list. onRestock (optional) adds a "Request restock" button per item.
   function StockAlerts({ items, onRestock }) {
     const bad = items.filter((i) => i.level === "out" || i.level === "low");
