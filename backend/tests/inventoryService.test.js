@@ -134,3 +134,11 @@ test("usage above the remaining stock is refused and nothing changes", async () 
   assert.equal((pool.st.usage || []).length, 0);
   assert.equal(pool.st.rollbacks, 1);
 });
+
+test("recording a purchase can replace the admin reply the staff member sees", async () => {
+  const svc = createService(fakePool());
+  await svc.recordPurchase(1, { requestId: 2, itemId: null, quantity: 5, unitCost: null, totalCost: null, supplier: "", note: "", reply: "Bought today" });
+  const r = await svc.getRequest(2);
+  assert.equal(r.status, "purchased");
+  assert.equal(r.adminReply, "Bought today");
+});
