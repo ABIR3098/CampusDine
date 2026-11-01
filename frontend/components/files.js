@@ -20,5 +20,8 @@ window.CD_COMPONENT_FILES = [
   "student/LiveRiderMap.jsx",
   "student/PaymentGatewayModal.jsx",
   "student/FoodWasteChallengeModal.jsx",
-  "student/NotificationCenterDrawer.jsx"
+  "student/NotificationCenterDrawer.jsx",
+  "admin/ExpiryAlertBanner.jsx",
+  "admin/SupplierPurchaseOrderModal.jsx",
+  "admin/IngredientStockDashboard.jsx"
 ];
