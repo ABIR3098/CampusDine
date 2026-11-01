@@ -336,6 +336,13 @@
           { key: "history", label: "History" },
         ]} />
         <Notice error={error || items.error || reqs.error} info={info} />
+        <StockAlerts items={list} />
+
+        {tab === "usage" && (
+          <div className="card p-5 overflow-x-auto">
+            <table className="w-full text-sm"><thead><tr className="text-left text-xs uppercase" style={{ color: "var(--ink-soft)" }}><th className="py-2 pr-3">Date</th><th className="pr-3">Material</th><th className="pr-3">Used</th><th className="pr-3">Remaining</th><th className="pr-3">By</th><th>Note</th></tr></thead>
+              <tbody>{((usageAll.data && usageAll.data.usage) || []).map((u) => (
+                <tr key={u.id} className="border-t" style={{ borderColor: "var(--line)" }}><td className="py-2 pr-3">{u.usageDate}</td><td className="pr-3">{u.itemName}</td><td className="pr-3 font-mono">{fmt(u.quantity)} {u.unit}</td><td className="pr-3 font-mono">{fmt(u.stockAfter)} {u.unit}</td><td className="pr-3">{u.staffName || "—"}</td><td>{u.note || "—"}</td></tr>
 
         {tab === "requests" && (
           <div>
