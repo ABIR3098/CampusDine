@@ -334,3 +334,13 @@
           </div>
         )}
 
+        {tab === "history" && (
+          <div className="card p-5 overflow-x-auto">
+            <table className="w-full text-sm"><thead><tr className="text-left text-xs uppercase" style={{ color: "var(--ink-soft)" }}><th className="py-2 pr-3">When</th><th className="pr-3">Item</th><th className="pr-3">Change</th><th className="pr-3">Before → After</th><th className="pr-3">Reason</th><th>By</th></tr></thead>
+              <tbody>{((history.data && history.data.history) || []).map((h) => (
+                <tr key={h.id} className="border-t" style={{ borderColor: "var(--line)" }}><td className="py-2 pr-3">{when(h.createdAt)}</td><td className="pr-3">{h.itemName}</td><td className="pr-3 font-mono">{h.change > 0 ? "+" : ""}{fmt(h.change)} {h.unit}</td><td className="pr-3 font-mono">{fmt(h.before)} → {fmt(h.after)}</td><td className="pr-3">{h.reason}{h.note ? ` · ${h.note}` : ""}</td><td>{h.actorName || "System"}</td></tr>
+              ))}</tbody></table>
+          </div>
+        )}
+      </div>
+    );
