@@ -107,3 +107,10 @@ test("service errors become clean JSON responses", async () => {
   assert.equal(r.status, 409);
   assert.match((await r.json()).error, /already rejected/);
 });
+
+test("staff records usage with the token's id; others cannot", async () => {
+  calls.length = 0;
+  const ok = await req("/usage", { role: "staff", method: "POST", body: { itemId: 1, quantity: "3kg" } });
+  assert.equal(ok.status, 201);
+  assert.equal(calls[0][1], 3);
+  assert.equal(calls[0][2].quantity, 3);
