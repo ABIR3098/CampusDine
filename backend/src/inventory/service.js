@@ -88,3 +88,7 @@ function createService(pool) {
         "UPDATE inventory_requests SET status = ?, admin_id = ?, admin_reply = ?, decided_at = NOW() WHERE id = ?",
         [v.decision, adminId, v.reply || null, requestId]
       );
+      return getRequest(requestId, conn);
+    });
+  }
+
