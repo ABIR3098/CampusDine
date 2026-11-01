@@ -205,3 +205,7 @@ npm test
 ## Demo accounts
 
 On first start the server creates `admin`, `student1`, `teacher1` and `rider1` with simple passwords. Change or delete them before any real deployment.
+
+## Kitchen Staff login & inventory
+
+See [docs/STAFF_INVENTORY.md](docs/STAFF_INVENTORY.md) for the staff login, the inventory feature and how to run it in VS Code.
