@@ -120,6 +120,7 @@ router.delete("/inventory/:id", requireRole("admin"), catchAsync(async(req,res)=
   await pool.query("DELETE FROM hall_inventory WHERE id=? AND (? IS NULL OR university_id=?)",[Number(req.params.id),req.user.universityId||null,req.user.universityId||null]); res.json({ok:true});
 }));
 
+// GET /students (admin)
 router.get("/students", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT id,name,external_id,email,department,hall_name,room_number,hall_id,phone,account_type FROM users WHERE role='student' AND account_type='hall' AND (? IS NULL OR university_id=?) ORDER BY hall_name,room_number,name LIMIT 1000",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
