@@ -53,3 +53,10 @@ test("the users.role enum keeps 'staff' everywhere it is redefined", () => {
     assert.ok(enums.length > 0, f);
     for (const e of enums) assert.ok(e.includes("'staff'"), `${f}: ${e}`);
   }
+});
+
+test("chat accepts staff accounts", () => {
+  const text = fs.readFileSync(path.join(__dirname, "..", "src/routes/chat.js"), "utf8");
+  assert.ok(!/requireRole\("student", "teacher", "admin"\)/.test(text));
+  assert.ok(!/role IN \('student', 'teacher'\)/.test(text));
+});
