@@ -18,3 +18,4 @@ Copy `backend/.env.example` to `backend/.env` and fill in your own values. Never
 | `WALLET_TOPUP_DAILY_LIMIT` | Most a single account can top up in one day, in taka | `20000` |
 | `NODE_ENV` | `production` skips the demo accounts (admin, student1, teacher1, rider1) | unset |
 | `SEED_DEMO_ACCOUNTS` | `true` always creates the demo logins, `false` never does; unset creates them unless `NODE_ENV=production` | unset |
+| `TRUST_PROXY` | Number of reverse proxies in front of the server (so the login lock-out sees the real visitor IP) | unset |
