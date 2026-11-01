@@ -7180,6 +7180,13 @@ function StaffShell({ apiBase, token, user, onLogout }) {
       <div className="card p-5 mb-4">
         <div className="flex flex-wrap justify-between items-center gap-3">
           <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl grid place-items-center text-2xl" style={{ background: "var(--gold-soft)", border: "1px solid var(--accent-border)" }}>🍚</div>
+            <div>
+              <h1 className="text-2xl font-display font-800 tracking-tight">Kitchen Staff Panel</h1>
+              <p className="text-xs sm:text-sm" style={{ color: "var(--ink-soft)" }}>Signed in as <strong>{user.name}</strong> · ID {user.externalId}</p>
+            </div>
+          </div>
+          <button onClick={onLogout} className="cd-logout"><Icon path={I.logout} className="w-4 h-4" /><span className="cd-logout-text">Log out</span></button>
 function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
