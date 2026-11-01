@@ -61,3 +61,10 @@ function createInventoryRouter(service) {
       const request = await service.getRequest(result.requestId);
       if (request) io.to(`user:${request.staffId}`).emit("inventory:decision", { id: request.id, status: request.status, adminReply: request.adminReply, itemName: request.itemName });
     }
+    res.status(201).json(result);
+  }));
+
+  router.get("/admin/purchases", requireRole("admin"), catchAsync(async (req, res) => {
+    res.json({ purchases: await service.listPurchases() });
+  }));
+
