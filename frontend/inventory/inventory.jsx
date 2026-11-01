@@ -289,3 +289,10 @@
           </div>
         )}
 
+        {tab === "stock" && (
+          <div className="space-y-4">
+            <div className="card p-5">
+              <StockTable items={list} actions={(it) => <button type="button" className="text-xs font-700 underline" onClick={() => adjust(it)}>Correct stock</button>} />
+            </div>
+            <div className="card p-5">
+              <div className="font-700 mb-2 text-sm">Add a raw material</div>
