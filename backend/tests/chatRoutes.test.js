@@ -156,3 +156,12 @@ test("unread count: the rider counts the canteen inbox, the hall admin the hall 
   r = await call(HALL_ADMIN, "GET", "/unread");
   assert.ok(r.calls.some((c) => /COUNT\(\*\) AS unread/.test(c.sql) && c.params[1] === "hall"));
 });
+
+test("rider removes only their own message and reacts inside their own chat", async () => {
+  let r = await call(RIDER, "DELETE", "/messages/9");
+  assert.ok(r.calls.some((c) => /FROM chat_messages WHERE id = \? AND sender_id = \?/.test(c.sql) && c.params[1] === RIDER));
+  r = await call(RIDER, "POST", "/messages/9/reaction", { emoji: "👍" });
+  assert.notEqual(r.status, 403);
+  r = await call(RIDER, "POST", "/messages/9/reaction", { emoji: "💩" });
+  assert.equal(r.status, 400);
+});
