@@ -118,6 +118,7 @@ router.get("/queue", requireRole("admin"), catchAsync(async (req, res) => {
 
 // POST /api/hall/queue/scan (admin) body: { code: "HALL|YYYY-MM-DD|slot|serial" }
 // Scanning a Hall QR verifies today's token and atomically marks it served.
+// POST /queue/scan (admin)
 router.post("/queue/scan", requireRole("admin"), catchAsync(async (req, res) => {
   const code = String((req.body || {}).code || "").trim();
   const match = /^HALL\|(\d{4}-\d{2}-\d{2})\|(breakfast|lunch|dinner)\|(\d+)$/.exec(code);
