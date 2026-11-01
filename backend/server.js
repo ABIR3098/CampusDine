@@ -42,6 +42,7 @@ const riderTrackingRoutes = require("./src/routes/riderTracking");
 const paymentSandboxRoutes = require("./src/routes/paymentSandbox");
 const notificationCenterRoutes = require("./src/routes/notificationCenter");
 const wasteChallengeRoutes = require("./src/routes/wasteChallenge");
+const analyticsRoutes = require("./src/routes/analytics");
 const summaryRoutes = require("./src/routes/summary");
 const { pricingRouter, loyaltyRouter, offersRouter } = require("./src/routes/offers");
 const { ensureOffersSchema } = require("./src/offersSchema");
@@ -797,6 +798,7 @@ app.use("/api/rider-tracking", riderTrackingRoutes);
 app.use("/api/payment", paymentSandboxRoutes);
 app.use("/api/notifications", notificationCenterRoutes);
 app.use("/api/waste-challenge", wasteChallengeRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
