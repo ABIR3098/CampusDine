@@ -43,3 +43,10 @@ CREATE TABLE IF NOT EXISTS inventory_purchases (
   admin_id INT NOT NULL,
   quantity DECIMAL(12,2) NOT NULL,
   unit_cost DECIMAL(12,2) NULL,
+  total_cost DECIMAL(14,2) NULL,
+  supplier VARCHAR(120) NULL,
+  note VARCHAR(500) NULL,
+  purchased_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_inv_purchase_item (item_id, purchased_at),
+  CONSTRAINT fk_inv_purchase_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+);
