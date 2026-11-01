@@ -79,3 +79,12 @@ function createService(pool) {
     return rows.map(requestView);
   }
 
+  async function decide(adminId, requestId, v) {
+    return withTx(pool, async (conn) => {
+      const [rows] = await conn.query("SELECT id, status FROM inventory_requests WHERE id = ? FOR UPDATE", [requestId]);
+      if (!rows.length) throw new HttpError(404, "Request not found.");
+      if (!canTransition(rows[0].status, v.decision)) throw new HttpError(409, `This request is already ${rows[0].status}.`);
+      await conn.query(
+        "UPDATE inventory_requests SET status = ?, admin_id = ?, admin_reply = ?, decided_at = NOW() WHERE id = ?",
+        [v.decision, adminId, v.reply || null, requestId]
+      );
