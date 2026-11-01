@@ -65,3 +65,14 @@ CREATE TABLE IF NOT EXISTS inventory_stock_history (
   KEY idx_inv_hist_item (item_id, created_at),
   CONSTRAINT fk_inv_hist_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
 );
+
+-- Daily material usage (staff record what they used; the system deducts it from official stock).
+ALTER TABLE inventory_stock_history MODIFY COLUMN reason ENUM('opening','purchase','adjustment','usage') NOT NULL;
+
+CREATE TABLE IF NOT EXISTS inventory_usage (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  item_id INT NOT NULL,
+  staff_id INT NOT NULL,
+  quantity DECIMAL(12,2) NOT NULL,
+  usage_date DATE NOT NULL,
+  note VARCHAR(500) NULL,
