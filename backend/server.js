@@ -839,6 +839,7 @@ app.use("/api/waste-challenge", wasteChallengeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 // Vendor settlements and invoices
 app.use("/api/settlements", settlementRoutes);
+// Emergency mode broadcast
 app.use("/api/emergency", emergencyRoutes);
 
 // Serve the frontend from this same server — one process, one port,
