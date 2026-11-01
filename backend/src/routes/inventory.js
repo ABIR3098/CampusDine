@@ -12,3 +12,8 @@ function createInventoryRouter(service) {
   router.use(verifyToken);
   router.use((err, req, res, next) => next(err));
 
+  // ───── Staff + Admin: read-only stock list ─────
+  router.get("/items", requireRole("staff", "admin"), catchAsync(async (req, res) => {
+    res.json({ items: await service.listItems() });
+  }));
+
