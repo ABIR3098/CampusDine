@@ -54,6 +54,8 @@
     const [contacts, setContacts] = useState([]); // people I share an order with
     const [search, setSearch] = useState("");
     const [found, setFound] = useState([]);
+    const peerRef = useRef(null);
+    const reloadRef = useRef({});
     // @@state
 
     const loadThreads = async () => {
@@ -115,6 +117,20 @@
       setPeer({ id: person.id, name: person.name, role: person.role, external_id: person.external_id });
       setSearch("");
     };
+
+    // The live listeners are created once, so they read the open chat and the loaders through refs.
+    peerRef.current = peer;
+    reloadRef.current = { loadThreads, loadMessages };
+    const removeMessage = async (id) => {
+      if (!window.confirm(t("trc.confirmDelete", "Delete this message for both of you?"))) return;
+      try {
+        await call(apiBase, token, "/messages/" + id, { method: "DELETE" });
+        setMessages((cur) => cur.map((m) => (Number(m.id) === Number(id) ? { ...m, message: "", deleted_at: new Date().toISOString() } : m)));
+        loadThreads();
+      } catch (e) {
+        setError(e.message || "Could not delete the message.");
+      }
+    };
     // @@actions
 
     const openThread = (thread) => {
@@ -143,6 +159,30 @@
       }, 300);
       return () => { live = false; clearTimeout(timer); };
     }, [search, apiBase, token]);
+    // Live: a new message, "seen" marks and deletions arrive without a refresh.
+    useEffect(() => {
+      if (typeof io !== "function") return undefined;
+      const socket = io(apiBase, { auth: { token } });
+      socket.on("teacher-rider-chat:message", (p) => {
+        const mineSent = Number(p.senderId) === Number(userId);
+        const other = mineSent ? Number(p.recipientId) : Number(p.senderId);
+        const open = peerRef.current && Number(peerRef.current.id) === other;
+        if (open && !mineSent) reloadRef.current.loadMessages(other, true); // reading it also marks it as read
+        else {
+          if (open) setMessages((cur) => (cur.some((x) => Number(x.id) === Number(p.id)) ? cur : [...cur, fromPayload(p)]));
+          reloadRef.current.loadThreads();
+        }
+      });
+      socket.on("teacher-rider-chat:read", (p) => {
+        if (!peerRef.current || Number(peerRef.current.id) !== Number(p.readerId)) return;
+        setMessages((cur) => cur.map((m) => (Number(m.sender_id) === Number(userId) && !m.read_at ? { ...m, read_at: new Date().toISOString() } : m)));
+      });
+      socket.on("teacher-rider-chat:deleted", (p) => {
+        setMessages((cur) => cur.map((m) => (Number(m.id) === Number(p.id) ? { ...m, message: "", deleted_at: new Date().toISOString() } : m)));
+        reloadRef.current.loadThreads();
+      });
+      return () => { socket.disconnect(); };
+    }, [apiBase, token, userId]);
     // @@effects
 
     return (
@@ -228,7 +268,13 @@
                             {m.deleted_at
                               ? <p style={{ fontStyle: "italic", opacity: 0.7 }}>{t("trc.deleted", "This message was deleted")}</p>
                               : <p>{m.message}</p>}
-                            <div className="text-[10px] mt-0.5 text-right" style={{ opacity: 0.75 }}>{timeOf(m.created_at)}</div>
+                            <div className="text-[10px] mt-0.5 flex items-center justify-end gap-2" style={{ opacity: 0.8 }}>
+                              {mine && !m.deleted_at && (
+                                <button type="button" onClick={() => removeMessage(m.id)} className="underline">{t("trc.delete", "Delete")}</button>
+                              )}
+                              <span>{timeOf(m.created_at)}</span>
+                              {mine && !m.deleted_at && <span title={m.read_at ? t("trc.seen", "Seen") : t("trc.sent", "Sent")}>{m.read_at ? "✓✓" : "✓"}</span>}
+                            </div>
                           </div>
                         </div>
                       </div>
