@@ -167,8 +167,8 @@ router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"),
     if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: "Invalid user ID" });
     connection = await pool.getConnection();
     const [[user]] = await connection.query(
-      "SELECT id, name, role FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff', 'admin') AND (? = 'hall' OR role <> 'admin')",
-      [userId, inboxScope(req)]
+      "SELECT id, name, role FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff', 'rider', 'admin') AND (? = 'hall' OR role <> 'admin') AND (? = 'canteen' OR role <> 'rider')",
+      [userId, inboxScope(req), inboxScope(req)]
     );
     if (!user) return res.status(404).json({ error: "Chat user not found" });
 
