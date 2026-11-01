@@ -111,6 +111,7 @@ router.post("/pay", catchAsync(async (req, res) => {
 
 // POST /api/calendar/repeat  body: { year, month } — copy the usual weekly pattern of the previous month
 // onto this month's days that are still unmarked (today and later). Nothing is paid by this.
+// POST /repeat (any logged-in user)
 router.post("/repeat", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.body || {});
   if (!ym) return res.status(400).json({ error: "Invalid month" });
