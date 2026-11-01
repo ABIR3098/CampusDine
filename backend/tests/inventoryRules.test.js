@@ -62,3 +62,10 @@ test("stockLevel labels out, low and ok", () => {
   assert.equal(r.stockLevel(20, 5), "ok");
   assert.equal(r.stockLevel(20, 0), "ok");
 });
+
+test("quantities typed with a unit or Bengali digits are understood", () => {
+  assert.equal(r.toQty("35kg"), 35);
+  assert.equal(r.toQty("5 kg"), 5);
+  assert.equal(r.toQty("1,200 kg"), 1200);
+  assert.equal(r.toQty("৩৫"), 35);
+  assert.equal(r.toQty("2.5litre"), 2.5);
