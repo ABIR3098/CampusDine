@@ -36,6 +36,7 @@ const lastDayOf = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate
 // Income counts closed meals only (their price is fixed), so the numbers can't change after the fact.
 // → { year, month, today, plates, billed, collected, outstanding, lastCall: { plates, amount }, expense: { total, byCategory },
 //     perPlate: { cost, price, margin }, result: { cash, ifAllPaid }, bySlot: [{ slot, plates, billed }], daily: [{ date, plates, billed, expense }] }
+// GET /finance/summary
 router.get("/finance/summary", admin, catchAsync(async (req, res) => {
   const now = nowParts();
   const ym = parseMonth(req.query, now);
@@ -98,6 +99,7 @@ router.get("/finance/summary", admin, catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/finance/expenses?year=&month=  → { categories, expenses: [{ id, date, category, categoryLabel, amount, supplierId, supplierName, note }] } newest first
+// GET /finance/expenses
 router.get("/finance/expenses", admin, catchAsync(async (req, res) => {
   const ym = parseMonth(req.query, nowParts());
   if (!ym) return res.status(400).json({ error: "Invalid month" });
@@ -115,6 +117,7 @@ router.get("/finance/expenses", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/finance/expenses   body: { date, category, amount, supplierId?, note? }
+// POST /finance/expenses
 router.post("/finance/expenses", admin, catchAsync(async (req, res) => {
   const b = req.body || {};
   const date = String(b.date || "");
@@ -138,6 +141,7 @@ router.post("/finance/expenses", admin, catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/hall/finance/expenses/:id   (for a wrong entry)
+// DELETE /finance/expenses/:id
 router.delete("/finance/expenses/:id", admin, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid id" });

@@ -9,6 +9,7 @@ const router = express.Router();
 const memberOnly = requireRole("student", "teacher");
 
 // GET /api/hall/autopay → { enabled, graceDays, history: [{ ym, status, amount, due, balance, createdAt }] }  (last 6 runs, newest first)
+// GET /autopay
 router.get("/autopay", memberOnly, catchAsync(async (req, res) => {
   const [[row]] = await pool.query("SELECT enabled FROM hall_autopay WHERE user_id = ?", [req.user.id]);
   const [logs] = await pool.query(
@@ -18,6 +19,7 @@ router.get("/autopay", memberOnly, catchAsync(async (req, res) => {
 }));
 
 // PUT /api/hall/autopay   body: { enabled: true | false }
+// PUT /autopay
 router.put("/autopay", memberOnly, catchAsync(async (req, res) => {
   const enabled = (req.body || {}).enabled;
   if (typeof enabled !== "boolean") return res.status(400).json({ error: "enabled must be true or false" });
