@@ -63,8 +63,9 @@ async function getAdminId(connection, scope = "canteen") {
 }
 
 // GET /conversations (admin)
-router.get("/conversations", verifyToken, requireRole("admin"), async (req, res) => {
+router.get("/conversations", verifyToken, requireRole("admin", "hall_admin"), async (req, res) => {
   try {
+    const scope = scopeOf(req);
     const [conversations] = await pool.query(
       `SELECT c.id AS conversation_id, u.id AS user_id, u.name, u.role,
               c.updated_at,
