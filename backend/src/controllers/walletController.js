@@ -23,35 +23,44 @@ const WalletController = {
 
   // Peer-to-peer balance transfer between campus users
   async transfer(req, res) {
+    const { recipientId, amount } = req.body || {};
+    const senderId = req.user.id;
+    const numAmount = Number(amount);
+
+    // NaN <= 0 is false, so a text amount used to get past this check.
+    if (!recipientId || !Number.isFinite(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ error: "Valid recipient and positive amount are required" });
+    }
+
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
-      const { recipientId, amount } = req.body;
-      const senderId = req.user.id;
-      const numAmount = Number(amount);
 
-      if (!recipientId || numAmount <= 0) {
-        return res.status(400).json({ error: "Valid recipient and positive amount are required" });
-      }
-
-      // Check sender balance
-      const [sender] = await conn.query("SELECT wallet_balance FROM users WHERE id = ? FOR UPDATE", [senderId]);
-      if (Number(sender[0]?.wallet_balance || 0) < numAmount) {
-        await conn.rollback();
-        return res.status(400).json({ error: "Insufficient wallet balance" });
-      }
-
-      // Check recipient
-      const [recipient] = await conn.query("SELECT id FROM users WHERE external_id = ? OR id = ?", [recipientId, recipientId]);
+      // Check recipient. When a campus ID and a database id look the same, the campus ID wins.
+      const [recipient] = await conn.query(
+        "SELECT id FROM users WHERE external_id = ? OR id = ? ORDER BY (external_id = ?) DESC LIMIT 1",
+        [recipientId, recipientId, recipientId]
+      );
       if (recipient.length === 0) {
         await conn.rollback();
         return res.status(404).json({ error: "Recipient user not found" });
       }
 
       const recId = recipient[0].id;
-      if (recId === senderId) {
+      if (Number(recId) === Number(senderId)) {
         await conn.rollback();
         return res.status(400).json({ error: "Cannot transfer to yourself" });
+      }
+
+      // Lock both wallets in id order, so two people paying each other at once cannot deadlock.
+      const [locked] = await conn.query(
+        "SELECT id, wallet_balance FROM users WHERE id IN (?, ?) ORDER BY id FOR UPDATE",
+        [senderId, recId]
+      );
+      const sender = locked.find((u) => Number(u.id) === Number(senderId));
+      if (!sender || Number(sender.wallet_balance || 0) < numAmount) {
+        await conn.rollback();
+        return res.status(400).json({ error: "Insufficient wallet balance" });
       }
 
       // Transfer balances

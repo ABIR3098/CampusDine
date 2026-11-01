@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fix: the order validator let a text or `Infinity` price through, crashed on a `null` item, and had no quantity or cart-size limit; the register validator crashed on a non-text name or campus ID and skipped the length check for a numeric password. Both now answer 400. The `WalletController.transfer` helper accepted a text amount, left its transaction open on early returns, could pick the wrong user when a campus ID looked like a database id, and locked the two wallets in a deadlock-prone order. New edge-case tests for all three.
 - Fix: bKash and Nagad callbacks confirmed the order and wrote the wallet entry again every time the gateway repeated a callback, and an error in the middle left the database connection open. A payment is now settled once (`src/services/paymentSettlement.js`), a repeated callback answers "Payment already confirmed" and changes nothing, an unknown transaction gets a 404, and the connection is always released.
 - Security: the QR code and email OTP signing key and the (unused) auth controller no longer have a hardcoded secret; in production a missing `JWT_SECRET` is an error (`src/utils/secret.js`).
 - Front page: the "Today's Special Offer" popup now appears only once per browser session (when the site is first opened) and no longer comes back every time the person returns to the front page.
