@@ -406,6 +406,7 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
     }
   });
 
+// GET /images/:id (student, teacher, staff, admin)
 router.get("/images/:id", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
