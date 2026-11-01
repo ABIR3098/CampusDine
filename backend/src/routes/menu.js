@@ -65,6 +65,7 @@ router.get("/", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // POST /api/menu/:id/favorite  (any logged-in user) — star an item (idempotent)
+// POST /:id/favorite (any logged-in user)
 router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
   const [[item]] = await pool.query("SELECT id FROM menu_items WHERE id = ?", [req.params.id]);
   if (!item) return res.status(404).json({ error: "Item not found" });
