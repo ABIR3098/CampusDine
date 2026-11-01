@@ -115,8 +115,8 @@ router.get("/directory", verifyToken, requireRole("admin", "hall_admin"), async 
   }
 });
 
-// GET /messages (student, teacher, staff)
-router.get("/messages", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
+// GET /messages (student, teacher, staff, rider)
+router.get("/messages", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin"), async (req, res) => {
   let connection;
   try {
     // The canteen admin may only open this "my conversation" view inside the Hall (scope=hall), where it talks to the Hall Admin.
