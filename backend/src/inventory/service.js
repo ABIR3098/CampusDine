@@ -187,6 +187,15 @@ function createService(pool) {
   const USAGE_SELECT = `SELECT s.*, i.name AS item_name, i.unit, u.name AS staff_name
     FROM inventory_usage s JOIN inventory_items i ON i.id = s.item_id LEFT JOIN users u ON u.id = s.staff_id`;
 
+  async function listStaffUsage(staffId) {
+    const [rows] = await pool.query(`${USAGE_SELECT} WHERE s.staff_id = ? ORDER BY s.usage_date DESC, s.id DESC LIMIT 100`, [staffId]);
+    return rows.map(usageView);
+  }
+
+  async function listAllUsage() {
+    const [rows] = await pool.query(`${USAGE_SELECT} ORDER BY s.usage_date DESC, s.id DESC LIMIT 300`);
+    return rows.map(usageView);
+  }
   async function listPurchases() {
     const [rows] = await pool.query(
       `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
