@@ -66,6 +66,7 @@ const { createInventoryRouter } = require("./src/routes/inventory");
 
 // Folder that holds the frontend files
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
+// Wallet bonus (taka) given to new accounts
 const SIGNUP_BONUS = 250;
 
 async function seedDefaultMenuAndRates(db) {
