@@ -187,6 +187,26 @@ router.post("/:peerId/messages", async (req, res) => {
   }
 });
 
+// DELETE /messages/:id - remove one of MY messages for both sides. The row stays, its text is blanked on read.
+router.delete("/messages/:id", async (req, res) => {
+  try {
+    const id = rules.parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: "Invalid message id" });
+    const [[row]] = await pool.query(
+      "SELECT recipient_id, thread_id FROM teacher_rider_messages WHERE id = ? AND sender_id = ? AND deleted_at IS NULL",
+      [id, req.user.id]
+    );
+    if (!row) return res.status(404).json({ error: "Message not found" });
+    await pool.query("UPDATE teacher_rider_messages SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", [id]);
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user:${req.user.id}`).emit("teacher-rider-chat:deleted", { id, threadId: row.thread_id });
+      io.to(`user:${row.recipient_id}`).emit("teacher-rider-chat:deleted", { id, threadId: row.thread_id });
+    }
+    res.json({ ok: true });
+  } catch (error) { fail(res, error, "Failed to delete message"); }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
