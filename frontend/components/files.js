@@ -12,6 +12,7 @@ window.CD_COMPONENT_FILES = [
   "ui/AudioPlayer.jsx",
   "ui/Tooltip.jsx",
   "ui/Avatar.jsx",
+  "ui/LanguageSelector.jsx",
   "student/NightCanteenBanner.jsx",
   "student/DailySpinWheelModal.jsx",
   "student/LeaderboardAndBadges.jsx",
@@ -23,5 +24,6 @@ window.CD_COMPONENT_FILES = [
   "student/NotificationCenterDrawer.jsx",
   "admin/ExpiryAlertBanner.jsx",
   "admin/SupplierPurchaseOrderModal.jsx",
-  "admin/IngredientStockDashboard.jsx"
+  "admin/IngredientStockDashboard.jsx",
+  "admin/RevenueAnalyticsCard.jsx"
 ];
