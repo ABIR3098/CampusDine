@@ -139,10 +139,10 @@ router.get("/messages", verifyToken, requireRole("student", "teacher", "staff", 
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
               CASE WHEN m.deleted_at IS NULL THEN m.image_id ELSE NULL END AS image_id,
-              m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
+              m.reply_to_id, r.sender_id AS reply_sender_id, CASE WHEN ru.role = 'hall_admin' THEN 'Hall Admin' ELSE ru.name END AS reply_sender_name,
               CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
               (r.id IS NOT NULL AND r.deleted_at IS NOT NULL) AS reply_deleted,
-              u.name AS sender_name, u.role AS sender_role
+              CASE WHEN u.role = 'hall_admin' THEN 'Hall Admin' ELSE u.name END AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
        LEFT JOIN chat_messages r ON r.id = m.reply_to_id AND r.conversation_id = m.conversation_id
        LEFT JOIN users ru ON ru.id = r.sender_id
@@ -189,10 +189,10 @@ router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"),
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
               CASE WHEN m.deleted_at IS NULL THEN m.image_id ELSE NULL END AS image_id,
-              m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
+              m.reply_to_id, r.sender_id AS reply_sender_id, CASE WHEN ru.role = 'hall_admin' THEN 'Hall Admin' ELSE ru.name END AS reply_sender_name,
               CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
               (r.id IS NOT NULL AND r.deleted_at IS NOT NULL) AS reply_deleted,
-              u.name AS sender_name, u.role AS sender_role
+              CASE WHEN u.role = 'hall_admin' THEN 'Hall Admin' ELSE u.name END AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
        LEFT JOIN chat_messages r ON r.id = m.reply_to_id AND r.conversation_id = m.conversation_id
        LEFT JOIN users ru ON ru.id = r.sender_id
@@ -271,7 +271,7 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
       conversationId: conversation.id,
       senderId: req.user.id,
       recipientId,
-      senderName: req.user.name,
+      senderName: req.user.role === "hall_admin" ? "Hall Admin" : req.user.name,
       senderRole: req.user.role,
       scope,
       message,
@@ -306,7 +306,7 @@ router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teac
   `, [orderId, req.user.id]);
   const [messages] = await pool.query(`
     SELECT m.id, m.sender_id, m.recipient_id, m.message, m.created_at,
-      u.name AS sender_name, u.role AS sender_role
+      CASE WHEN u.role = 'hall_admin' THEN 'Hall Admin' ELSE u.name END AS sender_name, u.role AS sender_role
     FROM (
       SELECT id, sender_id, recipient_id, message, created_at
       FROM direct_order_messages WHERE order_id = ? ORDER BY id DESC LIMIT 200
