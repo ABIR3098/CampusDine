@@ -310,3 +310,10 @@
           </div>
         )}
 
+        {tab === "purchases" && (
+          <div className="space-y-4">
+            <div className="card p-5">
+              <div className="font-700 mb-2 text-sm">Record a purchase (without a request)</div>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                <select className={inputCls} style={inputStyle} value={direct.itemId} onChange={(e) => setDirect({ ...direct, itemId: e.target.value })}>
+                  <option value="">Item…</option>{list.map((i) => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
