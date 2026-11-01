@@ -36,3 +36,10 @@ CREATE TABLE IF NOT EXISTS inventory_requests (
   CONSTRAINT fk_inv_req_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS inventory_purchases (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  request_id INT NULL,
+  item_id INT NOT NULL,
+  admin_id INT NOT NULL,
+  quantity DECIMAL(12,2) NOT NULL,
+  unit_cost DECIMAL(12,2) NULL,
