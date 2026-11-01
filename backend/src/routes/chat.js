@@ -409,8 +409,10 @@ router.get("/presence", verifyToken, requireRole("student", "teacher", "staff", 
     const inboxRole = SCOPE_ROLE[scope];
     const io = req.app.get("io");
     const live = io && io.sockets && io.sockets.sockets ? [...io.sockets.sockets.values()].filter((s) => s.user) : [];
-    if (isInboxOwner(req.user)) {
-      const online = [...new Set(live.filter((s) => !INBOX_ROLES.includes(s.user.role)).map((s) => Number(s.user.id)))];
+    if (inboxMode(req)) {
+      // The Hall Admin also talks to the canteen admin, so the canteen admin counts as a chat partner in the hall inbox.
+      const skip = scope === "hall" ? ["hall_admin", "hall_admin"] : ["admin", "hall_admin"];
+      const online = [...new Set(live.filter((s) => !skip.includes(s.user.role)).map((s) => Number(s.user.id)))];
       const [rows] = await pool.query(
         "SELECT p.user_id, TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role NOT IN ('admin', 'hall_admin')"
       );
