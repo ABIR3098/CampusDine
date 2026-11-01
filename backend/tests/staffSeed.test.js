@@ -27,3 +27,11 @@ test("an existing staff account is left alone", async () => {
   assert.equal((await ensureDevStaffAccount(db, { log() {} })).created, false);
   assert.equal(db.inserts.length, 0);
 });
+
+test("a clashing ID that belongs to another role is not overwritten", async () => {
+  const db = fakeDb([{ id: 4, role: "student" }]);
+  const msgs = [];
+  await ensureDevStaffAccount(db, { log: (m) => msgs.push(m) });
+  assert.equal(db.inserts.length, 0);
+  assert.ok(msgs.length === 1);
+});
