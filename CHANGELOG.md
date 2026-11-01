@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Rider app: a **Demo GPS** button shares a fixed campus position (with a tiny drift) so a rider can be on duty and receive teacher orders without phone GPS or HTTPS.
+- Riders: accepting a delivery twice is safe, and the teacher gets the `order:rider-accepted` event and a notice; teacher Live Tracking shows "accepted" or "waiting to accept" and now also lists orders still waiting for a rider.
 - Fix: riders did not receive teacher orders. An order that found no rider when it was placed (nobody on duty, or nobody sharing a position yet) stayed `Unassigned` until an admin pressed a button. It is now tried again when a rider starts a shift, when a rider sends a position, and every 20 seconds by a timer on the server (`RIDER_DISPATCH_SECONDS`, `0` = off); the rider gets the `rider:order-assigned` event and the audit log shows `AUTO_RIDER_ASSIGN`.
 - Fix: after a new login the rider app kept an old GPS token in the browser, so the screen said "sharing" while no position reached the server. The saved token is now replaced at login, and dropped when it belongs to another rider.
 - Rider app: starting the duty shift also turns the GPS on and ending it turns it off; warnings when the rider is on duty with the GPS off, or when the server gets no recent position (`GET /api/operations/riders/shift/me` now returns `locationFresh`); a notice when a new order is given.

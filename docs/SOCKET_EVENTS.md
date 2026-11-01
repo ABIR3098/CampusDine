@@ -27,6 +27,7 @@ The browser connects with its login token. After that the server puts the connec
 | `announcement` | everyone | an admin sent an announcement |
 | `rider:order-assigned` | `rider:<id>` | an order was given to the rider |
 | `rider:order-accepted` | `admins` | a rider accepted a delivery |
+| `order:rider-accepted` | `user:<id>` | the rider accepted this teacher's delivery: `{ orderId, riderId, riderName }` |
 | `rider:location` | `teachers` | a rider shares GPS, or stops sharing (`active: false`) |
 | `chat:message` | sender and receiver | a support chat message |
 | `order-chat:message` | customer and rider | an order chat message |

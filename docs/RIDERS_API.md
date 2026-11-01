@@ -6,7 +6,7 @@ All routes need `Authorization: Bearer <token>`. Base path: `/api/riders`.
 |---|---|---|---|
 | GET | `/orders` | rider | My orders that are `Assigned` or `Accepted`, with customer name, phone and address |
 | GET | `/orders/summary` | rider | Counts by status, tips earned, average rating and my 5 latest reviews |
-| POST | `/orders/:orderId/accept` | rider | Accept an order assigned to me (`409` if it is not mine or was cancelled) |
+| POST | `/orders/:orderId/accept` | rider | Accept an order assigned to me (`409` if it is not mine or was cancelled). Accepting an order I already accepted answers `200` again. The teacher who ordered gets `order:rider-accepted` |
 | POST | `/location` | rider | Share my position: `{ latitude, longitude, accuracy? }`, or `{ active: false }` to stop |
 | GET | `/locations` | teacher | Every rider's latest position |
 | POST | `/orders/assign-pending` | admin | Try again to assign teacher orders that have no rider (up to 100) |
@@ -18,6 +18,9 @@ All routes need `Authorization: Bearer <token>`. Base path: `/api/riders`.
 - Among those, the rider with the fewest active orders is chosen, then the one with the freshest location.
 - If nobody qualifies, the order stays `Unassigned` and is offered again by the retries above, oldest order first. The assigned rider gets the `rider:order-assigned` event and the audit log shows `AUTO_RIDER_ASSIGN` (actor `system` when the timer did it).
 - In the rider app, starting the duty shift also turns the GPS sharing on, and the app warns when the rider is on duty but the server has no recent position.
+
+## Demo GPS
+The rider app has a **Demo GPS** button next to Enable GPS. It saves a fixed campus position in the browser and sends it (with a tiny drift) about every 8 seconds through the normal `POST /location`, so a rider on a desktop browser, without HTTPS or without phone GPS can still be on duty and receive teacher orders. Stop GPS ends it. The server cannot tell demo positions from real ones.
 
 ## Order lifecycle for a rider
 `Assigned` → `Accepted` → `Completed`. The order becomes `Completed` when the counter scans its QR code at handover, and it then leaves the rider's list. A cancelled order also disappears from it.
