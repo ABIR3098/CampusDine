@@ -191,3 +191,10 @@
         )}
       </div>
     );
+  }
+
+  // ───────────────────────── ADMIN ─────────────────────────
+  function AdminInventoryPanel({ apiBase, token }) {
+    const [tab, setTab] = useState("requests");
+    const [filter, setFilter] = useState("");
+    const summary = useLive(() => call(apiBase, token, "/admin/summary"), [apiBase, token]);
