@@ -52,3 +52,11 @@ test("students, teachers and riders cannot use the inventory", async () => {
   }
 });
 
+test("staff can read stock and send a request; the server uses the token's id", async () => {
+  assert.equal((await req("/items", { role: "staff" })).status, 200);
+  calls.length = 0;
+  const r = await req("/requests", { role: "staff", method: "POST", body: { itemId: 1, currentQty: "2", requiredQty: "30", staffId: 999 } });
+  assert.equal(r.status, 201);
+  assert.equal(calls[0][1], 3);
+  assert.equal(calls[0][2].requiredQty, 30);
+});
