@@ -42,6 +42,7 @@ router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAs
   res.json({ ok: true, assigned, count: assigned.length });
 }));
 
+// GET /orders (rider)
 router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const [orders] = await pool.query(`
     SELECT o.id, o.token, o.total, o.status, o.pickup_time, o.note, o.tip_amount, o.delivery_note,
