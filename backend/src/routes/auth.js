@@ -409,9 +409,14 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
   if (email !== undefined) {
     const e = clean(email).toLowerCase();
     if (!EMAIL_RE.test(e) || e.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
-    const [[currentUser]] = await pool.query("SELECT email FROM users WHERE id = ?", [req.user.id]);
-    // Sending the email you already have changes nothing. A different email needs the code sent to it.
-    if (String((currentUser && currentUser.email) || "").toLowerCase() !== e) {
+    // The e-mail receives login and password-reset codes, so changing it needs BOTH the current password
+    // and the code we send to the new address.
+    const [[me]] = await pool.query("SELECT email,password_hash FROM users WHERE id = ?", [req.user.id]);
+    if (!me) return res.status(404).json({ error: "Account not found" });
+    if (String(me.email || "").trim().toLowerCase() !== e) {
+      const givenPassword = req.body.currentPassword;
+      if (!givenPassword) return res.status(400).json({ error: "Enter your current password to change your email" });
+      if (!(await bcrypt.compare(String(givenPassword), me.password_hash))) return res.status(401).json({ error: "Current password is incorrect" });
       const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
       if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
       if (!req.body.emailCode) return res.status(400).json({ error: "Changing your email needs the code we send to the new address.", needsEmailCode: true });
