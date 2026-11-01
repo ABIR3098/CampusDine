@@ -148,6 +148,7 @@ router.post("/queue/scan", requireRole("admin"), catchAsync(async (req, res) => 
 }));
 
 // POST /api/hall/queue/serve (admin) body: { slot, serial } — mark a token as served
+// POST /queue/serve (admin)
 router.post("/queue/serve", requireRole("admin"), catchAsync(async (req, res) => {
   const { slot, serial } = req.body || {};
   if (!SLOTS.includes(slot) || !Number.isInteger(Number(serial))) return res.status(400).json({ error: "slot and serial are required" });
