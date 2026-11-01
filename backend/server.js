@@ -787,6 +787,7 @@ app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
 // Rider shifts, assignment and GPS sharing
 app.use("/api/riders", riderRoutes);
+// Canteen operations and daily controls
 app.use("/api/operations", operationsRoutes);
 app.use("/api/group-orders", groupOrderRoutes);
 // Wallet balance, top-up and transfers
