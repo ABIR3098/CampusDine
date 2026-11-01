@@ -83,3 +83,9 @@ test("usage validation", () => {
   assert.deepEqual(ok.value, { itemId: 2, quantity: 3, usageDate: "2026-10-30", note: "lunch" });
   assert.equal(r.validateUsage({ itemId: 1, quantity: 1 }, "2026-11-01").value.usageDate, "2026-11-01");
 });
+
+test("validatePurchase keeps a short reply for the staff member", () => {
+  const ok = r.validatePurchase({ requestId: 4, quantity: "20kg", reply: "  Bought   from  the market " });
+  assert.equal(ok.value.reply, "Bought from the market");
+  assert.equal(r.validatePurchase({ requestId: 4, quantity: 3 }).value.reply, "");
+});

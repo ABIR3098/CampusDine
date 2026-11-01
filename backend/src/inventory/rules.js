@@ -95,6 +95,7 @@ function validatePurchase(body = {}) {
       totalCost: unitCost === null ? null : Math.round(unitCost * quantity * 100) / 100,
       supplier: cleanText(body.supplier, 120),
       note: cleanText(body.note, 500),
+      reply: cleanText(body.reply, 500),
     },
   };
 }
