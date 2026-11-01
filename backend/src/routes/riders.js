@@ -119,6 +119,7 @@ router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(asyn
   res.json({ ...summary, tips_total: Number(tips.total), tips_today: Number(tips.today), rating_avg: Number(rt.avg), rating_count: Number(rt.cnt), reviews, orders: recent });
 }));
 
+// GET /locations (teacher)
 router.get("/locations", verifyToken, requireRole("teacher"), catchAsync(async (_req, res) => {
   const [rows] = await pool.query(`SELECT u.id AS riderId, u.name, u.external_id, l.latitude, l.longitude, l.accuracy_m, CASE WHEN l.updated_at >= NOW() - INTERVAL 30 SECOND THEN l.active ELSE 0 END AS active, l.updated_at
     FROM users u LEFT JOIN rider_locations l ON l.rider_id = u.id WHERE u.role = 'rider' ORDER BY u.name`);
