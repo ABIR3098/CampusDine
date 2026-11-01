@@ -1,7 +1,8 @@
 // apply-all.js — runs every CampusDine patch, in the right order, one after the other.
 // Safe to run again and again: a patch that is already installed just says "Already applied".
-// Run from the project MAIN folder (with all the patch .js files next to it):   node apply-all.js
+// Run from the project MAIN folder (with all the patch .js files next to it):   node tools/apply-all.js
 const fs = require("fs");
+const path = require("path");
 const { spawnSync } = require("child_process");
 
 const ORDER = [
@@ -19,7 +20,7 @@ let installed = 0, already = 0;
 const problems = [];
 console.log("");
 for (const name of ORDER) {
-  const file = name + ".js";
+  const file = path.join(__dirname, name + ".js"); // the patch scripts sit next to this file
   if (!fs.existsSync(file)) { problems.push([name, "the file " + file + " is not in this folder"]); console.log(`  ⚠️  ${name.padEnd(20)} missing file`); continue; }
   const r = spawnSync(process.execPath, [file], { encoding: "utf8" });
   const first = ((r.stdout || "") + (r.stderr || "")).trim().split("\n")[0] || "(no output)";
@@ -34,4 +35,4 @@ if (problems.length) {
   for (const [n, why] of problems) console.log(`   • ${n}: ${why}`);
   process.exit(1);
 }
-console.log("\nTip: run  node check-setup.js  to check that everything is in place.");
+console.log("\nTip: run  node tools/check-setup.js  to check that everything is in place.");

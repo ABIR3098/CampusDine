@@ -17,7 +17,7 @@
  *     backend/schema.sql           (optional; only matters for a brand-new database)
  *
  * Usage, from the project root (the folder that contains "frontend" and "backend"):
- *     node apply-features.js
+ *     node tools/apply-features.js
  *
  * Safe by design: it checks EVERY file first; if anything is not exactly what it expects it changes
  * NOTHING and tells you which piece did not match. Otherwise it saves a backup of each file

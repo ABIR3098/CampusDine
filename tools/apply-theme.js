@@ -8,8 +8,8 @@
  *   3) Bangla + English text for everything above.
  *
  * Usage (from the project root, the folder that contains "frontend"):
- *     node apply-theme.js                      -> edits frontend/campusdine.html
- *     node apply-theme.js path/to/campusdine.html
+ *     node tools/apply-theme.js                      -> edits frontend/campusdine.html
+ *     node tools/apply-theme.js path/to/campusdine.html
  *
  * Safe by design: it makes a backup first, refuses to run twice, and if ANY expected piece of
  * code is not found it changes nothing and tells you which one.
