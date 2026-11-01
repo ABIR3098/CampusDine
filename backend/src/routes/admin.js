@@ -37,6 +37,7 @@ async function restaurantOverview(restaurant) {
   return { pendingOrders, revenueToday, lowStock };
 }
 
+// GET /overview (any logged-in user)
 router.get("/overview", catchAsync(async (req, res) => {
   const restaurant = req.query.restaurant;
   if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
