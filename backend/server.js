@@ -803,6 +803,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/coupon", couponRoutes);
 // Support chat and order chat
 app.use("/api/chat", chatRoutes);
+// General feedback from users
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/summary", summaryRoutes);
 app.use("/api/pricing", pricingRouter);
