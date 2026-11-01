@@ -204,6 +204,8 @@ npm test
 
 ## Demo accounts
 
+Riders can message the canteen admin from the Rider hub (tab "Canteen admin chat"). The admin sees them in the same inbox under the "Riders" filter.
+
 On first start the server creates `admin`, `student1`, `teacher1` and `rider1` with simple passwords. Change or delete them before any real deployment.
 
 ## Kitchen Staff login & inventory
