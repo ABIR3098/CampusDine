@@ -241,7 +241,7 @@
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="text-xs font-700">Current quantity{chosen ? ` (${chosen.unit})` : ""}</label>
-                <input className={inputCls} style={inputStyle} inputMode="decimal" value={form.currentQty} onChange={(e) => setForm({ ...form, currentQty: e.target.value })} />
+                <input className={inputCls} style={inputStyle} inputMode="decimal" placeholder="number only, e.g. 35" value={form.currentQty} onChange={(e) => setForm({ ...form, currentQty: e.target.value })} />
               </div>
               <div>
                 <label className="text-xs font-700">Required quantity{chosen ? ` (${chosen.unit})` : ""}</label>
