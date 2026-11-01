@@ -554,6 +554,7 @@ router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), cat
 const ISSUE_REASONS = { cold: "Cold food", wrong: "Wrong item", missing: "Missing item", late: "Very late", quality: "Poor quality", other: "Other" };
 
 // POST /api/orders/:id/report  (student/teacher) — one report per order, once it is ready or handed over
+// POST /:id/report (student, teacher)
 router.post("/:id/report", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   const reason = req.body && req.body.reason;
