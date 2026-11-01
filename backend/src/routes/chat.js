@@ -159,8 +159,8 @@ router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"),
     if (!user) return res.status(404).json({ error: "Chat user not found" });
 
     const [[conversation]] = await connection.query(
-      "SELECT id FROM chat_conversations WHERE user_id = ?",
-      [userId]
+      "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ?",
+      [userId, scopeOf(req)]
     );
     if (!conversation) return res.json({ conversationId: null, user, messages: [] });
 
