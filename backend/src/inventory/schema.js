@@ -93,3 +93,5 @@ async function ensureInventorySchema(db) {
     }
   }
 }
+
+module.exports = { ensureInventorySchema, DEFAULT_ITEMS, ROLE_ENUM };
