@@ -172,6 +172,7 @@ router.get("/pickup-tokens", catchAsync(async(req,res)=>{
     admin?[date,req.user.universityId||null,req.user.universityId||null]:[date,req.user.universityId||null,req.user.universityId||null,req.user.id]);
   res.json(rows);
 }));
+// POST /pickup-tokens (student, teacher)
 router.post("/pickup-tokens", requireRole("student","teacher"), catchAsync(async(req,res)=>{
   const b=req.body||{}, slot=String(b.slot||""), date=String(b.date||todayKey());
   if(!["breakfast","lunch","dinner"].includes(slot)||!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Choose a valid date and meal"});
