@@ -162,3 +162,10 @@ function createService(pool) {
        FROM inventory_purchases p JOIN inventory_items i ON i.id = p.item_id LEFT JOIN users u ON u.id = p.admin_id
        ORDER BY p.purchased_at DESC, p.id DESC LIMIT 300`
     );
+    return rows.map((r) => ({
+      id: r.id, requestId: r.request_id, itemId: r.item_id, itemName: r.item_name, unit: r.unit,
+      quantity: Number(r.quantity), unitCost: r.unit_cost === null ? null : Number(r.unit_cost),
+      totalCost: r.total_cost === null ? null : Number(r.total_cost), supplier: r.supplier || "",
+      note: r.note || "", adminName: r.admin_name || null, purchasedAt: r.purchased_at,
+    }));
+  }
