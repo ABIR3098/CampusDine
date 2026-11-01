@@ -833,6 +833,7 @@ app.use("/api/hall/maintenance", maintenanceRoutes);
 app.use("/api/payment", paymentSandboxRoutes);
 // Notification center
 app.use("/api/notifications", notificationCenterRoutes);
+// Food waste challenge
 app.use("/api/waste-challenge", wasteChallengeRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/settlements", settlementRoutes);
