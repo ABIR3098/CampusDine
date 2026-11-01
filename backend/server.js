@@ -795,6 +795,7 @@ app.use("/api/group-orders", groupOrderRoutes);
 app.use("/api/wallet", walletRoutes);
 // Meal calendar and monthly bill
 app.use("/api/calendar", calendarRoutes);
+// Recurring weekly orders
 app.use("/api/recurring", recurringRoutes);
 app.use("/api/admin", adminRoutes);
 // Coupon validation and admin management
