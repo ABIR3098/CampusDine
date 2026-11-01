@@ -794,6 +794,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/recurring", recurringRoutes);
 app.use("/api/admin", adminRoutes);
+// Coupon validation and admin management
 app.use("/api/coupon", couponRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/feedback", feedbackRoutes);
