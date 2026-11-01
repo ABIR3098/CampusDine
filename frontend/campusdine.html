@@ -7194,6 +7194,13 @@ function StaffShell({ apiBase, token, user, onLogout }) {
               style={view === k ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>{l}</button>
           ))}
         </div>
+      </div>
+      {view === "inventory" && <InventoryHost kind="staff" apiBase={apiBase} token={token} />}
+      {view === "chat" && <ChatWorkspace role="staff" userId={user.id} apiBase={apiBase} sessionToken={token} refreshKey={0} />}
+    </div>
+  );
+}
+
 function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
