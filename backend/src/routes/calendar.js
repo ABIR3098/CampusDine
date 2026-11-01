@@ -147,6 +147,7 @@ router.post("/repeat", catchAsync(async (req, res) => {
 }));
 
 // PUT /api/calendar/:day  body: { year, month, status: 'off'|'full'|'half' }
+// PUT /:day (any logged-in user)
 router.put("/:day", catchAsync(async (req, res) => {
   const { year, month, status } = req.body;
   const day = Number(req.params.day);
