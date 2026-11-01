@@ -63,6 +63,7 @@ router.patch("/services/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   const [owner]=await pool.query("SELECT user_id FROM hall_requests WHERE id=?",[id]); if(owner.length) await sendNotice(owner[0].user_id,"Hall request updated",`Your request #${id} status is now ${status}.`);
   res.json({id,status,adminNote:note});
 }));
+// DELETE /services/:id
 router.delete("/services/:id", catchAsync(async(req,res)=>{
   const id=Number(req.params.id);
   const [rows]=await pool.query("SELECT id,user_id,status,type,university_id FROM hall_requests WHERE id=? AND (? IS NULL OR university_id=?)",[id,req.user.universityId||null,req.user.universityId||null]);
