@@ -91,6 +91,7 @@ router.delete("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // POST /api/menu  (admin only) — add a new item
+// POST / (admin)
 router.post("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { name, nameBn, category, price, stock, tag, isVeg } = req.body;
   if (!name || !category || price == null) {
