@@ -41,3 +41,10 @@ purchase and stock history.
 Request flow: `pending → approved | rejected`, `approved → purchased`. Every stock change is saved in
 `inventory_stock_history`.
 
+## API (all need `Authorization: Bearer <token>`)
+
+| Method & path | Who |
+| --- | --- |
+| `GET /api/inventory/items` | staff, admin |
+| `POST /api/inventory/requests` | staff |
+| `GET /api/inventory/requests/mine` | staff |
