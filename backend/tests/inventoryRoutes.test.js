@@ -114,3 +114,10 @@ test("staff records usage with the token's id; others cannot", async () => {
   assert.equal(ok.status, 201);
   assert.equal(calls[0][1], 3);
   assert.equal(calls[0][2].quantity, 3);
+  assert.equal((await req("/usage", { role: "staff", method: "POST", body: { itemId: 1, quantity: 0 } })).status, 400);
+  assert.equal((await req("/usage", { role: "admin", method: "POST", body: { itemId: 1, quantity: 1 } })).status, 403);
+  assert.equal((await req("/usage", { role: "student", method: "POST", body: { itemId: 1, quantity: 1 } })).status, 403);
+  assert.equal((await req("/usage/mine", { role: "staff" })).status, 200);
+  assert.equal((await req("/admin/usage", { role: "staff" })).status, 403);
+  assert.equal((await req("/admin/usage", { role: "admin" })).status, 200);
+});
