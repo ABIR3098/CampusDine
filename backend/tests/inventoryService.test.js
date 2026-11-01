@@ -94,3 +94,17 @@ test("a failure in the middle of a purchase rolls everything back", async () => 
   assert.equal(pool.st.purchases.length, 0);
   assert.equal(pool.st.requests[1].status, "approved");
 });
+
+test("direct purchase without a request adds to stock", async () => {
+  const pool = fakePool();
+  const out = await createService(pool).recordPurchase(1, { itemId: 1, requestId: null, quantity: 2.5, unitCost: null, totalCost: null });
+  assert.equal(out.stockAfter, 12.5);
+});
+
+test("stock correction writes a history row with the difference", async () => {
+  const pool = fakePool();
+  const out = await createService(pool).adjustStock(1, 1, { newStock: 4, note: "Recount" });
+  assert.deepEqual([out.stockBefore, out.stockAfter], [10, 4]);
+  assert.equal(pool.st.history[0][0], 1);
+  assert.equal(pool.st.history[0][1], -6);
+});
