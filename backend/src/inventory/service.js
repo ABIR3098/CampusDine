@@ -169,3 +169,12 @@ function createService(pool) {
       note: r.note || "", adminName: r.admin_name || null, purchasedAt: r.purchased_at,
     }));
   }
+
+  async function listHistory(itemId) {
+    const where = itemId ? "WHERE h.item_id = ?" : "";
+    const [rows] = await pool.query(
+      `SELECT h.*, i.name AS item_name, i.unit, u.name AS actor_name
+       FROM inventory_stock_history h JOIN inventory_items i ON i.id = h.item_id LEFT JOIN users u ON u.id = h.actor_id
+       ${where} ORDER BY h.created_at DESC, h.id DESC LIMIT 300`,
+      itemId ? [itemId] : []
+    );
