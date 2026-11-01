@@ -259,6 +259,7 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
       recipientId,
       senderName: req.user.name,
       senderRole: req.user.role,
+      scope,
       message,
       createdAt: new Date().toISOString(),
     };
