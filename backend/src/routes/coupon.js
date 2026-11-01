@@ -269,6 +269,7 @@ router.get("/available", verifyToken, async (req, res) => {
 });
 
 // Admin: Create new coupon
+// POST / (any logged-in user)
 router.post("/", verifyToken, async (req, res) => {
   let db;
   try {
