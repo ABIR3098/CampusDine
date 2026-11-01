@@ -37,3 +37,8 @@ function validateStaffRequest(body = {}) {
   const currentQty = toQty(body.currentQty, { allowZero: true });
   if (currentQty === null) return { error: "Current quantity must be a number (0 or more)." };
   const requiredQty = toQty(body.requiredQty);
+  if (requiredQty === null) return { error: "Required quantity must be a number greater than 0." };
+  const note = cleanText(body.note, 500);
+  return { value: { itemId, requestType, currentQty, requiredQty, note } };
+}
+
