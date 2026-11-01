@@ -5,3 +5,11 @@ const REQUEST_TYPES = ["report", "request"];
 const REQUEST_STATUSES = ["pending", "approved", "rejected", "purchased"];
 const MAX_QTY = 10000000;
 
+// pending -> approved | rejected, approved -> purchased. rejected and purchased are final.
+const TRANSITIONS = {
+  pending: ["approved", "rejected"],
+  approved: ["purchased"],
+  rejected: [],
+  purchased: [],
+};
+
