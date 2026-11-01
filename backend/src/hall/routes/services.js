@@ -141,6 +141,7 @@ router.patch("/students/:id/room", requireRole("admin"), catchAsync(async(req,re
   }
 }));
 
+// GET /overview (admin)
 router.get("/overview", requireRole("admin"), catchAsync(async(req,res)=>{
   const [[counts]] = await pool.query(`SELECT
     (SELECT COUNT(*) FROM hall_requests WHERE status IN ('submitted','approved','in_progress') AND (? IS NULL OR university_id=?)) open_requests,
