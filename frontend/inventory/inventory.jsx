@@ -159,3 +159,18 @@
               <div>
                 <label className="text-xs font-700">Required quantity{chosen ? ` (${chosen.unit})` : ""}</label>
                 <input className={inputCls} style={inputStyle} inputMode="decimal" value={form.requiredQty} onChange={(e) => setForm({ ...form, requiredQty: e.target.value })} />
+              </div>
+            </div>
+            <label className="text-xs font-700">Note (optional)</label>
+            <textarea className={inputCls + " mb-3"} style={inputStyle} rows={2} maxLength={500} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+            <button type="button" className="btn-primary px-4 py-2 rounded-xl text-sm" disabled={busy || !form.itemId} onClick={submit}>{busy ? "Sending…" : "Send to admin"}</button>
+          </div>
+        )}
+
+        {tab === "mine" && (
+          <div className="space-y-3">
+            {requests.map((r) => (
+              <div key={r.id} className="card p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-700">{r.itemName}{r.itemNameBn ? <span className="ml-2 font-400" style={{ color: "var(--ink-soft)" }}>{r.itemNameBn}</span> : null}
+                    <span className="ml-2 text-xs font-400" style={{ color: "var(--ink-soft)" }}>{r.requestType === "report" ? "Stock report" : "Purchase request"} · #{r.id}</span></div>
