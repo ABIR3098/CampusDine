@@ -7403,6 +7403,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
     const socket = io(apiBase, { auth: { token } });
     if (user && user.id) socket.emit("join", `rider:${user.id}`);
     socket.on("rider:order-assigned", () => {
+      setMessage("🛵 A new teacher order was just given to you. Please accept it below.");
       refreshOrders();
     });
     return () => {
