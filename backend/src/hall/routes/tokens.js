@@ -18,6 +18,7 @@ async function queueInfo(db, date, slot, serial) {
 }
 
 // GET /api/hall/token → today's tokens of the person: [{ slot, serial, plates, status, nowServing, ahead }]
+// GET /token
 router.get("/token", people, catchAsync(async (req, res) => {
   const date = nowParts().dateKey;
   const [rows] = await pool.query(
