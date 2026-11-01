@@ -44,3 +44,12 @@ test("no dev account is created in production", async () => {
     assert.equal(db.inserts.length, 0);
   } finally { process.env.NODE_ENV = old; }
 });
+
+test("the users.role enum keeps 'staff' everywhere it is redefined", () => {
+  const root = path.join(__dirname, "..");
+  for (const f of ["server.js", "schema.sql", "migrations/20261101_staff_inventory.sql", "src/inventory/schema.js"]) {
+    const text = fs.readFileSync(path.join(root, f), "utf8");
+    const enums = text.match(/ENUM\('student','teacher','admin','rider','hall_admin'[^)]*\)/g) || [];
+    assert.ok(enums.length > 0, f);
+    for (const e of enums) assert.ok(e.includes("'staff'"), `${f}: ${e}`);
+  }
