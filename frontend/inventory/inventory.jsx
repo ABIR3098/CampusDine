@@ -79,6 +79,18 @@
     return (
       <div className="mb-4 rounded-xl p-3" style={{ background: "#FFF7ED", border: "1px solid #FDBA74" }}>
         <div className="text-sm font-800 mb-2" style={{ color: "#9A3412" }}>⚠ Stock alert</div>
+        <div className="space-y-1.5">
+          {bad.map((i) => (
+            <div key={i.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <span><strong>{i.name}</strong>: {fmt(i.currentStock)} {i.unit} left <Pill s={LEVEL_STYLE[i.level]} /></span>
+              {onRestock && <button type="button" className="text-xs font-700 px-2.5 py-1 rounded-lg border" style={{ borderColor: "#FB923C", color: "#9A3412" }} onClick={() => onRestock(i)}>Request restock</button>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   function StockTable({ items, actions }) {
     return (
       <div className="overflow-x-auto">
