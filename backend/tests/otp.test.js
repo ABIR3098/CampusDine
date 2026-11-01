@@ -124,3 +124,11 @@ test("with no live code the answer is expired or not found", async () => {
   assert.equal(r.status, 400);
   assert.match(r.error, /expired or not found/);
 });
+
+test("a change_email code works for change_email only", async () => {
+  const db = fakeDb();
+  const made = await createOtp(db, "new@campus.test", "change_email");
+  assert.equal(made.ok, true);
+  assert.equal((await verifyOtp(db, "new@campus.test", "signup", made.code)).ok, false);
+  assert.equal((await verifyOtp(db, "new@campus.test", "change_email", made.code)).ok, true);
+});
