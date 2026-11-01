@@ -255,3 +255,10 @@
             </select>
             <div className="space-y-3">
               {((reqs.data && reqs.data.requests) || []).map((r) => (
+                <div key={r.id} className="card p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-700">{r.itemName} <span className="text-xs font-400" style={{ color: "var(--ink-soft)" }}>· {r.requestType === "report" ? "Stock report" : "Purchase request"} #{r.id} · from {r.staffName}</span></div>
+                    <Pill s={STATUS_STYLE[r.status]} />
+                  </div>
+                  <div className="text-sm mt-2">Staff says current <strong>{fmt(r.currentQty)} {r.unit}</strong>, needs <strong>{fmt(r.requiredQty)} {r.unit}</strong> · Official stock: <strong>{fmt(r.officialStock)} {r.unit}</strong></div>
+                  {r.note && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Note: {r.note}</div>}
