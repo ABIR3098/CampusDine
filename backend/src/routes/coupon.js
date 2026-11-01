@@ -145,6 +145,7 @@ router.post("/validate", verifyToken, async (req, res) => {
 });
 
 // Apply coupon to order
+// POST /apply (any logged-in user)
 router.post("/apply", verifyToken, async (req, res) => {
   let db;
   try {
