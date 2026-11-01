@@ -17,3 +17,12 @@ function createInventoryRouter(service) {
     res.json({ items: await service.listItems() });
   }));
 
+  // ───── Staff: send a stock report / purchase request, see own requests with admin reply and updated stock ─────
+  router.post("/requests", requireRole("staff"), catchAsync(async (req, res) => {
+    const v = rules.validateStaffRequest(req.body);
+    if (v.error) return fail(res, v.error);
+    const created = await service.createRequest(req.user.id, v.value);
+    const io = req.app && req.app.get && req.app.get("io");
+    if (io) io.to("admins").emit("inventory:request", { id: created.id, itemName: created.itemName, staffName: created.staffName });
+    res.status(201).json({ request: created });
+  }));
