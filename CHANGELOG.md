@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Fix: bKash and Nagad callbacks confirmed the order and wrote the wallet entry again every time the gateway repeated a callback, and an error in the middle left the database connection open. A payment is now settled once (`src/services/paymentSettlement.js`), a repeated callback answers "Payment already confirmed" and changes nothing, an unknown transaction gets a 404, and the connection is always released.
+- Security: the QR code and email OTP signing key and the (unused) auth controller no longer have a hardcoded secret; in production a missing `JWT_SECRET` is an error (`src/utils/secret.js`).
 - Front page: the "Today's Special Offer" popup now appears only once per browser session (when the site is first opened) and no longer comes back every time the person returns to the front page.
 - Riders: `GET /api/riders/orders/summary` returns `waiting_orders` (a count of teacher orders with no rider yet) and the rider app uses it, and explains in the empty list why no order comes when the GPS is off. Accepting a delivery is written to the audit log as `RIDER_ACCEPT`.
 - Docs: FAQ and the Bangla README explain the duty shift, Demo GPS and accepting a delivery.
