@@ -56,6 +56,8 @@ const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
 // Hall meal system module
 const hall = require("./src/hall"); // Hall (meal system)
 const hallAdminRoutes = require("./src/routes/hallAdmin");
+const riderDispatcher = require("./src/services/riderDispatcher");
+const { startRiderDispatchTimer, dispatchSeconds } = require("./src/services/riderDispatchTimer");
 const campusFeatureRoutes = require("./src/routes/campusFeatures");
 const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
 const { ensureHallAdvancedSchema } = require("./src/hall/advancedSchema");
@@ -874,6 +876,7 @@ runStartupCheck().then(() => {
       console.warn(`⚠️  CANTEEN_TZ "${process.env.TZ}" is not a valid timezone name (example: Asia/Dhaka).`);
     }
     hall.startJobs();
+    startRiderDispatchTimer({ dispatcher: riderDispatcher, io, seconds: dispatchSeconds(process.env.RIDER_DISPATCH_SECONDS) });
   });
 }).catch((err) => {
   console.error("❌ Startup failed:", err.message);
