@@ -92,6 +92,7 @@ router.post("/location", verifyToken, requireRole("rider"), catchAsync(async (re
   res.json({ ok: true, location });
 }));
 
+// GET /orders/summary (rider)
 router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(async (_req, res) => {
   const riderId = Number(_req.user.id);
   const [counts] = await pool.query(`SELECT status, COUNT(*) AS total FROM orders
