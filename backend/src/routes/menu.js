@@ -156,6 +156,7 @@ router.get("/alerts", verifyToken, requireRole("student", "teacher"), catchAsync
   });
 }));
 
+// POST /:id/notify (student, teacher)
 router.post("/:id/notify", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid item" });
