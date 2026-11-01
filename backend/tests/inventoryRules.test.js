@@ -31,3 +31,10 @@ test("staff request validation", () => {
   assert.deepEqual(ok.value, { itemId: 3, requestType: "report", currentQty: 0, requiredQty: 25, note: "low rice" });
   assert.equal(r.validateStaffRequest({ itemId: 1, currentQty: 1, requiredQty: 2, requestType: "weird" }).value.requestType, "request");
 });
+
+test("rejecting needs a reason, approving does not", () => {
+  assert.ok(r.validateDecision({ decision: "rejected" }).error);
+  assert.ok(r.validateDecision({ decision: "maybe" }).error);
+  assert.equal(r.validateDecision({ decision: "approved" }).value.reply, "");
+  assert.equal(r.validateDecision({ decision: "rejected", reply: "Budget used up" }).value.decision, "rejected");
+});
