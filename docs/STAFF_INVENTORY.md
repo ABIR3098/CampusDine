@@ -9,3 +9,12 @@
 4. Install and start:
    ```
    cd backend
+   npm install
+   npm start
+   ```
+5. The terminal prints the logins. Open http://localhost:5000
+
+On start-up the server applies the migrations automatically (adds the `staff` role, creates the inventory tables, seeds
+10 raw materials and creates the development staff account). The same SQL is in
+`backend/migrations/20261101_staff_inventory.sql` if you prefer to run it by hand. Nothing existing is dropped or rewritten.
+
