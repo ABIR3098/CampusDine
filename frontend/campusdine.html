@@ -8857,9 +8857,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const withDot = (name, size, online) => (
     <span className="chat-avatar"><Avatar name={name} size={size} />{online !== undefined && <i className={`chat-dot ${online ? "on" : ""}`} />}</span>
   );
-  const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+  const quick = isHallChat
+    ? ["Meal token problem", "Hall service request", "Room / maintenance issue", "Thank you!"]
+    : ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
-  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+  const templates = isHallChat
+    ? ["Thanks for reaching out, we are looking into it.", "Your hall service request has been received.", "Please visit the hall office with your ID card.", "The issue has been resolved. Please tell us if it comes back."]
+    : ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
   const uploadImage = async (blob) => {
     const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : (isHallChat ? "?scope=hall" : "")}`, {
