@@ -194,6 +194,7 @@ router.patch("/pickup-tokens/:code/serve", requireRole("admin"), catchAsync(asyn
   res.json({ok:true,status:"served"});
 }));
 
+// GET /waste (admin)
 router.get("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT id,DATE_FORMAT(waste_date,'%Y-%m-%d') waste_date,slot,prepared_plates,served_plates,wasted_plates,notes,created_at FROM hall_food_waste WHERE (? IS NULL OR university_id=?) ORDER BY waste_date DESC,FIELD(slot,'breakfast','lunch','dinner') LIMIT 120",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
