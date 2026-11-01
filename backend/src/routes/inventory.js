@@ -107,6 +107,7 @@ function createInventoryRouter(service) {
   // Turn HttpError into a clean JSON response; anything else goes to the app-wide handler.
   router.use((err, req, res, next) => {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.message });
+    console.error("[inventory] " + req.method + " " + req.originalUrl + " failed:", err && err.sqlMessage ? err.sqlMessage : err);
     next(err);
   });
 
