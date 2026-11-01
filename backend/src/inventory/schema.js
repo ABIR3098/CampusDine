@@ -78,6 +78,13 @@ async function ensureInventorySchema(db) {
     CONSTRAINT fk_inv_hist_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
   )`);
 
+  await db.query(`ALTER TABLE inventory_stock_history MODIFY COLUMN reason ENUM('opening','purchase','adjustment','usage') NOT NULL`);
+  await db.query(`CREATE TABLE IF NOT EXISTS inventory_usage (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    staff_id INT NOT NULL,
+    quantity DECIMAL(12,2) NOT NULL,
+    usage_date DATE NOT NULL,
   // Seed the starting raw materials once (only when the table is empty).
   const [[{ n }]] = await db.query("SELECT COUNT(*) AS n FROM inventory_items");
   if (Number(n) === 0) {
