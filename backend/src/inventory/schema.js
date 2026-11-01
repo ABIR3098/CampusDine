@@ -5,3 +5,11 @@ const DEFAULT_ITEMS = [
   { name: "Lentils (Dal)", nameBn: "ডাল", category: "Grains", unit: "kg", stock: 45, min: 15 },
   { name: "Potato", nameBn: "আলু", category: "Vegetables", unit: "kg", stock: 60, min: 20 },
   { name: "Onion", nameBn: "পেঁয়াজ", category: "Vegetables", unit: "kg", stock: 35, min: 15 },
+  { name: "Cooking Oil", nameBn: "তেল", category: "Oil & Spices", unit: "litre", stock: 30, min: 10 },
+  { name: "Salt", nameBn: "লবণ", category: "Oil & Spices", unit: "kg", stock: 12, min: 4 },
+  { name: "Sugar", nameBn: "চিনি", category: "Oil & Spices", unit: "kg", stock: 18, min: 6 },
+  { name: "Flour (Atta)", nameBn: "আটা", category: "Grains", unit: "kg", stock: 40, min: 12 },
+  { name: "Eggs", nameBn: "ডিম", category: "Protein", unit: "dozen", stock: 25, min: 8 },
+  { name: "Chicken", nameBn: "মুরগি", category: "Protein", unit: "kg", stock: 28, min: 10 },
+];
+
