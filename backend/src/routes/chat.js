@@ -33,6 +33,7 @@ function ensureChatColumns() {
       await pool.query("CREATE TABLE IF NOT EXISTS chat_reactions (message_id INT NOT NULL, user_id INT NOT NULL, emoji VARCHAR(16) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (message_id, user_id)) DEFAULT CHARSET=utf8mb4");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_images (id INT AUTO_INCREMENT PRIMARY KEY, owner_user_id INT NOT NULL, uploader_id INT NOT NULL, mime VARCHAR(30) NOT NULL, data MEDIUMBLOB NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_chat_images_owner (owner_user_id))");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_presence (user_id INT NOT NULL PRIMARY KEY, last_seen DATETIME NOT NULL)");
+      await add2("chat_images", "scope", "scope VARCHAR(10) NOT NULL DEFAULT 'canteen'");
     })().catch((error) => { chatColumnsReady = null; throw error; });
   }
   return chatColumnsReady;
