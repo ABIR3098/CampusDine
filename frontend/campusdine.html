@@ -3973,10 +3973,10 @@ function DailyScratchModal({ onClose }) {
   const [reward, setReward] = useState(() => {
     if (savedData && savedData.reward) return savedData.reward;
     const prizes = [
-      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
+      { text: "🎉 ৳5 Off Your Order (min ৳50)", code: "CASH5" },
       { text: "☕ Free Student Chai", code: "FREECHAI" },
       { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
-      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
+      { text: "🏷 15% Off Study Snacks", code: "STUDY15" }
     ];
     return prizes[Math.floor(Math.random() * prizes.length)];
   });
