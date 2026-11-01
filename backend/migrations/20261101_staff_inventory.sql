@@ -16,3 +16,10 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   UNIQUE KEY uq_inventory_item_name (name)
 );
 
+CREATE TABLE IF NOT EXISTS inventory_requests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  staff_id INT NOT NULL,
+  item_id INT NOT NULL,
+  request_type ENUM('report','request') NOT NULL DEFAULT 'request',
+  current_qty DECIMAL(12,2) NOT NULL,
+  required_qty DECIMAL(12,2) NOT NULL,
