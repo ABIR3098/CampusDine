@@ -344,3 +344,7 @@
         )}
       </div>
     );
+  }
+
+  window.CDInventory = { StaffInventoryPanel, AdminInventoryPanel };
+})();
