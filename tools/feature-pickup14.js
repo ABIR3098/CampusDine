@@ -266,7 +266,7 @@ for (const f of FILES) {
 if (problems.length) {
   console.log("\n❌ Nothing was changed. These pieces did not match:\n");
   for (const p of problems) console.log("  - " + p);
-  console.log("\nSend this message back to Claude and it will adjust the script.");
+  console.log("\nSend this message back so the script can be adjusted.");
   process.exit(1);
 }
 
