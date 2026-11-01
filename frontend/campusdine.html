@@ -7744,10 +7744,20 @@ function RiderGpsBackground() {
   useEffect(() => {
     let busy = false;
     const tick = () => {
-      if (busy || !navigator.geolocation) return;
+      if (busy) return;
       let saved;
       try { saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); } catch (_) { saved = null; }
       if (!saved || !saved.token || !saved.apiBase) return;
+      if (saved.demo) {
+        // Demo GPS: a fixed campus position with a tiny drift, so no phone GPS (or HTTPS) is needed.
+        busy = true;
+        const drift = () => (Math.random() - 0.5) * 0.0004;
+        api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: Number(saved.latitude) + drift(), longitude: Number(saved.longitude) + drift(), accuracy: 15 } })
+          .catch(() => {})
+          .finally(() => { busy = false; });
+        return;
+      }
+      if (!navigator.geolocation) return;
       busy = true;
       navigator.geolocation.getCurrentPosition(async pos => {
         try { await api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy } }); }
