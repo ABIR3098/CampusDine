@@ -165,6 +165,8 @@ async function ensureInventorySchema(db) {
     CONSTRAINT fk_inv_usage_staff FOREIGN KEY (staff_id) REFERENCES users(id) ON DELETE CASCADE
   )`);
 
+  await ensureMissingColumns(db);
+
   // Seed the starting raw materials once (only when the table is empty).
   const [[{ n }]] = await db.query("SELECT COUNT(*) AS n FROM inventory_items");
   if (Number(n) === 0) {
