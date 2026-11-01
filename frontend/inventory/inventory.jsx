@@ -166,6 +166,13 @@
     };
     const chosen = list.find((i) => String(i.id) === String(form.itemId));
 
+    useInventorySocket(apiBase, token, {
+      "inventory:decision": (d) => {
+        const word = d.status === "approved" ? "approved" : d.status === "rejected" ? "rejected" : "marked as purchased";
+        setInfo(`Admin ${word} your ${d.itemName || "stock"} request${d.adminReply ? `: ${d.adminReply}` : "."}`);
+        mine.reload(); items.reload();
+      },
+    });
     const submit = async () => {
       setBusy(true); setError(""); setInfo("");
       try {
