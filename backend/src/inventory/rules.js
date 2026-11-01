@@ -54,6 +54,13 @@ function todayKey(d = new Date()) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
+function validateUsage(body = {}, today = todayKey()) {
+  const itemId = Number(body.itemId);
+  if (!Number.isInteger(itemId) || itemId <= 0) return { error: "Choose a raw material first." };
+  const quantity = toQty(body.quantity);
+  if (quantity === null) return { error: "Used quantity must be a number greater than 0." };
+  let usageDate = today;
+  if (body.usageDate) {
 function validateDecision(body = {}) {
   const decision = body.decision;
   if (decision !== "approved" && decision !== "rejected") return { error: "Decision must be approved or rejected." };
