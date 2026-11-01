@@ -437,6 +437,22 @@ router.get("/presence", verifyToken, requireRole("student", "teacher", "staff", 
   }
 });
 
+// How many chat messages are waiting for me in my inbox. Used for the badge on the rider's chat button.
+// GET /unread (student, teacher, staff, rider, admin, hall_admin)
+router.get("/unread", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
+  try {
+    const scope = req.user.role === "hall_admin" ? "hall" : scopeOf(req);
+    const [[row]] = await pool.query(
+      "SELECT COUNT(*) AS unread FROM chat_messages m JOIN chat_conversations c ON c.id = m.conversation_id WHERE m.recipient_id = ? AND m.read_at IS NULL AND m.deleted_at IS NULL AND c.scope = ?",
+      [req.user.id, scope]
+    );
+    res.json({ unread: row ? Number(row.unread) || 0 : 0 });
+  } catch (error) {
+    console.error("Failed to count unread chat messages:", error);
+    res.status(500).json({ error: "Failed to load unread count" });
+  }
+});
+
 // ---- Photos. Upload: raw image bytes (the browser already shrinks them). View: only admins and the student/teacher the chat belongs to. ----
 const MAX_PHOTO_BYTES = 900 * 1024;
 const photoType = (buf) => {
