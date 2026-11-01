@@ -50,7 +50,7 @@ Request flow: `pending → approved | rejected`, `approved → purchased`. Every
 | Method & path | Who |
 | --- | --- |
 | `GET /api/inventory/items` | staff, admin |
-| `POST /api/inventory/requests` | staff |
+| `POST /api/inventory/requests`, `POST /api/inventory/usage`, `GET /api/inventory/usage/mine` | staff |
 | `GET /api/inventory/requests/mine` | staff |
 | `GET /api/inventory/admin/summary`, `/admin/requests`, `/admin/purchases`, `/admin/history` | admin |
 | `POST /api/inventory/admin/requests/:id/decision` | admin |
