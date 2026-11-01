@@ -9,3 +9,10 @@ function fakePool() {
     items: [{ id: 1, name: "Rice", name_bn: "চাল", category: "Grains", unit: "kg", current_stock: 10, min_stock: 5 }],
     requests: [
       { id: 1, staff_id: 3, item_id: 1, request_type: "request", current_qty: 10, required_qty: 50, status: "pending", admin_id: null, admin_reply: null },
+      { id: 2, staff_id: 3, item_id: 1, request_type: "request", current_qty: 10, required_qty: 5, status: "approved", admin_id: 1, admin_reply: "ok" },
+    ],
+    purchases: [], history: [], failOn: null, commits: 0, rollbacks: 0,
+  };
+  let seq = 100;
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const run = (sql, p = []) => {
