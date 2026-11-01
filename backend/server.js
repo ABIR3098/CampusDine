@@ -811,6 +811,7 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/pricing", pricingRouter);
 // Loyalty points
 app.use("/api/loyalty", loyaltyRouter);
+// Offers and loyalty settings
 app.use("/api/offers", offersRouter);
 // Hall meals, tokens, bills and finance
 app.use("/api/hall", hall.router);
