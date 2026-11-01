@@ -18,3 +18,10 @@
   const fmt = (n) => (n === null || n === undefined ? "—" : Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 }));
   const when = (v) => (v ? new Date(v).toLocaleString() : "—");
 
+  const STATUS_STYLE = {
+    pending: { bg: "#FEF3C7", fg: "#92400E", label: "Pending" },
+    approved: { bg: "#DBEAFE", fg: "#1E40AF", label: "Approved" },
+    rejected: { bg: "#FEE2E2", fg: "#991B1B", label: "Rejected" },
+    purchased: { bg: "#DCFCE7", fg: "#166534", label: "Purchased" },
+  };
+  const LEVEL_STYLE = {
