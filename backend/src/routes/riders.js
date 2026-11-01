@@ -44,6 +44,7 @@ router.post("/orders/:orderId/accept", verifyToken, requireRole("rider"), catchA
   const accepted = await acceptAssignedOrder(pool, { orderId, riderId });
   if (!accepted.ok) return res.status(409).json({ error: "Order is not assigned to you or is no longer available" });
   if (accepted.changed) {
+    await recordAuditEvent(pool, req, "RIDER_ACCEPT", "order", orderId, { riderId });
     const io = req.app.get("io");
     io.to("admins").emit("rider:order-accepted", { orderId, riderId });
     // The teacher who ordered sees at once that a rider took the delivery.
