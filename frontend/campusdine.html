@@ -8698,6 +8698,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const isAdmin = role === "admin" || role === "hall_admin";
+  // A rider talks to the canteen admin like a member (no hall chat, no order sharing).
+  const isRider = role === "rider";
   // "hall" = the student talks to the Hall Admin only; "canteen" = the canteen admin only.
   const isHallChat = scope === "hall" || role === "hall_admin";
   const withScope = (path) => (isHallChat && !isAdmin ? path + (path.includes("?") ? "&" : "?") + "scope=hall" : path);
@@ -8859,7 +8861,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   );
   const quick = isHallChat
     ? ["Meal token problem", "Hall service request", "Room / maintenance issue", "Thank you!"]
-    : ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+    : isRider
+      ? ["I am at the canteen", "The order is not ready yet", "The customer is not answering", "Thank you!"]
+      : ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
   const templates = isHallChat
     ? ["Thanks for reaching out, we are looking into it.", "Your hall service request has been received.", "Please visit the hall office with your ID card.", "The issue has been resolved. Please tell us if it comes back."]
