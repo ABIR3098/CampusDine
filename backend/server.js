@@ -807,6 +807,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/feedback", feedbackRoutes);
 // Spending and order summaries
 app.use("/api/summary", summaryRoutes);
+// Cart price quote with combos and happy hour
 app.use("/api/pricing", pricingRouter);
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
