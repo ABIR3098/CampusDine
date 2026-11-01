@@ -98,6 +98,7 @@ router.get("/messages", verifyToken, requireRole("student", "teacher", "staff"),
   }
 });
 
+// GET /:userId/messages (admin)
 router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, res) => {
   let connection;
   try {
