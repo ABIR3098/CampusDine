@@ -446,7 +446,7 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
         const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff')", [ownerId]);
         if (!target) return res.status(404).json({ error: "Chat user not found" });
       }
-      const [result] = await pool.execute("INSERT INTO chat_images (owner_user_id, uploader_id, mime, data) VALUES (?, ?, ?, ?)", [ownerId, req.user.id, mime, buf]);
+      const [result] = await pool.execute("INSERT INTO chat_images (owner_user_id, uploader_id, mime, data, scope) VALUES (?, ?, ?, ?, ?)", [ownerId, req.user.id, mime, buf, scopeOf(req)]);
       res.status(201).json({ id: result.insertId });
     } catch (error) {
       console.error("Failed to save chat photo:", error);
