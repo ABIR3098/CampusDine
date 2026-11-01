@@ -32,6 +32,7 @@ async function guestPlates(date, slot) {
 
 // GET /api/hall/report/day?date=YYYY-MM-DD (default today)
 // → { date, slots: [{ slot, label, locked, members, on, off, guests, plates, feast, offList: [{ name, externalId, role }] }] }
+// GET /report/day
 router.get("/report/day", catchAsync(async (req, res) => {
   const now = nowParts();
   const date = req.query.date || now.dateKey;
