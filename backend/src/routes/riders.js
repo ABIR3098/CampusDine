@@ -3,6 +3,7 @@ const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { recordAuditEvent } = require("../utils/audit");
+const { publicRiderLocation } = require("../utils/riderLocation");
 const router = express.Router();
 
 router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
@@ -116,6 +117,6 @@ router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(asyn
 router.get("/locations", verifyToken, requireRole("teacher"), catchAsync(async (_req, res) => {
   const [rows] = await pool.query(`SELECT u.id AS riderId, u.name, u.external_id, l.latitude, l.longitude, l.accuracy_m, CASE WHEN l.updated_at >= NOW() - INTERVAL 30 SECOND THEN l.active ELSE 0 END AS active, l.updated_at
     FROM users u LEFT JOIN rider_locations l ON l.rider_id = u.id WHERE u.role = 'rider' ORDER BY u.name`);
-  res.json(rows.map(r => ({ ...r, latitude: r.latitude == null ? null : Number(r.latitude), longitude: r.longitude == null ? null : Number(r.longitude), accuracy_m: r.accuracy_m == null ? null : Number(r.accuracy_m), active: Boolean(r.active) })));
+  res.json(rows.map(publicRiderLocation));
 }));
 module.exports = router;
