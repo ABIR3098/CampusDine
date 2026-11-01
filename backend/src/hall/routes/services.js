@@ -152,6 +152,7 @@ router.get("/overview", requireRole("admin"), catchAsync(async(req,res)=>{
     (SELECT COUNT(*) FROM hall_inventory WHERE quantity<=min_quantity AND (? IS NULL OR university_id=?)) low_stock`,Array(6).fill(req.user.universityId||null).flatMap(x=>[x,x]));
   res.json(counts);
 }));
+// GET /audit (admin)
 router.get("/audit", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT a.id,a.user_id,u.name AS actor,a.action,a.entity_type,a.entity_id,a.details,a.created_at FROM hall_audit_log a LEFT JOIN users u ON u.id=a.user_id WHERE (? IS NULL OR a.university_id=?) ORDER BY a.created_at DESC LIMIT 200",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
