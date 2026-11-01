@@ -84,3 +84,10 @@
           <tbody>
             {items.map((it) => (
               <tr key={it.id} className="border-t" style={{ borderColor: "var(--line)" }}>
+                <td className="py-2 pr-3 font-700">{it.name}{it.nameBn ? <span className="ml-2 font-400" style={{ color: "var(--ink-soft)" }}>{it.nameBn}</span> : null}</td>
+                <td className="py-2 pr-3 font-mono">{fmt(it.currentStock)}</td>
+                <td className="py-2 pr-3">{it.unit}</td>
+                <td className="py-2 pr-3"><Pill s={LEVEL_STYLE[it.level] || LEVEL_STYLE.ok} /></td>
+                {actions && <td className="py-2 text-right">{actions(it)}</td>}
+              </tr>
+            ))}
