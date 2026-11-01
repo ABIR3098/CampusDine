@@ -36,3 +36,27 @@ test("each inbox is answered by its own admin role", () => {
   assert.equal(isInboxOwner({ role: "hall_admin" }), true);
   assert.equal(isInboxOwner({ role: "student" }), false);
 });
+
+test("the canteen admin is a member of the hall inbox only when it asks for scope=hall", () => {
+  const { memberMode, inboxMode, inboxScope } = chat._test;
+  // inside a restaurant: the canteen admin answers the canteen inbox
+  assert.equal(memberMode(req("admin")), false);
+  assert.equal(inboxMode(req("admin")), true);
+  assert.equal(scopeOf(req("admin")), "canteen");
+  // inside the Hall: the canteen admin writes to the Hall Admin like a student
+  const inHall = req("admin", { query: { scope: "hall" } });
+  assert.equal(memberMode(inHall), true);
+  assert.equal(inboxMode(inHall), false);
+  assert.equal(scopeOf(inHall), "hall");
+  // but the inbox routes never trust the parameter, so the canteen admin cannot read the hall inbox
+  assert.equal(inboxScope(inHall), "canteen");
+});
+
+test("the hall admin is never a member and always answers the hall inbox", () => {
+  const { memberMode, inboxMode, inboxScope } = chat._test;
+  const r = req("hall_admin", { query: { scope: "canteen" } });
+  assert.equal(memberMode(r), false);
+  assert.equal(inboxMode(r), true);
+  assert.equal(inboxScope(r), "hall");
+  assert.equal(scopeOf(r), "hall");
+});
