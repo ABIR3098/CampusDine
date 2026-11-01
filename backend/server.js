@@ -69,6 +69,7 @@ const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 // Wallet bonus (taka) given to new accounts
 const SIGNUP_BONUS = 250;
 
+// Seeds the default menu and meal rates when the menu table is empty
 async function seedDefaultMenuAndRates(db) {
   try {
     const [menuTable] = await db.query("SHOW TABLES LIKE 'menu_items'");
