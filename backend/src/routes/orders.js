@@ -581,6 +581,7 @@ router.post("/:id/report", verifyToken, requireRole("student", "teacher"), catch
 }));
 
 // GET /api/orders/issues/mine  (student/teacher) — my reports, with the admin's reply
+// GET /issues/mine (student, teacher)
 router.get("/issues/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     "SELECT id, order_id, reason, details, status, admin_reply, created_at, resolved_at FROM order_issues WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
