@@ -34,3 +34,9 @@ It holds passwords and secrets, so `.gitignore` excludes it. Copy `backend/.env.
 
 ## Why does a new menu item show no calories?
 Calories and allergens live in `NUTRITION_BY_NAME` in `backend/src/catalog.js`. Items that are not listed there simply show no nutrition badges. Add a line for the item to fix it.
+
+## Why does my rider not get a teacher order?
+Check these in order: the order is from a **teacher** (student orders are collected at the counter); the rider pressed **Start Duty Shift**; the rider app shows GPS or **Demo GPS** as active (a position older than 90 seconds does not count); the rider has fewer active orders than the shift limit. The app shows a red warning for the first cases. A waiting order is offered again every 20 seconds (`RIDER_DISPATCH_SECONDS`), so it usually arrives within half a minute after the rider is ready. See [RIDERS_API.md](RIDERS_API.md).
+
+## Can I test riders without a phone GPS?
+Yes. In the rider app press **Demo GPS** (next to Enable GPS). It shares a fixed campus position, so the rider can go on duty on a desktop browser or without HTTPS.

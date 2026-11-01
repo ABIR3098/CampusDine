@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Riders: `GET /api/riders/orders/summary` returns `waiting_orders` (a count of teacher orders with no rider yet) and the rider app uses it, and explains in the empty list why no order comes when the GPS is off. Accepting a delivery is written to the audit log as `RIDER_ACCEPT`.
+- Docs: FAQ and the Bangla README explain the duty shift, Demo GPS and accepting a delivery.
 - Rider app: a **Demo GPS** button shares a fixed campus position (with a tiny drift) so a rider can be on duty and receive teacher orders without phone GPS or HTTPS.
 - Riders: accepting a delivery twice is safe, and the teacher gets the `order:rider-accepted` event and a notice; teacher Live Tracking shows "accepted" or "waiting to accept" and now also lists orders still waiting for a rider.
 - Fix: riders did not receive teacher orders. An order that found no rider when it was placed (nobody on duty, or nobody sharing a position yet) stayed `Unassigned` until an admin pressed a button. It is now tried again when a rider starts a shift, when a rider sends a position, and every 20 seconds by a timer on the server (`RIDER_DISPATCH_SECONDS`, `0` = off); the rider gets the `rider:order-assigned` event and the audit log shows `AUTO_RIDER_ASSIGN`.
