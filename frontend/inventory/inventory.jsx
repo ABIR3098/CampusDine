@@ -248,3 +248,10 @@
         ]} />
         <Notice error={error || items.error || reqs.error} info={info} />
 
+        {tab === "requests" && (
+          <div>
+            <select className={inputCls + " mb-3 max-w-xs"} style={inputStyle} value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="">All requests</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="purchased">Purchased</option>
+            </select>
+            <div className="space-y-3">
+              {((reqs.data && reqs.data.requests) || []).map((r) => (
