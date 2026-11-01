@@ -19,3 +19,10 @@ async function ensureDevStaffAccount(db, { log = console.log } = {}) {
     "INSERT INTO users (name, external_id, role, password_hash, wallet_balance) VALUES (?, ?, 'staff', ?, 0)",
     [DEV_STAFF.name, DEV_STAFF.externalId, hash]
   );
+  return { created: true, skipped: false };
+}
+
+function printStaffCredentials(log = console.log) {
+  log("   Staff   → ID: " + DEV_STAFF.externalId + "     Password: " + DEV_STAFF.password + "   (temporary dev password)");
+}
+
