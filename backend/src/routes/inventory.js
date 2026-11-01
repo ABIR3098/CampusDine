@@ -30,6 +30,15 @@ function createInventoryRouter(service) {
     res.json({ requests: await service.listStaffRequests(req.user.id) });
   }));
 
+  // ───── Staff: record what was used today. The system deducts it from the official stock. ─────
+  router.post("/usage", requireRole("staff"), catchAsync(async (req, res) => {
+    const v = rules.validateUsage(req.body);
+    if (v.error) return fail(res, v.error);
+    const result = await service.recordUsage(req.user.id, v.value);
+    const io = req.app && req.app.get && req.app.get("io");
+    if (io && result.level !== "ok") io.to("admins").emit("inventory:alert", { itemName: result.itemName, level: result.level, stock: result.stockAfter, unit: result.unit });
+    res.status(201).json(result);
+  }));
   // ───── Admin ─────
   router.get("/admin/summary", requireRole("admin"), catchAsync(async (req, res) => {
     res.json(await service.summary());
