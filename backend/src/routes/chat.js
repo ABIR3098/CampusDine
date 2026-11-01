@@ -64,7 +64,7 @@ function scopeOf(req) {
   if (req.user.role === "hall_admin") return "hall";
   if (req.user.role === "admin") return askedScope(req) === "hall" ? "hall" : "canteen";
   // Hall chat is for hall residents (students and teachers); staff only have the canteen chat.
-  return asked === "hall" && ["student", "teacher"].includes(req.user.role) ? "hall" : "canteen";
+  return askedScope(req) === "hall" && ["student", "teacher"].includes(req.user.role) ? "hall" : "canteen";
 }
 
 async function getAdminId(connection, scope = "canteen") {
