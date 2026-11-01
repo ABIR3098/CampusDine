@@ -196,6 +196,7 @@ router.delete("/feasts/:id/rsvp", catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/feasts/:id/rsvps (admin) — who answered what
+// GET /feasts/:id/rsvps (admin)
 router.get("/feasts/:id/rsvps", requireRole("admin"), catchAsync(async (req, res) => {
   const feast = await getFeast(req.params.id, req.user.universityId || null);
   if (!feast) return res.status(404).json({ error: "Feast not found" });
