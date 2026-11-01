@@ -119,7 +119,10 @@ function createService(pool) {
         [itemId, v.quantity, before, after, p.insertId, adminId, v.note || v.supplier || null]
       );
       if (v.requestId) {
-        await conn.query("UPDATE inventory_requests SET status = 'purchased', admin_id = COALESCE(admin_id, ?) WHERE id = ?", [adminId, v.requestId]);
+        await conn.query(
+          "UPDATE inventory_requests SET status = 'purchased', admin_id = COALESCE(admin_id, ?), admin_reply = COALESCE(?, admin_reply), decided_at = COALESCE(decided_at, NOW()) WHERE id = ?",
+          [adminId, v.reply || null, v.requestId]
+        );
       }
       return { purchaseId: p.insertId, itemId, stockBefore: before, stockAfter: after, requestId: v.requestId || null };
     });
