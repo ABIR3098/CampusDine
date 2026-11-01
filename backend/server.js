@@ -789,6 +789,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/riders", riderRoutes);
 // Canteen operations and daily controls
 app.use("/api/operations", operationsRoutes);
+// Shared group orders
 app.use("/api/group-orders", groupOrderRoutes);
 // Wallet balance, top-up and transfers
 app.use("/api/wallet", walletRoutes);
