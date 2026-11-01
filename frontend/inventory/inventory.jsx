@@ -285,7 +285,7 @@
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="font-700">{r.itemName}{r.itemNameBn ? <span className="ml-2 font-400" style={{ color: "var(--ink-soft)" }}>{r.itemNameBn}</span> : null}
                     <span className="ml-2 text-xs font-400" style={{ color: "var(--ink-soft)" }}>{r.requestType === "report" ? "Stock report" : "Purchase request"} · #{r.id}</span></div>
-                  <Pill s={STATUS_STYLE[r.status]} />
+                  <Pill s={statusStyle(r)} />
                 </div>
                 <div className="text-sm mt-2">Current: <strong>{fmt(r.currentQty)} {r.unit}</strong> · Required: <strong>{fmt(r.requiredQty)} {r.unit}</strong></div>
                 {r.note && <div className="text-xs mt-1" style={{ color: "var(--ink-soft)" }}>Your note: {r.note}</div>}
