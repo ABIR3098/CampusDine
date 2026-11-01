@@ -131,3 +131,10 @@
         ]} />
         <Notice error={error || items.error || mine.error} info={info} />
 
+        {tab === "stock" && (
+          <div className="card p-5">
+            <p className="text-xs mb-3" style={{ color: "var(--ink-soft)" }}>Official stock kept by the canteen admin. Staff can view it but cannot change it.</p>
+            <StockTable items={list} />
+          </div>
+        )}
+
