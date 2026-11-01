@@ -6,6 +6,7 @@ const { recordAuditEvent } = require("../utils/audit");
 const { publicRiderLocation } = require("../utils/riderLocation");
 const router = express.Router();
 
+// POST /orders/assign-pending (admin)
 router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { assignOrderToBestRider } = require("../utils/riderAssignment");
   const connection = await pool.getConnection();
