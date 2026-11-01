@@ -179,6 +179,14 @@ function createService(pool) {
     });
   }
 
+  const usageView = (r) => ({
+    id: r.id, itemId: r.item_id, itemName: r.item_name, unit: r.unit, quantity: Number(r.quantity),
+    usageDate: r.usage_date instanceof Date ? r.usage_date.toISOString().slice(0, 10) : String(r.usage_date).slice(0, 10),
+    note: r.note || "", staffName: r.staff_name || null, stockBefore: Number(r.stock_before), stockAfter: Number(r.stock_after), createdAt: r.created_at,
+  });
+  const USAGE_SELECT = `SELECT s.*, i.name AS item_name, i.unit, u.name AS staff_name
+    FROM inventory_usage s JOIN inventory_items i ON i.id = s.item_id LEFT JOIN users u ON u.id = s.staff_id`;
+
   async function listPurchases() {
     const [rows] = await pool.query(
       `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
