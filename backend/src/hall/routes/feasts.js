@@ -186,6 +186,7 @@ router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/hall/feasts/:id/rsvp   — take my answer back
+// DELETE /feasts/:id/rsvp
 router.delete("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   const feast = await getFeast(req.params.id, req.user.universityId || null);
   if (!feast) return res.status(404).json({ error: "Feast not found" });
