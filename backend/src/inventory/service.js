@@ -101,3 +101,11 @@ function createService(pool) {
         if (!canTransition(reqRows[0].status, "purchased")) {
           throw new HttpError(409, reqRows[0].status === "pending" ? "Approve the request before recording the purchase." : `This request is already ${reqRows[0].status}.`);
         }
+        if (itemId && Number(itemId) !== Number(reqRows[0].item_id)) throw new HttpError(400, "The item does not match the request.");
+        itemId = reqRows[0].item_id;
+      }
+      const [itemRows] = await conn.query("SELECT id, current_stock FROM inventory_items WHERE id = ? FOR UPDATE", [itemId]);
+      if (!itemRows.length) throw new HttpError(404, "That raw material does not exist.");
+      const before = Number(itemRows[0].current_stock);
+      const after = Math.round((before + v.quantity) * 100) / 100;
+
