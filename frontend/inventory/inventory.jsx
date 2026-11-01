@@ -79,6 +79,12 @@
     ref.current = handlers;
     useEffect(() => {
       if (typeof io !== "function" || !token) return undefined;
+      const socket = io(apiBase, { auth: { token } });
+      Object.keys(ref.current).forEach((evt) => socket.on(evt, (payload) => { const h = ref.current[evt]; if (h) h(payload); }));
+      return () => socket.disconnect();
+    }, [apiBase, token]);
+  }
+
   // Low / out-of-stock warning list. onRestock (optional) adds a "Request restock" button per item.
   function StockAlerts({ items, onRestock }) {
     const bad = items.filter((i) => i.level === "out" || i.level === "low");
