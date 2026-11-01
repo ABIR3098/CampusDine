@@ -47,3 +47,12 @@
         <button key={t.key} type="button" onClick={() => onChange(t.key)}
           className="px-3 py-1.5 rounded-full text-sm font-700 border"
           style={value === t.key ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)", background: "var(--panel)" }}>
+          {t.label}{t.badge ? <span className="ml-1.5 text-[11px] px-1.5 rounded-full" style={{ background: "#EF4444", color: "#fff" }}>{t.badge}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+
+  const inputCls = "w-full px-3 py-2 rounded-lg border text-sm";
+  const inputStyle = { borderColor: "var(--line)", background: "var(--panel)", color: "var(--ink)" };
+
