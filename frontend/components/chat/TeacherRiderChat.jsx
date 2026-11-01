@@ -28,6 +28,11 @@
   }
 
   const initialOf = (name) => (String(name || "?").trim().charAt(0) || "?").toUpperCase();
+  // The server sends a new message as camelCase (REST answer and live event); the chat list uses the database column names.
+  const fromPayload = (p) => ({
+    id: p.id, sender_id: p.senderId, recipient_id: p.recipientId, message: p.message, created_at: p.createdAt,
+    read_at: null, deleted_at: null, sender_name: p.senderName, sender_role: p.senderRole,
+  });
   const timeOf = (iso) => {
     const d = new Date(iso);
     return isNaN(d.getTime()) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -44,6 +49,8 @@
     const [chatLoading, setChatLoading] = useState(false);
     const [firstUnreadId, setFirstUnreadId] = useState(null);
     const scrollRef = useRef(null);
+    const [draft, setDraft] = useState("");
+    const [sending, setSending] = useState(false);
     // @@state
 
     const loadThreads = async () => {
@@ -73,6 +80,30 @@
       } finally {
         setChatLoading(false);
       }
+    };
+
+    const addMessage = (m) => setMessages((cur) => (
+      cur.some((x) => Number(x.id) === Number(m.id)) ? cur : [...cur, m].sort((a, b) => Number(a.id) - Number(b.id))
+    ));
+    const send = async () => {
+      const text = draft.trim();
+      if (!text || sending || !peer) return;
+      setSending(true);
+      try {
+        const data = await call(apiBase, token, "/" + peer.id + "/messages", { method: "POST", body: { message: text } });
+        addMessage(fromPayload(data.message));
+        setDraft("");
+        setError("");
+        loadThreads();
+      } catch (e) {
+        setError(e.message || "Could not send the message.");
+      } finally {
+        setSending(false);
+      }
+    };
+    // Enter sends, Shift+Enter adds a new line.
+    const onKeyDown = (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
     };
     // @@actions
 
@@ -157,6 +188,17 @@
                     );
                   })}
                 </div>
+                <div className="border-t p-3 flex items-end gap-2" style={{ borderColor: "var(--line)" }}>
+                  <textarea rows={1} value={draft} maxLength={MAX_LENGTH} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKeyDown}
+                    placeholder={t("trc.placeholder", "Write a message…")} className="flex-1 rounded-xl border px-3 py-2 text-sm resize-none"
+                    style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+                  <button type="button" disabled={sending || !draft.trim()} onClick={send} className="btn-primary px-4 py-2 rounded-xl text-sm font-700">
+                    {sending ? "…" : t("trc.send", "Send")}
+                  </button>
+                </div>
+                {draft.length > MAX_LENGTH - 200 && (
+                  <div className="px-3 pb-2 text-[11px] text-right" style={{ color: "var(--ink-soft)" }}>{draft.length}/{MAX_LENGTH}</div>
+                )}
                 {/* @@composer */}
               </>
             ) : (
