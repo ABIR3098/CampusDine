@@ -40,3 +40,10 @@
       {info && <div className="text-sm px-3 py-2 rounded-lg mb-3" style={{ background: "#DCFCE7", color: "#166534" }}>{info}</div>}
     </>
   );
+
+  const TabBar = ({ tabs, value, onChange }) => (
+    <div className="flex flex-wrap gap-2 mb-4">
+      {tabs.map((t) => (
+        <button key={t.key} type="button" onClick={() => onChange(t.key)}
+          className="px-3 py-1.5 rounded-full text-sm font-700 border"
+          style={value === t.key ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)", background: "var(--panel)" }}>
