@@ -305,6 +305,7 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 // Admin: List all coupons
+// GET / (any logged-in user)
 router.get("/", verifyToken, async (req, res) => {
   let db;
   try {
