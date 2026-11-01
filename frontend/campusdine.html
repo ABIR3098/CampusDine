@@ -10357,7 +10357,7 @@ function App() {
     socket.on("order:update", (order) => {
       setOrders(prev => prev.map(o => o.id === order.id
         ? { ...o, status: order.status, ...(order.picked_up_at !== undefined ? { picked_up_at: order.picked_up_at } : {}) } : o));
-      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider" && session.user.role !== "staff") refreshMyOrders().catch(() => {});
       if (order.picked_up_at && session.user.role !== "admin") {
         pushNotification("order", tx("n.collected.t"), tx("n.collected", { o: order.token || "#" + order.id }));
         return;
