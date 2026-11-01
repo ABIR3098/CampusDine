@@ -1077,6 +1077,12 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-bc-note.err{color:var(--brick)}
 .chat-bc-send{padding:9px 18px;border-radius:999px;background:var(--gold);color:#fff;font-size:13px;font-weight:700;transition:opacity .15s}
 .chat-bc-send:disabled{background:var(--disabled-bg);color:var(--disabled-fg);cursor:not-allowed}
+
+/*chat-ui16*/
+.chat-filter{display:flex;gap:6px;margin-top:10px}
+.chat-filter button{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-size:12px;font-weight:600;transition:all .15s}
+.chat-filter button:hover{border-color:var(--gold);color:var(--gold)}
+.chat-filter button.on{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
 .chat-bc-history{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
 .chat-bc-history h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:0 0 6px}
 .chat-bc-history div{padding:6px 0;font-size:13px}
@@ -8663,6 +8669,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [inboxFilter, setInboxFilter] = useState("all"); // canteen admin inbox: "all" or "rider"
   const [mobileChat, setMobileChat] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
@@ -8841,7 +8848,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
     return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
   };
 
-  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
+  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter !== "rider" || c.role === "rider") && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
   const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? "Canteen Admin" : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
@@ -9131,6 +9138,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
               <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
             </div>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
+            {!isHallChat && (
+              <div className="chat-filter" role="tablist" aria-label="Filter conversations">
+                {[["all", "All"], ["rider", "Riders"]].map(([k, l]) => (
+                  <button key={k} type="button" role="tab" aria-selected={inboxFilter === k} className={inboxFilter === k ? "on" : ""} onClick={() => setInboxFilter(k)}>{l}</button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="chat-inbox-list">
             {filtered.length === 0 ? (
