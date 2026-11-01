@@ -138,6 +138,7 @@ router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res
 }));
 
 // Feature: notify me — students/teachers ask to be told when a sold-out item is available again
+// GET /alerts (student, teacher)
 router.get("/alerts", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     `SELECT a.id, m.id AS item_id, m.name, m.stock, m.availability
