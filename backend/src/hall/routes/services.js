@@ -34,6 +34,7 @@ router.get("/services", catchAsync(async (req,res) => {
     ORDER BY FIELD(r.status,'submitted','approved','in_progress','resolved','rejected','cancelled'),r.created_at DESC LIMIT 300`;
   const [rows] = await pool.query(sql,args); res.json(rows);
 }));
+// POST /services
 router.post("/services", catchAsync(async (req,res) => {
   const b=req.body||{}, type=String(b.type||"");
   const title=String(b.title||"").trim(), description=String(b.description||"").trim(), location=String(b.location||"").trim();
