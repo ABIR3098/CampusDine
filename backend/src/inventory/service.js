@@ -118,3 +118,10 @@ function createService(pool) {
         "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, purchase_id, actor_id, note) VALUES (?, ?, ?, ?, 'purchase', ?, ?, ?)",
         [itemId, v.quantity, before, after, p.insertId, adminId, v.note || v.supplier || null]
       );
+      if (v.requestId) {
+        await conn.query("UPDATE inventory_requests SET status = 'purchased', admin_id = COALESCE(admin_id, ?) WHERE id = ?", [adminId, v.requestId]);
+      }
+      return { purchaseId: p.insertId, itemId, stockBefore: before, stockAfter: after, requestId: v.requestId || null };
+    });
+  }
+
