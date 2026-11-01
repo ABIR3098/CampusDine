@@ -276,3 +276,10 @@
                         <input className={inputCls} style={inputStyle} inputMode="decimal" defaultValue={r.requiredQty} onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), quantity: e.target.value } })} /></div>
                       <div><label className="text-[11px] font-700">Unit cost (৳)</label>
                         <input className={inputCls} style={inputStyle} inputMode="decimal" onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), unitCost: e.target.value } })} /></div>
+                      <div><label className="text-[11px] font-700">Supplier</label>
+                        <input className={inputCls} style={inputStyle} onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), supplier: e.target.value } })} /></div>
+                      <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => purchase(r)}>Record purchase</button>
+                    </div>
+                  )}
+                  {r.status === "purchased" && <div className="text-xs mt-2">Bought {fmt(r.purchasedQty)} {r.unit} → stock became <strong>{fmt(r.stockAfterPurchase)} {r.unit}</strong></div>}
+                </div>
