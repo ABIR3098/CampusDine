@@ -27,6 +27,7 @@ const PURPOSE_TEXT = {
   signup: { subject: "Verify your CampusDine account", line: "Use this code to verify your email and finish creating your account." },
   reset: { subject: "Reset your CampusDine password", line: "Use this code to reset your password." },
   login2fa: { subject: "Your CampusDine login code", line: "Use this code to finish signing in." },
+  change_email: { subject: "Confirm your new CampusDine email", line: "Use this code to confirm your new email address." },
 };
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
