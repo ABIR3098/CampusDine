@@ -5,6 +5,10 @@ const catchAsync = require("../utils/catchAsync");
 const { recordAuditEvent } = require("../utils/audit");
 const { publicRiderLocation } = require("../utils/riderLocation");
 const { assignPendingTeacherOrders } = require("../utils/riderAssignment");
+const riderDispatcher = require("../services/riderDispatcher");
+
+// A rider sends a position about every 8 seconds; looking for waiting orders that often is enough.
+const DISPATCH_GAP_MS = 5000;
 const router = express.Router();
 
 // POST /orders/assign-pending (admin)
@@ -65,6 +69,8 @@ router.post("/location", verifyToken, requireRole("rider"), catchAsync(async (re
   const location = { riderId, name: req.user.name, latitude, longitude, accuracy_m: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : null, active: true, updated_at: new Date().toISOString() };
   req.app.get("io").to("teachers").emit("rider:location", location);
   res.json({ ok: true, location });
+  // This rider may be the first one in range for an order that has been waiting.
+  riderDispatcher.dispatchQuietly({ io: req.app.get("io"), req, minGapMs: DISPATCH_GAP_MS });
 }));
 
 // GET /orders/summary (rider)
