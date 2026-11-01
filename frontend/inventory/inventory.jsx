@@ -91,3 +91,10 @@
                 {actions && <td className="py-2 text-right">{actions(it)}</td>}
               </tr>
             ))}
+            {!items.length && <tr><td colSpan={5} className="py-6 text-center" style={{ color: "var(--ink-soft)" }}>No raw materials yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
