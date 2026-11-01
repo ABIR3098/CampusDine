@@ -253,6 +253,7 @@ router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teac
   res.json({ orderId, messages });
 }));
 
+// POST /order/:orderId/messages (student, teacher, rider)
 router.post("/order/:orderId/messages", verifyToken, requireRole("student", "teacher", "rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   const message = String((req.body && req.body.message) || "").trim();
