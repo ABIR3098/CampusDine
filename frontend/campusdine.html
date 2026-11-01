@@ -2683,7 +2683,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     try {
       const p = new URLSearchParams(window.location.search);
       const r = p.get("role");
-      if (r && ["student", "teacher", "admin", "rider"].includes(r)) {
+      if (r && ["student", "teacher", "admin", "rider", "staff"].includes(r)) {
         setRole(r);
         if (r === "admin") setMode("login");
         setTimeout(() => {
