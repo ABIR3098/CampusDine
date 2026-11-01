@@ -212,6 +212,7 @@ router.post("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"recorded","food_waste",r.insertId,{date,slot,prepared,served,wasted});
   res.status(201).json({id:r.insertId,date,slot,preparedPlates:prepared,servedPlates:served,wastedPlates:wasted});
 }));
+// GET /forecast (admin)
 router.get("/forecast", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query(`SELECT DAYOFWEEK(the_date) dow,slot,AVG(daily_count) avg_plates,COUNT(*) sample_days FROM
     (SELECT the_date,slot,SUM(CASE WHEN status='on' THEN 1 ELSE 0 END)+SUM(guest_count) daily_count
