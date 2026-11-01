@@ -105,3 +105,9 @@
     const mine = useLive(() => call(apiBase, token, "/requests/mine"), [apiBase, token]);
     const [form, setForm] = useState({ itemId: "", requestType: "request", currentQty: "", requiredQty: "", note: "" });
     const [busy, setBusy] = useState(false);
+    const [error, setError] = useState("");
+    const [info, setInfo] = useState("");
+    const list = (items.data && items.data.items) || [];
+    const requests = (mine.data && mine.data.requests) || [];
+    const chosen = list.find((i) => String(i.id) === String(form.itemId));
+
