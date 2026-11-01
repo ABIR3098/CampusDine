@@ -8655,7 +8655,7 @@ function fitChatInput(el) {
   el.style.overflowY = full > 120 ? "auto" : "hidden";
 }
 
-function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
+function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope = "canteen" }) {
   const [conversations, setConversations] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [messages, setMessages] = useState([]);
