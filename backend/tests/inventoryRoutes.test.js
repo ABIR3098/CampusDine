@@ -32,3 +32,16 @@ test.before(async () => {
   await new Promise((r) => { server = app.listen(0, r); });
   base = `http://127.0.0.1:${server.address().port}/api/inventory`;
 });
+test.after(() => server.close());
+
+const req = (path, { method = "GET", role, body } = {}) => fetch(base + path, {
+  method,
+  headers: { "Content-Type": "application/json", ...(role ? { Authorization: `Bearer ${tokenFor(role)}` } : {}) },
+  body: body === undefined ? undefined : JSON.stringify(body),
+});
+
+test("everything needs a login", async () => {
+  assert.equal((await req("/items")).status, 401);
+  assert.equal((await req("/admin/summary")).status, 401);
+});
+
