@@ -81,3 +81,9 @@ test("staff can never change stock, decide requests, buy or add items", async ()
     ["/admin/purchases", { itemId: 1, quantity: 10 }],
     ["/admin/requests/7/decision", { decision: "approved" }],
     ["/admin/items", { name: "Gold", unit: "kg" }],
+  ];
+  for (const [path, body] of attempts) assert.equal((await req(path, { role: "staff", method: "POST", body })).status, 403, path);
+  for (const path of ["/admin/summary", "/admin/requests", "/admin/purchases", "/admin/history"]) assert.equal((await req(path, { role: "staff" })).status, 403, path);
+  assert.equal(calls.length, 0);
+});
+
