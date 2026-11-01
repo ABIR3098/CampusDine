@@ -374,6 +374,24 @@ router.get("/me", verifyToken, catchAsync(async (req, res) => {
   res.json(publicUser(rows[0]));
 }));
 
+// ───────────── POST /api/auth/me/email-code ─────────────
+// body: { email } → emails a 6-digit code to the NEW address. PUT /api/auth/me needs it as emailCode.
+router.post("/me/email-code", verifyToken, catchAsync(async (req, res) => {
+  const e = clean(req.body.email).toLowerCase();
+  if (!EMAIL_RE.test(e) || e.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
+  const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
+  if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
+  const otp = await createOtp(pool, e, "change_email");
+  if (!otp.ok) return res.status(otp.status).json({ error: otp.error, retryAfter: otp.retryAfter });
+  try {
+    const mail = await sendOtpEmail(e, otp.code, "change_email", otp.expiresInMin);
+    res.json({ ok: true, expiresInMin: otp.expiresInMin, emailed: mail.sent });
+  } catch (err) {
+    console.error("OTP email failed:", err.message);
+    res.status(502).json({ error: "Could not send the email. Check the address and try again." });
+  }
+}));
+
 // ───────────── PUT /api/auth/me ─────────────
 // body (all optional): { name, email, phone, address, department, fatherPhone,
 //                        hallName, roomNumber, currentPassword, newPassword, avatar }
