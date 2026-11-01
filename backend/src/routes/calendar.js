@@ -29,6 +29,7 @@ async function ratesFor(db, role) {
 }
 
 // GET /api/calendar?year=2026&month=8   (month is 1-12)  → [{ the_date, status, paid }]
+// GET / (any logged-in user)
 router.get("/", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.query);
   if (!ym) return res.status(400).json({ error: "Invalid month" });
