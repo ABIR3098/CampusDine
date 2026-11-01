@@ -73,3 +73,10 @@ test("recording a purchase for an approved request updates stock, history and st
   assert.equal(pool.st.history.length, 1);
   assert.equal(pool.st.history[0][4], out.purchaseId);
 });
+
+test("a pending request must be approved before it can be bought", async () => {
+  const pool = fakePool();
+  await assert.rejects(createService(pool).recordPurchase(1, { requestId: 1, quantity: 5 }), (e) => e.status === 409 && /Approve/.test(e.message));
+  assert.equal(pool.st.items[0].current_stock, 10);
+});
+
