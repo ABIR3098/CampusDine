@@ -76,6 +76,7 @@ router.post("/", catchAsync(async (req, res) => {
 }));
 
 // PATCH /api/recurring/:id — { active: true|false } pause / resume
+// PATCH /:id (any logged-in user)
 router.patch("/:id", catchAsync(async (req, res) => {
   const [result] = await pool.query("UPDATE recurring_orders SET active = ? WHERE id = ? AND user_id = ?",
     [req.body.active === false ? 0 : 1, Number(req.params.id), req.user.id]);
