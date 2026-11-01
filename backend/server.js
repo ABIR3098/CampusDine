@@ -91,6 +91,7 @@ async function seedDefaultMenuAndRates(db) {
       return;
     }
 
+    // Columns: name, Bangla name, category, price, stock, tag, is_veg
     const defaultMenu = [
       ["Khichuri", "খিচুড়ি", "heavy", 60, 40, "Popular", 1],
       ["Tehari", "তেহারি", "heavy", 80, 25, "Popular", 0],
