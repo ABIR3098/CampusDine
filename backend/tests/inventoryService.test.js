@@ -32,3 +32,10 @@ function fakePool() {
       const pur = st.purchases.find((x) => x.request_id === r.id);
       return [[{ ...r, item_name: i.name, item_name_bn: i.name_bn, unit: i.unit, official_stock: i.current_stock, staff_name: "Staff", purchased_qty: pur ? pur.quantity : null, stock_after: pur ? i.current_stock : null }]];
     }
+    throw new Error("Unhandled SQL in test: " + q.slice(0, 80));
+  };
+  let snapshot;
+  const conn = {
+    query: async (s, p) => run(s, p),
+    beginTransaction: async () => { snapshot = clone({ items: st.items, requests: st.requests, purchases: st.purchases, history: st.history }); },
+    commit: async () => { st.commits++; },
