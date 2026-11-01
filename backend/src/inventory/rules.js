@@ -49,3 +49,12 @@ function validateDecision(body = {}) {
   if (decision === "rejected" && reply.length < 3) return { error: "Write a short reason when rejecting a request." };
   return { value: { decision, reply } };
 }
+
+function validatePurchase(body = {}) {
+  const quantity = toQty(body.quantity);
+  if (quantity === null) return { error: "Purchased quantity must be greater than 0." };
+  let unitCost = null;
+  if (body.unitCost !== undefined && body.unitCost !== null && body.unitCost !== "") {
+    unitCost = toQty(body.unitCost, { allowZero: true });
+    if (unitCost === null) return { error: "Unit cost must be a number (0 or more)." };
+  }
