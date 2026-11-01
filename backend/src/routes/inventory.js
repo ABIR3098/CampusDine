@@ -95,3 +95,5 @@ function createInventoryRouter(service) {
 
   return router;
 }
+
+module.exports = { createInventoryRouter };
