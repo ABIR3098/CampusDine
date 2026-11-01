@@ -805,6 +805,7 @@ app.use("/api/coupon", couponRoutes);
 app.use("/api/chat", chatRoutes);
 // General feedback from users
 app.use("/api/feedback", feedbackRoutes);
+// Spending and order summaries
 app.use("/api/summary", summaryRoutes);
 app.use("/api/pricing", pricingRouter);
 app.use("/api/loyalty", loyaltyRouter);
