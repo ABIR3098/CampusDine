@@ -131,3 +131,10 @@ select{appearance:none;-webkit-appearance:none;padding-right:34px;background-rep
 .top>div:last-child{display:grid!important;grid-template-columns:1fr 1fr}.top .back,.top button{text-align:center}
 h1{font-size:23px}.metric b{font-size:26px}.item .actions button{flex:1 1 calc(50% - 6px)}.auth{margin:20px auto;padding:22px}.card{padding:16px}}
 @media(max-width:420px){.grid{grid-template-columns:1fr 1fr}}
+
+html{scroll-behavior:smooth}.card[id]{scroll-margin-top:150px}
+.sections{display:flex;gap:6px;overflow-x:auto;padding:6px;margin:0 0 16px;background:var(--surface);border:1px solid var(--border);border-radius:999px;scrollbar-width:none;position:sticky;top:88px;z-index:15;box-shadow:var(--shadow)}
+.sections::-webkit-scrollbar{display:none}
+.sections a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;transition:background .15s,color .15s}
+.sections a:hover{background:var(--brand-soft);color:var(--accent)}
+@media(max-width:700px){.sections{top:8px}}
