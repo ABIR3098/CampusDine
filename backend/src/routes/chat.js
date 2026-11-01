@@ -34,6 +34,7 @@ async function getAdminId(connection) {
   return admin ? admin.id : null;
 }
 
+// GET /conversations (admin)
 router.get("/conversations", verifyToken, requireRole("admin"), async (req, res) => {
   try {
     const [conversations] = await pool.query(
