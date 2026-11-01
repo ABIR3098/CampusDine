@@ -28,5 +28,6 @@ window.CD_COMPONENT_FILES = [
   "admin/VendorPayoutDashboard.jsx",
   "admin/SettlementInvoiceModal.jsx",
   "ui/EmergencyBannerAlert.jsx",
-  "admin/AdminEmergencyControls.jsx"
+  "admin/AdminEmergencyControls.jsx",
+  "chat/TeacherRiderChat.jsx"
 ];

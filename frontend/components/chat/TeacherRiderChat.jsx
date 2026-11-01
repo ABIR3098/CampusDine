@@ -56,7 +56,6 @@
     const [found, setFound] = useState([]);
     const peerRef = useRef(null);
     const reloadRef = useRef({});
-    // @@state
 
     const loadThreads = async () => {
       try {
@@ -131,7 +130,6 @@
         setError(e.message || "Could not delete the message.");
       }
     };
-    // @@actions
 
     const openThread = (thread) => {
       setPeer({ id: thread.peer_id, name: thread.name, role: thread.role, external_id: thread.external_id });
@@ -183,7 +181,6 @@
       });
       return () => { socket.disconnect(); };
     }, [apiBase, token, userId]);
-    // @@effects
 
     return (
       <div className="card p-0 overflow-hidden">
@@ -217,7 +214,6 @@
                 </div>
               )}
             </div>
-            {/* @@people */}
             <div className="flex-1 overflow-y-auto" style={{ maxHeight: 460 }}>
               {loading && <div className="p-4 text-xs font-600" style={{ color: "var(--ink-soft)" }}>{t("trc.loading", "Loading…")}</div>}
               {!loading && threads.length === 0 && (
@@ -292,21 +288,37 @@
                 {draft.length > MAX_LENGTH - 200 && (
                   <div className="px-3 pb-2 text-[11px] text-right" style={{ color: "var(--ink-soft)" }}>{draft.length}/{MAX_LENGTH}</div>
                 )}
-                {/* @@composer */}
               </>
             ) : (
               <div className="flex-1 grid place-items-center p-6 text-sm text-center" style={{ color: "var(--ink-soft)" }}>
                 {t("trc.pick", "Pick a chat on the left to read it.")}
               </div>
             )}
-            {/* @@view */}
           </section>
         </div>
       </div>
     );
   }
 
-  // @@exports
+  // A small number for a tab: how many teacher-rider messages are waiting. It follows the live events and also asks every 20 seconds.
+  function TeacherRiderChatBadge({ apiBase, token, refreshKey = 0, hideWhen = false }) {
+    const [unread, setUnread] = useState(0);
+    useEffect(() => {
+      if (hideWhen) { setUnread(0); return undefined; }
+      let live = true;
+      const load = () => call(apiBase, token, "/unread").then((d) => { if (live) setUnread(Number(d.unread) || 0); }).catch(() => {});
+      load();
+      const timer = setInterval(load, 20000);
+      let socket = null;
+      if (typeof io === "function") {
+        socket = io(apiBase, { auth: { token } });
+        ["message", "read", "deleted"].forEach((name) => socket.on("teacher-rider-chat:" + name, load));
+      }
+      return () => { live = false; clearInterval(timer); if (socket) socket.disconnect(); };
+    }, [apiBase, token, refreshKey, hideWhen]);
+    return unread > 0 ? <span className="chat-badge" style={{ display: "inline-grid", marginLeft: 8 }}>{unread}</span> : null;
+  }
   window.CDComponents = window.CDComponents || {};
   window.CDComponents.TeacherRiderChat = TeacherRiderChat;
+  window.CDComponents.TeacherRiderChatBadge = TeacherRiderChatBadge;
 })();
