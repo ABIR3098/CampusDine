@@ -34,3 +34,10 @@ Change the password before any real use.
 **Staff** – see raw material, current stock and unit (read-only); send a *stock report* or *purchase request* with current and
 required quantity; see status, the admin's reply and the updated stock; message the admin in chat. Staff cannot change stock.
 
+**Admin** (Inventory tab) – approve or reject requests with a reply (a reason is required for rejection), record purchases
+(quantity, unit cost, supplier) which update the official stock, correct stock with a reason, add raw materials, and see
+purchase and stock history.
+
+Request flow: `pending → approved | rejected`, `approved → purchased`. Every stock change is saved in
+`inventory_stock_history`.
+
