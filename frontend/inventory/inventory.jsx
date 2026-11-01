@@ -98,3 +98,10 @@
     );
   }
 
+  // ───────────────────────── STAFF ─────────────────────────
+  function StaffInventoryPanel({ apiBase, token }) {
+    const [tab, setTab] = useState("stock");
+    const items = useLive(() => call(apiBase, token, "/items"), [apiBase, token]);
+    const mine = useLive(() => call(apiBase, token, "/requests/mine"), [apiBase, token]);
+    const [form, setForm] = useState({ itemId: "", requestType: "request", currentQty: "", requiredQty: "", note: "" });
+    const [busy, setBusy] = useState(false);
