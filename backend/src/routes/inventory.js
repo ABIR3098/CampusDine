@@ -68,3 +68,9 @@ function createInventoryRouter(service) {
     res.json({ purchases: await service.listPurchases() });
   }));
 
+  router.post("/admin/items", requireRole("admin"), catchAsync(async (req, res) => {
+    const v = rules.validateNewItem(req.body);
+    if (v.error) return fail(res, v.error);
+    res.status(201).json({ item: await service.addItem(req.user.id, v.value) });
+  }));
+
