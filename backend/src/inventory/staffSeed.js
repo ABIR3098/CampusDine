@@ -5,3 +5,10 @@ const bcrypt = require("bcryptjs");
 // Never created when NODE_ENV=production.
 const DEV_STAFF = { name: "Kitchen Staff (Dev)", externalId: "staff01", password: "Staff@2026-Temp" };
 
+async function ensureDevStaffAccount(db, { log = console.log } = {}) {
+  if (process.env.NODE_ENV === "production") return { created: false, skipped: true };
+  const [existing] = await db.query("SELECT id, role FROM users WHERE external_id = ?", [DEV_STAFF.externalId]);
+  if (existing.length) {
+    if (existing[0].role !== "staff") {
+      log(`⚠️  ID '${DEV_STAFF.externalId}' already belongs to a ${existing[0].role} account, so the dev staff login was not created.`);
+    }
