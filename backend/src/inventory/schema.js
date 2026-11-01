@@ -15,6 +15,76 @@ const DEFAULT_ITEMS = [
 
 const ROLE_ENUM = "ENUM('student','teacher','admin','rider','hall_admin','staff')";
 
+
+// Old databases may already have these tables with missing columns.
+// CREATE TABLE IF NOT EXISTS never updates them, so add any missing column here.
+const REQUIRED_COLUMNS = {
+  inventory_items: {
+    name_bn: "VARCHAR(80) NULL",
+    category: "VARCHAR(40) NOT NULL DEFAULT 'General'",
+    unit: "VARCHAR(12) NOT NULL DEFAULT 'kg'",
+    current_stock: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    min_stock: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+  },
+  inventory_requests: {
+    staff_id: "INT NOT NULL DEFAULT 0",
+    item_id: "INT NOT NULL DEFAULT 0",
+    request_type: "ENUM('report','request') NOT NULL DEFAULT 'request'",
+    current_qty: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    required_qty: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    note: "VARCHAR(500) NULL",
+    status: "ENUM('pending','approved','rejected','purchased') NOT NULL DEFAULT 'pending'",
+    admin_id: "INT NULL",
+    admin_reply: "VARCHAR(500) NULL",
+    decided_at: "DATETIME NULL",
+  },
+  inventory_purchases: {
+    request_id: "INT NULL",
+    item_id: "INT NOT NULL DEFAULT 0",
+    admin_id: "INT NOT NULL DEFAULT 0",
+    quantity: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    unit_cost: "DECIMAL(12,2) NULL",
+    total_cost: "DECIMAL(14,2) NULL",
+    supplier: "VARCHAR(120) NULL",
+    note: "VARCHAR(500) NULL",
+    purchased_at: "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+  },
+  inventory_stock_history: {
+    item_id: "INT NOT NULL DEFAULT 0",
+    change_qty: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    stock_before: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    stock_after: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    purchase_id: "INT NULL",
+    actor_id: "INT NULL",
+    note: "VARCHAR(500) NULL",
+  },
+  inventory_usage: {
+    item_id: "INT NOT NULL DEFAULT 0",
+    staff_id: "INT NOT NULL DEFAULT 0",
+    quantity: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    usage_date: "DATE NULL",
+    note: "VARCHAR(500) NULL",
+    stock_before: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+    stock_after: "DECIMAL(12,2) NOT NULL DEFAULT 0",
+  },
+};
+
+async function ensureMissingColumns(db) {
+  for (const [table, cols] of Object.entries(REQUIRED_COLUMNS)) {
+    const [rows] = await db.query(
+      "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+      [table]
+    );
+    const have = new Set(rows.map((r) => String(r.COLUMN_NAME).toLowerCase()));
+    for (const [col, def] of Object.entries(cols)) {
+      if (!have.has(col.toLowerCase())) {
+        await db.query(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+        console.log(`[inventory] added missing column ${table}.${col}`);
+      }
+    }
+  }
+}
+
 async function ensureInventorySchema(db) {
   await db.query(`ALTER TABLE users MODIFY COLUMN role ${ROLE_ENUM} NOT NULL`);
 
