@@ -178,3 +178,10 @@ function createService(pool) {
        ${where} ORDER BY h.created_at DESC, h.id DESC LIMIT 300`,
       itemId ? [itemId] : []
     );
+    return rows.map((r) => ({
+      id: r.id, itemId: r.item_id, itemName: r.item_name, unit: r.unit, change: Number(r.change_qty),
+      before: Number(r.stock_before), after: Number(r.stock_after), reason: r.reason,
+      actorName: r.actor_name || null, note: r.note || "", createdAt: r.created_at,
+    }));
+  }
+
