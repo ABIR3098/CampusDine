@@ -10402,7 +10402,7 @@ function App() {
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("menu:restocked", () => { refreshAlerts().catch(() => {}); });
     socket.on("queue:changed", () => {
-      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider" && session.user.role !== "staff") refreshMyOrders().catch(() => {});
     });
 
     return () => socket.disconnect();
