@@ -205,3 +205,9 @@
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const [reply, setReply] = useState({});
+    const [buy, setBuy] = useState({}); // per request: { quantity, unitCost, supplier }
+    const [direct, setDirect] = useState({ itemId: "", quantity: "", unitCost: "", supplier: "", note: "" });
+    const [newItem, setNewItem] = useState({ name: "", nameBn: "", unit: "kg", currentStock: "", minStock: "", category: "" });
+    const list = (items.data && items.data.items) || [];
+    const s = summary.data || {};
+
