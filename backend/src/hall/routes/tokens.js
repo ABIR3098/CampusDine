@@ -44,6 +44,7 @@ router.get("/token", people, catchAsync(async (req, res) => {
 // POST /api/hall/token  body: { slot, payMethod } — take a token for today's meal (needs the meal ON, or guest plates)
 // payMethod "wallet" pays this meal from the wallet now (it is counted in the month's bill as paid);
 // "later" (default) only takes the token and the meal stays in the monthly bill.
+// POST /token
 router.post("/token", people, catchAsync(async (req, res) => {
   const slot = (req.body || {}).slot;
   const payMethod = (req.body || {}).payMethod === "wallet" ? "wallet" : "later";
