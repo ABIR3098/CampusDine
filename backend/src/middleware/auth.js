@@ -23,4 +23,10 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { verifyToken, requireRole };
+// Support both callable middleware: `const auth = require("./auth"); router.get("/", auth, ...)`
+// and destructuring: `const { verifyToken, authenticateToken, requireRole } = require("./auth");`
+verifyToken.verifyToken = verifyToken;
+verifyToken.authenticateToken = verifyToken;
+verifyToken.requireRole = requireRole;
+
+module.exports = verifyToken;
