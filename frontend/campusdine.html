@@ -7276,12 +7276,15 @@ function StaffShell({ apiBase, token, user, onLogout }) {
   );
 }
 
+// The fixed position the Demo GPS button shares (a point on the campus).
+const RIDER_DEMO_POSITION = { latitude: 23.8103, longitude: 90.4125 };
+
 function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
   const [demoGps, setDemoGps] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); return !!(saved && saved.demo); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
+  const [summary, setSummary] = useState({ waiting_orders: 0, total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
   const [routePlan, setRoutePlan] = useState(null);
   const [shift, setShift] = useState(false);
   const [shiftBusy, setShiftBusy] = useState(false);
@@ -7440,7 +7443,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
 
   // Demo GPS: share a fixed campus position instead of the phone's GPS (demos, desktop browsers, no HTTPS).
   const startDemo = async () => {
-    const position = { latitude: 23.8103, longitude: 90.4125 };
+    const position = RIDER_DEMO_POSITION;
     try {
       await api(apiBase, "/api/riders/location", { method: "POST", token, body: { ...position, accuracy: 15, active: true } });
     } catch (e) {
@@ -7672,6 +7675,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
               <div className="text-base font-display font-700">No active delivery assignments</div>
               <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--ink-soft)" }}>
                 {shift ? "You are on duty! New orders will pop up here in real-time as kitchen dispatch assigns them." : "Turn on your duty shift above to start receiving food delivery orders."}
+                {Number(summary.waiting_orders) > 0 ? ` ${summary.waiting_orders} teacher order(s) are waiting for a rider.` : ""}
               </p>
             </div>
           ) : (

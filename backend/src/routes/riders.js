@@ -102,7 +102,11 @@ router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(asyn
   const [[rt]] = await pool.query("SELECT COALESCE(AVG(rider_rating), 0) AS avg, COUNT(rider_rating) AS cnt FROM orders WHERE rider_id = ? AND rider_rating IS NOT NULL", [riderId]);
   const [reviews] = await pool.query(
     "SELECT rider_rating AS rating, rider_comment AS comment, rider_rated_at AS at FROM orders WHERE rider_id = ? AND rider_rating IS NOT NULL ORDER BY rider_rated_at DESC LIMIT 5", [riderId]);
-  res.json({ ...summary, tips_total: Number(tips.total), tips_today: Number(tips.today), rating_avg: Number(rt.avg), rating_count: Number(rt.cnt), reviews, orders: recent });
+  // Only a number: how many teacher orders still wait for a rider (no customer details).
+  const [[waiting]] = await pool.query(`SELECT COUNT(*) AS total FROM orders o JOIN users u ON u.id = o.user_id
+    WHERE o.rider_id IS NULL AND o.rider_assignment_status = 'Unassigned' AND u.role = 'teacher'
+      AND o.status IN ('Received','Cooking','Ready') AND o.picked_up_at IS NULL`);
+  res.json({ ...summary, waiting_orders: Number(waiting.total), tips_total: Number(tips.total), tips_today: Number(tips.today), rating_avg: Number(rt.avg), rating_count: Number(rt.cnt), reviews, orders: recent });
 }));
 
 // GET /locations (teacher)
