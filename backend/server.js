@@ -689,6 +689,12 @@ async function runStartupCheck() {
 //  EXPRESS APP
 // ════════════════════════════════════════════════
 const app = express();
+// Behind a reverse proxy (nginx, Render, Railway...) set TRUST_PROXY=1 so req.ip is the visitor and not the proxy.
+// The login lock-out counts tries per IP, so without this every visitor would share one counter.
+if (process.env.TRUST_PROXY) {
+  const tp = process.env.TRUST_PROXY;
+  app.set("trust proxy", tp === "true" ? true : /^\d+$/.test(tp) ? Number(tp) : tp);
+}
 const server = http.createServer(app);
 
 // CORS_ORIGIN=* allows any origin — harmless now that the frontend is
