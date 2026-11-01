@@ -821,6 +821,7 @@ app.use("/api/hall-admin", hallAdminRoutes);
 app.use("/api/campus", campusFeatureRoutes);
 // Kitchen staff inventory and purchase requests
 app.use("/api/inventory", createInventoryRouter(createInventoryService(require("./src/db"))));
+// Kitchen display system
 app.use("/api/kds", kdsRoutes);
 app.use("/api/hall/guest-tokens", guestTokenRoutes);
 app.use("/api/gamification", gamificationRoutes);
