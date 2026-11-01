@@ -32,3 +32,10 @@ const REQUEST_SELECT = `SELECT q.*, i.name AS item_name, i.name_bn AS item_name_
   LEFT JOIN inventory_purchases p ON p.request_id = q.id
   LEFT JOIN inventory_stock_history h ON h.purchase_id = p.id`;
 
+async function withTx(pool, fn) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const out = await fn(conn);
+    await conn.commit();
+    return out;
