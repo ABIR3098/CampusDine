@@ -30,3 +30,10 @@ function cleanText(value, max) {
   return String(value == null ? "" : value).replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+function validateStaffRequest(body = {}) {
+  const itemId = Number(body.itemId);
+  if (!Number.isInteger(itemId) || itemId <= 0) return { error: "Choose a raw material first." };
+  const requestType = REQUEST_TYPES.includes(body.requestType) ? body.requestType : "request";
+  const currentQty = toQty(body.currentQty, { allowZero: true });
+  if (currentQty === null) return { error: "Current quantity must be a number (0 or more)." };
+  const requiredQty = toQty(body.requiredQty);
