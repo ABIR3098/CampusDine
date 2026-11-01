@@ -67,3 +67,10 @@ test("bad staff input is rejected before touching the database", async () => {
   assert.equal(r.status, 400);
   assert.equal(calls.length, 0);
 });
+
+test("staff can see only their own requests", async () => {
+  calls.length = 0;
+  assert.equal((await req("/requests/mine", { role: "staff" })).status, 200);
+  assert.deepEqual(calls[0], ["listStaffRequests", 3]);
+});
+
