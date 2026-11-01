@@ -109,3 +109,12 @@ function createService(pool) {
       const before = Number(itemRows[0].current_stock);
       const after = Math.round((before + v.quantity) * 100) / 100;
 
+      const [p] = await conn.query(
+        "INSERT INTO inventory_purchases (request_id, item_id, admin_id, quantity, unit_cost, total_cost, supplier, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [v.requestId || null, itemId, adminId, v.quantity, v.unitCost, v.totalCost, v.supplier || null, v.note || null]
+      );
+      await conn.query("UPDATE inventory_items SET current_stock = ? WHERE id = ?", [after, itemId]);
+      await conn.query(
+        "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, purchase_id, actor_id, note) VALUES (?, ?, ?, ?, 'purchase', ?, ?, ?)",
+        [itemId, v.quantity, before, after, p.insertId, adminId, v.note || v.supplier || null]
+      );
