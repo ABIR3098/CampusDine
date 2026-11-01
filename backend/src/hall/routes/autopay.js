@@ -19,6 +19,7 @@ router.get("/autopay", memberOnly, catchAsync(async (req, res) => {
 }));
 
 // PUT /api/hall/autopay   body: { enabled: true | false }
+// PUT /autopay
 router.put("/autopay", memberOnly, catchAsync(async (req, res) => {
   const enabled = (req.body || {}).enabled;
   if (typeof enabled !== "boolean") return res.status(400).json({ error: "enabled must be true or false" });
