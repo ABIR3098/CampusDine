@@ -346,6 +346,9 @@
     }, "Approved, purchase recorded and official stock updated.");
     // A stock report carries the staff member's own count; the admin may accept it as the official stock.
     const useStaffCount = (r) => {
+      if (!window.confirm(`Set official stock of ${r.itemName} from ${fmt(r.officialStock)} to ${fmt(r.currentQty)} ${r.unit} (staff count)?`)) return;
+      run(() => call(apiBase, token, `/admin/items/${r.itemId}/adjust`, { method: "POST", body: { newStock: r.currentQty, note: `Staff report #${r.id}` } }), "Official stock updated from the staff report.");
+    };
     const adjust = (it) => {
       const v = window.prompt(`New official stock for ${it.name} (${it.unit}). Current: ${fmt(it.currentStock)}`);
       if (v === null) return;
