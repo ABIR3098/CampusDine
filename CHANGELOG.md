@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Privacy: `GET /api/riders/locations` shows a position only while the rider is sharing it.
 - Security: changing the email address now needs a code sent to the new address (`POST /api/auth/me/email-code`, then `emailCode` in `PUT /api/auth/me`).
 - Coupons: `migrations/20261101_prize_coupons.sql` creates TEHARI10, STUDY15, FREECHAI and CASH5, the codes the spin wheel and scratch card show.
 - Menu: 15 more items in `more_menu_items.sql` (Waffle, Hot Dog, Chilli Chicken and others) and calories for 3 of them.

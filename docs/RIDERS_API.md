@@ -29,3 +29,6 @@ All routes need `Authorization: Bearer <token>`. Base path: `/api/riders`.
 
 ## Tips and ratings
 `/orders/summary` adds up tips already paid out (`tips_total`, `tips_today`) and the rating average and count. Reviews do not show the student's name.
+
+## Locations for teachers
+`GET /locations` lists every rider, but latitude, longitude, accuracy and time are filled in only while the rider is sharing (last update under 30 seconds ago). For every other rider those fields are `null` and `active` is `false`, so a teacher never sees where an off-duty rider last was.
