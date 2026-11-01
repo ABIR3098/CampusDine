@@ -809,6 +809,7 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/summary", summaryRoutes);
 // Cart price quote with combos and happy hour
 app.use("/api/pricing", pricingRouter);
+// Loyalty points
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
 // Hall meals, tokens, bills and finance
