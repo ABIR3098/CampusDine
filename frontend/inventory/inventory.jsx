@@ -146,6 +146,8 @@
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const list = (items.data && items.data.items) || [];
+    // An old error or success banner should not follow the person to another tab.
+    const changeTab = (t) => { setError(""); setInfo(""); setTab(t); };
     const requests = (mine.data && mine.data.requests) || [];
     const usageList = (usage.data && usage.data.usage) || [];
     const today = localToday();
@@ -190,7 +192,7 @@
 
     return (
       <div>
-        <TabBar value={tab} onChange={setTab} tabs={[
+        <TabBar value={tab} onChange={changeTab} tabs={[
           { key: "stock", label: "Current stock" },
           { key: "usage", label: "Daily usage" },
           { key: "send", label: "Send report / request" },
@@ -321,6 +323,7 @@
     const [direct, setDirect] = useState({ itemId: "", quantity: "", unitCost: "", supplier: "", note: "" });
     const [newItem, setNewItem] = useState({ name: "", nameBn: "", unit: "kg", currentStock: "", minStock: "", category: "" });
     const list = (items.data && items.data.items) || [];
+    const changeTab = (t) => { setError(""); setInfo(""); setTab(t); };
     const s = summary.data || {};
 
     const refreshAll = () => { usageAll.reload(); summary.reload(); items.reload(); reqs.reload(); purchases.reload(); history.reload(); };
@@ -367,7 +370,7 @@
             <div key={l} className="card p-3"><div className="text-xs" style={{ color: "var(--ink-soft)" }}>{l}</div><div className="text-xl font-800">{fmt(v || 0)}</div></div>
           ))}
         </div>
-        <TabBar value={tab} onChange={setTab} tabs={[
+        <TabBar value={tab} onChange={changeTab} tabs={[
           { key: "requests", label: "Requests", badge: s.pending || null },
           { key: "stock", label: "Stock" },
           { key: "usage", label: "Daily usage" },
