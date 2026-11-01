@@ -60,3 +60,10 @@ test("staff can read stock and send a request; the server uses the token's id", 
   assert.equal(calls[0][1], 3);
   assert.equal(calls[0][2].requiredQty, 30);
 });
+
+test("bad staff input is rejected before touching the database", async () => {
+  calls.length = 0;
+  const r = await req("/requests", { role: "staff", method: "POST", body: { itemId: 1, currentQty: "x", requiredQty: 5 } });
+  assert.equal(r.status, 400);
+  assert.equal(calls.length, 0);
+});
