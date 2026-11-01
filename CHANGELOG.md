@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Chat: teachers and riders can now chat with each other directly (Teacher app → "Rider chat" tab, Rider hub → "Teacher chat" tab, both with an unread badge and live messages). A teacher can write to any rider; a rider can start a chat only with a teacher whose order they carry and can answer any teacher who wrote first. New `/api/teacher-rider-chat` routes (`threads`, `contacts`, `directory`, `unread`, `:peerId/messages`, delete), live events `teacher-rider-chat:message|read|deleted`, and the tables `teacher_rider_threads` and `teacher_rider_messages` (created on first use). See `docs/TEACHER_RIDER_CHAT_API.md`.
 - Chat: riders can now chat with the canteen admin (Rider hub → "Canteen admin chat" tab, with an unread badge). Riders are members of the canteen inbox; the canteen admin sees them under the new "Riders" filter and can start a chat with a rider by name or ID. New `GET /api/chat/unread`; riders never reach the hall inbox.
 - Chat: Hall students/teachers now have a separate **Hall Admin chat** (Hall → "Hall Admin chat"). It goes only to the Hall Admin, who reads and replies from the Hall Admin portal ("Student messages"). The canteen chat inside each restaurant still goes only to the canteen admin. New `scope` (`canteen` or `hall`) on the chat API, `GET /api/chat/directory`.
 - Chat: when the canteen admin opens the Hall, a "Hall Admin chat" tab lets them talk to the Hall Admin (who sees them in "Student messages" as Canteen Admin).
