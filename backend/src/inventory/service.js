@@ -58,3 +58,17 @@ function createService(pool) {
     return rows[0] ? requestView(rows[0]) : null;
   }
 
+  async function createRequest(staffId, v) {
+    const [items] = await pool.query("SELECT id FROM inventory_items WHERE id = ?", [v.itemId]);
+    if (!items.length) throw new HttpError(404, "That raw material does not exist.");
+    const [r] = await pool.query(
+      "INSERT INTO inventory_requests (staff_id, item_id, request_type, current_qty, required_qty, note) VALUES (?, ?, ?, ?, ?, ?)",
+      [staffId, v.itemId, v.requestType, v.currentQty, v.requiredQty, v.note || null]
+    );
+    return getRequest(r.insertId);
+  }
+
+  async function listStaffRequests(staffId) {
+    const [rows] = await pool.query(`${REQUEST_SELECT} WHERE q.staff_id = ? ORDER BY q.created_at DESC, q.id DESC LIMIT 200`, [staffId]);
+    return rows.map(requestView);
+  }
