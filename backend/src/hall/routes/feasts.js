@@ -125,6 +125,7 @@ router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/hall/feasts/:id (admin)
+// DELETE /feasts/:id (admin)
 router.delete("/feasts/:id", requireRole("admin"), catchAsync(async (req, res) => {
   const hasCol = await hasUniversityIdCol();
   let row;
