@@ -83,6 +83,7 @@ router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/menu/:id/favorite  (any logged-in user) — unstar an item
+// DELETE /:id/favorite (any logged-in user)
 router.delete("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
   await pool.query(`DELETE FROM ${table} WHERE user_id = ? AND ${itemColumn} = ?`, [req.user.id, req.params.id]);
