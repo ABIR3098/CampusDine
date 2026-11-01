@@ -39,6 +39,11 @@ function createInventoryRouter(service) {
     if (io && result.level !== "ok") io.to("admins").emit("inventory:alert", { itemName: result.itemName, level: result.level, stock: result.stockAfter, unit: result.unit });
     res.status(201).json(result);
   }));
+
+  router.get("/usage/mine", requireRole("staff"), catchAsync(async (req, res) => {
+    res.json({ usage: await service.listStaffUsage(req.user.id) });
+  }));
+
   // ───── Admin ─────
   router.get("/admin/summary", requireRole("admin"), catchAsync(async (req, res) => {
     res.json(await service.summary());
