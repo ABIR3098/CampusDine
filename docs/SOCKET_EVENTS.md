@@ -31,9 +31,9 @@ The browser connects with its login token. After that the server puts the connec
 | `chat:message` | sender and receiver | a support chat message |
 | `order-chat:message` | customer and rider | an order chat message |
 | `chat:deleted` | sender and receiver | a message was removed |
-| `chat:reaction` | the chat owner and `admins` | someone reacted to a message |
+| `chat:reaction` | the chat owner and `admins` (canteen chat) or `hall_admins` (hall chat) | someone reacted to a message |
 | `hall:notification` | `user:<id>` | a Hall last-call or notice message |
 
 ## Event the browser sends
-`chat:typing` with `{ to, typing }`. The server passes it on as `chat:typing` to `user:<to>`
-(or to `admins` when the sender is not an admin).
+`chat:typing` with `{ to, typing, scope }`. The server passes it on as `chat:typing` to `user:<to>`
+(or to `admins` when the sender is not an admin; to `hall_admins` when a student sends `scope: "hall"`).
