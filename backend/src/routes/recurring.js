@@ -88,6 +88,7 @@ router.patch("/:id", catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/recurring/:id
+// DELETE /:id (any logged-in user)
 router.delete("/:id", catchAsync(async (req, res) => {
   const [result] = await pool.query("DELETE FROM recurring_orders WHERE id = ? AND user_id = ?", [Number(req.params.id), req.user.id]);
   if (!result.affectedRows) return res.status(404).json({ error: "Weekly order not found" });
