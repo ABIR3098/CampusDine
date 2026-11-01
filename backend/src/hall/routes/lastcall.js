@@ -65,6 +65,7 @@ router.get("/lastcall", memberOnly, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall/:id/claim → { code, price, balance }   takes the price from the wallet, all or nothing
+// POST /lastcall/:id/claim
 router.post("/lastcall/:id/claim", memberOnly, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid last call" });
