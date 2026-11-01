@@ -289,6 +289,7 @@
     const reqs = useLive(() => call(apiBase, token, `/admin/requests${filter ? `?status=${filter}` : ""}`), [apiBase, token, filter]);
     const purchases = useLive(() => call(apiBase, token, "/admin/purchases"), [apiBase, token], 60000);
     const history = useLive(() => call(apiBase, token, "/admin/history"), [apiBase, token], 60000);
+    const usageAll = useLive(() => call(apiBase, token, "/admin/usage"), [apiBase, token], 60000);
     const [error, setError] = useState("");
     const [info, setInfo] = useState("");
     const [reply, setReply] = useState({});
