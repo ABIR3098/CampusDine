@@ -48,3 +48,10 @@ Request flow: `pending → approved | rejected`, `approved → purchased`. Every
 | `GET /api/inventory/items` | staff, admin |
 | `POST /api/inventory/requests` | staff |
 | `GET /api/inventory/requests/mine` | staff |
+| `GET /api/inventory/admin/summary`, `/admin/requests`, `/admin/purchases`, `/admin/history` | admin |
+| `POST /api/inventory/admin/requests/:id/decision` | admin |
+| `POST /api/inventory/admin/purchases` | admin |
+| `POST /api/inventory/admin/items`, `/admin/items/:id/adjust` | admin |
+
+## Tests
+
