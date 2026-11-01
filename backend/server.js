@@ -815,6 +815,7 @@ app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/offers", offersRouter);
 // Hall meals, tokens, bills and finance
 app.use("/api/hall", hall.router);
+// Hall admin sign-up, requests and notices
 app.use("/api/hall-admin", hallAdminRoutes);
 // Queue, Lost & Found, SOS and waste challenge
 app.use("/api/campus", campusFeatureRoutes);
