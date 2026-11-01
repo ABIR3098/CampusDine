@@ -117,6 +117,7 @@ router.get("/finance/expenses", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/finance/expenses   body: { date, category, amount, supplierId?, note? }
+// POST /finance/expenses
 router.post("/finance/expenses", admin, catchAsync(async (req, res) => {
   const b = req.body || {};
   const date = String(b.date || "");
