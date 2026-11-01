@@ -8,8 +8,8 @@ process.env.JWT_SECRET = "route-test-secret";
 const jwt = require("jsonwebtoken");
 
 const calls = [];
-const ADMIN = 1, HALL_ADMIN = 2, STUDENT = 3;
-const roleById = { [ADMIN]: "admin", [HALL_ADMIN]: "hall_admin", [STUDENT]: "student" };
+const ADMIN = 1, HALL_ADMIN = 2, STUDENT = 3, RIDER = 4;
+const roleById = { [ADMIN]: "admin", [HALL_ADMIN]: "hall_admin", [STUDENT]: "student", [RIDER]: "rider" };
 const answer = (sql, params = []) => {
   calls.push({ sql, params });
   if (/Non_unique/.test(sql)) return [[]];
@@ -21,6 +21,7 @@ const answer = (sql, params = []) => {
   if (/FROM chat_conversations WHERE user_id/.test(sql)) return [[{ id: 5 }]];
   if (/INSERT INTO chat_messages/.test(sql)) return [{ insertId: 7 }];
   if (/MIN\(id\)/.test(sql)) return [[{ id: null }]];
+  if (/COUNT\(\*\) AS unread/.test(sql)) return [[{ unread: 2 }]];
   if (/^\s*SELECT m\.id/.test(sql)) return [[]];
   return [[]];
 };
@@ -101,4 +102,57 @@ test("inbox lists ignore a scope parameter: the canteen admin never gets the hal
   assert.ok(r.calls.some((c) => /FROM chat_conversations c/.test(c.sql) && c.params[1] === "canteen"));
   const h = await call(HALL_ADMIN, "GET", "/conversations");
   assert.ok(h.calls.some((c) => /FROM chat_conversations c/.test(c.sql) && c.params[1] === "hall"));
+});
+
+test("rider reads the canteen conversation, even when it asks for the hall", async () => {
+  for (const url of ["/messages", "/messages?scope=hall"]) {
+    const r = await call(RIDER, "GET", url);
+    assert.equal(r.status, 200, url);
+    assert.ok(r.calls.some((c) => /FROM chat_conversations WHERE user_id/.test(c.sql) && c.params[0] === RIDER && c.params[1] === "canteen"), url);
+  }
+});
+
+test("rider message goes to the canteen admin, never to the hall admin", async () => {
+  for (const body of [{ message: "I am at the gate" }, { message: "I am at the gate", scope: "hall" }]) {
+    const r = await call(RIDER, "POST", "/messages", body);
+    assert.equal(r.status, 201);
+    assert.ok(r.calls.some((c) => /FROM users WHERE role = \?/.test(c.sql) && c.params[0] === "admin"));
+    assert.ok(r.calls.some((c) => /INSERT INTO chat_conversations/.test(c.sql) && c.params[0] === RIDER && c.params[1] === "canteen"));
+    assert.ok(!r.calls.some((c) => /FROM users WHERE role = \?/.test(c.sql) && c.params[0] === "hall_admin"));
+  }
+});
+
+test("canteen admin opens and answers a rider in the canteen inbox", async () => {
+  let r = await call(ADMIN, "GET", "/" + RIDER + "/messages");
+  assert.equal(r.status, 200);
+  assert.ok(r.calls.some((c) => /FROM chat_conversations WHERE user_id/.test(c.sql) && c.params[0] === RIDER && c.params[1] === "canteen"));
+  r = await call(ADMIN, "POST", "/messages", { message: "Please wait at the hall gate", userId: RIDER });
+  assert.equal(r.status, 201);
+  assert.ok(r.calls.some((c) => /INSERT INTO chat_conversations/.test(c.sql) && c.params[0] === RIDER && c.params[1] === "canteen"));
+});
+
+test("the hall admin cannot open or write to a rider", async () => {
+  let r = await call(HALL_ADMIN, "GET", "/" + RIDER + "/messages");
+  assert.ok(r.calls.some((c) => /FROM users WHERE id = \?/.test(c.sql) && c.params[1] === "hall" && c.params[2] === "hall"));
+  assert.ok(r.calls.some((c) => /role <> 'rider'/.test(c.sql)));
+  r = await call(HALL_ADMIN, "POST", "/messages", { message: "hi", userId: RIDER });
+  assert.ok(r.calls.some((c) => /FROM users WHERE id = \?/.test(c.sql) && /NOT IN \('staff', 'rider'\)/.test(c.sql) && c.params[1] === "hall"));
+});
+
+test("the directory looks for riders in the canteen inbox only", async () => {
+  let r = await call(ADMIN, "GET", "/directory?q=rid");
+  assert.equal(r.status, 200);
+  const c = r.calls.find((x) => /FROM users WHERE role IN/.test(x.sql));
+  assert.ok(/'rider'/.test(c.sql));
+  assert.deepEqual(c.params.slice(0, 2), ["canteen", "canteen"]);
+  r = await call(HALL_ADMIN, "GET", "/directory?q=rid");
+  assert.deepEqual(r.calls.find((x) => /FROM users WHERE role IN/.test(x.sql)).params.slice(0, 2), ["hall", "hall"]);
+});
+
+test("unread count: the rider counts the canteen inbox, the hall admin the hall inbox", async () => {
+  let r = await call(RIDER, "GET", "/unread");
+  assert.equal(r.status, 200);
+  assert.ok(r.calls.some((c) => /COUNT\(\*\) AS unread/.test(c.sql) && c.params[0] === RIDER && c.params[1] === "canteen"));
+  r = await call(HALL_ADMIN, "GET", "/unread");
+  assert.ok(r.calls.some((c) => /COUNT\(\*\) AS unread/.test(c.sql) && c.params[1] === "hall"));
 });
