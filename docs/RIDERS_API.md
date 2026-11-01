@@ -13,10 +13,11 @@ All routes need `Authorization: Bearer <token>`. Base path: `/api/riders`.
 
 ## When an order gets a rider
 - Only **teacher** orders use delivery riders. Student orders are collected at the counter.
-- A rider is picked automatically when the order is placed, or by `assign-pending`.
+- A rider is picked automatically when the order is placed. An order that finds nobody is tried again when a rider starts a shift, when a rider sends a position (at most every 5 seconds), every 20 seconds by a timer on the server (`RIDER_DISPATCH_SECONDS`), and by `assign-pending`.
 - The rider must be on duty, have a shared location updated in the last 90 seconds, and have fewer active orders than their shift limit.
 - Among those, the rider with the fewest active orders is chosen, then the one with the freshest location.
-- If nobody qualifies, the order stays `Unassigned` until an admin runs `assign-pending`.
+- If nobody qualifies, the order stays `Unassigned` and is offered again by the retries above, oldest order first. The assigned rider gets the `rider:order-assigned` event and the audit log shows `AUTO_RIDER_ASSIGN` (actor `system` when the timer did it).
+- In the rider app, starting the duty shift also turns the GPS sharing on, and the app warns when the rider is on duty but the server has no recent position.
 
 ## Order lifecycle for a rider
 `Assigned` → `Accepted` → `Completed`. The order becomes `Completed` when the counter scans its QR code at handover, and it then leaves the rider's list. A cancelled order also disappears from it.

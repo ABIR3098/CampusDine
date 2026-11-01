@@ -6,7 +6,7 @@ Rider GPS and accepting deliveries are in [RIDERS_API.md](RIDERS_API.md).
 ## Rider shifts
 | Method and path | Who | What it does |
 |---|---|---|
-| `GET /riders/shift/me` | rider | My current shift |
+| `GET /riders/shift/me` | rider | My current shift (`status`, `maxOrders`) and `locationFresh`: `true` when the server has a position from me that is at most 90 seconds old. A rider gets orders only while on duty and `locationFresh` is `true` |
 | `POST /riders/shift/start` | rider | Go on duty. Body: `maxOrders`, a whole number from 1 to 10 |
 | `POST /riders/shift/end` | rider | Go off duty |
 | `GET /riders/shifts` | teacher, admin | Who is on duty |
