@@ -25,3 +25,8 @@ function toQty(value, { allowZero = false } = {}) {
   if (n < 0 || (!allowZero && n === 0) || n > MAX_QTY) return null;
   return Math.round(n * 100) / 100;
 }
+
+function cleanText(value, max) {
+  return String(value == null ? "" : value).replace(/\s+/g, " ").trim().slice(0, max);
+}
+
