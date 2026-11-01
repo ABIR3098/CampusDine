@@ -7233,7 +7233,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
   const [acceptingId, setAcceptingId] = useState(null);
   const [showSos, setShowSos] = useState(false);
   const [deliveryProof, setDeliveryProof] = useState({});
-  const [view, setView] = useState("deliveries"); // "deliveries" or "chat"
+  const [view, setView] = useState("deliveries"); // "deliveries", "chat" (canteen admin) or "teacherChat"
   const [chatUnread, setChatUnread] = useState(0);
   // Badge on the chat tab: messages from the canteen admin that the rider has not opened yet.
   useEffect(() => {
@@ -7441,16 +7441,22 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
           </div>
 
           <div className="flex gap-2 mt-4">
-            {[["deliveries", "🛵 Deliveries"], ["chat", "💬 Canteen admin chat"]].map(([k, l]) => (
+            {[["deliveries", "🛵 Deliveries"], ["chat", "💬 Canteen admin chat"], ["teacherChat", "💬 Teacher chat"]].map(([k, l]) => (
               <button key={k} type="button" onClick={() => setView(k)} className="px-3 py-1.5 rounded-full text-sm font-700 border"
                 style={view === k ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>
                 {l}{k === "chat" && chatUnread > 0 && <span className="chat-badge" style={{ display: "inline-grid", marginLeft: 8 }}>{chatUnread}</span>}
+                {k === "teacherChat" && window.CDComponents && window.CDComponents.TeacherRiderChatBadge && (
+                  <window.CDComponents.TeacherRiderChatBadge apiBase={apiBase} token={token} hideWhen={view === "teacherChat"} />
+                )}
               </button>
             ))}
           </div>
         </div>
 
         {view === "chat" && <ChatWorkspace role="rider" userId={user.id} apiBase={apiBase} sessionToken={token} refreshKey={chatRefreshKey} />}
+        {view === "teacherChat" && window.CDComponents && window.CDComponents.TeacherRiderChat && (
+          <window.CDComponents.TeacherRiderChat role="rider" userId={user.id} apiBase={apiBase} token={token} tx={tx} />
+        )}
 
         {view === "deliveries" && (<>
         {/* 5 Innovative Metric Cards */}
