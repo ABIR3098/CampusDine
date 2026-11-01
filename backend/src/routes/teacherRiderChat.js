@@ -207,6 +207,17 @@ router.delete("/messages/:id", async (req, res) => {
   } catch (error) { fail(res, error, "Failed to delete message"); }
 });
 
+// GET /unread - how many messages are waiting for me (the badge on the chat tab)
+router.get("/unread", async (req, res) => {
+  try {
+    const [[row]] = await pool.query(
+      "SELECT COUNT(*) AS unread FROM teacher_rider_messages WHERE recipient_id = ? AND read_at IS NULL AND deleted_at IS NULL",
+      [req.user.id]
+    );
+    res.json({ unread: row ? Number(row.unread) || 0 : 0 });
+  } catch (error) { fail(res, error, "Failed to load unread count"); }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
