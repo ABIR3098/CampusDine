@@ -3,7 +3,6 @@ const pool = require("../db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "campusdine-secret-key-prod";
 
 const AuthController = {
   // Login handler with role authentication
@@ -31,7 +30,7 @@ const AuthController = {
 
       const token = jwt.sign(
         { id: user.id, externalId: user.external_id, role: user.role, accountType: user.account_type },
-        JWT_SECRET,
+        process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
 

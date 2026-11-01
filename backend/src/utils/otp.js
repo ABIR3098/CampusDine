@@ -5,6 +5,7 @@
 //   and at most MAX_PER_HOUR codes per email+purpose per hour.
 // All time checks run inside MySQL (NOW()), so server/DB timezone differences can't break expiry.
 const crypto = require("crypto");
+const { getSigningSecret } = require("./secret");
 const { recordFraudEvent } = require("./fraud");
 
 const OTP_TTL_MIN = 10;
@@ -36,7 +37,7 @@ async function ensureOtpSchema(db) {
 }
 
 function secret() {
-  return process.env.JWT_SECRET || "campusdine-dev-secret";
+  return getSigningSecret();
 }
 
 function hashCode(email, purpose, code) {
