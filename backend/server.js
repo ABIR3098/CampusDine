@@ -814,6 +814,7 @@ app.use("/api/kds", kdsRoutes);
 app.use("/api/hall/guest-tokens", guestTokenRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/hall/maintenance", maintenanceRoutes);
+// Sandbox payment gateway
 app.use("/api/payment", paymentSandboxRoutes);
 app.use("/api/notifications", notificationCenterRoutes);
 app.use("/api/waste-challenge", wasteChallengeRoutes);
