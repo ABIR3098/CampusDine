@@ -427,6 +427,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
 }));
 
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
+// PATCH /:id/advance (admin)
 router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const connection = await pool.getConnection();
   let order;
