@@ -52,6 +52,7 @@ const { pricingRouter, loyaltyRouter, offersRouter } = require("./src/routes/off
 const { ensureOffersSchema } = require("./src/offersSchema");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
+// Hall meal system module
 const hall = require("./src/hall"); // Hall (meal system)
 const hallAdminRoutes = require("./src/routes/hallAdmin");
 const campusFeatureRoutes = require("./src/routes/campusFeatures");
