@@ -823,6 +823,7 @@ app.use("/api/campus", campusFeatureRoutes);
 app.use("/api/inventory", createInventoryRouter(createInventoryService(require("./src/db"))));
 // Kitchen display system
 app.use("/api/kds", kdsRoutes);
+// Guest meal tokens for the hall
 app.use("/api/hall/guest-tokens", guestTokenRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/hall/maintenance", maintenanceRoutes);
