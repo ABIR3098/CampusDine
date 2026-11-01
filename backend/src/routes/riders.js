@@ -70,6 +70,7 @@ router.post("/orders/:orderId/accept", verifyToken, requireRole("rider"), catchA
 }));
 
 // Rider shares only their own device location. Location is visible to authenticated teachers.
+// POST /location (rider)
 router.post("/location", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const riderId = Number(req.user.id);
   if (req.body && req.body.active === false) {
