@@ -283,3 +283,9 @@
                   )}
                   {r.status === "purchased" && <div className="text-xs mt-2">Bought {fmt(r.purchasedQty)} {r.unit} → stock became <strong>{fmt(r.stockAfterPurchase)} {r.unit}</strong></div>}
                 </div>
+              ))}
+              {!((reqs.data && reqs.data.requests) || []).length && <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>No requests.</div>}
+            </div>
+          </div>
+        )}
+
