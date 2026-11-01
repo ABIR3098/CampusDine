@@ -172,7 +172,13 @@
           { key: "send", label: "Send report / request" },
           { key: "mine", label: "My requests", badge: requests.filter((r) => r.status === "pending").length || null },
         ]} />
-        <Notice error={error || items.error || mine.error} info={info} />
+        <Notice error={error || items.error || mine.error || usage.error} info={info} />
+        <StockAlerts items={list} onRestock={restock} />
+
+        {tab === "usage" && (
+          <div className="space-y-4">
+            <div className="card p-5 max-w-xl">
+              <div className="font-700 mb-3 text-sm">Record material used</div>
 
         {tab === "stock" && (
           <div className="card p-5">
