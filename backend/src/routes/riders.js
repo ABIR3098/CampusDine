@@ -4,41 +4,16 @@ const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { recordAuditEvent } = require("../utils/audit");
 const { publicRiderLocation } = require("../utils/riderLocation");
+const { assignPendingTeacherOrders } = require("../utils/riderAssignment");
 const router = express.Router();
 
 // POST /orders/assign-pending (admin)
 router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const { assignOrderToBestRider } = require("../utils/riderAssignment");
-  const connection = await pool.getConnection();
-  const assigned = [];
-  try {
-    const [pending] = await connection.query(`
-      SELECT o.id
-      FROM orders o JOIN users u ON u.id = o.user_id
-      WHERE o.rider_id IS NULL AND o.rider_assignment_status = 'Unassigned'
-        AND u.role = 'teacher' AND o.status IN ('Received', 'Cooking', 'Ready')
-      ORDER BY o.created_at ASC LIMIT 100
-    `);
-    for (const order of pending) {
-      await connection.beginTransaction();
-      try {
-        const riderId = await assignOrderToBestRider(connection, Number(order.id));
-        if (riderId) {
-          await recordAuditEvent(connection, req, "AUTO_RIDER_ASSIGN", "order", order.id, { riderId });
-        }
-        await connection.commit();
-        if (riderId) {
-          assigned.push({ orderId: Number(order.id), riderId });
-          req.app.get("io").to(`rider:${riderId}`).emit("rider:order-assigned", { orderId: Number(order.id) });
-        }
-      } catch (error) {
-        await connection.rollback();
-        throw error;
-      }
-    }
-  } finally {
-    connection.release();
-  }
+  const io = req.app.get("io");
+  const assigned = await assignPendingTeacherOrders(pool, {
+    onAssigned: ({ orderId, riderId }, connection) => recordAuditEvent(connection, req, "AUTO_RIDER_ASSIGN", "order", orderId, { riderId }),
+  });
+  for (const { orderId, riderId } of assigned) io.to(`rider:${riderId}`).emit("rider:order-assigned", { orderId });
   res.json({ ok: true, assigned, count: assigned.length });
 }));
 
