@@ -220,6 +220,7 @@ const toCsv = (header, rows) =>
   "\ufeff" + [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 
 // GET /api/admin/reports/export?type=orders|hall&from=&to=   → CSV download
+// GET /reports/export (any logged-in user)
 router.get("/reports/export", catchAsync(async (req, res) => {
   const range = readRange(req);
   if (range.error) return res.status(400).json({ error: range.error });
