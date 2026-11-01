@@ -135,3 +135,7 @@ function createService(pool) {
         "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, actor_id, note) VALUES (?, ?, ?, ?, 'adjustment', ?, ?)",
         [itemId, Math.round((v.newStock - before) * 100) / 100, before, v.newStock, adminId, v.note]
       );
+      return { itemId, stockBefore: before, stockAfter: v.newStock };
+    });
+  }
+
