@@ -7349,11 +7349,14 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
       if (shift) {
         await api(apiBase, "/api/operations/riders/shift/end", { method: "POST", token });
         setShift(false);
-        setMessage("Shift ended. New assignments paused.");
+        if (sharing) await stop();
+        setMessage("Shift ended. New assignments paused and location sharing stopped.");
       } else {
         await api(apiBase, "/api/operations/riders/shift/start", { method: "POST", token, body: { maxOrders } });
         setShift(true);
         setMessage("Shift started. Ready to receive assignments.");
+        // An order reaches a rider who is on duty AND sharing a position, so turn the GPS on too.
+        if (!sharing) start();
       }
     } catch (e) {
       setOrderError(e.message || "Could not update your shift.");
