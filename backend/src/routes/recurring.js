@@ -96,6 +96,7 @@ router.delete("/:id", catchAsync(async (req, res) => {
 }));
 
 // POST /api/recurring/:id/done — added to the cart or skipped: hide today's reminder
+// POST /:id/done (any logged-in user)
 router.post("/:id/done", catchAsync(async (req, res) => {
   const [result] = await pool.query("UPDATE recurring_orders SET last_done = ? WHERE id = ? AND user_id = ?",
     [todayStr(), Number(req.params.id), req.user.id]);
