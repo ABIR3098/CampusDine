@@ -2,6 +2,7 @@
 
 ## Unreleased
 - Chat: Hall students/teachers now have a separate **Hall Admin chat** (Hall → "Hall Admin chat"). It goes only to the Hall Admin, who reads and replies from the Hall Admin portal ("Student messages"). The canteen chat inside each restaurant still goes only to the canteen admin. New `scope` (`canteen` or `hall`) on the chat API, `GET /api/chat/directory`.
+- Chat: when the canteen admin opens the Hall, a "Hall Admin chat" tab lets them talk to the Hall Admin (who sees them in "Student messages" as Canteen Admin).
 - Chore: the helper and patch scripts moved from the project root into `tools/`.
 - Config: `TRUST_PROXY` makes the login lock-out count per visitor when the server is behind a reverse proxy.
 - Performance: the Lost & Found screen no longer downloads every photo on each 15-second refresh (`?images=0` plus `GET /api/campus/lost-found/:id/image`).
