@@ -50,10 +50,10 @@ const SCOPE_ROLE = { canteen: "admin", hall: "hall_admin" };
 const INBOX_ROLES = ["admin", "hall_admin"];
 const isInboxOwner = (user) => INBOX_ROLES.includes(user.role);
 const askedScope = (req) => String((req.query && req.query.scope) || (req.body && req.body.scope) || "").toLowerCase();
-// "Member mode" = writing TO an inbox's admin. Students/teachers/staff always do. The canteen admin does it
+// "Member mode" = writing TO an inbox's admin. Students/teachers/staff/riders always do. The canteen admin does it
 // only inside the Hall (scope=hall): there the canteen admin talks to the Hall Admin like any other member.
 function memberMode(req) {
-  if (["student", "teacher", "staff"].includes(req.user.role)) return true;
+  if (["student", "teacher", "staff", "rider"].includes(req.user.role)) return true;
   return req.user.role === "admin" && askedScope(req) === "hall";
 }
 // "Inbox mode" = answering the messages of an inbox (canteen admin: canteen inbox, hall admin: hall inbox).
