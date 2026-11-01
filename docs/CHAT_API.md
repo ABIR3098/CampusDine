@@ -11,21 +11,23 @@ Support chat has two separate inboxes, picked with `scope`:
 
 A student passes `?scope=hall` (or `scope` in the body of `POST /messages`). Admin and Hall Admin never pass it: the server uses their role.
 Inside the Hall the canteen admin is a member of the hall inbox too (the app sends `scope=hall`), so the canteen admin and the Hall Admin can talk to each other there. The inbox routes (`/conversations`, `/:userId/messages`, `/directory`) ignore `scope`: the canteen admin always gets the canteen inbox, the Hall Admin the hall inbox.
+Riders talk to the canteen admin in the canteen inbox too: they are members of it like students (the Rider hub → "Canteen admin chat" tab). A rider never reaches the hall inbox (`scope=hall` is ignored) and the Hall Admin cannot see riders. The canteen admin sees riders in the same inbox (filter "Riders") and can start a chat with a rider through `/directory`.
 Canteen Admin cannot read Hall chats of students and Hall Admin cannot read canteen chats (messages, photos, reactions and typing are all separated). Staff accounts only have the canteen chat.
 
 ## Support chat
 | Method and path | Who | What it does |
 |---|---|---|
 | `GET /conversations` | admin, hall_admin | Every conversation, newest first, with the last message and the unread count |
-| `GET /messages` | student, teacher, staff, admin (only with `scope=hall`) | My conversation with the admin of the inbox (the canteen admin uses it inside the Hall to read the chat with the Hall Admin) |
+| `GET /messages` | student, teacher, staff, rider, admin (only with `scope=hall`) | My conversation with the admin of the inbox (the canteen admin uses it inside the Hall to read the chat with the Hall Admin) |
 | `GET /:userId/messages` | admin, hall_admin | One person's conversation |
-| `POST /messages` | student, teacher, staff, admin, hall_admin | Send a message (admin and Hall Admin must say who to send it to with `userId`) |
-| `GET /directory?q=` | admin, hall_admin | Find a student/teacher by name or ID (2+ letters) to start a new conversation |
-| `DELETE /messages/:id` | student, teacher, staff, admin, hall_admin | Remove one of my messages for everyone (the text is blanked) |
-| `GET /presence` | student, teacher, staff, admin, hall_admin | Who is online and when they were last seen |
-| `POST /images` | student, teacher, staff, admin, hall_admin | Upload a photo (raw bytes, up to 900 KB) |
-| `GET /images/:id` | student, teacher, staff, admin, hall_admin | View a photo (the admin of that inbox or the person the chat belongs to) |
-| `POST /messages/:id/reaction` | student, teacher, staff, admin, hall_admin | One emoji per person per message |
+| `POST /messages` | student, teacher, staff, rider, admin, hall_admin | Send a message (admin and Hall Admin must say who to send it to with `userId`) |
+| `GET /directory?q=` | admin, hall_admin | Find a student/teacher by name or ID (2+ letters) to start a new conversation. The canteen admin also finds riders; the Hall Admin never does |
+| `DELETE /messages/:id` | student, teacher, staff, rider, admin, hall_admin | Remove one of my messages for everyone (the text is blanked) |
+| `GET /presence` | student, teacher, staff, rider, admin, hall_admin | Who is online and when they were last seen |
+| `POST /images` | student, teacher, staff, rider, admin, hall_admin | Upload a photo (raw bytes, up to 900 KB) |
+| `GET /images/:id` | student, teacher, staff, rider, admin, hall_admin | View a photo (the admin of that inbox or the person the chat belongs to) |
+| `GET /unread` | student, teacher, staff, rider, admin, hall_admin | How many messages are waiting for me in my inbox (`{ unread }`), used for the badge on the rider's chat tab |
+| `POST /messages/:id/reaction` | student, teacher, staff, rider, admin, hall_admin | One emoji per person per message |
 
 A message is 1 to 4000 characters. Allowed reactions: 👍 ❤️ 😂 😮 😢 🙏. Sending no emoji removes your reaction. Only an admin or the person the conversation belongs to can react.
 

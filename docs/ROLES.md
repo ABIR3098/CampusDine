@@ -15,7 +15,7 @@ Roles: `student`, `teacher`, `admin`, `rider` and `hall_admin`. A route that lis
 | Cart quote and loyalty (`/api/pricing`, `/api/loyalty/me`) | yes | yes | no | no |
 | Offers: read | yes | yes | yes | yes |
 | Offers and loyalty settings: change | no | no | yes | no |
-| Support chat (canteen inbox) | yes | yes | yes | no |
+| Support chat (canteen inbox) | yes | yes | yes | yes, writes to the canteen admin |
 | Support chat (hall inbox, `scope=hall`) | yes | yes | yes, as a member: talks to the Hall Admin only inside the Hall | no |
 | Order chat | yes | yes | no | yes |
 | Reports, announcements, analytics, audit | no | no | yes | no |

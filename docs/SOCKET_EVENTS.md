@@ -36,4 +36,4 @@ The browser connects with its login token. After that the server puts the connec
 
 ## Event the browser sends
 `chat:typing` with `{ to, typing, scope }`. The server passes it on as `chat:typing` to `user:<to>`
-(or to `admins` when the sender is not an admin; to `hall_admins` when a student, teacher or the canteen admin sends `scope: "hall"`).
+(or to `admins` when the sender is not an admin, a rider included; to `hall_admins` when a student, teacher or the canteen admin sends `scope: "hall"`).
