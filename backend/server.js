@@ -785,6 +785,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes);
 // Placing, tracking and cancelling orders
 app.use("/api/orders", orderRoutes);
+// Rider shifts, assignment and GPS sharing
 app.use("/api/riders", riderRoutes);
 app.use("/api/operations", operationsRoutes);
 app.use("/api/group-orders", groupOrderRoutes);
