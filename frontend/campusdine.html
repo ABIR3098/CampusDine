@@ -10406,7 +10406,7 @@ function App() {
     socket.on("chat:message", (payload) => {
       setChatRefreshKey(value => value + 1);
       if (Number(payload.senderId) !== Number(session.user.id)) {
-        pushNotification("chat", tx("n.chat"), `${payload.senderName}: ${payload.message}`);
+        pushNotification("chat", payload.scope === "hall" ? "New message from Hall Admin" : tx("n.chat"), `${payload.senderName}: ${payload.message}`);
       }
     });
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
