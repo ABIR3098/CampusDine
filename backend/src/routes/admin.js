@@ -66,6 +66,7 @@ router.get("/overview", catchAsync(async (req, res) => {
 }));
 
 // GET /api/admin/reports/revenue-trend — last 6 completed months
+// GET /reports/revenue-trend (any logged-in user)
 router.get("/reports/revenue-trend", catchAsync(async (req, res) => {
   const [rows] = await pool.query(`
     SELECT DATE_FORMAT(created_at, '%Y-%m') AS ym, SUM(total) AS revenue
