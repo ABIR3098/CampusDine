@@ -15,6 +15,7 @@
     return data;
   }
 
+  const localToday = () => { const d = new Date(); const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
   const fmt = (n) => (n === null || n === undefined ? "—" : Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 }));
   const when = (v) => (v ? new Date(v).toLocaleString() : "—");
 
