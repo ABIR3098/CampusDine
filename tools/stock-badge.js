@@ -4,7 +4,7 @@
 //  Admin:    the status pill no longer says "Available" when stock is 0 — it says "Sold out (stock 0)"
 //            automatically, and "Low stock" when stock is 10 or fewer.
 // The server already refuses orders for items without stock; this only makes it visible.
-// Run from the project main folder:  node stock-badge.js   (frontend only, no backend restart needed)
+// Run from the project main folder:  node tools/stock-badge.js   (frontend only, no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

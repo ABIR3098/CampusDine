@@ -1,6 +1,6 @@
 // note-chips.js — quick tap chips for the "Note for the kitchen" box in the cart.
 // Tap "Less spicy" / "No onion" / ... and it is added to the note; tap again to remove it.
-// Run from the project main folder:  node note-chips.js   (frontend only — no backend restart needed)
+// Run from the project main folder:  node tools/note-chips.js   (frontend only — no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

@@ -1,6 +1,6 @@
 // copy-token.js — "Copy token" button on every order in the student's Orders tab.
 // One tap copies the pickup token (e.g. C-104); the button shows "Copied!" for a moment.
-// Run from the project main folder:  node copy-token.js   (frontend only — no backend restart needed)
+// Run from the project main folder:  node tools/copy-token.js   (frontend only — no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

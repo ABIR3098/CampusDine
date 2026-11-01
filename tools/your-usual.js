@@ -1,6 +1,6 @@
 // your-usual.js — "Your usual" on the Menu tab: the 3 items the student orders most, one tap to add to the cart.
 // Built from the student's own past orders (cancelled orders don't count, sold-out items are skipped).
-// Run from the project main folder:  node your-usual.js   (frontend only — no backend restart needed)
+// Run from the project main folder:  node tools/your-usual.js   (frontend only — no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

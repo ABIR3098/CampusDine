@@ -1,6 +1,6 @@
 // spending-months.js — Spending tab: adds a "Last 6 months" bar chart (tap a bar to open that month).
 // Your Spending tab already has the daily chart, "Most ordered" (top items), categories and payment split.
-// Run from the project main folder:  node spending-months.js   (then restart the backend)
+// Run from the project main folder:  node tools/spending-months.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = { html: "frontend/campusdine.html", summary: "backend/src/routes/summary.js" };

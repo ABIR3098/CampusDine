@@ -1,7 +1,7 @@
 // time-greeting.js — Menu tab: "Good morning, Demo! ☀️ It's breakfast time" + the menu opens on a category that fits the time of day.
 //   5–11 breakfast -> Snacks · 11–15 lunch -> Heavy meals · 15–18 snack time -> Snacks · 18–22 dinner -> Heavy meals · late night -> Drinks
 // The student can still tap any category; this only chooses where the menu starts.
-// Run from the project main folder:  node time-greeting.js   (frontend only — no backend restart needed)
+// Run from the project main folder:  node tools/time-greeting.js   (frontend only — no backend restart needed)
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 

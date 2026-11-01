@@ -1,5 +1,5 @@
 // history-filter.js — Order history filter + search (My Orders tab)
-// Run from the project main folder:  node history-filter.js
+// Run from the project main folder:  node tools/history-filter.js
 const fs = require("fs");
 const FILE = "frontend/campusdine.html";
 
