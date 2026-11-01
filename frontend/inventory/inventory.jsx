@@ -355,6 +355,13 @@
       if (!window.confirm(`Set official stock of ${r.itemName} from ${fmt(r.officialStock)} to ${fmt(r.currentQty)} ${r.unit} (staff count)?`)) return;
       run(() => call(apiBase, token, `/admin/items/${r.itemId}/adjust`, { method: "POST", body: { newStock: r.currentQty, note: `Staff report #${r.id}` } }), "Official stock updated from the staff report.");
     };
+    // Opens the purchase form for this material with a sensible quantity, so restocking is one click away.
+    const restock = (it) => {
+      const suggested = Math.max(Math.round((it.minStock * 2 - it.currentStock) * 100) / 100, 1);
+      setDirect({ itemId: String(it.id), quantity: String(suggested), unitCost: "", supplier: "", note: "" });
+      setError(""); setInfo(`Restocking ${it.name}: enter what you bought, then press Save.`);
+      setTab("purchases");
+    };
     const adjust = (it) => {
       const v = window.prompt(`New official stock for ${it.name} (${it.unit}). Current: ${fmt(it.currentStock)}`);
       if (v === null) return;
@@ -439,7 +446,12 @@
         {tab === "stock" && (
           <div className="space-y-4">
             <div className="card p-5">
-              <StockTable items={list} actions={(it) => <button type="button" className="text-xs font-700 underline" onClick={() => adjust(it)}>Correct stock</button>} />
+              <StockTable items={list} actions={(it) => (
+                <span className="inline-flex flex-wrap justify-end gap-3">
+                  <button type="button" className="text-xs font-700 px-2.5 py-1 rounded-lg border" style={{ borderColor: "var(--gold)", color: "var(--ink)" }} onClick={() => restock(it)}>Restock</button>
+                  <button type="button" className="text-xs font-700 underline" onClick={() => adjust(it)}>Correct stock</button>
+                </span>
+              )} />
             </div>
             <div className="card p-5">
               <div className="font-700 mb-2 text-sm">Add a raw material</div>
