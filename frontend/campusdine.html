@@ -10321,7 +10321,7 @@ function App() {
 
   // Refetch the meal calendar & bill whenever the visible month changes
   useEffect(() => {
-    if (!session || session.user.role === "admin" || session.user.role === "rider") return;
+    if (!session || session.user.role === "admin" || session.user.role === "rider" || session.user.role === "staff") return;
     refreshCalendar().catch(showError);
   }, [session, year, month]);
 
