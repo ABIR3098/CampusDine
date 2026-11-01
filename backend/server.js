@@ -13,6 +13,7 @@ if (!process.env.JWT_SECRET) {
   console.warn("⚠️  JWT_SECRET is not set — using a temporary one for this run.");
   console.warn("    Copy backend/.env.example to backend/.env to keep users logged in across restarts.");
 }
+// Core modules and third-party packages
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
