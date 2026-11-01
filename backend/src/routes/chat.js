@@ -215,8 +215,8 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
       userId = Number(req.body.userId);
       if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: "Select a chat recipient" });
       const [[recipient]] = await connection.query(
-        "SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff')",
-        [userId]
+        "SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff') AND (? = 'canteen' OR role <> 'staff')",
+        [userId, scope]
       );
       if (!recipient) return res.status(404).json({ error: "Chat user not found" });
       recipientId = userId;
