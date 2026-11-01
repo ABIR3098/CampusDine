@@ -321,6 +321,11 @@
     const s = summary.data || {};
 
     const refreshAll = () => { usageAll.reload(); summary.reload(); items.reload(); reqs.reload(); purchases.reload(); history.reload(); };
+
+    useInventorySocket(apiBase, token, {
+      "inventory:request": (d) => { setInfo(`New ${d.itemName || "stock"} request from ${d.staffName || "staff"}.`); setTab("requests"); refreshAll(); },
+      "inventory:alert": (d) => { setInfo(`${d.itemName} is ${d.level === "out" ? "out of stock" : "running low"} (${fmt(d.stock)} ${d.unit || ""} left).`); summary.reload(); items.reload(); usageAll.reload(); },
+    });
     const run = async (fn, okMsg) => {
       setError(""); setInfo("");
       try { await fn(); setInfo(okMsg); refreshAll(); } catch (e) { setError(e.message); }
