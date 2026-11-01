@@ -837,6 +837,7 @@ app.use("/api/notifications", notificationCenterRoutes);
 app.use("/api/waste-challenge", wasteChallengeRoutes);
 // Revenue analytics
 app.use("/api/analytics", analyticsRoutes);
+// Vendor settlements and invoices
 app.use("/api/settlements", settlementRoutes);
 app.use("/api/emergency", emergencyRoutes);
 
