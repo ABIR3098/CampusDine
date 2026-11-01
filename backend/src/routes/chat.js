@@ -44,8 +44,21 @@ router.use(async (req, res, next) => {
 });
 const MAX_MESSAGE_LENGTH = 4000;
 
-async function getAdminId(connection) {
-  const [[admin]] = await connection.query("SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1");
+// "canteen" chats go to the canteen admin, "hall" chats go to the hall admin.
+const SCOPE_ROLE = { canteen: "admin", hall: "hall_admin" };
+// Admin and hall admin both answer messages; each one only ever sees their own inbox.
+const INBOX_ROLES = ["admin", "hall_admin"];
+const isInboxOwner = (user) => INBOX_ROLES.includes(user.role);
+function scopeOf(req) {
+  if (req.user.role === "hall_admin") return "hall";
+  if (req.user.role === "admin") return "canteen";
+  const asked = String((req.query && req.query.scope) || (req.body && req.body.scope) || "").toLowerCase();
+  // Hall chat is for hall residents (students and teachers); staff only have the canteen chat.
+  return asked === "hall" && ["student", "teacher"].includes(req.user.role) ? "hall" : "canteen";
+}
+
+async function getAdminId(connection, scope = "canteen") {
+  const [[admin]] = await connection.query("SELECT id FROM users WHERE role = ? ORDER BY id LIMIT 1", [SCOPE_ROLE[scope] || "admin"]);
   return admin ? admin.id : null;
 }
 
