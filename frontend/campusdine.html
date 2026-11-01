@@ -10950,6 +10950,7 @@ function App() {
             sessionToken={session.token} refreshKey={chatRefreshKey} />
         )}
 
+        {session.user.role === "admin" && tab === "inventory" && <InventoryHost kind="admin" apiBase={apiBase} token={session.token} />}
         {session.user.role === "admin" && tab === "commandCenter" && <CanteenCommandCenter apiBase={apiBase} token={session.token} orders={restaurantOrders} restaurantId={restaurant?.id} />}
         {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={restaurantOrders} />}
         {session.user.role === "admin" && tab === "adminMenu" && (
