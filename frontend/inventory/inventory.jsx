@@ -181,3 +181,13 @@
                 {r.adminReply && <div className="text-sm mt-2 px-3 py-2 rounded-lg" style={{ background: "var(--gold-soft)" }}><strong>Admin reply:</strong> {r.adminReply}</div>}
                 <div className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>
                   Updated stock: <strong>{fmt(r.status === "purchased" && r.stockAfterPurchase !== null ? r.stockAfterPurchase : r.officialStock)} {r.unit}</strong>
+                  {r.status === "purchased" && r.purchasedQty !== null ? ` (after purchase of ${fmt(r.purchasedQty)} ${r.unit})` : " (current official stock)"}
+                  {" · Sent "}{when(r.createdAt)}
+                </div>
+              </div>
+            ))}
+            {!requests.length && <div className="card p-6 text-center text-sm" style={{ color: "var(--ink-soft)" }}>You have not sent any reports or requests yet.</div>}
+          </div>
+        )}
+      </div>
+    );
