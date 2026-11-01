@@ -10,7 +10,6 @@ function createInventoryRouter(service) {
   const fail = (res, message, status = 400) => res.status(status).json({ error: message });
 
   router.use(verifyToken);
-  router.use((err, req, res, next) => next(err));
 
   // ───── Staff + Admin: read-only stock list ─────
   router.get("/items", requireRole("staff", "admin"), catchAsync(async (req, res) => {
