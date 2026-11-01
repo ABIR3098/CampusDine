@@ -196,7 +196,7 @@ router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"),
 });
 
 // POST /messages (student, teacher, staff, admin)
-router.post("/messages", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
+router.post("/messages", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"), async (req, res) => {
   let connection;
   try {
     const message = String(req.body.message || "").trim();
@@ -206,7 +206,8 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
     }
 
     connection = await pool.getConnection();
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = isInboxOwner(req.user);
+    const scope = scopeOf(req);
     let userId;
     let recipientId;
 
