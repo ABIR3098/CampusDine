@@ -51,6 +51,9 @@
     const scrollRef = useRef(null);
     const [draft, setDraft] = useState("");
     const [sending, setSending] = useState(false);
+    const [contacts, setContacts] = useState([]); // people I share an order with
+    const [search, setSearch] = useState("");
+    const [found, setFound] = useState([]);
     // @@state
 
     const loadThreads = async () => {
@@ -105,6 +108,13 @@
     const onKeyDown = (e) => {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
     };
+
+    const searching = search.trim().length >= 2;
+    const people = searching ? found : contacts;
+    const startChat = (person) => {
+      setPeer({ id: person.id, name: person.name, role: person.role, external_id: person.external_id });
+      setSearch("");
+    };
     // @@actions
 
     const openThread = (thread) => {
@@ -118,6 +128,21 @@
     useEffect(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [messages, peer && peer.id]);
+    useEffect(() => {
+      let live = true;
+      call(apiBase, token, "/contacts").then((d) => { if (live) setContacts(d.users || []); }).catch(() => {});
+      return () => { live = false; };
+    }, [apiBase, token]);
+    // Search by name or ID while typing (2+ letters), with a short pause so the server is not asked on every key.
+    useEffect(() => {
+      const q = search.trim();
+      if (q.length < 2) { setFound([]); return undefined; }
+      let live = true;
+      const timer = setTimeout(() => {
+        call(apiBase, token, "/directory?q=" + encodeURIComponent(q)).then((d) => { if (live) setFound(d.users || []); }).catch(() => {});
+      }, 300);
+      return () => { live = false; clearTimeout(timer); };
+    }, [search, apiBase, token]);
     // @@effects
 
     return (
@@ -129,6 +154,28 @@
               <div className="text-xs mt-0.5" style={{ color: "var(--ink-soft)" }}>
                 {isTeacher ? t("trc.sub.teacher", "Message the rider who brings your order.") : t("trc.sub.rider", "Message the teachers you deliver to.")}
               </div>
+            </div>
+            <div className="px-3 py-2 border-b" style={{ borderColor: "var(--line)" }}>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} maxLength={60}
+                placeholder={isTeacher ? t("trc.find.teacher", "Find a rider by name or ID") : t("trc.find.rider", "Find a teacher you deliver to")}
+                className="w-full rounded-lg border px-3 py-1.5 text-sm" style={{ borderColor: "var(--line)", background: "var(--input-bg)", color: "var(--ink)" }} />
+              {people.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <div className="w-full text-[11px] font-700 uppercase tracking-wider" style={{ color: "var(--ink-soft)" }}>
+                    {searching ? t("trc.results", "Results") : isTeacher ? t("trc.contacts.teacher", "Your riders") : t("trc.contacts.rider", "Your teachers")}
+                  </div>
+                  {people.map((u) => (
+                    <button key={u.id} type="button" onClick={() => startChat(u)} className="px-2.5 py-1 rounded-full text-xs font-700 border" style={{ borderColor: "var(--line)" }}>
+                      {u.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {searching && found.length === 0 && (
+                <div className="mt-2 text-xs" style={{ color: "var(--ink-soft)" }}>
+                  {isTeacher ? t("trc.noResults.teacher", "No rider found.") : t("trc.noResults.rider", "No teacher found. You can write to teachers whose order you deliver.")}
+                </div>
+              )}
             </div>
             {/* @@people */}
             <div className="flex-1 overflow-y-auto" style={{ maxHeight: 460 }}>
