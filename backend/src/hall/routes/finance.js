@@ -36,6 +36,7 @@ const lastDayOf = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate
 // Income counts closed meals only (their price is fixed), so the numbers can't change after the fact.
 // → { year, month, today, plates, billed, collected, outstanding, lastCall: { plates, amount }, expense: { total, byCategory },
 //     perPlate: { cost, price, margin }, result: { cash, ifAllPaid }, bySlot: [{ slot, plates, billed }], daily: [{ date, plates, billed, expense }] }
+// GET /finance/summary
 router.get("/finance/summary", admin, catchAsync(async (req, res) => {
   const now = nowParts();
   const ym = parseMonth(req.query, now);
