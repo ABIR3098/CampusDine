@@ -74,6 +74,7 @@ router.post("/join", catchAsync(async (req, res) => {
   }
 }));
 
+// GET / (any logged-in user)
 router.get("/", catchAsync(async (req, res) => {
   const [groups] = await pool.query(`
     SELECT g.id, g.title, g.join_code AS joinCode, g.closes_at AS closesAt,
