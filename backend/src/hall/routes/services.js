@@ -185,6 +185,7 @@ router.post("/pickup-tokens", requireRole("student","teacher"), catchAsync(async
   const [rows]=await pool.query("SELECT id,user_id,the_date,slot,token_code,status,created_at,served_at FROM hall_pickup_tokens WHERE user_id=? AND the_date=? AND slot=?",[req.user.id,date,slot]);
   res.status(201).json(rows[0]);
 }));
+// PATCH /pickup-tokens/:code/serve (admin)
 router.patch("/pickup-tokens/:code/serve", requireRole("admin"), catchAsync(async(req,res)=>{
   const code=String(req.params.code||"").toUpperCase().slice(0,24);
   const [r]=await pool.query("UPDATE hall_pickup_tokens SET status='served',served_by=?,served_at=NOW() WHERE token_code=? AND status='issued' AND (? IS NULL OR university_id=?)",[req.user.id,code,req.user.universityId||null,req.user.universityId||null]);
