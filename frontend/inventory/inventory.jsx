@@ -63,3 +63,10 @@
     const reload = useCallback(async () => {
       try { setData(await loader()); setError(""); } catch (e) { setError(e.message); }
     }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+      reload();
+      const t = setInterval(reload, everyMs);
+      return () => clearInterval(t);
+    }, [reload, everyMs]);
+    return { data, error, reload };
+  }
