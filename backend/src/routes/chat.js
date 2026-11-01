@@ -517,8 +517,8 @@ async function attachReactions(messages, myId) {
   for (const m of live) m.reactions = byMessage.has(m.id) ? [...byMessage.get(m.id).values()] : [];
 }
 
-// POST /messages/:id/reaction (student, teacher, staff, admin)
-router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"), async (req, res) => {
+// POST /messages/:id/reaction (student, teacher, staff, rider, admin)
+router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid message id" });
