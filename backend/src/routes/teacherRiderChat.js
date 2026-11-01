@@ -26,6 +26,30 @@ async function loadPeer(db, me, peerId) {
   return peer || null;
 }
 
+// GET /threads - my chats, newest first, with the last message and how many are unread
+router.get("/threads", async (req, res) => {
+  try {
+    // Column names come from the logged-in role only, never from the request.
+    const mine = req.user.role === "teacher" ? "teacher_id" : "rider_id";
+    const theirs = req.user.role === "teacher" ? "rider_id" : "teacher_id";
+    const [rows] = await pool.query(
+      `SELECT t.id AS thread_id, u.id AS peer_id, u.name, u.role, u.external_id, t.updated_at,
+              (SELECT message FROM teacher_rider_messages WHERE thread_id = t.id ORDER BY id DESC LIMIT 1) AS last_message,
+              (SELECT deleted_at IS NOT NULL FROM teacher_rider_messages WHERE thread_id = t.id ORDER BY id DESC LIMIT 1) AS last_deleted,
+              (SELECT COUNT(*) FROM teacher_rider_messages WHERE thread_id = t.id AND recipient_id = ? AND read_at IS NULL AND deleted_at IS NULL) AS unread_count
+       FROM teacher_rider_threads t JOIN users u ON u.id = t.${theirs}
+       WHERE t.${mine} = ? ORDER BY t.updated_at DESC`,
+      [req.user.id, req.user.id]
+    );
+    const threads = rows.map((r) => ({
+      thread_id: r.thread_id, peer_id: r.peer_id, name: r.name, role: r.role, external_id: r.external_id,
+      updated_at: r.updated_at, last_message: rules.previewOf(r.last_message, Number(r.last_deleted) === 1),
+      unread_count: Number(r.unread_count) || 0,
+    }));
+    res.json({ threads });
+  } catch (error) { fail(res, error, "Failed to load rider chats"); }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
