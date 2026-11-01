@@ -9150,7 +9150,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
                       <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
                       {unread && <span className="chat-badge">{c.unread_count}</span>}
                     </span>
-                    <span className="chat-item-role">{c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
+                    <span className="chat-item-role">{c.role === "rider" ? "🛵 Rider" : c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
                   </span>
                 </button>
               );
