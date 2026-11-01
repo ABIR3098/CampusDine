@@ -72,3 +72,18 @@ function validatePurchase(body = {}) {
     },
   };
 }
+
+function validateAdjustment(body = {}) {
+  const newStock = toQty(body.newStock, { allowZero: true });
+  if (newStock === null) return { error: "New stock must be a number (0 or more)." };
+  const note = cleanText(body.note, 500);
+  if (note.length < 3) return { error: "Write a short reason for the stock correction." };
+  return { value: { newStock, note } };
+}
+
+function validateNewItem(body = {}) {
+  const name = cleanText(body.name, 80);
+  if (name.length < 2) return { error: "Item name is too short." };
+  const unit = String(body.unit || "").toLowerCase();
+  if (!UNITS.includes(unit)) return { error: `Unit must be one of: ${UNITS.join(", ")}.` };
+  const stock = body.currentStock === undefined || body.currentStock === "" ? 0 : toQty(body.currentStock, { allowZero: true });
