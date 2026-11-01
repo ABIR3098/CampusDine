@@ -401,7 +401,8 @@
                   {r.status === "pending" && (
                     <div className="mt-3 flex flex-wrap gap-2 items-center">
                       <input className={inputCls + " flex-1 min-w-[200px]"} style={inputStyle} placeholder="Reply to staff (required for reject)" value={reply[r.id] || ""} onChange={(e) => setReply({ ...reply, [r.id]: e.target.value })} />
-                      <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => decide(r.id, "approved")}>Approve</button>
+                      <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => decide(r.id, "approved")}>{r.requestType === "report" ? "Acknowledge" : "Approve"}</button>
+                      {r.requestType !== "report" && <button type="button" className="px-3 py-2 rounded-xl text-sm border" style={{ borderColor: "var(--gold)", color: "var(--ink)" }} onClick={() => approveAndBuy(r)}>Approve &amp; record purchase</button>}
                       <button type="button" className="px-3 py-2 rounded-xl text-sm border" style={{ borderColor: "#FCA5A5", color: "#991B1B" }} onClick={() => decide(r.id, "rejected")}>Reject</button>
                     </div>
                   )}
