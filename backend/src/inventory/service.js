@@ -39,3 +39,10 @@ async function withTx(pool, fn) {
     const out = await fn(conn);
     await conn.commit();
     return out;
+  } catch (err) {
+    try { await conn.rollback(); } catch (_) { /* ignore rollback failure */ }
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
