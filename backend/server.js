@@ -766,7 +766,9 @@ io.on("connection", (socket) => {
         const to = Number(data && data.to);
         if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing, scope: socket.user.role === "hall_admin" ? "hall" : "canteen" });
       } else {
-        io.to("admins").emit("chat:typing", { from: socket.user.id, typing });
+        // Hall chat typing only reaches the hall admin, canteen chat typing only the canteen admin.
+        const hall = data && data.scope === "hall" && (socket.user.role === "student" || socket.user.role === "teacher");
+        io.to(hall ? "hall_admins" : "admins").emit("chat:typing", { from: socket.user.id, typing, scope: hall ? "hall" : "canteen" });
       }
     } catch (e) { /* ignore malformed typing events */ }
   });
