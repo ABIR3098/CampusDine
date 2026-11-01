@@ -64,6 +64,7 @@ const { ensureDevStaffAccount, printStaffCredentials } = require("./src/inventor
 const { createService: createInventoryService } = require("./src/inventory/service");
 const { createInventoryRouter } = require("./src/routes/inventory");
 
+// Folder that holds the frontend files
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
 const SIGNUP_BONUS = 250;
 
