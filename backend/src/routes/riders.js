@@ -6,6 +6,7 @@ const { recordAuditEvent } = require("../utils/audit");
 const { publicRiderLocation } = require("../utils/riderLocation");
 const { assignPendingTeacherOrders } = require("../utils/riderAssignment");
 const riderDispatcher = require("../services/riderDispatcher");
+const { acceptAssignedOrder } = require("../utils/riderAccept");
 
 // A rider sends a position about every 8 seconds; looking for waiting orders that often is enough.
 const DISPATCH_GAP_MS = 5000;
@@ -39,12 +40,15 @@ router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, 
 router.post("/orders/:orderId/accept", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
-  const [result] = await pool.query(`
-    UPDATE orders SET rider_assignment_status = 'Accepted'
-    WHERE id = ? AND rider_id = ? AND rider_assignment_status = 'Assigned' AND status <> 'Cancelled'
-  `, [orderId, Number(req.user.id)]);
-  if (!result.affectedRows) return res.status(409).json({ error: "Order is not assigned to you or is no longer available" });
-  req.app.get("io").to("admins").emit("rider:order-accepted", { orderId, riderId: Number(req.user.id) });
+  const riderId = Number(req.user.id);
+  const accepted = await acceptAssignedOrder(pool, { orderId, riderId });
+  if (!accepted.ok) return res.status(409).json({ error: "Order is not assigned to you or is no longer available" });
+  if (accepted.changed) {
+    const io = req.app.get("io");
+    io.to("admins").emit("rider:order-accepted", { orderId, riderId });
+    // The teacher who ordered sees at once that a rider took the delivery.
+    io.to(`user:${accepted.order.user_id}`).emit("order:rider-accepted", { orderId, riderId, riderName: req.user.name });
+  }
   res.json({ ok: true, orderId, rider_assignment_status: "Accepted" });
 }));
 
