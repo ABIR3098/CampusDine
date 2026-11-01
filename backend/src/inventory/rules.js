@@ -17,3 +17,11 @@ function canTransition(from, to) {
   return Array.isArray(TRANSITIONS[from]) && TRANSITIONS[from].includes(to);
 }
 
+// Accepts numbers or numeric strings, returns a number rounded to 2 decimals or null when invalid.
+function toQty(value, { allowZero = false } = {}) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isFinite(n)) return null;
+  if (n < 0 || (!allowZero && n === 0) || n > MAX_QTY) return null;
+  return Math.round(n * 100) / 100;
+}
