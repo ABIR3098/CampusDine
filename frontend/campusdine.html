@@ -9434,12 +9434,13 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
         department: profile.department, fatherPhone: profile.fatherPhone,
       };
       if (profile.email.trim()) body.email = profile.email.trim();
-      if (body.email && body.email.toLowerCase() !== savedEmail) {
-        // a new email address: we send a code to it first, then the server checks that code on save
-        await call("/api/auth/me/email-code", { method: "POST", body: { email: body.email } });
+      if (body.email && body.email.toLowerCase() !== savedEmail.trim().toLowerCase()) {
+        // a new email address: the server checks the password and mails a code to the new address; the code is checked on save
+        await call("/api/auth/me/email-code", { method: "POST", body: { email: body.email, currentPassword } });
         const code = window.prompt("We sent a 6-digit code to " + body.email + ". Type it here to confirm your new email:");
         if (!code || !code.trim()) { setError("Your email was not changed because no code was entered."); return; }
         body.emailCode = code.trim();
+        body.currentPassword = currentPassword;
       }
       if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
       if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
