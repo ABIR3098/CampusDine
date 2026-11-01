@@ -78,3 +78,11 @@ async function ensureInventorySchema(db) {
     CONSTRAINT fk_inv_hist_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
   )`);
 
+  // Seed the starting raw materials once (only when the table is empty).
+  const [[{ n }]] = await db.query("SELECT COUNT(*) AS n FROM inventory_items");
+  if (Number(n) === 0) {
+    for (const it of DEFAULT_ITEMS) {
+      const [r] = await db.query(
+        "INSERT INTO inventory_items (name, name_bn, category, unit, current_stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)",
+        [it.name, it.nameBn, it.category, it.unit, it.stock, it.min]
+      );
