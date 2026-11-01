@@ -94,3 +94,13 @@ test("admin approves, rejects (reason required), records purchases and corrects 
   assert.equal((await ok.json()).request.adminReply, "Buy today");
   const buy = await req("/admin/purchases", { role: "admin", method: "POST", body: { requestId: 7, quantity: 10, unitCost: 60 } });
   assert.equal(buy.status, 201);
+  assert.equal((await buy.json()).stockAfter, 20);
+  assert.equal((await req("/admin/items/1/adjust", { role: "admin", method: "POST", body: { newStock: 5 } })).status, 400);
+  assert.equal((await req("/admin/items/1/adjust", { role: "admin", method: "POST", body: { newStock: 5, note: "Recount" } })).status, 200);
+});
+
+test("service errors become clean JSON responses", async () => {
+  const r = await req("/admin/requests/99/decision", { role: "admin", method: "POST", body: { decision: "approved" } });
+  assert.equal(r.status, 409);
+  assert.match((await r.json()).error, /already rejected/);
+});
