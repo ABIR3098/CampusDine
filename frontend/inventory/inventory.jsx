@@ -193,6 +193,13 @@
                 <div>
                   <label className="text-xs font-700">Date</label>
                   <input type="date" className={inputCls} style={inputStyle} max={today} value={use.usageDate} onChange={(e) => setUse({ ...use, usageDate: e.target.value })} />
+                </div>
+              </div>
+              <label className="text-xs font-700">Note (optional)</label>
+              <input className={inputCls + " mb-3"} style={inputStyle} maxLength={500} placeholder="e.g. lunch cooking" value={use.note} onChange={(e) => setUse({ ...use, note: e.target.value })} />
+              <button type="button" className="btn-primary px-4 py-2 rounded-xl text-sm" disabled={busy || !use.itemId || !use.quantity} onClick={saveUsage}>{busy ? "Saving…" : "Save usage"}</button>
+              <p className="text-xs mt-2" style={{ color: "var(--ink-soft)" }}>The remaining stock is calculated automatically. You cannot edit the official stock directly.</p>
+            </div>
 
         {tab === "stock" && (
           <div className="card p-5">
