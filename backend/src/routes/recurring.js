@@ -28,6 +28,7 @@ router.get("/", catchAsync(async (req, res) => {
 }));
 
 // GET /api/recurring/due — plans whose reminder time has come today (and that weren't added/skipped yet)
+// GET /due (any logged-in user)
 router.get("/due", catchAsync(async (req, res) => {
   const now = new Date();
   const today = todayStr(now);
