@@ -45,3 +45,10 @@ function fakePool() {
   return { st, query: async (s, p) => run(s, p), getConnection: async () => conn };
 }
 
+test("approving a pending request stores the admin reply", async () => {
+  const pool = fakePool(); const svc = createService(pool);
+  const r = await svc.decide(1, 1, { decision: "approved", reply: "Buy 50 kg" });
+  assert.equal(r.status, "approved");
+  assert.equal(r.adminReply, "Buy 50 kg");
+  assert.equal(pool.st.commits, 1);
+});
