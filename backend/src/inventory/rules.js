@@ -128,5 +128,5 @@ function stockLevel(current, min) {
 module.exports = {
   UNITS, REQUEST_TYPES, REQUEST_STATUSES, MAX_QTY, TRANSITIONS,
   canTransition, toQty, cleanText, stockLevel,
-  validateStaffRequest, validateDecision, validatePurchase, validateAdjustment, validateNewItem,
+  validateStaffRequest, validateUsage, todayKey, validateDecision, validatePurchase, validateAdjustment, validateNewItem,
 };
