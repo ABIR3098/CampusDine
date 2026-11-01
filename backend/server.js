@@ -797,6 +797,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/calendar", calendarRoutes);
 // Recurring weekly orders
 app.use("/api/recurring", recurringRoutes);
+// Admin reports, announcements and audit
 app.use("/api/admin", adminRoutes);
 // Coupon validation and admin management
 app.use("/api/coupon", couponRoutes);
