@@ -117,6 +117,67 @@ router.get("/:peerId/messages", async (req, res) => {
   } catch (error) { fail(res, error, "Failed to load messages"); }
 });
 
+// POST /:peerId/messages - send a message. The thread is created by the first message.
+router.post("/:peerId/messages", async (req, res) => {
+  let connection;
+  try {
+    const peerId = rules.parseId(req.params.peerId);
+    if (!peerId) return res.status(400).json({ error: "Invalid user ID" });
+    const cleaned = rules.cleanMessage(req.body && req.body.message);
+    if (cleaned.error) return res.status(400).json({ error: cleaned.error });
+
+    connection = await pool.getConnection();
+    const peer = await loadPeer(connection, req.user, peerId);
+    if (!peer) return res.status(404).json({ error: "Chat user not found" });
+    const pair = rules.pairOf(req.user, peer);
+
+    // A rider may open a new chat only with a teacher whose order they carry. A teacher can always write first.
+    if (req.user.role === "rider") {
+      const [[existing]] = await connection.query(
+        "SELECT id FROM teacher_rider_threads WHERE teacher_id = ? AND rider_id = ?", [pair.teacherId, pair.riderId]
+      );
+      if (!existing) {
+        const [[linked]] = await connection.query(
+          "SELECT id FROM orders WHERE user_id = ? AND rider_id = ? LIMIT 1", [pair.teacherId, pair.riderId]
+        );
+        if (!linked) return res.status(403).json({ error: "You can start a chat only with a teacher whose order you deliver" });
+      }
+    }
+
+    await connection.beginTransaction();
+    await connection.query(
+      "INSERT INTO teacher_rider_threads (teacher_id, rider_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP",
+      [pair.teacherId, pair.riderId]
+    );
+    const [[thread]] = await connection.query(
+      "SELECT id FROM teacher_rider_threads WHERE teacher_id = ? AND rider_id = ? FOR UPDATE", [pair.teacherId, pair.riderId]
+    );
+    const [result] = await connection.query(
+      "INSERT INTO teacher_rider_messages (thread_id, sender_id, recipient_id, message) VALUES (?, ?, ?, ?)",
+      [thread.id, req.user.id, peer.id, cleaned.text]
+    );
+    await connection.query("UPDATE teacher_rider_threads SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", [thread.id]);
+    await connection.commit();
+
+    const payload = {
+      id: result.insertId,
+      threadId: thread.id,
+      senderId: Number(req.user.id),
+      recipientId: Number(peer.id),
+      senderName: req.user.name,
+      senderRole: req.user.role,
+      message: cleaned.text,
+      createdAt: new Date().toISOString(),
+    };
+    res.status(201).json({ message: payload });
+  } catch (error) {
+    if (connection) await connection.rollback().catch(() => {});
+    fail(res, error, "Failed to send message");
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
