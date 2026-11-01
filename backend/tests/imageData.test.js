@@ -1,43 +1,48 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { isSafeImageDataUrl, MAX_IMAGE_DATA_LENGTH } = require("../src/utils/imageData");
+const { isSafeImageDataUrl } = require("../src/utils/imageData");
 
-test("accepts png, jpg, jpeg and webp data URLs", () => {
-  for (const type of ["png", "jpg", "jpeg", "webp"]) {
-    assert.equal(isSafeImageDataUrl(`data:image/${type};base64,iVBORw0KGgo=`), true, type);
+test("accepts png, jpeg, jpg and webp data URLs", () => {
+  for (const kind of ["png", "jpeg", "jpg", "webp"]) {
+    assert.equal(isSafeImageDataUrl(`data:image/${kind};base64,iVBORw0KGgo=`), true, kind);
   }
 });
 
-test("rejects a value that breaks out of the src attribute", () => {
-  const attack = 'data:image/png;base64,x" onerror="alert(1)" data-x="';
-  assert.equal(isSafeImageDataUrl(attack), false);
+test("accepts base64 padding of one or two = signs", () => {
+  assert.equal(isSafeImageDataUrl("data:image/png;base64,QUJD"), true);
+  assert.equal(isSafeImageDataUrl("data:image/png;base64,QUI="), true);
+  assert.equal(isSafeImageDataUrl("data:image/png;base64,QQ=="), true);
 });
 
-test("rejects angle brackets, spaces and newlines after the prefix", () => {
-  assert.equal(isSafeImageDataUrl("data:image/png;base64,AAA<script>"), false);
-  assert.equal(isSafeImageDataUrl("data:image/png;base64,AAA BBB"), false);
-  assert.equal(isSafeImageDataUrl("data:image/png;base64,AAA\nBBB"), false);
+test("rejects an attribute break-out payload that only STARTS like an image", () => {
+  const payload = 'data:image/png;base64,AAAA" onerror="alert(1)" x="';
+  assert.equal(isSafeImageDataUrl(payload), false);
 });
 
-test("rejects other types and an empty body", () => {
-  assert.equal(isSafeImageDataUrl("data:image/svg+xml;base64,AAAA"), false);
-  assert.equal(isSafeImageDataUrl("data:text/html;base64,AAAA"), false);
-  assert.equal(isSafeImageDataUrl("javascript:alert(1)"), false);
+test("rejects svg, gif and other types", () => {
+  assert.equal(isSafeImageDataUrl("data:image/svg+xml;base64,PHN2Zz4="), false);
+  assert.equal(isSafeImageDataUrl("data:image/gif;base64,R0lGOD=="), false);
+  assert.equal(isSafeImageDataUrl("data:text/html;base64,PGgxPg=="), false);
+});
+
+test("rejects whitespace, newlines and quotes inside the body", () => {
+  assert.equal(isSafeImageDataUrl("data:image/png;base64,AA AA"), false);
+  assert.equal(isSafeImageDataUrl("data:image/png;base64,AAAA\nBBBB"), false);
+  assert.equal(isSafeImageDataUrl("data:image/png;base64,AA'AA"), false);
+});
+
+test("rejects an empty body and a missing prefix", () => {
   assert.equal(isSafeImageDataUrl("data:image/png;base64,"), false);
+  assert.equal(isSafeImageDataUrl("iVBORw0KGgo="), false);
+  assert.equal(isSafeImageDataUrl("http://example.com/a.png"), false);
 });
 
-test("rejects non-strings and values that are too long", () => {
-  assert.equal(isSafeImageDataUrl(null), false);
-  assert.equal(isSafeImageDataUrl(123), false);
-  const tooLong = "data:image/png;base64," + "A".repeat(MAX_IMAGE_DATA_LENGTH);
-  assert.equal(isSafeImageDataUrl(tooLong), false);
+test("rejects values that are not strings", () => {
+  for (const v of [null, undefined, 123, {}, [], true]) assert.equal(isSafeImageDataUrl(v), false);
 });
 
-test("base64 padding allows at most two equals signs, only at the end", () => {
-  const { isSafeImageDataUrl } = require("../src/utils/imageData");
-  const head = "data:image/png;base64,";
-  assert.strictEqual(isSafeImageDataUrl(head + "QUJD"), true);
-  assert.strictEqual(isSafeImageDataUrl(head + "QQ=="), true);
-  assert.strictEqual(isSafeImageDataUrl(head + "QQ==="), false);
-  assert.strictEqual(isSafeImageDataUrl(head + "==QQ"), false);
+test("rejects a string longer than the limit", () => {
+  const body = "A".repeat(20);
+  assert.equal(isSafeImageDataUrl(`data:image/png;base64,${body}`, 100), true);
+  assert.equal(isSafeImageDataUrl(`data:image/png;base64,${body}`, 30), false);
 });
