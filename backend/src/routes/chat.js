@@ -414,7 +414,8 @@ router.get("/presence", verifyToken, requireRole("student", "teacher", "staff", 
       const skip = scope === "hall" ? ["hall_admin", "hall_admin"] : ["admin", "hall_admin"];
       const online = [...new Set(live.filter((s) => !skip.includes(s.user.role)).map((s) => Number(s.user.id)))];
       const [rows] = await pool.query(
-        "SELECT p.user_id, TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role NOT IN ('admin', 'hall_admin')"
+        "SELECT p.user_id, TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role NOT IN (?, ?)",
+        skip
       );
       const lastSeen = {};
       for (const row of rows) if (!online.includes(Number(row.user_id))) lastSeen[row.user_id] = Math.max(0, Number(row.ago));
