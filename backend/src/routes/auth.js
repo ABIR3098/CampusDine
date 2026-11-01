@@ -379,6 +379,11 @@ router.get("/me", verifyToken, catchAsync(async (req, res) => {
 router.post("/me/email-code", verifyToken, catchAsync(async (req, res) => {
   const e = clean(req.body.email).toLowerCase();
   if (!EMAIL_RE.test(e) || e.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
+  // Only the account owner may start an email change, so the password is checked before any code is mailed.
+  const [[me]] = await pool.query("SELECT password_hash FROM users WHERE id = ?", [req.user.id]);
+  if (!me) return res.status(404).json({ error: "Account not found" });
+  if (!req.body.currentPassword) return res.status(400).json({ error: "Enter your current password to change your email" });
+  if (!(await bcrypt.compare(String(req.body.currentPassword), me.password_hash))) return res.status(401).json({ error: "Current password is incorrect" });
   const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
   if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
   const otp = await createOtp(pool, e, "change_email");
