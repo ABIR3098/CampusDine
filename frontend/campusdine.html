@@ -1083,6 +1083,8 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-filter button{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-size:12px;font-weight:600;transition:all .15s}
 .chat-filter button:hover{border-color:var(--gold);color:var(--gold)}
 .chat-filter button.on{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.chat-find{border-top:1px solid var(--line);margin:0 6px;padding:6px 0}
+.chat-find-title{padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
 .chat-bc-history{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
 .chat-bc-history h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:0 0 6px}
 .chat-bc-history div{padding:6px 0;font-size:13px}
@@ -8670,6 +8672,8 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [inboxFilter, setInboxFilter] = useState("all"); // canteen admin inbox: "all" or "rider"
+  const [extraPeople, setExtraPeople] = useState([]); // riders the canteen admin started a chat with before any message exists
+  const [found, setFound] = useState([]); // directory results for the search box
   const [mobileChat, setMobileChat] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
@@ -8710,8 +8714,21 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   // "hall" = the student talks to the Hall Admin only; "canteen" = the canteen admin only.
   const isHallChat = scope === "hall" || role === "hall_admin";
   const withScope = (path) => (isHallChat && !isAdmin ? path + (path.includes("?") ? "&" : "?") + "scope=hall" : path);
-  const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
+  const people = [...conversations, ...extraPeople.filter(p => !conversations.some(c => Number(c.user_id) === Number(p.user_id)))];
+  const selected = people.find(c => Number(c.user_id) === Number(selectedUserId));
   const chatCall = (path, options = {}) => api(apiBase, withScope(path), { ...options, token: sessionToken });
+  // The canteen admin can start a chat with a rider who has not written yet: type 2+ letters of the name or ID.
+  useEffect(() => {
+    const q = search.trim();
+    if (!isAdmin || isHallChat || q.length < 2) { setFound([]); return; }
+    let live = true;
+    const timer = setTimeout(() => {
+      chatCall("/api/chat/directory?q=" + encodeURIComponent(q))
+        .then(d => { if (live) setFound((d.users || []).filter(u => u.role === "rider")); })
+        .catch(() => { if (live) setFound([]); });
+    }, 300);
+    return () => { live = false; clearTimeout(timer); };
+  }, [search, isAdmin, isHallChat]);
 
   const refreshConversations = async () => {
     const data = await chatCall("/api/chat/conversations");
@@ -8848,7 +8865,12 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
     return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
   };
 
-  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter !== "rider" || c.role === "rider") && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
+  const newRiders = found.filter(u => !people.some(c => Number(c.user_id) === Number(u.id)));
+  const startWith = (u) => {
+    setExtraPeople(list => [...list, { conversation_id: null, user_id: u.id, name: u.name, role: u.role, updated_at: null, last_message: "", unread_count: 0 }]);
+    setSelectedUserId(u.id); setMobileChat(true); setSearch("");
+  };
+  const filtered = people.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter !== "rider" || c.role === "rider") && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
   const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? "Canteen Admin" : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
@@ -9170,6 +9192,20 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
               );
             })}
           </div>
+          {newRiders.length > 0 && (
+            <div className="chat-find">
+              <p className="chat-find-title">Start a chat with a rider</p>
+              {newRiders.map(u => (
+                <button key={u.id} type="button" className="chat-item" onClick={() => startWith(u)}>
+                  {withDot(u.name, 42, isOnline(u.id))}
+                  <span className="chat-item-body">
+                    <span className="chat-item-name" style={{ fontWeight: 600 }}>{u.name}</span>
+                    <span className="chat-item-role">🛵 Rider{u.external_id ? " · " + u.external_id : ""}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </aside>
       )}
       <div className="card chat-panel">
