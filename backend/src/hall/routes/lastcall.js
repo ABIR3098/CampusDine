@@ -108,6 +108,7 @@ router.post("/lastcall/:id/claim", memberOnly, catchAsync(async (req, res) => {
 
 // GET /api/hall/lastcall/manage → { today, items: [{ id, date, slot, label, plates, price, note, status, taken, served, claims: [{ id, code, name, externalId, status, price, at }] }] }
 // today's and the last 7 days' last calls, newest first
+// GET /lastcall/manage
 router.get("/lastcall/manage", admin, catchAsync(async (req, res) => {
   const uni = req.user.universityId || null;
   const now = nowParts();
