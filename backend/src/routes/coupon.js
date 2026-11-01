@@ -333,6 +333,7 @@ router.get("/", verifyToken, async (req, res) => {
 });
 
 // Admin: Update coupon
+// PUT /:couponId (any logged-in user)
 router.put("/:couponId", verifyToken, async (req, res) => {
   let db;
   try {
