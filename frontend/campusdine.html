@@ -8806,7 +8806,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
       const imageId = photo ? await uploadImage(photo.blob) : null;
-      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
+      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isHallChat && !isAdmin ? { scope: "hall" } : {}), ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
       await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
     } catch (e) {
       setMessages(m => m.filter(x => x.id !== temp.id));
@@ -8862,7 +8862,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
   const uploadImage = async (blob) => {
-    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : ""}`, {
+    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : (isHallChat ? "?scope=hall" : "")}`, {
       method: "POST", headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": blob.type || "image/jpeg" }, body: blob,
     });
     let data = {};
