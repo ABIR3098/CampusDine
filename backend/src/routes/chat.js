@@ -228,12 +228,12 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
 
     await connection.beginTransaction();
     await connection.query(
-      "INSERT INTO chat_conversations (user_id) VALUES (?) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP",
-      [userId]
+      "INSERT INTO chat_conversations (user_id, scope) VALUES (?, ?) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP",
+      [userId, scope]
     );
     const [[conversation]] = await connection.query(
-      "SELECT id FROM chat_conversations WHERE user_id = ? FOR UPDATE",
-      [userId]
+      "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ? FOR UPDATE",
+      [userId, scope]
     );
     let replyToId = Number(req.body.replyTo);
     if (Number.isInteger(replyToId) && replyToId > 0) {
