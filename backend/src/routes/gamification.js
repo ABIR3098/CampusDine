@@ -1,14 +1,14 @@
 // CampusDine Route: Gamification, Daily Lucky Spin & Eco Badges
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth");
+const { verifyToken } = require("../middleware/auth");
 const CouponController = require("../controllers/couponController");
 
 // Claim daily spin wheel reward
-router.post("/spin/claim", auth, CouponController.claimDailySpin);
+router.post("/spin/claim", verifyToken, CouponController.claimDailySpin);
 
 // Get leaderboard top rankings
-router.get("/leaderboard", auth, (req, res) => {
+router.get("/leaderboard", verifyToken, (req, res) => {
   res.json([
     { rank: 1, name: "Tanvir Ahmed", badge: "Green Eco Hero", points: 1420, orders: 48 },
     { rank: 2, name: "Afsana Mimi", badge: "Zero Waste Star", points: 1280, orders: 42 },
