@@ -69,3 +69,8 @@ test("quantities typed with a unit or Bengali digits are understood", () => {
   assert.equal(r.toQty("1,200 kg"), 1200);
   assert.equal(r.toQty("৩৫"), 35);
   assert.equal(r.toQty("2.5litre"), 2.5);
+  assert.equal(r.toQty("kg"), null);
+  assert.equal(r.toQty("-5kg"), null);
+  assert.equal(r.validateStaffRequest({ itemId: 1, currentQty: "35kg", requiredQty: "5kg" }).value.currentQty, 35);
+});
+
