@@ -136,6 +136,13 @@
     const usedToday = usageList.filter((u) => u.usageDate === today);
     const usedItem = list.find((i) => String(i.id) === String(use.itemId));
 
+    const restock = (it) => {
+      const suggested = Math.max(it.minStock * 2 - it.currentStock, 1);
+      setForm({ itemId: String(it.id), requestType: "request", currentQty: String(it.currentStock), requiredQty: String(suggested), note: it.level === "out" ? "Out of stock" : "Running low" });
+      setError(""); setInfo(""); setTab("send");
+    };
+    const saveUsage = async () => {
+      setBusy(true); setError(""); setInfo("");
     const chosen = list.find((i) => String(i.id) === String(form.itemId));
 
     const submit = async () => {
