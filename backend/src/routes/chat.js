@@ -358,8 +358,8 @@ router.post("/order/:orderId/messages", verifyToken, requireRole("student", "tea
 }));
 
 // Delete (hide) one of MY messages for everyone. The row stays, its text is blanked on read.
-// DELETE /messages/:id (student, teacher, staff, admin)
-router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "staff", "admin", "hall_admin"), async (req, res) => {
+// DELETE /messages/:id (student, teacher, staff, rider, admin)
+router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid message id" });
