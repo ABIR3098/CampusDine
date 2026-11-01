@@ -131,6 +131,11 @@
     const [info, setInfo] = useState("");
     const list = (items.data && items.data.items) || [];
     const requests = (mine.data && mine.data.requests) || [];
+    const usageList = (usage.data && usage.data.usage) || [];
+    const today = localToday();
+    const usedToday = usageList.filter((u) => u.usageDate === today);
+    const usedItem = list.find((i) => String(i.id) === String(use.itemId));
+
     const chosen = list.find((i) => String(i.id) === String(form.itemId));
 
     const submit = async () => {
