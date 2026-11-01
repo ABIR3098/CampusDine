@@ -122,3 +122,12 @@
       setBusy(false);
     };
 
+    return (
+      <div>
+        <TabBar value={tab} onChange={setTab} tabs={[
+          { key: "stock", label: "Current stock" },
+          { key: "send", label: "Send report / request" },
+          { key: "mine", label: "My requests", badge: requests.filter((r) => r.status === "pending").length || null },
+        ]} />
+        <Notice error={error || items.error || mine.error} info={info} />
+
