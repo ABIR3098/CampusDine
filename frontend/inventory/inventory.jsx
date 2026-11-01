@@ -198,3 +198,10 @@
     const [tab, setTab] = useState("requests");
     const [filter, setFilter] = useState("");
     const summary = useLive(() => call(apiBase, token, "/admin/summary"), [apiBase, token]);
+    const items = useLive(() => call(apiBase, token, "/items"), [apiBase, token]);
+    const reqs = useLive(() => call(apiBase, token, `/admin/requests${filter ? `?status=${filter}` : ""}`), [apiBase, token, filter]);
+    const purchases = useLive(() => call(apiBase, token, "/admin/purchases"), [apiBase, token], 60000);
+    const history = useLive(() => call(apiBase, token, "/admin/history"), [apiBase, token], 60000);
+    const [error, setError] = useState("");
+    const [info, setInfo] = useState("");
+    const [reply, setReply] = useState({});
