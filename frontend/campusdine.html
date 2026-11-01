@@ -7224,6 +7224,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
   const [acceptingId, setAcceptingId] = useState(null);
   const [showSos, setShowSos] = useState(false);
   const [deliveryProof, setDeliveryProof] = useState({});
+  const [view, setView] = useState("deliveries"); // "deliveries" or "chat"
 
   const refreshOrders = async () => {
     try {
@@ -7421,6 +7422,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
           </div>
         </div>
 
+        {view === "deliveries" && (<>
         {/* 5 Innovative Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {[
@@ -7588,6 +7590,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
             </div>
           )}
         </div>
+        </>)}
 
       </div>
 
