@@ -1,6 +1,6 @@
 // test-rating.js — tests the "Rate your rider" system from the terminal, step by step.
 // It makes ONE small cash test order, delivers it, rates the rider, checks everything, then removes the test order.
-// Needs: backend running (npm start) and MySQL on.   Run from the project MAIN folder:  node test-rating.js
+// Needs: backend running (npm start) and MySQL on.   Run from the project MAIN folder:  node tools/test-rating.js
 const fs = require("fs");
 const path = require("path");
 
@@ -63,7 +63,7 @@ const login = async (id, pw) => { const r = await call("POST", "/api/auth/login"
 
     // 6) cannot rate before delivery
     const early = await call("POST", `/api/orders/${order.data.id}/rate-rider`, student, { rating: 5 });
-    if (early.status === 404 && !(early.data && early.data.error === "Order not found")) { fail("rating route does not exist on the server", "run: node rate-rider.js  then restart the backend (Ctrl+C, cd backend, npm start)"); return; }
+    if (early.status === 404 && !(early.data && early.data.error === "Order not found")) { fail("rating route does not exist on the server", "run: node tools/rate-rider.js  then restart the backend (Ctrl+C, cd backend, npm start)"); return; }
     early.status === 409 ? pass("rating is blocked before delivery (correct)") : fail("rating before delivery should be refused (got HTTP " + early.status + ")");
 
     // 7) deliver: Received -> Cooking -> Ready -> collected

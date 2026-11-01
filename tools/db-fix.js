@@ -1,6 +1,6 @@
 // db-fix.js — fixes "Unknown column 'pickup_time' in 'field list'" for good.
 // The server now adds the missing orders.pickup_time column by itself every time it starts.
-// Run from the project main folder:  node db-fix.js   (then restart the backend)
+// Run from the project main folder:  node tools/db-fix.js   (then restart the backend)
 const fs = require("fs");
 const FILE = "backend/server.js";
 

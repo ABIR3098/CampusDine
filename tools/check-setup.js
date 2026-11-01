@@ -1,5 +1,5 @@
 // check-setup.js — read-only health check. Changes nothing.
-// Run from the project MAIN folder:  node check-setup.js
+// Run from the project MAIN folder:  node tools/check-setup.js
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
@@ -57,8 +57,8 @@ let toInstall = 0;
 for (const [script, label, parts] of features) {
   const have = parts.filter((p) => p[1]).length;
   if (have === parts.length) ok(`${label}`);
-  else if (have === 0) { toInstall++; bad(`${label} — not installed`, "run: node " + script + ".js   (or  node apply-all.js  for everything)"); }
-  else { toInstall++; bad(`${label} — only partly installed (missing: ${parts.filter((p) => !p[1]).map((p) => p[0]).join(", ")})`, "run: node " + script + ".js   (or  node apply-all.js  for everything)"); }
+  else if (have === 0) { toInstall++; bad(`${label} — not installed`, "run: node " + script + ".js   (or  node tools/apply-all.js  for everything)"); }
+  else { toInstall++; bad(`${label} — only partly installed (missing: ${parts.filter((p) => !p[1]).map((p) => p[0]).join(", ")})`, "run: node " + script + ".js   (or  node tools/apply-all.js  for everything)"); }
 }
 
 /* ---------- 2) .env + database ---------- */
