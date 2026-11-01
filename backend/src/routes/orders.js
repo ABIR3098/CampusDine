@@ -276,6 +276,7 @@ router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) =
 
 // PATCH /api/orders/:id/cancel  (student/teacher) — cancel while still "Received"
 // Restores stock and, for a wallet-paid order, refunds the wallet.
+// PATCH /:id/cancel (student, teacher)
 router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const conn = await pool.getConnection();
   try {
