@@ -70,3 +70,10 @@
     }, [reload, everyMs]);
     return { data, error, reload };
   }
+
+  function StockTable({ items, actions }) {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs uppercase" style={{ color: "var(--ink-soft)" }}>
