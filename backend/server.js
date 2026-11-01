@@ -657,7 +657,7 @@ async function runStartupCheck() {
     console.log(`✅ Demo account created: ${acc.externalId} / ${acc.password} (${acc.role})`);
   }
 
-  if (!skipDemo) {
+  if (seedDemo) {
     const staffResult = await ensureDevStaffAccount(db);
     if (staffResult.created) console.log("✅ Dev staff account created: staff01 (staff)");
   }
@@ -687,6 +687,7 @@ async function runStartupCheck() {
     console.log("   Student → ID: student1   Password: student123");
     console.log("   Teacher → ID: teacher1   Password: teacher123");
     console.log("   Rider   → ID: rider1     Password: rider123");
+    printStaffCredentials();
     console.log("════════════════════════════════════════\n");
   } else {
     console.log("\nDemo accounts were not created (NODE_ENV=production). Set SEED_DEMO_ACCOUNTS=true to create them.\n");
