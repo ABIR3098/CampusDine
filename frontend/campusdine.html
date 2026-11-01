@@ -8697,9 +8697,12 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   const lastTypingSent = useRef(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  const isAdmin = role === "admin";
+  const isAdmin = role === "admin" || role === "hall_admin";
+  // "hall" = the student talks to the Hall Admin only; "canteen" = the canteen admin only.
+  const isHallChat = scope === "hall" || role === "hall_admin";
+  const withScope = (path) => (isHallChat && !isAdmin ? path + (path.includes("?") ? "&" : "?") + "scope=hall" : path);
   const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
-  const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+  const chatCall = (path, options = {}) => api(apiBase, withScope(path), { ...options, token: sessionToken });
 
   const refreshConversations = async () => {
     const data = await chatCall("/api/chat/conversations");
