@@ -39,6 +39,7 @@ async function resolveFavoriteTable() {
 }
 
 // GET /api/menu  (any logged-in user) — includes is_favorite, calories and allergens
+// GET / (any logged-in user)
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
   // Feature: hidden items are only visible to the admin (who needs them to un-hide them)
