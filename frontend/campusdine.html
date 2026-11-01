@@ -7278,6 +7278,7 @@ function StaffShell({ apiBase, token, user, onLogout }) {
 
 function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
+  const [demoGps, setDemoGps] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); return !!(saved && saved.demo); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
   const [lastUpdate, setLastUpdate] = useState(null);
   const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
@@ -7317,6 +7318,8 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
     setAcceptingId(orderId);
     try {
       await api(apiBase, `/api/riders/orders/${orderId}/accept`, { method: "POST", token });
+      setOrderError("");
+      setMessage(`✓ Delivery of order #${orderId} accepted. The teacher can see that you are on the way.`);
       await refreshOrders();
     } catch (e) {
       setOrderError(e.message || "Could not accept this order.");
@@ -7364,6 +7367,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
       if (!saved) return;
       if (user && user.id && saved.riderId && Number(saved.riderId) !== Number(user.id)) {
         localStorage.removeItem("cd_rider_gps");
+        setDemoGps(false);
         setSharing(false);
         setMessage("Location sharing is off.");
         return;
@@ -7414,7 +7418,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
 
   const start = () => {
     if (!navigator.geolocation) {
-      setMessage("This browser does not support GPS.");
+      setMessage("This browser does not support GPS. You can use Demo GPS instead.");
       return;
     }
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -7427,15 +7431,35 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
           body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, active: true }
         });
       } catch (_) {}
+      setDemoGps(false);
       setSharing(true);
       setLastUpdate(new Date());
       setMessage("GPS sharing is active. Streaming coordinates to campus teachers & dispatch.");
-    }, err => setMessage(err.message || "Location permission denied."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+    }, err => setMessage((err.message || "Location permission denied.") + " You can use Demo GPS instead."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+  };
+
+  // Demo GPS: share a fixed campus position instead of the phone's GPS (demos, desktop browsers, no HTTPS).
+  const startDemo = async () => {
+    const position = { latitude: 23.8103, longitude: 90.4125 };
+    try {
+      await api(apiBase, "/api/riders/location", { method: "POST", token, body: { ...position, accuracy: 15, active: true } });
+    } catch (e) {
+      setMessage(e.message || "Could not send the demo position.");
+      return;
+    }
+    try {
+      localStorage.setItem("cd_rider_gps", JSON.stringify({ token, apiBase, riderId: (user && user.id) || Date.now(), demo: true, ...position }));
+    } catch (_) {}
+    setDemoGps(true);
+    setSharing(true);
+    setLastUpdate(new Date());
+    setMessage("Demo GPS is on: a fixed campus position is sent every few seconds, so teacher orders can be given to you.");
   };
 
   const stop = async () => {
     try { localStorage.removeItem("cd_rider_gps"); } catch (_) {}
     try { await api(apiBase, "/api/riders/location", { method: "POST", token, body: { active: false } }); } catch (_) {}
+    setDemoGps(false);
     setSharing(false);
     setMessage("Location sharing stopped.");
   };
@@ -7487,16 +7511,22 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
             <div className={sharing ? "rider-radar-dot" : "rider-radar-off"} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-700">{sharing ? "Live Location Streaming Active" : "Location Sharing Paused"}</span>
+                <span className="text-sm font-700">{sharing ? (demoGps ? "Demo GPS Active" : "Live Location Streaming Active") : "Location Sharing Paused"}</span>
                 {sharing && <span className="text-[10px] uppercase font-800 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Online</span>}
               </div>
               <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{message}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {!sharing ? (
-                <button onClick={start} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
-                  📡 Enable GPS
-                </button>
+                <>
+                  <button onClick={start} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+                    📡 Enable GPS
+                  </button>
+                  <button onClick={startDemo} className="px-4 py-2 rounded-xl text-xs font-700 border flex items-center gap-1.5"
+                    style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                    🧪 Demo GPS
+                  </button>
+                </>
               ) : (
                 <button onClick={stop} className="px-4 py-2 rounded-xl text-xs font-700 border flex items-center gap-1.5"
                   style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
