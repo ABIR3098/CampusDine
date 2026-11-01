@@ -20,7 +20,14 @@ function canTransition(from, to) {
 // Accepts numbers or numeric strings, returns a number rounded to 2 decimals or null when invalid.
 function toQty(value, { allowZero = false } = {}) {
   if (value === null || value === undefined || value === "") return null;
-  const n = typeof value === "number" ? value : Number(String(value).trim());
+  let n;
+  if (typeof value === "number") n = value;
+  else {
+    // Accept what people really type: "35", "35kg", "৩৫", "1,200 kg".
+    const text = String(value).replace(/[০-৯]/g, (d) => "০১২৩৪৫৬৭৮৯".indexOf(d)).replace(/,/g, "").trim();
+    const m = text.match(/^(\d*\.?\d+)\s*[^\d\s.+-]*$/);
+    n = m ? Number(m[1]) : NaN;
+  }
   if (!Number.isFinite(n)) return null;
   if (n < 0 || (!allowZero && n === 0) || n > MAX_QTY) return null;
   return Math.round(n * 100) / 100;
