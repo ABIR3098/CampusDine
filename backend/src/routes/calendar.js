@@ -41,6 +41,7 @@ router.get("/", catchAsync(async (req, res) => {
 }));
 
 // GET /api/calendar/bill?year=&month= — the month's plan: total, what is already paid, what is still due
+// GET /bill (any logged-in user)
 router.get("/bill", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.query);
   if (!ym) return res.status(400).json({ error: "Invalid month" });
