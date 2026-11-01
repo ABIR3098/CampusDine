@@ -56,3 +56,10 @@
   const inputCls = "w-full px-3 py-2 rounded-lg border text-sm";
   const inputStyle = { borderColor: "var(--line)", background: "var(--panel)", color: "var(--ink)" };
 
+  // Shared hook: loads data and keeps it fresh without a page reload.
+  function useLive(loader, deps, everyMs = 20000) {
+    const [data, setData] = useState(null);
+    const [error, setError] = useState("");
+    const reload = useCallback(async () => {
+      try { setData(await loader()); setError(""); } catch (e) { setError(e.message); }
+    }, deps); // eslint-disable-line react-hooks/exhaustive-deps
