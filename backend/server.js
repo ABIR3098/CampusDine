@@ -835,6 +835,7 @@ app.use("/api/payment", paymentSandboxRoutes);
 app.use("/api/notifications", notificationCenterRoutes);
 // Food waste challenge
 app.use("/api/waste-challenge", wasteChallengeRoutes);
+// Revenue analytics
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/settlements", settlementRoutes);
 app.use("/api/emergency", emergencyRoutes);
