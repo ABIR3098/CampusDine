@@ -19,6 +19,9 @@ const stub = {
   recordPurchase: async (adminId, v) => { calls.push(["recordPurchase", adminId, v]); return { purchaseId: 1, itemId: 1, stockBefore: 10, stockAfter: 20, requestId: v.requestId }; },
   adjustStock: async (adminId, id, v) => { calls.push(["adjustStock", adminId, id, v]); return { itemId: id, stockBefore: 1, stockAfter: v.newStock }; },
   addItem: async (adminId, v) => ({ id: 9, ...v }),
+  recordUsage: async (staffId, v) => { calls.push(["recordUsage", staffId, v]); return { usageId: 1, stockAfter: 5, level: "ok" }; },
+  listStaffUsage: async (id) => { calls.push(["listStaffUsage", id]); return []; },
+  listAllUsage: async () => [],
   listPurchases: async () => [], listHistory: async () => [], summary: async () => ({ pending: 0 }),
 };
 
