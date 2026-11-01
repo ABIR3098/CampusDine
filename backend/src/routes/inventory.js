@@ -3,6 +3,7 @@ const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const rules = require("../inventory/rules");
 const { HttpError } = require("../inventory/service");
+const { describeDbError } = require("../inventory/errors");
 
 // Staff can read stock and send reports/requests. Only admins can decide, record purchases or change stock.
 function createInventoryRouter(service) {
@@ -108,6 +109,8 @@ function createInventoryRouter(service) {
   router.use((err, req, res, next) => {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.message });
     console.error("[inventory] " + req.method + " " + req.originalUrl + " failed:", err && err.sqlMessage ? err.sqlMessage : err);
+    const detail = describeDbError(err);
+    if (detail) return res.status(500).json({ error: detail });
     next(err);
   });
 
