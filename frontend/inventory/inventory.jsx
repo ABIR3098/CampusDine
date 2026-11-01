@@ -150,6 +150,7 @@
         items.reload(); usage.reload();
       } catch (e) { setError(e.message); }
       setBusy(false);
+    };
     const chosen = list.find((i) => String(i.id) === String(form.itemId));
 
     const submit = async () => {
