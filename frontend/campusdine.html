@@ -9195,7 +9195,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
           {messages.length === 0 ? (
             <div className="chat-empty">
               <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
-              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : (isHallChat ? "No messages yet. Start the conversation with the Hall Admin." : tx("chat.empty"))}</p>
+              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : (isHallChat ? "No messages yet. Start the conversation with the Hall Admin." : isRider ? "No messages yet. Write to the canteen admin about your deliveries." : tx("chat.empty"))}</p>
               {!isAdmin && (
                 <div className="chat-quick">
                   {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
