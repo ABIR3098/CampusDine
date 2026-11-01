@@ -756,6 +756,7 @@ io.on("connection", (socket) => {
   if (socket.user.role === "hall_admin") socket.join("hall_admins");
   if (socket.user.role === "teacher") socket.join("teachers");
   if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
+  if (socket.user.role === "staff") socket.join("staff");
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
