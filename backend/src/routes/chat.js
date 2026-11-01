@@ -56,6 +56,7 @@ router.get("/conversations", verifyToken, requireRole("admin"), async (req, res)
   }
 });
 
+// GET /messages (student, teacher, staff)
 router.get("/messages", verifyToken, requireRole("student", "teacher", "staff"), async (req, res) => {
   let connection;
   try {
