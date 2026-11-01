@@ -81,3 +81,9 @@ function createInventoryRouter(service) {
     if (v.error) return fail(res, v.error);
     res.json(await service.adjustStock(req.user.id, id, v.value));
   }));
+
+  router.get("/admin/history", requireRole("admin"), catchAsync(async (req, res) => {
+    const itemId = Number(req.query.itemId);
+    res.json({ history: await service.listHistory(Number.isInteger(itemId) && itemId > 0 ? itemId : null) });
+  }));
+
