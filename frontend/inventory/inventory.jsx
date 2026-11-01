@@ -168,6 +168,7 @@
       <div>
         <TabBar value={tab} onChange={setTab} tabs={[
           { key: "stock", label: "Current stock" },
+          { key: "usage", label: "Daily usage" },
           { key: "send", label: "Send report / request" },
           { key: "mine", label: "My requests", badge: requests.filter((r) => r.status === "pending").length || null },
         ]} />
