@@ -8840,7 +8840,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
   };
 
   const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
-  const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
   const agoText = (sec) => {
