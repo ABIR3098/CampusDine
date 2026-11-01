@@ -61,6 +61,7 @@ router.get('/queue',requireRole('student','teacher','admin'),async(req,res,next)
   res.json({summary,orders:orders.map(({items,...o})=>o)});
 }catch(e){next(e)}});
 
+// GET /live-tracking (teacher)
 router.get('/live-tracking',requireRole('teacher'),async(req,res,next)=>{try{
   const [rows]=await pool.query(`SELECT o.id,o.token,o.status,o.created_at,o.rider_assignment_status,
     ru.name AS rider_name,l.latitude,l.longitude,l.updated_at AS location_updated_at,
