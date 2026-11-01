@@ -85,6 +85,27 @@ async function ensureMissingColumns(db) {
   }
 }
 
+// An older version of this module used `inventory_materials` / `material_id`.
+// Those tables are incompatible with the current code, so remove them once and
+// let the CREATE TABLE statements below rebuild everything in the new structure.
+async function dropLegacyInventoryTables(db) {
+  const [rows] = await db.query(
+    `SELECT DISTINCT TABLE_NAME FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND ((TABLE_NAME LIKE 'inventory\\_%' AND COLUMN_NAME = 'material_id') OR TABLE_NAME = 'inventory_materials')`
+  );
+  if (!rows.length) return;
+  console.log("[inventory] old inventory structure found, rebuilding inventory tables");
+  await db.query("SET FOREIGN_KEY_CHECKS = 0");
+  try {
+    for (const t of ["inventory_usage", "inventory_stock_history", "inventory_purchases", "inventory_requests", "inventory_items", "inventory_materials"]) {
+      await db.query(`DROP TABLE IF EXISTS ${t}`);
+    }
+  } finally {
+    await db.query("SET FOREIGN_KEY_CHECKS = 1");
+  }
+}
+
 async function ensureInventorySchema(db) {
   await db.query(`ALTER TABLE users MODIFY COLUMN role ${ROLE_ENUM} NOT NULL`);
 
