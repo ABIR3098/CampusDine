@@ -331,6 +331,7 @@
         <TabBar value={tab} onChange={setTab} tabs={[
           { key: "requests", label: "Requests", badge: s.pending || null },
           { key: "stock", label: "Stock" },
+          { key: "usage", label: "Daily usage" },
           { key: "purchases", label: "Purchases" },
           { key: "history", label: "History" },
         ]} />
