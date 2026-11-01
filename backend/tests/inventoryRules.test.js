@@ -13,3 +13,12 @@ test("toQty rejects zero, negatives, NaN, empty and absurd values", () => {
   assert.equal(r.toQty(0, { allowZero: true }), 0);
 });
 
+test("status transitions follow pending -> approved/rejected -> purchased", () => {
+  assert.ok(r.canTransition("pending", "approved"));
+  assert.ok(r.canTransition("pending", "rejected"));
+  assert.ok(r.canTransition("approved", "purchased"));
+  assert.ok(!r.canTransition("rejected", "approved"));
+  assert.ok(!r.canTransition("purchased", "approved"));
+  assert.ok(!r.canTransition("pending", "purchased"));
+  assert.ok(!r.canTransition("nope", "approved"));
+});
