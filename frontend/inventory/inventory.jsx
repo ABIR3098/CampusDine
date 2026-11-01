@@ -296,3 +296,10 @@
             </div>
             <div className="card p-5">
               <div className="font-700 mb-2 text-sm">Add a raw material</div>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                <input className={inputCls} style={inputStyle} placeholder="Name" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
+                <input className={inputCls} style={inputStyle} placeholder="বাংলা নাম" value={newItem.nameBn} onChange={(e) => setNewItem({ ...newItem, nameBn: e.target.value })} />
+                <select className={inputCls} style={inputStyle} value={newItem.unit} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}>
+                  {["kg", "g", "litre", "ml", "piece", "dozen", "packet", "bottle"].map((u) => <option key={u}>{u}</option>)}
+                </select>
+                <input className={inputCls} style={inputStyle} placeholder="Opening stock" inputMode="decimal" value={newItem.currentStock} onChange={(e) => setNewItem({ ...newItem, currentStock: e.target.value })} />
