@@ -82,6 +82,7 @@ router.get("/reports/revenue-trend", catchAsync(async (req, res) => {
 // Heuristic: how many students/teachers marked Full or Half on this same
 // weekday over the last 4 occurrences, averaged. Simple and explainable —
 // swap in a real model later if the course wants something fancier.
+// GET /reports/forecast (any logged-in user)
 router.get("/reports/forecast", catchAsync(async (req, res) => {
   const [[{ cnt, weeks }]] = await pool.query(`
     SELECT COUNT(*) AS cnt, COUNT(DISTINCT YEARWEEK(the_date)) AS weeks
