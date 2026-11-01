@@ -233,3 +233,10 @@
       run(() => call(apiBase, token, `/admin/items/${it.id}/adjust`, { method: "POST", body: { newStock: v, note } }), "Official stock corrected.");
     };
 
+    return (
+      <div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {[["Pending requests", s.pending], ["Low stock", s.lowStock], ["Out of stock", s.outOfStock], ["Purchases this month (৳)", s.monthSpend]].map(([l, v]) => (
+            <div key={l} className="card p-3"><div className="text-xs" style={{ color: "var(--ink-soft)" }}>{l}</div><div className="text-xl font-800">{fmt(v || 0)}</div></div>
+          ))}
+        </div>
