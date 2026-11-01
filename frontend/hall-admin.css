@@ -62,3 +62,19 @@ body{background:radial-gradient(900px 380px at 10% -10%,var(--brand-soft),transp
 .card h2{display:flex;align-items:center;gap:8px}
 .card h2::before{content:"";width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--brand-2),var(--brand))}
 .itemhead h2{margin-bottom:4px}
+
+button{transition:background .15s,transform .05s,box-shadow .15s;box-shadow:0 1px 2px #0e74901f}
+button:hover{background:var(--brand-2)}button:active{transform:translateY(1px)}
+button.secondary{box-shadow:none;border:1px solid var(--border)}
+button.secondary:hover{background:var(--brand-soft);color:var(--accent)}
+button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+button.small{padding:6px 11px;border-radius:8px}
+button.danger{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger-border);box-shadow:none}
+button.danger:hover{background:var(--danger);color:#fff}
+
+input,select,textarea{transition:border-color .15s,box-shadow .15s}
+input:hover,select:hover,textarea:hover{border-color:var(--muted)}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--brand-2);box-shadow:var(--ring)}
+::placeholder{color:#9aa8bb}
+label{font-weight:600;letter-spacing:.01em;margin-top:14px}.twocol{gap:16px}
+select{appearance:none;-webkit-appearance:none;padding-right:34px;background-repeat:no-repeat;background-position:right 12px center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2368778d' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")}
