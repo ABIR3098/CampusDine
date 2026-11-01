@@ -125,3 +125,13 @@ function createService(pool) {
     });
   }
 
+  async function adjustStock(adminId, itemId, v) {
+    return withTx(pool, async (conn) => {
+      const [rows] = await conn.query("SELECT id, current_stock FROM inventory_items WHERE id = ? FOR UPDATE", [itemId]);
+      if (!rows.length) throw new HttpError(404, "That raw material does not exist.");
+      const before = Number(rows[0].current_stock);
+      await conn.query("UPDATE inventory_items SET current_stock = ? WHERE id = ?", [v.newStock, itemId]);
+      await conn.query(
+        "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, actor_id, note) VALUES (?, ?, ?, ?, 'adjustment', ?, ?)",
+        [itemId, Math.round((v.newStock - before) * 100) / 100, before, v.newStock, adminId, v.note]
+      );
