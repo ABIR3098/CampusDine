@@ -126,3 +126,118 @@ test("a rider cannot chat with another rider", async () => {
 test("the directory needs two letters", async () => {
   assert.deepEqual((await call(TEACHER, "GET", "/directory?q=r")).body, { users: [] });
 });
+
+test("a teacher writes to a rider: the thread opens and both sides get it live", async () => {
+  const r = await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "  Please call me at the gate  " });
+  assert.equal(r.status, 201);
+  assert.equal(r.body.message.message, "Please call me at the gate");
+  assert.equal(r.body.message.senderId, TEACHER);
+  assert.equal(r.body.message.recipientId, RIDER);
+  assert.equal(db.threads.length, 1);
+  assert.deepEqual(db.threads[0], { id: 1, teacher_id: TEACHER, rider_id: RIDER });
+  const rooms = sent.filter((e) => e.event === "teacher-rider-chat:message").map((e) => e.room).sort();
+  assert.deepEqual(rooms, ["user:" + TEACHER, "user:" + RIDER].sort());
+});
+
+test("an empty or too long message is a 400 and nothing is saved", async () => {
+  assert.equal((await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "   " })).status, 400);
+  assert.equal((await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "x".repeat(2001) })).status, 400);
+  assert.equal(db.messages.length, 0);
+  assert.equal(db.threads.length, 0);
+});
+
+test("the rider sees the unread count, opening the chat marks it read and tells the teacher", async () => {
+  await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "one" });
+  await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "two" });
+  assert.equal((await call(RIDER, "GET", "/unread")).body.unread, 2);
+  assert.equal((await call(TEACHER, "GET", "/unread")).body.unread, 0);
+
+  sent.length = 0;
+  const opened = await call(RIDER, "GET", "/" + TEACHER + "/messages");
+  assert.equal(opened.status, 200);
+  assert.deepEqual(opened.body.messages.map((m) => m.message), ["one", "two"]);
+  assert.equal(opened.body.firstUnreadId, 1);
+  assert.equal(opened.body.peer.name, "Dr. Karim");
+  assert.equal((await call(RIDER, "GET", "/unread")).body.unread, 0);
+  assert.ok(sent.some((e) => e.event === "teacher-rider-chat:read" && e.room === "user:" + TEACHER && e.payload.readerId === RIDER));
+});
+
+test("a conversation that does not exist yet is an empty list, not an error", async () => {
+  const r = await call(TEACHER, "GET", "/" + RIDER_B + "/messages");
+  assert.equal(r.status, 200);
+  assert.equal(r.body.threadId, null);
+  assert.deepEqual(r.body.messages, []);
+});
+
+test("a rider can start a chat only with a teacher whose order they carry", async () => {
+  assert.equal((await call(RIDER, "POST", "/" + TEACHER_B + "/messages", { message: "hello" })).status, 403);
+  assert.equal(db.threads.length, 0);
+  assert.equal((await call(RIDER, "POST", "/" + TEACHER + "/messages", { message: "I am outside" })).status, 201);
+  assert.deepEqual(db.threads[0], { id: 1, teacher_id: TEACHER, rider_id: RIDER });
+});
+
+test("once a teacher has written, the rider can answer even without a shared order", async () => {
+  db.orders = [];
+  assert.equal((await call(RIDER, "POST", "/" + TEACHER + "/messages", { message: "hello" })).status, 403);
+  assert.equal((await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "hello rider" })).status, 201);
+  assert.equal((await call(RIDER, "POST", "/" + TEACHER + "/messages", { message: "hello sir" })).status, 201);
+  assert.equal(db.messages.length, 2);
+});
+
+test("two riders never see each other's chat with the same teacher", async () => {
+  await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "for rider A only" });
+  const other = await call(RIDER_B, "GET", "/" + TEACHER + "/messages");
+  assert.equal(other.status, 200);
+  assert.deepEqual(other.body.messages, []);
+  assert.deepEqual((await call(RIDER_B, "GET", "/threads")).body.threads, []);
+});
+
+test("the chat list shows the other person, the last message and the unread count", async () => {
+  await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "where are you?" });
+  await call(RIDER, "POST", "/" + TEACHER + "/messages", { message: "two minutes away" });
+  await call(RIDER, "POST", "/" + TEACHER + "/messages", { message: "at the gate now" });
+
+  const teacherList = (await call(TEACHER, "GET", "/threads")).body.threads;
+  assert.equal(teacherList.length, 1);
+  assert.equal(teacherList[0].peer_id, RIDER);
+  assert.equal(teacherList[0].name, "Rahim Rider");
+  assert.equal(teacherList[0].last_message, "at the gate now");
+  assert.equal(teacherList[0].unread_count, 2);
+
+  const riderList = (await call(RIDER, "GET", "/threads")).body.threads;
+  assert.equal(riderList[0].peer_id, TEACHER);
+  assert.equal(riderList[0].unread_count, 1);
+});
+
+test("only the sender can delete a message, and it is blanked for both sides", async () => {
+  await call(TEACHER, "POST", "/" + RIDER + "/messages", { message: "wrong room number" });
+  assert.equal((await call(RIDER, "DELETE", "/messages/1")).status, 404);
+  assert.equal((await call(RIDER_B, "DELETE", "/messages/1")).status, 404);
+  assert.equal((await call(TEACHER, "DELETE", "/messages/abc")).status, 400);
+
+  sent.length = 0;
+  assert.equal((await call(TEACHER, "DELETE", "/messages/1")).status, 200);
+  const rooms = sent.filter((e) => e.event === "teacher-rider-chat:deleted").map((e) => e.room).sort();
+  assert.deepEqual(rooms, ["user:" + TEACHER, "user:" + RIDER].sort());
+  assert.equal((await call(TEACHER, "DELETE", "/messages/1")).status, 404);
+
+  const seen = (await call(RIDER, "GET", "/" + TEACHER + "/messages")).body.messages;
+  assert.equal(seen[0].message, "");
+  assert.ok(seen[0].deleted_at);
+  assert.equal((await call(TEACHER, "GET", "/threads")).body.threads[0].last_message, "Message deleted");
+  assert.equal((await call(RIDER, "GET", "/unread")).body.unread, 0);
+});
+
+test("a teacher finds riders by name, a rider only finds teachers they deliver to", async () => {
+  const asTeacher = (await call(TEACHER, "GET", "/directory?q=rider")).body.users;
+  assert.deepEqual(asTeacher.map((u) => u.id).sort(), [RIDER, RIDER_B].sort());
+  const asRider = (await call(RIDER, "GET", "/directory?q=dr.")).body.users;
+  assert.deepEqual(asRider.map((u) => u.id), [TEACHER]);
+  assert.deepEqual((await call(RIDER_B, "GET", "/directory?q=dr.")).body.users, []);
+});
+
+test("contacts are the people I share an order with", async () => {
+  assert.deepEqual((await call(TEACHER, "GET", "/contacts")).body.users.map((u) => u.id), [RIDER]);
+  assert.deepEqual((await call(RIDER, "GET", "/contacts")).body.users.map((u) => u.id), [TEACHER]);
+  assert.deepEqual((await call(RIDER_B, "GET", "/contacts")).body.users, []);
+});
