@@ -85,6 +85,7 @@ const clean = (v) => (typeof v === "string" ? v.trim() : "");
 
 // GET /api/wallet/recipient?id=<external id> — lets the sender confirm WHO they are paying before sending.
 // Only the name is returned.
+// GET /recipient (student, teacher)
 router.get("/recipient", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = clean(req.query.id);
   if (!id) return res.status(400).json({ error: "Enter the ID number of the person you want to pay" });
