@@ -28,6 +28,10 @@
   }
 
   const initialOf = (name) => (String(name || "?").trim().charAt(0) || "?").toUpperCase();
+  const timeOf = (iso) => {
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   function TeacherRiderChat({ role, userId, apiBase, token, tx, refreshKey = 0 }) {
     const t = makeT(tx);
@@ -36,6 +40,10 @@
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [peer, setPeer] = useState(null); // the person whose chat is open: { id, name, role, external_id }
+    const [messages, setMessages] = useState([]);
+    const [chatLoading, setChatLoading] = useState(false);
+    const [firstUnreadId, setFirstUnreadId] = useState(null);
+    const scrollRef = useRef(null);
     // @@state
 
     const loadThreads = async () => {
@@ -50,11 +58,35 @@
       }
     };
     useEffect(() => { loadThreads(); }, [apiBase, token, refreshKey]);
+
+    // Opening a chat marks the messages sent to me as read on the server, so the list is reloaded afterwards.
+    const loadMessages = async (peerId, quiet) => {
+      if (!quiet) setChatLoading(true);
+      try {
+        const data = await call(apiBase, token, "/" + peerId + "/messages");
+        setMessages(data.messages || []);
+        setFirstUnreadId(data.firstUnreadId || null);
+        setError("");
+        loadThreads();
+      } catch (e) {
+        setError(e.message || "Could not load the chat.");
+      } finally {
+        setChatLoading(false);
+      }
+    };
     // @@actions
 
     const openThread = (thread) => {
       setPeer({ id: thread.peer_id, name: thread.name, role: thread.role, external_id: thread.external_id });
     };
+    useEffect(() => {
+      setMessages([]);
+      setFirstUnreadId(null);
+      if (peer) loadMessages(peer.id);
+    }, [peer && peer.id]);
+    useEffect(() => {
+      if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, [messages, peer && peer.id]);
     // @@effects
 
     return (
@@ -89,6 +121,49 @@
           </aside>
           <section className={(peer ? "flex" : "hidden md:flex") + " flex-col min-h-[320px]"}>
             {error && <div className="m-3 p-2 rounded-lg text-xs" style={{ background: "var(--danger-bg)", color: "var(--danger-fg)" }}>{error}</div>}
+            {peer ? (
+              <>
+                <header className="px-4 py-3 border-b flex items-center gap-3" style={{ borderColor: "var(--line)" }}>
+                  <button type="button" className="md:hidden px-2 py-1 rounded-lg border text-sm" style={{ borderColor: "var(--line)" }} onClick={() => setPeer(null)}>←</button>
+                  <span className="w-9 h-9 rounded-full grid place-items-center font-800 shrink-0" style={{ background: "var(--gold)", color: "#fff" }}>{initialOf(peer.name)}</span>
+                  <div className="min-w-0">
+                    <div className="font-700 text-sm truncate">{peer.name}</div>
+                    <div className="text-xs" style={{ color: "var(--ink-soft)" }}>
+                      {peer.role === "rider" ? t("trc.role.rider", "Rider") : t("trc.role.teacher", "Teacher")}{peer.external_id ? " · " + peer.external_id : ""}
+                    </div>
+                  </div>
+                </header>
+                <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3" style={{ maxHeight: 400, minHeight: 240 }}>
+                  {chatLoading && <div className="text-center text-xs font-600" style={{ color: "var(--ink-soft)" }}>{t("trc.loading", "Loading…")}</div>}
+                  {!chatLoading && messages.length === 0 && (
+                    <div className="text-center text-sm py-8" style={{ color: "var(--ink-soft)" }}>{t("trc.empty", "No messages yet. Say hello 👋")}</div>
+                  )}
+                  {messages.map((m) => {
+                    const mine = Number(m.sender_id) === Number(userId);
+                    return (
+                      <div key={m.id}>
+                        {Number(firstUnreadId) === Number(m.id) && (
+                          <div className="text-center text-[11px] font-700 my-2" style={{ color: "var(--gold)" }}>— {t("trc.newMessages", "New messages")} —</div>
+                        )}
+                        <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
+                          <div className={"chat-bubble " + (mine ? "mine" : "theirs")}>
+                            {m.deleted_at
+                              ? <p style={{ fontStyle: "italic", opacity: 0.7 }}>{t("trc.deleted", "This message was deleted")}</p>
+                              : <p>{m.message}</p>}
+                            <div className="text-[10px] mt-0.5 text-right" style={{ opacity: 0.75 }}>{timeOf(m.created_at)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* @@composer */}
+              </>
+            ) : (
+              <div className="flex-1 grid place-items-center p-6 text-sm text-center" style={{ color: "var(--ink-soft)" }}>
+                {t("trc.pick", "Pick a chat on the left to read it.")}
+              </div>
+            )}
             {/* @@view */}
           </section>
         </div>
