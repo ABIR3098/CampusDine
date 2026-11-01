@@ -397,7 +397,7 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
     }
   });
 
-router.get("/images/:id", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+router.get("/images/:id", verifyToken, requireRole("student", "teacher", "staff", "admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid photo id" });
