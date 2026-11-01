@@ -72,3 +72,10 @@ function createService(pool) {
     const [rows] = await pool.query(`${REQUEST_SELECT} WHERE q.staff_id = ? ORDER BY q.created_at DESC, q.id DESC LIMIT 200`, [staffId]);
     return rows.map(requestView);
   }
+
+  async function listAllRequests(status) {
+    const where = status ? "WHERE q.status = ?" : "";
+    const [rows] = await pool.query(`${REQUEST_SELECT} ${where} ORDER BY q.created_at DESC, q.id DESC LIMIT 300`, status ? [status] : []);
+    return rows.map(requestView);
+  }
+
