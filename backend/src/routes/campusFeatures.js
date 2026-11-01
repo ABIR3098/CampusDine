@@ -43,6 +43,7 @@ const ioEmit=(req,room,event,payload)=>{const io=req.app.get('io');if(io)io.to(r
 router.use(verifyToken);
 
 // Existing order status + queue data powers the student's live tracking panel.
+// GET /queue (student, teacher, admin)
 router.get('/queue',requireRole('student','teacher','admin'),async(req,res,next)=>{try{
   const [joined]=await pool.query(`SELECT o.id,o.status,o.created_at,o.pickup_time,oi.menu_item_id,oi.name AS item_name
     FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id
