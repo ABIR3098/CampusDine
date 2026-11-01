@@ -352,6 +352,7 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
 // body: { code, collect?: true }
 //   without collect: just look the order up and say whether it can be handed over
 //   with collect:    also mark it as collected, so the same QR can't be used twice
+// POST /verify (admin)
 router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { code, collect } = req.body || {};
   const parsed = parseCode(code);
