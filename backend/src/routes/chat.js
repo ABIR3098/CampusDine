@@ -86,6 +86,23 @@ router.get("/conversations", verifyToken, requireRole("admin", "hall_admin"), as
   }
 });
 
+// GET /directory?q=  (admin, hall_admin) - find a student/teacher to start a new conversation with
+router.get("/directory", verifyToken, requireRole("admin", "hall_admin"), async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim().slice(0, 60);
+    if (q.length < 2) return res.json({ users: [] });
+    const like = "%" + q.replace(/[%_\\]/g, (c) => "\\" + c) + "%";
+    const [users] = await pool.query(
+      "SELECT id, name, role, external_id FROM users WHERE role IN ('student', 'teacher', 'staff') AND (? = 'canteen' OR role <> 'staff') AND (name LIKE ? OR external_id LIKE ?) ORDER BY name LIMIT 10",
+      [scopeOf(req), like, like]
+    );
+    res.json({ users });
+  } catch (error) {
+    console.error("Failed to search chat users:", error);
+    res.status(500).json({ error: "Failed to search users" });
+  }
+});
+
 // GET /messages (student, teacher, staff)
 router.get("/messages", verifyToken, requireRole("student", "teacher", "staff"), async (req, res) => {
   let connection;
