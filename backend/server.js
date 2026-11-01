@@ -808,6 +808,7 @@ app.use("/api/hall", hall.router);
 app.use("/api/hall-admin", hallAdminRoutes);
 // Queue, Lost & Found, SOS and waste challenge
 app.use("/api/campus", campusFeatureRoutes);
+// Kitchen staff inventory and purchase requests
 app.use("/api/inventory", createInventoryRouter(createInventoryService(require("./src/db"))));
 app.use("/api/kds", kdsRoutes);
 app.use("/api/hall/guest-tokens", guestTokenRoutes);
