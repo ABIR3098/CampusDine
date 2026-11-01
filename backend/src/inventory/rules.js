@@ -65,3 +65,10 @@ function validatePurchase(body = {}) {
   if (itemId === null && requestId === null) return { error: "Choose an item or a request to record the purchase for." };
   return {
     value: {
+      itemId, requestId, quantity, unitCost,
+      totalCost: unitCost === null ? null : Math.round(unitCost * quantity * 100) / 100,
+      supplier: cleanText(body.supplier, 120),
+      note: cleanText(body.note, 500),
+    },
+  };
+}
