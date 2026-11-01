@@ -225,3 +225,11 @@
       () => call(apiBase, token, "/admin/purchases", { method: "POST", body: { requestId: r.id, ...(buy[r.id] || { quantity: r.requiredQty }) } }),
       "Purchase recorded and official stock updated."
     );
+    const adjust = (it) => {
+      const v = window.prompt(`New official stock for ${it.name} (${it.unit}). Current: ${fmt(it.currentStock)}`);
+      if (v === null) return;
+      const note = window.prompt("Reason for this correction (required):");
+      if (note === null) return;
+      run(() => call(apiBase, token, `/admin/items/${it.id}/adjust`, { method: "POST", body: { newStock: v, note } }), "Official stock corrected.");
+    };
+
