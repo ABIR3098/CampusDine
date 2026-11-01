@@ -377,6 +377,7 @@ const photoType = (buf) => {
   return null;
 };
 const photoParser = express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" });
+// POST /images (student, teacher, staff, admin)
 router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "admin"),
   (req, res, next) => photoParser(req, res, (err) => (err ? res.status(413).json({ error: "Photo is too large. Please choose a smaller one." }) : next())),
   async (req, res) => {
