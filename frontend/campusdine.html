@@ -1083,6 +1083,7 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-filter button{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-size:12px;font-weight:600;transition:all .15s}
 .chat-filter button:hover{border-color:var(--gold);color:var(--gold)}
 .chat-filter button.on{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.chat-filter-count{margin-left:6px;min-width:18px;padding:0 5px;border-radius:999px;background:var(--gold);color:#fff;font-size:10px;line-height:18px;display:inline-block;text-align:center}
 .chat-find{border-top:1px solid var(--line);margin:0 6px;padding:6px 0}
 .chat-find-title{padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
 .chat-bc-history{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
@@ -9186,9 +9187,12 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope 
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
             {!isHallChat && (
               <div className="chat-filter" role="tablist" aria-label="Filter conversations">
-                {[["all", "All"], ["rider", "Riders"]].map(([k, l]) => (
-                  <button key={k} type="button" role="tab" aria-selected={inboxFilter === k} className={inboxFilter === k ? "on" : ""} onClick={() => setInboxFilter(k)}>{l}</button>
-                ))}
+                {[["all", "All"], ["rider", "Riders"]].map(([k, l]) => {
+                  const waiting = k === "rider" ? people.filter(c => c.role === "rider").reduce((n, c) => n + (Number(c.unread_count) || 0), 0) : 0;
+                  return (
+                    <button key={k} type="button" role="tab" aria-selected={inboxFilter === k} className={inboxFilter === k ? "on" : ""} onClick={() => setInboxFilter(k)}>{l}{waiting > 0 && <b className="chat-filter-count">{waiting}</b>}</button>
+                  );
+                })}
               </div>
             )}
           </div>
