@@ -29,4 +29,17 @@ function pairOf(me, peer) {
     : { teacherId: Number(peer.id), riderId: Number(me.id) };
 }
 
-module.exports = { MAX_MESSAGE_LENGTH, CHAT_ROLES, cleanMessage, peerRoleOf, canChat, pairOf };
+// A positive whole number from a URL or body value, or null.
+function parseId(value) {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+// The words next to a chat in the list: the text, or a note when it was deleted.
+function previewOf(message, deleted) {
+  if (deleted) return "Message deleted";
+  const flat = String(message || "").replace(/\s+/g, " ").trim();
+  return flat.length > 80 ? flat.slice(0, 77) + "..." : flat;
+}
+
+module.exports = { MAX_MESSAGE_LENGTH, CHAT_ROLES, cleanMessage, peerRoleOf, canChat, pairOf, parseId, previewOf };
