@@ -16,5 +16,9 @@ window.CD_COMPONENT_FILES = [
   "student/DailySpinWheelModal.jsx",
   "student/LeaderboardAndBadges.jsx",
   "student/ThermalReceiptModal.jsx",
-  "admin/KitchenDisplaySystem.jsx"
+  "admin/KitchenDisplaySystem.jsx",
+  "student/LiveRiderMap.jsx",
+  "student/PaymentGatewayModal.jsx",
+  "student/FoodWasteChallengeModal.jsx",
+  "student/NotificationCenterDrawer.jsx"
 ];
