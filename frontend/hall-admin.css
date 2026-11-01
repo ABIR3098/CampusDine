@@ -123,3 +123,11 @@ select{appearance:none;-webkit-appearance:none;padding-right:34px;background-rep
 .hc-form{background:var(--surface);align-items:flex-end}
 .hc-form textarea{min-height:42px;max-height:120px;border-radius:21px;padding:10px 16px}
 .hc-form button{border-radius:21px;padding:0 20px;height:42px}
+
+@media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0b1320;--surface:#121c2c;--surface-2:#16233a;--soft:#1c2b44;--border:#24344d;--border-strong:#33465f;--text:#e6edf7;--text-2:#cfd9e8;--muted:#8fa0b8;--brand:#0e7490;--brand-2:#1593b4;--brand-soft:#12303c;--accent:#5cc8e0;--ok:#4ade80;--ok-soft:#10301f;--ok-border:#1d5c3a;--warn:#fbbf24;--warn-soft:#3a2a0a;--danger:#f97066;--danger-soft:#3a1714;--danger-border:#6b2a25;--shadow:0 1px 2px #0006,0 6px 24px #0004;--shadow-lg:0 8px 24px #0008}
+::placeholder{color:#5f7089}.brand .logo{background:#fff;padding:3px}}
+
+@media(max-width:700px){.wrap{margin:14px auto;padding:0 12px}.top{position:static;flex-direction:column;align-items:stretch}
+.top>div:last-child{display:grid!important;grid-template-columns:1fr 1fr}.top .back,.top button{text-align:center}
+h1{font-size:23px}.metric b{font-size:26px}.item .actions button{flex:1 1 calc(50% - 6px)}.auth{margin:20px auto;padding:22px}.card{padding:16px}}
+@media(max-width:420px){.grid{grid-template-columns:1fr 1fr}}
