@@ -419,6 +419,9 @@
                       <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => purchase(r)}>Record purchase</button>
                     </div>
                   )}
+                  {r.status === "approved" && r.requestType === "report" && (
+                    <div className="mt-2"><button type="button" className="text-xs font-700 underline" onClick={() => useStaffCount(r)}>Use staff count ({fmt(r.currentQty)} {r.unit}) as official stock</button></div>
+                  )}
                   {r.status === "purchased" && <div className="text-xs mt-2">Bought {fmt(r.purchasedQty)} {r.unit} → stock became <strong>{fmt(r.stockAfterPurchase)} {r.unit}</strong></div>}
                 </div>
               ))}
