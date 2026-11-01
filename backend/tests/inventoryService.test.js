@@ -52,3 +52,10 @@ test("approving a pending request stores the admin reply", async () => {
   assert.equal(r.adminReply, "Buy 50 kg");
   assert.equal(pool.st.commits, 1);
 });
+
+test("a request cannot be decided twice", async () => {
+  const svc = createService(fakePool());
+  await svc.decide(1, 1, { decision: "rejected", reply: "No budget" });
+  await assert.rejects(svc.decide(1, 1, { decision: "approved", reply: "" }), (e) => e instanceof HttpError && e.status === 409);
+});
+
