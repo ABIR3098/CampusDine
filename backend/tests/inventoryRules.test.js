@@ -47,3 +47,10 @@ test("purchase validation computes total and needs an item or request", () => {
   assert.equal(p.value.supplier, "Karim Store");
   assert.equal(r.validatePurchase({ requestId: 4, quantity: 2 }).value.totalCost, null);
 });
+
+test("stock adjustment needs a reason; new items need a valid unit", () => {
+  assert.ok(r.validateAdjustment({ newStock: 5 }).error);
+  assert.equal(r.validateAdjustment({ newStock: 5, note: "Recount" }).value.newStock, 5);
+  assert.ok(r.validateNewItem({ name: "Salt", unit: "bucket" }).error);
+  assert.equal(r.validateNewItem({ name: "Salt", unit: "kg" }).value.currentStock, 0);
+});
