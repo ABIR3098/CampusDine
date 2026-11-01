@@ -98,14 +98,14 @@ router.get("/conversations", verifyToken, requireRole("admin", "hall_admin"), as
   }
 });
 
-// GET /directory?q=  (admin, hall_admin) - find a student/teacher to start a new conversation with
+// GET /directory?q=  (admin, hall_admin) - find a student/teacher (or a rider, canteen inbox only) to start a new conversation with
 router.get("/directory", verifyToken, requireRole("admin", "hall_admin"), async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().slice(0, 60);
     if (q.length < 2) return res.json({ users: [] });
     const like = "%" + q.replace(/[%_\\]/g, (c) => "\\" + c) + "%";
     const [users] = await pool.query(
-      "SELECT id, name, role, external_id FROM users WHERE role IN ('student', 'teacher', 'staff', 'admin') AND (? = 'canteen' OR role <> 'staff') AND (? = 'hall' OR role <> 'admin') AND (name LIKE ? OR external_id LIKE ?) ORDER BY name LIMIT 10",
+      "SELECT id, name, role, external_id FROM users WHERE role IN ('student', 'teacher', 'staff', 'rider', 'admin') AND (? = 'canteen' OR role NOT IN ('staff', 'rider')) AND (? = 'hall' OR role <> 'admin') AND (name LIKE ? OR external_id LIKE ?) ORDER BY name LIMIT 10",
       [inboxScope(req), inboxScope(req), like, like]
     );
     res.json({ users });
