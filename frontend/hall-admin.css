@@ -55,3 +55,10 @@ body{background:radial-gradient(900px 380px at 10% -10%,var(--brand-soft),transp
 .brand{display:flex;align-items:center;gap:10px;font-size:20px;letter-spacing:-.02em}
 .brand .logo{width:34px;height:34px;border-radius:9px;object-fit:contain}.brand .accent{color:var(--accent)}
 .top .muted{font-size:12.5px;margin-top:2px}
+
+.card{border-radius:var(--radius);transition:box-shadow .2s,border-color .2s}
+.card:hover{border-color:var(--border-strong);box-shadow:0 2px 4px #19324a10,0 12px 32px #19324a14}
+.card>.itemhead:first-child,.card>h2:first-child{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--border)}
+.card h2{display:flex;align-items:center;gap:8px}
+.card h2::before{content:"";width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--brand-2),var(--brand))}
+.itemhead h2{margin-bottom:4px}
