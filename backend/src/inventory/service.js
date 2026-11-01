@@ -6,3 +6,10 @@ const { canTransition, stockLevel } = require("./rules");
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
+
+const itemView = (r) => ({
+  id: r.id, name: r.name, nameBn: r.name_bn, category: r.category, unit: r.unit,
+  currentStock: Number(r.current_stock), minStock: Number(r.min_stock),
+  level: stockLevel(r.current_stock, r.min_stock), updatedAt: r.updated_at,
+});
+
