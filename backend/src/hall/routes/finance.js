@@ -99,6 +99,7 @@ router.get("/finance/summary", admin, catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/finance/expenses?year=&month=  → { categories, expenses: [{ id, date, category, categoryLabel, amount, supplierId, supplierName, note }] } newest first
+// GET /finance/expenses
 router.get("/finance/expenses", admin, catchAsync(async (req, res) => {
   const ym = parseMonth(req.query, nowParts());
   if (!ym) return res.status(400).json({ error: "Invalid month" });
