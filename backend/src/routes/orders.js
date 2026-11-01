@@ -480,6 +480,7 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async
 // POST /api/orders/:id/feedback  (student/teacher) — rate a completed order
 // body: { rating: 1-5, comment? }
 // POST /api/orders/:id/rate-rider  (student/teacher) — one rating per delivered order
+// POST /:id/rate-rider (student, teacher)
 router.post("/:id/rate-rider", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   const rating = Number(req.body && req.body.rating);
