@@ -453,7 +453,7 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "
       const mime = photoType(buf);
       if (!mime) return res.status(400).json({ error: "This file is not a supported photo" });
       let ownerId = req.user.id;
-      if (isInboxOwner(req.user)) {
+      if (inboxMode(req)) {
         ownerId = Number(req.query.userId);
         if (!Number.isInteger(ownerId) || ownerId <= 0) return res.status(400).json({ error: "Select a chat recipient" });
         const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff')", [ownerId]);
