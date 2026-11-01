@@ -678,6 +678,7 @@ async function runStartupCheck() {
   await hall.ensureHallSchema(db); // Hall (meal system) tables
     await ensureHallExtraSchema(db); // Hall notices, service requests, inventory and audit trail
     await ensureHallAdvancedSchema(db); // Hall room workflow, visitors, facilities, laundry, kitchen and notifications
+  await ensureInventorySchema(db); // Staff role + kitchen inventory (items, requests, purchases, stock history)
 
   if (seedDemo) {
     console.log("\n════════════════════════════════════════");
