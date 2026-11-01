@@ -139,3 +139,11 @@ function createService(pool) {
     });
   }
 
+  async function addItem(adminId, v) {
+    return withTx(pool, async (conn) => {
+      const [dup] = await conn.query("SELECT id FROM inventory_items WHERE name = ?", [v.name]);
+      if (dup.length) throw new HttpError(409, "An item with this name already exists.");
+      const [r] = await conn.query(
+        "INSERT INTO inventory_items (name, name_bn, category, unit, current_stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)",
+        [v.name, v.nameBn, v.category, v.unit, v.currentStock, v.minStock]
+      );
