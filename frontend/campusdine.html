@@ -7674,7 +7674,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
               <div className="text-4xl mb-2">📬</div>
               <div className="text-base font-display font-700">No active delivery assignments</div>
               <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--ink-soft)" }}>
-                {shift ? "You are on duty! New orders will pop up here in real-time as kitchen dispatch assigns them." : "Turn on your duty shift above to start receiving food delivery orders."}
+                {shift ? (sharing ? "You are on duty! New orders will pop up here in real-time as kitchen dispatch assigns them." : "You are on duty, but orders are only given to a rider who shares a position. Turn on GPS or Demo GPS above.") : "Turn on your duty shift above to start receiving food delivery orders."}
                 {Number(summary.waiting_orders) > 0 ? ` ${summary.waiting_orders} teacher order(s) are waiting for a rider.` : ""}
               </p>
             </div>
