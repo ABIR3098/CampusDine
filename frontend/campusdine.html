@@ -7284,6 +7284,7 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
   const [routePlan, setRoutePlan] = useState(null);
   const [shift, setShift] = useState(false);
   const [shiftBusy, setShiftBusy] = useState(false);
+  const [positionFresh, setPositionFresh] = useState(null); // does the server have a recent position from me? (null = not known yet)
   const [maxOrders, setMaxOrders] = useState(3);
   const [orderError, setOrderError] = useState("");
   const [acceptingId, setAcceptingId] = useState(null);
@@ -7341,6 +7342,17 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
         if (current.maxOrders) setMaxOrders(Number(current.maxOrders));
       })
       .catch(e => setOrderError(e.message || "Could not load shift status."));
+  }, [apiBase, token]);
+
+  // Ask the server every 10 seconds whether it really receives this rider's position.
+  useEffect(() => {
+    let live = true;
+    const load = () => api(apiBase, "/api/operations/riders/shift/me", { token })
+      .then(current => { if (live) setPositionFresh(!!current.locationFresh); })
+      .catch(() => {});
+    load();
+    const timer = setInterval(load, 10000);
+    return () => { live = false; clearInterval(timer); };
   }, [apiBase, token]);
 
   // The background GPS sender uses the token saved in localStorage. After a new login that token is
@@ -7492,6 +7504,20 @@ function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) 
               )}
             </div>
           </div>
+
+          {shift && !sharing && (
+            <div className="mt-3 rounded-xl border px-4 py-3 text-sm font-600" role="alert"
+              style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
+              ⚠ You are on duty but your GPS is off, so no teacher order can be given to you. Press "Enable GPS".
+            </div>
+          )}
+
+          {shift && sharing && positionFresh === false && (
+            <div className="mt-3 rounded-xl border px-4 py-3 text-sm font-600" role="alert"
+              style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
+              ⚠ The server has no recent position from you, so teacher orders cannot be given to you yet. Wait a few seconds; if this stays, press Stop GPS, then Enable GPS, or log in again.
+            </div>
+          )}
 
           {/* Shift Controls */}
           <div className="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
