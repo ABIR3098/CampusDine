@@ -103,8 +103,8 @@ router.get("/directory", verifyToken, requireRole("admin", "hall_admin"), async 
     if (q.length < 2) return res.json({ users: [] });
     const like = "%" + q.replace(/[%_\\]/g, (c) => "\\" + c) + "%";
     const [users] = await pool.query(
-      "SELECT id, name, role, external_id FROM users WHERE role IN ('student', 'teacher', 'staff') AND (? = 'canteen' OR role <> 'staff') AND (name LIKE ? OR external_id LIKE ?) ORDER BY name LIMIT 10",
-      [scopeOf(req), like, like]
+      "SELECT id, name, role, external_id FROM users WHERE role IN ('student', 'teacher', 'staff', 'admin') AND (? = 'canteen' OR role <> 'staff') AND (? = 'hall' OR role <> 'admin') AND (name LIKE ? OR external_id LIKE ?) ORDER BY name LIMIT 10",
+      [inboxScope(req), inboxScope(req), like, like]
     );
     res.json({ users });
   } catch (error) {
