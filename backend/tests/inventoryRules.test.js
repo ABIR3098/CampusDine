@@ -38,3 +38,12 @@ test("rejecting needs a reason, approving does not", () => {
   assert.equal(r.validateDecision({ decision: "approved" }).value.reply, "");
   assert.equal(r.validateDecision({ decision: "rejected", reply: "Budget used up" }).value.decision, "rejected");
 });
+
+test("purchase validation computes total and needs an item or request", () => {
+  assert.ok(r.validatePurchase({ quantity: 5 }).error);
+  assert.ok(r.validatePurchase({ itemId: 1, quantity: 0 }).error);
+  const p = r.validatePurchase({ itemId: 1, quantity: "10", unitCost: "62.5", supplier: " Karim Store " });
+  assert.equal(p.value.totalCost, 625);
+  assert.equal(p.value.supplier, "Karim Store");
+  assert.equal(r.validatePurchase({ requestId: 4, quantity: 2 }).value.totalCost, null);
+});
