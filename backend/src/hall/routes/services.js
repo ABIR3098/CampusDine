@@ -125,6 +125,7 @@ router.get("/students", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT id,name,external_id,email,department,hall_name,room_number,hall_id,phone,account_type FROM users WHERE role='student' AND account_type='hall' AND (? IS NULL OR university_id=?) ORDER BY hall_name,room_number,name LIMIT 1000",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
 }));
+// PATCH /students/:id/room (admin)
 router.patch("/students/:id/room", requireRole("admin"), catchAsync(async(req,res)=>{
   const id=Number(req.params.id), b=req.body||{};
   const hallName=String(b.hallName||"").trim().slice(0,60), roomNumber=String(b.roomNumber||"").trim().slice(0,20), hallId=String(b.hallId||"").trim().slice(0,20);
