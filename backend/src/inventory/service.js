@@ -172,6 +172,13 @@ function createService(pool) {
         "INSERT INTO inventory_stock_history (item_id, change_qty, stock_before, stock_after, reason, actor_id, note) VALUES (?, ?, ?, ?, 'usage', ?, ?)",
         [v.itemId, -v.quantity, before, after, staffId, v.note || `Used on ${v.usageDate}`]
       );
+      return {
+        usageId: u.insertId, itemId: v.itemId, itemName: rows[0].name, unit: rows[0].unit,
+        stockBefore: before, stockAfter: after, level: stockLevel(after, rows[0].min_stock),
+      };
+    });
+  }
+
   async function listPurchases() {
     const [rows] = await pool.query(
       `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
