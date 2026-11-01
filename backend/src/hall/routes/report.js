@@ -95,6 +95,7 @@ router.get("/report/range", catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/report/changes?date=&slot=&only=off  — who changed a meal for that date, and when (canteen time)
+// GET /report/changes
 router.get("/report/changes", catchAsync(async (req, res) => {
   const date = req.query.date || nowParts().dateKey;
   if (!isDateKey(date)) return res.status(400).json({ error: "date must look like 2026-10-22" });
