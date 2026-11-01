@@ -109,6 +109,8 @@ async function dropLegacyInventoryTables(db) {
 async function ensureInventorySchema(db) {
   await db.query(`ALTER TABLE users MODIFY COLUMN role ${ROLE_ENUM} NOT NULL`);
 
+  await dropLegacyInventoryTables(db);
+
   await db.query(`CREATE TABLE IF NOT EXISTS inventory_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(80) NOT NULL,
