@@ -247,6 +247,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 }));
 
 // GET /api/orders/mine  (student/teacher) — my order history
+// GET /mine (student, teacher)
 router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
   const mine = await attachQueue(await attachFeedback(await attachItems(orders)));
