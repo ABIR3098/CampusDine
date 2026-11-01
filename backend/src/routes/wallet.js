@@ -8,6 +8,7 @@ const { dailyTopupLimit, checkDailyTopup } = require("../utils/money");
 const router = express.Router();
 
 // GET /api/wallet — balance + transaction history for the logged-in user
+// GET / (any logged-in user)
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
   const [transactions] = await pool.query(
