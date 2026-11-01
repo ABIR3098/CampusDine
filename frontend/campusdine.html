@@ -10340,6 +10340,8 @@ function App() {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
     socketRef.current = socket;
+    window.__campusSocket = socket;
+    socket.on("chat:typing", (p) => window.dispatchEvent(new CustomEvent("chat-typing", { detail: p })));
     socket.on("connect", () => {
       setConnected(true);
       if (session.user.role !== "admin" && session.user.role !== "rider" && session.user.role !== "staff") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
