@@ -49,6 +49,11 @@ function validateStaffRequest(body = {}) {
   return { value: { itemId, requestType, currentQty, requiredQty, note } };
 }
 
+function todayKey(d = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 function validateDecision(body = {}) {
   const decision = body.decision;
   if (decision !== "approved" && decision !== "rejected") return { error: "Decision must be approved or rejected." };
