@@ -188,6 +188,7 @@ router.post("/lastcall/serve", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall/claims/:id/cancel   → cancels a plate that was not collected and gives the money back to the wallet
+// POST /lastcall/claims/:id/cancel
 router.post("/lastcall/claims/:id/cancel", admin, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
