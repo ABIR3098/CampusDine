@@ -84,6 +84,39 @@ router.get("/contacts", async (req, res) => {
   } catch (error) { fail(res, error, "Failed to load contacts"); }
 });
 
+// GET /:peerId/messages - one conversation. Opening it marks the messages sent to me as read.
+router.get("/:peerId/messages", async (req, res) => {
+  try {
+    const peerId = rules.parseId(req.params.peerId);
+    if (!peerId) return res.status(400).json({ error: "Invalid user ID" });
+    const peer = await loadPeer(pool, req.user, peerId);
+    if (!peer) return res.status(404).json({ error: "Chat user not found" });
+    const pair = rules.pairOf(req.user, peer);
+    const [[thread]] = await pool.query(
+      "SELECT id FROM teacher_rider_threads WHERE teacher_id = ? AND rider_id = ?",
+      [pair.teacherId, pair.riderId]
+    );
+    if (!thread) return res.json({ threadId: null, peer, messages: [], firstUnreadId: null });
+
+    const [[firstUnread]] = await pool.query(
+      "SELECT MIN(id) AS id FROM teacher_rider_messages WHERE thread_id = ? AND recipient_id = ? AND read_at IS NULL AND deleted_at IS NULL",
+      [thread.id, req.user.id]
+    );
+    await pool.query(
+      "UPDATE teacher_rider_messages SET read_at = CURRENT_TIMESTAMP WHERE thread_id = ? AND recipient_id = ? AND read_at IS NULL",
+      [thread.id, req.user.id]
+    );
+    const [messages] = await pool.query(
+      `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message,
+              m.deleted_at, m.created_at, m.read_at, u.name AS sender_name, u.role AS sender_role
+       FROM (SELECT * FROM teacher_rider_messages WHERE thread_id = ? ORDER BY id DESC LIMIT 300) m
+       JOIN users u ON u.id = m.sender_id ORDER BY m.id ASC`,
+      [thread.id]
+    );
+    res.json({ threadId: thread.id, peer, messages, firstUnreadId: firstUnread && firstUnread.id ? firstUnread.id : null });
+  } catch (error) { fail(res, error, "Failed to load messages"); }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
