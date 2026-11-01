@@ -59,6 +59,7 @@ router.get("/report/day", catchAsync(async (req, res) => {
 
 // GET /api/hall/report/guests?date=YYYY-MM-DD (default today)
 // → [{ slot, label, plates, people: [{ name, externalId, count, guests: [{ name, phone }] }] }]  — who brought which guest
+// GET /report/guests
 router.get("/report/guests", catchAsync(async (req, res) => {
   const date = req.query.date || nowParts().dateKey;
   if (!isDateKey(date)) return res.status(400).json({ error: "date must look like 2026-10-22" });
