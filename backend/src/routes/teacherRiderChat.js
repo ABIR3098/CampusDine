@@ -50,6 +50,22 @@ router.get("/threads", async (req, res) => {
   } catch (error) { fail(res, error, "Failed to load rider chats"); }
 });
 
+// GET /directory?q= - find someone to start a chat with (2+ letters of the name or ID).
+// A teacher finds any rider. A rider only finds teachers whose order they carry (or carried).
+router.get("/directory", async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim().slice(0, 60);
+    if (q.length < 2) return res.json({ users: [] });
+    const like = "%" + q.replace(/[%_\\]/g, (c) => "\\" + c) + "%";
+    const isTeacher = req.user.role === "teacher";
+    const params = [rules.peerRoleOf(req.user.role), like, like];
+    let sql = "SELECT id, name, role, external_id FROM users WHERE role = ? AND (name LIKE ? OR external_id LIKE ?)";
+    if (!isTeacher) { sql += " AND id IN (SELECT user_id FROM orders WHERE rider_id = ?)"; params.push(req.user.id); }
+    const [users] = await pool.query(sql + " ORDER BY name LIMIT 10", params);
+    res.json({ users });
+  } catch (error) { fail(res, error, "Failed to search people"); }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
