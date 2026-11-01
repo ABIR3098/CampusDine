@@ -145,3 +145,10 @@
               <option value="">Choose…</option>
               {list.map((i) => <option key={i.id} value={i.id}>{i.name}{i.nameBn ? ` (${i.nameBn})` : ""}</option>)}
             </select>
+            {chosen && <p className="text-xs mb-3" style={{ color: "var(--ink-soft)" }}>Official stock now: <strong>{fmt(chosen.currentStock)} {chosen.unit}</strong></p>}
+            <label className="text-xs font-700">Type</label>
+            <select className={inputCls + " mb-3"} style={inputStyle} value={form.requestType} onChange={(e) => setForm({ ...form, requestType: e.target.value })}>
+              <option value="request">Purchase request</option>
+              <option value="report">Stock report</option>
+            </select>
+            <div className="grid grid-cols-2 gap-3 mb-3">
