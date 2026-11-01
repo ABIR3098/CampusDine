@@ -85,6 +85,16 @@ async function ensureInventorySchema(db) {
     staff_id INT NOT NULL,
     quantity DECIMAL(12,2) NOT NULL,
     usage_date DATE NOT NULL,
+    note VARCHAR(500) NULL,
+    stock_before DECIMAL(12,2) NOT NULL,
+    stock_after DECIMAL(12,2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_inv_usage_date (usage_date, item_id),
+    KEY idx_inv_usage_staff (staff_id, created_at),
+    CONSTRAINT fk_inv_usage_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
+    CONSTRAINT fk_inv_usage_staff FOREIGN KEY (staff_id) REFERENCES users(id) ON DELETE CASCADE
+  )`);
+
   // Seed the starting raw materials once (only when the table is empty).
   const [[{ n }]] = await db.query("SELECT COUNT(*) AS n FROM inventory_items");
   if (Number(n) === 0) {
