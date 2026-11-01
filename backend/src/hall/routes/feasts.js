@@ -42,6 +42,7 @@ async function rsvpSummary(ids, userId) {
 }
 
 // GET /api/hall/feasts?from=&to=   (default: today and the next 60 days)
+// GET /feasts
 router.get("/feasts", catchAsync(async (req, res) => {
   const now = nowParts();
   const from = req.query.from || now.dateKey;
