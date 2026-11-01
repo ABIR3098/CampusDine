@@ -60,3 +60,10 @@ async function ensureInventorySchema(db) {
     supplier VARCHAR(120) NULL,
     note VARCHAR(500) NULL,
     purchased_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_inv_purchase_item (item_id, purchased_at),
+    CONSTRAINT fk_inv_purchase_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS inventory_stock_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    change_qty DECIMAL(12,2) NOT NULL,
