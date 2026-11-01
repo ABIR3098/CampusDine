@@ -131,6 +131,16 @@ Every route registered in the backend, grouped by the file that defines it. Path
 - `GET /api/chat/images/:id`
 - `POST /api/chat/messages/:id/reaction`
 
+## `/api/teacher-rider-chat` — `src/routes/teacherRiderChat.js`
+
+- `GET /api/teacher-rider-chat/threads`
+- `GET /api/teacher-rider-chat/contacts`
+- `GET /api/teacher-rider-chat/directory`
+- `GET /api/teacher-rider-chat/unread`
+- `GET /api/teacher-rider-chat/:peerId/messages`
+- `POST /api/teacher-rider-chat/:peerId/messages`
+- `DELETE /api/teacher-rider-chat/messages/:id`
+
 ## `/api/feedback` — `src/routes/feedback.js`
 
 - `POST /api/feedback`

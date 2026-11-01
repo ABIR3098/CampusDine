@@ -31,6 +31,9 @@ The browser connects with its login token. After that the server puts the connec
 | `chat:message` | sender and receiver | a support chat message |
 | `order-chat:message` | customer and rider | an order chat message |
 | `chat:deleted` | sender and receiver | a message was removed |
+| `teacher-rider-chat:message` | the teacher and the rider of the thread | a teacher-rider chat message |
+| `teacher-rider-chat:read` | the sender, when the other side opens the chat | the other side has read the messages (`{ threadId, readerId }`) |
+| `teacher-rider-chat:deleted` | the teacher and the rider of the thread | a teacher-rider chat message was removed (`{ id, threadId }`) |
 | `chat:reaction` | the chat owner and `admins` (canteen chat) or `hall_admins` (hall chat) | someone reacted to a message |
 | `hall:notification` | `user:<id>` | a Hall last-call or notice message |
 

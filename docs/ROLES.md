@@ -18,6 +18,7 @@ Roles: `student`, `teacher`, `admin`, `rider` and `hall_admin`. A route that lis
 | Support chat (canteen inbox) | yes | yes | yes | yes, writes to the canteen admin |
 | Support chat (hall inbox, `scope=hall`) | yes | yes | yes, as a member: talks to the Hall Admin only inside the Hall | no |
 | Order chat | yes | yes | no | yes |
+| Teacher-rider chat (`/api/teacher-rider-chat`) | no | yes, writes to any rider | no | yes, starts only with a teacher whose order they carry |
 | Reports, announcements, analytics, audit | no | no | yes | no |
 | Rider shifts and route | no | no | no | yes |
 | Assign a rider to an order | no | yes | yes | no |
