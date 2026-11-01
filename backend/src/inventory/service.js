@@ -185,3 +185,10 @@ function createService(pool) {
     }));
   }
 
+  async function summary() {
+    const [[s]] = await pool.query(
+      `SELECT (SELECT COUNT(*) FROM inventory_requests WHERE status = 'pending') AS pending,
+              (SELECT COUNT(*) FROM inventory_items WHERE current_stock <= 0) AS out_of_stock,
+              (SELECT COUNT(*) FROM inventory_items WHERE current_stock > 0 AND min_stock > 0 AND current_stock <= min_stock) AS low_stock,
+              (SELECT COALESCE(SUM(total_cost), 0) FROM inventory_purchases WHERE purchased_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS month_spend`
+    );
