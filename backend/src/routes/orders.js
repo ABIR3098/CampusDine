@@ -602,6 +602,7 @@ router.get("/issues", verifyToken, requireRole("admin"), catchAsync(async (req, 
 }));
 
 // PATCH /api/orders/issues/:id  (admin) — { reply?, resolve? }
+// PATCH /issues/:id (admin)
 router.patch("/issues/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid report" });
