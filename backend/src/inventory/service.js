@@ -196,6 +196,7 @@ function createService(pool) {
     const [rows] = await pool.query(`${USAGE_SELECT} ORDER BY s.usage_date DESC, s.id DESC LIMIT 300`);
     return rows.map(usageView);
   }
+
   async function listPurchases() {
     const [rows] = await pool.query(
       `SELECT p.*, i.name AS item_name, i.unit, u.name AS admin_name
