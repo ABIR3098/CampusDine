@@ -240,3 +240,11 @@
             <div key={l} className="card p-3"><div className="text-xs" style={{ color: "var(--ink-soft)" }}>{l}</div><div className="text-xl font-800">{fmt(v || 0)}</div></div>
           ))}
         </div>
+        <TabBar value={tab} onChange={setTab} tabs={[
+          { key: "requests", label: "Requests", badge: s.pending || null },
+          { key: "stock", label: "Stock" },
+          { key: "purchases", label: "Purchases" },
+          { key: "history", label: "History" },
+        ]} />
+        <Notice error={error || items.error || reqs.error} info={info} />
+
