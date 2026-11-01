@@ -17,7 +17,7 @@ Canteen Admin cannot read Hall chats of students and Hall Admin cannot read cant
 | Method and path | Who | What it does |
 |---|---|---|
 | `GET /conversations` | admin, hall_admin | Every conversation, newest first, with the last message and the unread count |
-| `GET /messages` | student, teacher | My conversation with the admin |
+| `GET /messages` | student, teacher, staff, admin (only with `scope=hall`) | My conversation with the admin of the inbox (the canteen admin uses it inside the Hall to read the chat with the Hall Admin) |
 | `GET /:userId/messages` | admin, hall_admin | One person's conversation |
 | `POST /messages` | student, teacher, staff, admin, hall_admin | Send a message (admin and Hall Admin must say who to send it to with `userId`) |
 | `GET /directory?q=` | admin, hall_admin | Find a student/teacher by name or ID (2+ letters) to start a new conversation |
