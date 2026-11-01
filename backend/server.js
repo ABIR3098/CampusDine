@@ -657,6 +657,11 @@ async function runStartupCheck() {
     console.log(`✅ Demo account created: ${acc.externalId} / ${acc.password} (${acc.role})`);
   }
 
+  if (!skipDemo) {
+    const staffResult = await ensureDevStaffAccount(db);
+    if (staffResult.created) console.log("✅ Dev staff account created: staff01 (staff)");
+  }
+
   await seedDefaultMenuAndRates(db);
   await ensureCouponSchema(db);
   await ensureFeedbackSchema(db);
