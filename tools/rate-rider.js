@@ -2,7 +2,7 @@
 //  • After an order has been handed over, the student sees "Rate your rider" (1–5 stars + optional comment) on that order.
 //  • One rating per order; the student's Orders tab then shows the stars they gave.
 //  • The rider's dashboard shows the average rating and the latest comments (without the student's name).
-// Run from the project main folder:  node rate-rider.js   (then restart the backend)
+// Run from the project main folder:  node tools/rate-rider.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

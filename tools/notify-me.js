@@ -2,7 +2,7 @@
 // Student taps 🔔 Notify me on a sold-out item. When the item is available again (admin adds stock / marks it
 // available, or an order is cancelled and the stock comes back) the student gets a notification — live if they
 // are online, or the next time they open the app if they were away.
-// Run from the project main folder:  node notify-me.js   (then restart the backend)
+// Run from the project main folder:  node tools/notify-me.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

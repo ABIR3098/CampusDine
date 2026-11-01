@@ -3,7 +3,7 @@
 //  • At that time the Menu tab shows "⏰ Time for your weekly order — [Add to cart] [Skip today]" (and a notification).
 //  • Nothing is ordered or charged automatically — the student still checks out themselves.
 //  • "My weekly orders" (top of the Orders tab) lists the plans: pause / resume / delete. Up to 5 plans.
-// Run from the project main folder:  node recurring-order.js   (then restart the backend)
+// Run from the project main folder:  node tools/recurring-order.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

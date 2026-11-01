@@ -4,7 +4,7 @@
 //  • Choose the period: All time / Last 30 days / Last 7 days.
 //  • Click a rider to read their latest reviews (stars, comment, order token, student name, date).
 // Needs the "rate your rider" feature (rate-rider.js) — it uses the ratings students give.
-// Run from the project main folder:  node admin-rider-ratings.js   (then restart the backend)
+// Run from the project main folder:  node tools/admin-rider-ratings.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = { html: "frontend/campusdine.html", riders: "backend/src/routes/riders.js", server: "backend/server.js" };
@@ -19,7 +19,7 @@ const docs = {};
 for (const [k, f] of Object.entries(FILES)) docs[k] = load(f);
 
 if (!docs.server.s.includes("rider_rating")) {
-  console.error('This needs the "rate your rider" feature first. Run:  node rate-rider.js   (or  node apply-all.js ), then run this again.');
+  console.error('This needs the "rate your rider" feature first. Run:  node tools/rate-rider.js   (or  node tools/apply-all.js ), then run this again.');
   process.exit(1);
 }
 

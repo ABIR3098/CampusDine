@@ -21,7 +21,7 @@
  *     frontend/campusdine.html       -> button + editor, live update, English + Bangla texts
  *
  * Usage, from the project root (the folder that contains "frontend" and "backend"):
- *     node feature-pickup14.js
+ *     node tools/feature-pickup14.js
  *
  * Safe by design: it checks everything first; if a REQUIRED piece does not match it changes NOTHING and
  * tells you which one. Otherwise it saves backups (*.bak14), edits, and keeps your line endings.

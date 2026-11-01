@@ -3,7 +3,7 @@
 //    missing item, very late, poor quality, other) + optional details. One report per order.
 //  • Admin: Feedback tab -> "Reported problems" list: reply to the student and/or mark it Resolved.
 //  • The student is notified when the admin replies, and sees the reply on the order.
-// Run from the project main folder:  node problem-report.js   (then restart the backend)
+// Run from the project main folder:  node tools/problem-report.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

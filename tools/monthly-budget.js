@@ -3,7 +3,7 @@
 //  • Cart: a gentle warning when the order would take you to 80%+ of the budget or over it (never blocks the order).
 //  • A notification the first time you pass 80% and again when you pass 100% (once per month).
 //  • "Spent" is the same number the Spending tab shows (cancelled orders are not counted).
-// Run from the project main folder:  node monthly-budget.js   (then restart the backend)
+// Run from the project main folder:  node tools/monthly-budget.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

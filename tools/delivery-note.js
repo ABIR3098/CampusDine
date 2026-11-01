@@ -1,6 +1,6 @@
 // delivery-note.js — Feature: delivery instructions ("gate-e dibe") when placing an order.
 // Student writes it in the cart -> saved with the order -> shown to the student, admin and rider.
-// Run from the project main folder:  node delivery-note.js   (then restart the backend)
+// Run from the project main folder:  node tools/delivery-note.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

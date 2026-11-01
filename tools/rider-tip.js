@@ -6,7 +6,7 @@
 //  • No rider on the order when it is collected -> the tip goes back to the student.
 //  • Rider dashboard shows the tip on each delivery and the total tips earned.
 // Also fixes: the rider dashboard now shows the delivery instructions (they were saved but not listed there).
-// Run from the project main folder:  node rider-tip.js   (then restart the backend)
+// Run from the project main folder:  node tools/rider-tip.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {

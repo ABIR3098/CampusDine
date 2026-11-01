@@ -4,7 +4,7 @@
 //  • When the new user's FIRST order is handed over (collected), BOTH get ৳20 in their wallet.
 //    (Needs a real order, so fake accounts don't earn anything. A friend can use one code once;
 //     one person can earn the bonus for at most 10 friends.)
-// Run from the project main folder:  node referral.js   (then restart the backend)
+// Run from the project main folder:  node tools/referral.js   (then restart the backend)
 const fs = require("fs");
 
 const FILES = {
