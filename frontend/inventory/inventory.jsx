@@ -245,7 +245,7 @@
               </div>
               <div>
                 <label className="text-xs font-700">Required quantity{chosen ? ` (${chosen.unit})` : ""}</label>
-                <input className={inputCls} style={inputStyle} inputMode="decimal" value={form.requiredQty} onChange={(e) => setForm({ ...form, requiredQty: e.target.value })} />
+                <input className={inputCls} style={inputStyle} inputMode="decimal" placeholder="number only, e.g. 20" value={form.requiredQty} onChange={(e) => setForm({ ...form, requiredQty: e.target.value })} />
               </div>
             </div>
             <label className="text-xs font-700">Note (optional)</label>
