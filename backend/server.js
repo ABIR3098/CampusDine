@@ -104,7 +104,7 @@ async function seedDefaultMenuAndRates(db) {
 
 async function ensureRiderSchema(db) {
   // Add the internal rider role without changing existing student/teacher/admin accounts.
-  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin') NOT NULL");
+  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin','staff') NOT NULL");
   await db.query(`CREATE TABLE IF NOT EXISTS rider_locations (
     rider_id INT PRIMARY KEY, latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL, accuracy_m DECIMAL(8,2) NULL,
     active TINYINT(1) NOT NULL DEFAULT 0, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
