@@ -414,6 +414,8 @@
                         <input className={inputCls} style={inputStyle} inputMode="decimal" onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), unitCost: e.target.value } })} /></div>
                       <div><label className="text-[11px] font-700">Supplier</label>
                         <input className={inputCls} style={inputStyle} onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), supplier: e.target.value } })} /></div>
+                      <div className="col-span-2 md:col-span-3"><label className="text-[11px] font-700">Message to staff (optional)</label>
+                        <input className={inputCls} style={inputStyle} maxLength={500} onChange={(e) => setBuy({ ...buy, [r.id]: { ...(buy[r.id] || { quantity: r.requiredQty }), reply: e.target.value } })} /></div>
                       <button type="button" className="btn-primary px-3 py-2 rounded-xl text-sm" onClick={() => purchase(r)}>Record purchase</button>
                     </div>
                   )}
