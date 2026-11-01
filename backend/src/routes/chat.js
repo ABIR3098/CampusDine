@@ -20,6 +20,16 @@ function ensureChatColumns() {
       await add("deleted_at", "deleted_at DATETIME NULL");
       await add("reply_to_id", "reply_to_id INT NULL");
       await add("image_id", "image_id INT NULL");
+      // Two separate inboxes: "canteen" (canteen admin) and "hall" (hall admin). One conversation per person per inbox.
+      const [convScope] = await pool.query("SHOW COLUMNS FROM chat_conversations LIKE 'scope'");
+      if (convScope.length === 0) await pool.query("ALTER TABLE chat_conversations ADD COLUMN scope VARCHAR(10) NOT NULL DEFAULT 'canteen'");
+      const [scopedIdx] = await pool.query("SHOW INDEX FROM chat_conversations WHERE Key_name = 'uq_chat_user_scope'");
+      if (scopedIdx.length === 0) await pool.query("ALTER TABLE chat_conversations ADD UNIQUE KEY uq_chat_user_scope (user_id, scope)");
+      const [oldIdx] = await pool.query("SHOW INDEX FROM chat_conversations WHERE Non_unique = 0 AND Column_name = 'user_id' AND Key_name <> 'PRIMARY' AND Key_name <> 'uq_chat_user_scope'");
+      for (const idx of oldIdx) {
+        const [cols] = await pool.query("SHOW INDEX FROM chat_conversations WHERE Key_name = ?", [idx.Key_name]);
+        if (cols.length === 1) await pool.query("ALTER TABLE chat_conversations DROP INDEX `" + idx.Key_name + "`");
+      }
       await pool.query("CREATE TABLE IF NOT EXISTS chat_reactions (message_id INT NOT NULL, user_id INT NOT NULL, emoji VARCHAR(16) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (message_id, user_id)) DEFAULT CHARSET=utf8mb4");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_images (id INT AUTO_INCREMENT PRIMARY KEY, owner_user_id INT NOT NULL, uploader_id INT NOT NULL, mime VARCHAR(30) NOT NULL, data MEDIUMBLOB NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_chat_images_owner (owner_user_id))");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_presence (user_id INT NOT NULL PRIMARY KEY, last_seen DATETIME NOT NULL)");
