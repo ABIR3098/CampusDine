@@ -216,7 +216,7 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "staff",
     }
 
     connection = await pool.getConnection();
-    const isAdmin = isInboxOwner(req.user);
+    const isAdmin = inboxMode(req);
     const scope = scopeOf(req);
     let userId;
     let recipientId;
