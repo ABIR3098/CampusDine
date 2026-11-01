@@ -93,6 +93,7 @@ router.post("/notices", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"created","notice",r.insertId,{title});
   res.status(201).json({id:r.insertId,title,body,category,pinned:!!b.pinned});
 }));
+// DELETE /notices/:id (admin)
 router.delete("/notices/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   await pool.query("DELETE FROM hall_notices WHERE id=? AND (? IS NULL OR university_id=?)",[Number(req.params.id),req.user.universityId||null,req.user.universityId||null]);
   await audit(req.user.id,"deleted","notice",Number(req.params.id));
