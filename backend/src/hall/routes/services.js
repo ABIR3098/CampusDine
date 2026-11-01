@@ -115,6 +115,7 @@ router.post("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"upserted","inventory",null,{name,quantity,unit});
   res.json({ok:true});
 }));
+// DELETE /inventory/:id (admin)
 router.delete("/inventory/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   await pool.query("DELETE FROM hall_inventory WHERE id=? AND (? IS NULL OR university_id=?)",[Number(req.params.id),req.user.universityId||null,req.user.universityId||null]); res.json({ok:true});
 }));
