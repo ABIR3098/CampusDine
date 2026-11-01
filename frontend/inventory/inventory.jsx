@@ -186,6 +186,13 @@
               </select>
               {usedItem && <p className="text-xs mb-2" style={{ color: "var(--ink-soft)" }}>Remaining now: <strong>{fmt(usedItem.currentStock)} {usedItem.unit}</strong></p>}
               <div className="grid grid-cols-2 gap-3 mb-3 mt-2">
+                <div>
+                  <label className="text-xs font-700">Quantity used{usedItem ? ` (${usedItem.unit})` : ""}</label>
+                  <input className={inputCls} style={inputStyle} inputMode="decimal" placeholder="e.g. 5" value={use.quantity} onChange={(e) => setUse({ ...use, quantity: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-700">Date</label>
+                  <input type="date" className={inputCls} style={inputStyle} max={today} value={use.usageDate} onChange={(e) => setUse({ ...use, usageDate: e.target.value })} />
 
         {tab === "stock" && (
           <div className="card p-5">
