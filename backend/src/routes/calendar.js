@@ -69,6 +69,7 @@ router.get("/bill", catchAsync(async (req, res) => {
 }));
 
 // POST /api/calendar/pay  body: { year, month } — pay every unpaid Full/Half day of the month from the wallet
+// POST /pay (any logged-in user)
 router.post("/pay", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.body || {});
   if (!ym) return res.status(400).json({ error: "Invalid month" });
