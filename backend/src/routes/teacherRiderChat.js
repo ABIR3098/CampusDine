@@ -66,6 +66,24 @@ router.get("/directory", async (req, res) => {
   } catch (error) { fail(res, error, "Failed to search people"); }
 });
 
+// GET /contacts - people I already share an order with, most recent order first.
+// A teacher sees the riders who carried their orders, a rider sees the teachers they delivered to.
+router.get("/contacts", async (req, res) => {
+  try {
+    const isTeacher = req.user.role === "teacher";
+    const me = isTeacher ? "o.user_id" : "o.rider_id";
+    const them = isTeacher ? "o.rider_id" : "o.user_id";
+    const [users] = await pool.query(
+      `SELECT u.id, u.name, u.role, u.external_id, MAX(o.id) AS last_order_id
+       FROM orders o JOIN users u ON u.id = ${them}
+       WHERE ${me} = ? AND ${them} IS NOT NULL AND u.role = ?
+       GROUP BY u.id, u.name, u.role, u.external_id ORDER BY last_order_id DESC LIMIT 10`,
+      [req.user.id, rules.peerRoleOf(req.user.role)]
+    );
+    res.json({ users });
+  } catch (error) { fail(res, error, "Failed to load contacts"); }
+});
+
 // Exposed for unit tests only
 router._test = { loadPeer };
 
