@@ -208,6 +208,8 @@ Riders can message the canteen admin from the Rider hub (tab "Canteen admin chat
 
 Teachers and riders can also chat with each other: teachers use the "Rider chat" tab, riders the "Teacher chat" tab of the Rider hub. See [docs/TEACHER_RIDER_CHAT_API.md](docs/TEACHER_RIDER_CHAT_API.md).
 
+The daily spin and the monthly leaderboard are described in [docs/GAMIFICATION_API.md](docs/GAMIFICATION_API.md).
+
 On first start the server creates `admin`, `student1`, `teacher1` and `rider1` with simple passwords. Change or delete them before any real deployment.
 
 ## Kitchen Staff login & inventory
