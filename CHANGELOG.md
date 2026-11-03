@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Fix: the daily spin reward was chosen by the browser, so anyone could send any amount and get it added to the wallet. The server now picks the prize and allows one spin a day (stored as a `Daily spin reward` wallet entry).
+- Fix: `POST /api/hall/maintenance/requests` always failed because it wrote to tables that do not exist. It now saves into `hall_requests` (type `maintenance`).
+- Fix: the kitchen display (`/api/kds`) asked for columns that do not exist (`total_amount`, `item_name`, `quantity`, `updated_at`). Fixed, and "ready" now answers 404 for an unknown, ready or cancelled order.
+- Fix: `GET /api/gamification/leaderboard` returned made-up people. It now ranks real students and teachers by orders this month and adds your own row when you are outside the top 10.
+- Chore: removed the fake `/api/hall/guest-tokens` endpoint (it saved nothing). Hall guests are booked with `PUT /api/hall/guests/:date/:slot`. Also removed two unused controller methods.
 - Fix: the order validator let a text or `Infinity` price through, crashed on a `null` item, and had no quantity or cart-size limit; the register validator crashed on a non-text name or campus ID and skipped the length check for a numeric password. Both now answer 400. The `WalletController.transfer` helper accepted a text amount, left its transaction open on early returns, could pick the wrong user when a campus ID looked like a database id, and locked the two wallets in a deadlock-prone order. New edge-case tests for all three.
 - Fix: bKash and Nagad callbacks confirmed the order and wrote the wallet entry again every time the gateway repeated a callback, and an error in the middle left the database connection open. A payment is now settled once (`src/services/paymentSettlement.js`), a repeated callback answers "Payment already confirmed" and changes nothing, an unknown transaction gets a 404, and the connection is always released.
 - Security: the QR code and email OTP signing key and the (unused) auth controller no longer have a hardcoded secret; in production a missing `JWT_SECRET` is an error (`src/utils/secret.js`).
