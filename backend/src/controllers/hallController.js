@@ -26,16 +26,14 @@ const HallController = {
         return res.status(400).json({ error: "Title is required for maintenance request" });
       }
 
+      // Real table is hall_requests (created in src/hall/extraSchema.js).
+      // It has no category/photo columns, so category is kept in the description.
+      const cat = String(category || "other").slice(0, 40);
+      const fullDescription = "[" + cat + "] " + String(description || "");
       const [result] = await pool.query(
-        "INSERT INTO hall_maintenance_requests (user_id, title, description, category, location, status, created_at) VALUES (?, ?, ?, ?, ?, 'submitted', NOW())",
-        [userId, title, description || "", category || "other", location || "Assigned Room"]
-      ).catch(async () => {
-        // Fallback for general services table if exists
-        return await pool.query(
-          "INSERT INTO hall_services (user_id, title, description, type, status) VALUES (?, ?, ?, 'maintenance', 'submitted')",
-          [userId, title, description || ""]
-        );
-      });
+        "INSERT INTO hall_requests (user_id, type, title, description, location, status) VALUES (?, 'maintenance', ?, ?, ?, 'submitted')",
+        [userId, String(title).slice(0, 180), fullDescription, String(location || "Assigned Room").slice(0, 180)]
+      );
 
       return res.status(201).json({ id: result.insertId, message: "Maintenance request submitted successfully" });
     } catch (error) {
