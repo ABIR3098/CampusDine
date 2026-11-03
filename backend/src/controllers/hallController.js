@@ -1,4 +1,4 @@
-// CampusDine Controller: Hall Dining, Guest Tokens & Maintenance
+// CampusDine Controller: Hall Dining Info & Maintenance
 const pool = require("../db");
 
 const HallController = {
@@ -41,30 +41,6 @@ const HallController = {
       return res.status(500).json({ error: "Failed to submit maintenance request" });
     }
   },
-
-  // Book guest meal token
-  async bookGuestToken(req, res) {
-    try {
-      const { date, slot, count, guestName } = req.body;
-      const userId = req.user.id;
-      const guestCount = Math.max(1, Number(count || 1));
-
-      const tokenId = "GST-" + Math.floor(1000 + Math.random() * 9000);
-
-      return res.json({
-        tokenId,
-        date,
-        slot,
-        guestCount,
-        guestName: guestName || "Guest of Resident",
-        status: "Confirmed",
-        message: "Guest meal token booked successfully"
-      });
-    } catch (error) {
-      console.error("HallController.bookGuestToken error:", error);
-      return res.status(500).json({ error: "Failed to book guest pass" });
-    }
-  }
 };
 
 module.exports = HallController;
