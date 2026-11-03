@@ -39,7 +39,6 @@ const chatRoutes = require("./src/routes/chat");
 const teacherRiderChatRoutes = require("./src/routes/teacherRiderChat");
 const feedbackRoutes = require("./src/routes/feedback");
 const kdsRoutes = require("./src/routes/kds");
-const guestTokenRoutes = require("./src/routes/guestTokens");
 const gamificationRoutes = require("./src/routes/gamification");
 const maintenanceRoutes = require("./src/routes/maintenance");
 const paymentSandboxRoutes = require("./src/routes/paymentSandbox");
@@ -832,7 +831,6 @@ app.use("/api/inventory", createInventoryRouter(createInventoryService(require("
 // Kitchen display system
 app.use("/api/kds", kdsRoutes);
 // Guest meal tokens for the hall
-app.use("/api/hall/guest-tokens", guestTokenRoutes);
 // Badges and leaderboard
 app.use("/api/gamification", gamificationRoutes);
 // Hall maintenance requests
