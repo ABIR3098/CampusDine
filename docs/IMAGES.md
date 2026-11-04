@@ -14,3 +14,6 @@ Used by: Borhani
 
 ### `cha.svg`
 Used by: Cha (Tea), Ginger Tea, Green Tea, Iced Lemon Tea, Lemon Tea, Masala Tea
+
+### `chicken-biryani.svg`
+Used by: Chicken Biryani, Chicken Biryani Half, Chicken Roast, Polao & Roast
