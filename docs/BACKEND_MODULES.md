@@ -32,3 +32,8 @@ Exports: `ensureHallAutoPaySchema`
 Diet preferences: what a person doesn't eat and what they are allergic to.
 
 Exports: `ensureHallDietSchema`
+
+## `src/hall/dietTags.js`
+What is in a meal? The menu is plain text ("Rice, Dal, Beef curry"), so the tags are found by looking for well-known words (English and Bangla/Banglish). It is a helper, not a guarantee: the screens say so.
+
+Exports: `TAGS`, `KEYS`, `LABEL`, `VEGETARIAN_AVOID`, `tagsOf`, `parseList`, `matchesFor`
