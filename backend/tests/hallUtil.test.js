@@ -1,6 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const { isDateKey, cutoffOf, isLocked } = require("../src/hall/util");
+const { isDateKey, cutoffOf, isLocked, addDays, localStamp, nowParts } = require("../src/hall/util");
+
+const dinner = { cutoff_time: "15:00:00", cutoff_days_before: 0 };
+const breakfast = { cutoff_time: "21:00", cutoff_days_before: 1 };
 
 test("isDateKey accepts real dates only", () => {
   assert.strictEqual(isDateKey("2026-10-31"), true);
@@ -11,14 +14,11 @@ test("isDateKey accepts real dates only", () => {
 });
 
 test("cutoffOf: same-day and day-before cutoffs", () => {
-  const dinner = { cutoff_time: "15:00:00", cutoff_days_before: 0 };
-  const breakfast = { cutoff_time: "21:00", cutoff_days_before: 1 };
   assert.deepStrictEqual(cutoffOf(dinner, "2026-10-22"), { dateKey: "2026-10-22", minutes: 900 });
   assert.deepStrictEqual(cutoffOf(breakfast, "2026-10-22"), { dateKey: "2026-10-21", minutes: 1260 });
 });
 
 test("isLocked flips exactly at the cutoff minute", () => {
-  const dinner = { cutoff_time: "15:00", cutoff_days_before: 0 };
   assert.strictEqual(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-22", minutes: 899 }), false);
   assert.strictEqual(isLocked(dinner, "2026-10-22", { dateKey: "2026-10-22", minutes: 900 }), true);
 });
