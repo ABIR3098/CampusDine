@@ -90,3 +90,6 @@ Exports: `SLOTS`, `nowParts`, `isDateKey`, `addDays`, `cutoffOf`, `isLocked`, `l
 Loyalty points + daily-order streak.
 
 Exports: `DEFAULT_SETTINGS`, `getSettings`, `saveSettings`, `getAccount`, `awardForOrder`, `redeemForOrder`, `refundForOrder`, `summaryFor`
+
+## `src/middleware/auth.js`
+Exports: `verifyToken`, `requireRole`
