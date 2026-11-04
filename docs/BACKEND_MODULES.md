@@ -149,3 +149,8 @@ Exports: `STATUSES`, `TIP_OPTIONS`, `AVG_MINUTES_PER_ORDER`, `MAX_QTY_PER_ITEM`,
 Email OTP service (commit 1).
 
 Exports: `ensureOtpSchema`, `createOtp`, `verifyOtp`, `purgeOldOtps`, `OTP_TTL_MIN`, `MAX_ATTEMPTS`, `RESEND_COOLDOWN_SEC`
+
+## `src/utils/pickup.js`
+Pre-order pickup slot rules (shared by placing an order and by the price quote, so a happy hour is judged against the same moment the order will really be picked up).
+
+Exports: `resolvePickupTime`, `PICKUP_MIN_LEAD_MINUTES`, `PICKUP_MAX_LEAD_HOURS`
