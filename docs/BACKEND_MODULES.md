@@ -80,3 +80,8 @@ Exports: `ensureHallSchema`
 "Effective" on/off state of a person's meals.
 
 Exports: `loadStates`, `DEFAULT_STATE`, `MAX_DAYS`
+
+## `src/hall/util.js`
+Small helpers shared by every Hall route.
+
+Exports: `SLOTS`, `nowParts`, `isDateKey`, `addDays`, `cutoffOf`, `isLocked`, `localStamp`
