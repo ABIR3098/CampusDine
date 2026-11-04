@@ -53,3 +53,6 @@ Used by: Fish Curry & Rice, Fish Fry, Ilish Bhat, Prawn Malai Curry & Rice, Rui 
 
 ### `french-fries.svg`
 Used by: Cheese Fries, Chicken Nuggets, French Fries, Onion Rings
+
+### `fried-rice.svg`
+Used by: Chicken Fried Rice, Egg Fried Rice, Fried Rice, Veg Fried Rice
