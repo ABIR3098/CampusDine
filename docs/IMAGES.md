@@ -77,3 +77,6 @@ Used by: Mango Juice, Orange Juice, Watermelon Juice
 
 ### `mineral-water.svg`
 Used by: Drinking Water 500ml, Mineral Water
+
+### `mixed-veg-rice.svg`
+Used by: Mixed Veg & Rice
