@@ -286,9 +286,9 @@ function HallTopBar({
 }
 
 function HallPortalHeader({
-  user, onLogout, ui, onOpenMobileMenu, onBack
+  user, onLogout, ui, onOpenMobileMenu, onBack, navLayout, setNavLayout
 }) {
-  const ThemeMenu = ui && ui.ThemeMenu, Avatar = ui && ui.Avatar;
+  const ThemeMenu = ui && ui.ThemeMenu, Avatar = ui && ui.Avatar, NavLayoutToggle = ui && ui.NavLayoutToggle;
 
   return (
     <header className="portal-header">
@@ -297,10 +297,12 @@ function HallPortalHeader({
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="md:hidden w-10 h-10 rounded-xl border grid place-items-center"
+          className="nav-burger md:hidden w-10 h-10 rounded-xl border grid place-items-center"
           style={{ borderColor: "var(--line)" }}>
           <span style={{ fontSize: 18 }}>☰</span>
         </button>
+
+        {navLayout === "top" && <span role="img" aria-label="CampusDine logo" className="cd-logo shrink-0"></span>}
 
         <div className="flex items-center gap-2.5">
           <img src="/images/restaurants/hall.svg" alt="" className="w-8 h-8 rounded-lg object-contain border p-1 shadow-xs" style={{ borderColor: "var(--line)", background: "#fff" }} />
@@ -318,6 +320,7 @@ function HallPortalHeader({
 
       {/* Right: User Pill, Theme, Logout */}
       <div className="flex items-center gap-2.5">
+        {NavLayoutToggle && <NavLayoutToggle layout={navLayout} setLayout={setNavLayout} />}
         <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
           {Avatar && <Avatar src={user.avatar} name={user.name} size={34} />}
           <div className="hidden sm:block text-left leading-tight">
@@ -426,6 +429,7 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState("");
+  const [navLayout, setNavLayout] = ui && ui.useNavLayout ? ui.useNavLayout() : ["side", () => {}]; // "side" or "top"
   const toastTimer = useRef(null);
 
   const notify = (message, isError) => {
@@ -437,7 +441,7 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
   const slides = useHallHeroSlides(call, user, setTab, tab);
 
   return (
-    <div className="portal-shell hl" style={{ color: "var(--ink)" }}>
+    <div className={"portal-shell hl" + (navLayout === "top" ? " nav-top" : "")} style={{ color: "var(--ink)" }}>
       {/* ─── Vertical Left Sidebar for Hall ─── */}
       <HallTopBar
         user={user}
@@ -463,7 +467,14 @@ function HallApp({ call, user, token, lang, onBack, onLogout, refreshWallet, ui,
           ui={ui}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
           onBack={onBack}
+          navLayout={navLayout}
+          setNavLayout={setNavLayout}
         />
+
+        {navLayout === "top" && ui && ui.NavTabStrip && (
+          <ui.NavTabStrip tabs={tabs} active={tab} setActive={setTab}
+            renderIcon={t => <span className="font-emoji" style={{ fontSize: 15 }}>{t.icon || "•"}</span>} />
+        )}
 
         {toast && (
           <div className="fixed top-[85px] right-6 z-50 w-[min(90vw,340px)]">
