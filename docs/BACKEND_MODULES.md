@@ -103,3 +103,8 @@ Exports: `ensureOffersSchema`
 One place that decides what an order costs — used by placing an order (orders.js), the cart preview (/api/pricing/quote) and /api/coupon/validate, so the cart can never show a different price than the server charges.
 
 Exports: `r2`, `loadHappyHours`, `loadCombos`, `isHappyHourActive`, `happyHourCovers`, `priceCart`, `priceOrder`, `quoteResponse`
+
+## `src/referrals.js`
+Referral codes: each student/teacher has a code; a friend who signs up with it and gets their first order collected earns both of them a wallet bonus.
+
+Exports: `ensureCode`, `rewardReferral`, `REFERRAL_BONUS`, `MAX_REWARDS_PER_REFERRER`
