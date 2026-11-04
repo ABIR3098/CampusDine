@@ -105,3 +105,6 @@ Logo for Amitié (Friendship).
 
 ### `hall.svg`
 Logo for Hall.
+
+### `staff.svg`
+Logo for Staff Canteen.
