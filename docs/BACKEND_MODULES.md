@@ -40,3 +40,8 @@ Exports: `TAGS`, `KEYS`, `LABEL`, `VEGETARIAN_AVOID`, `tagsOf`, `parseList`, `ma
 
 ## `src/hall/extraSchema.js`
 Exports: `ensureHallExtraSchema`
+
+## `src/hall/feastRsvp.js`
+Helpers for feast RSVPs. No database code in here, so they are easy to test.
+
+Exports: `RSVP_STATUSES`, `parseRsvpStatus`, `hasSeat`
