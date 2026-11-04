@@ -74,3 +74,6 @@ Used by: Lemon Soda, Mint Lemonade, Sugarcane Juice
 
 ### `mango-juice.svg`
 Used by: Mango Juice, Orange Juice, Watermelon Juice
+
+### `mineral-water.svg`
+Used by: Drinking Water 500ml, Mineral Water
