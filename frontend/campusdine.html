@@ -11376,6 +11376,25 @@ function App() {
         {showDailySpin && (
           <DailySpinWheelModal user={session.user} onClose={() => setShowDailySpin(false)} onReward={(msg) => { showSuccess(msg); refreshWallet(); }} />
         )}
+
+        {/* Sticky Mobile Floating Cart Bar */}
+        {window.CDComponents && window.CDComponents.FloatingCartBar && (
+          <window.CDComponents.FloatingCartBar
+            cart={cart}
+            onOpenCart={() => setTab("menu")}
+          />
+        )}
+
+        {/* Mobile Touch Bottom Navigation */}
+        {window.CDComponents && window.CDComponents.MobileBottomNav && (
+          <window.CDComponents.MobileBottomNav
+            activeTab={tab}
+            onSelectTab={setTab}
+            role={session.user.role}
+            cartCount={Array.isArray(cart) ? cart.reduce((s, c) => s + (c.qty || 1), 0) : 0}
+            unreadNotifs={unreadNotifications}
+          />
+        )}
         </div>
       </div>
     </div>
