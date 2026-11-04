@@ -65,3 +65,8 @@ Exports: `runAutoFill`, `startAutoFill`
 Last-call plates: leftover plates sold cheaply at the end of a meal (less food waste), claimed with the wallet.
 
 Exports: `ensureHallLastCallSchema`
+
+## `src/hall/ratingsSchema.js`
+Meal ratings: one row per person, date and meal (rating again just updates the row).
+
+Exports: `ensureHallRatingsSchema`
