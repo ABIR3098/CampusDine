@@ -108,3 +108,8 @@ Exports: `r2`, `loadHappyHours`, `loadCombos`, `isHappyHourActive`, `happyHourCo
 Referral codes: each student/teacher has a code; a friend who signs up with it and gets their first order collected earns both of them a wallet bonus.
 
 Exports: `ensureCode`, `rewardReferral`, `REFERRAL_BONUS`, `MAX_REWARDS_PER_REFERRER`
+
+## `src/restaurants.js`
+Which restaurant a menu item belongs to — without touching the database schema.
+
+Exports: `loadItemRestaurants`, `saveItemRestaurant`
