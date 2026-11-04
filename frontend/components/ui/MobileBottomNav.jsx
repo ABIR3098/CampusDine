@@ -1,11 +1,29 @@
 // CampusDine UI: MobileBottomNav
-// Native app-style bottom navigation bar for mobile touch screens
+// Native app-style bottom navigation bar strictly for mobile touch screens (< 768px)
 (function() {
   const { React } = window;
   if (!React) return;
 
   function MobileBottomNav({ activeTab = "menu", onSelectTab, role = "student", cartCount = 0, unreadNotifs = 0 }) {
     if (role === "admin") return null; // Admins use desktop portal sidebar
+
+    const [isMobile, setIsMobile] = React.useState(function() {
+      return typeof window !== "undefined" && window.innerWidth < 768;
+    });
+
+    React.useEffect(function() {
+      function checkWidth() {
+        setIsMobile(window.innerWidth < 768);
+      }
+      checkWidth();
+      window.addEventListener("resize", checkWidth);
+      return function() {
+        window.removeEventListener("resize", checkWidth);
+      };
+    }, []);
+
+    // Strictly hidden on laptop and desktop screens
+    if (!isMobile) return null;
 
     const tabs = [
       { key: "menu", label: "Menu", icon: "🍽️", badge: 0 },
@@ -17,14 +35,14 @@
 
     return (
       <div
-        className="md:hidden"
+        className="cd-mobile-bottom-nav"
         style={{
           position: "fixed",
           bottom: 0,
           left: 0,
           right: 0,
           height: "60px",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backgroundColor: "rgba(255, 255, 255, 0.98)",
           backdropFilter: "blur(12px)",
           borderTop: "1px solid var(--line, #E5E7EB)",
           display: "flex",
@@ -34,13 +52,13 @@
           boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.05)"
         }}
       >
-        {tabs.map(t => {
+        {tabs.map(function(t) {
           const isActive = activeTab === t.key;
           return (
             <button
               key={t.key}
               type="button"
-              onClick={() => onSelectTab && onSelectTab(t.key)}
+              onClick={function() { if (onSelectTab) onSelectTab(t.key); }}
               style={{
                 background: "none",
                 border: "none",
