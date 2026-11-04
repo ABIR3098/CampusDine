@@ -27,3 +27,8 @@ Exports: `GRACE_DAYS`, `previousMonth`, `autoPayOne`, `runAutoPay`, `startAutoPa
 Auto-pay: who turned it on, and what happened each time it ran.
 
 Exports: `ensureHallAutoPaySchema`
+
+## `src/hall/dietSchema.js`
+Diet preferences: what a person doesn't eat and what they are allergic to.
+
+Exports: `ensureHallDietSchema`
