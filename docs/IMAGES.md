@@ -50,3 +50,6 @@ Used by: Falooda, Special Falooda
 
 ### `fish-curry.svg`
 Used by: Fish Curry & Rice, Fish Fry, Ilish Bhat, Prawn Malai Curry & Rice, Rui Fish Curry & Rice, Shutki Bhuna & Rice
+
+### `french-fries.svg`
+Used by: Cheese Fries, Chicken Nuggets, French Fries, Onion Rings
