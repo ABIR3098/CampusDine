@@ -68,3 +68,6 @@ Used by: Beef Khichuri, Chicken Khichuri, Egg Khichuri, Khichuri
 
 ### `lassi.svg`
 Used by: Banana Shake, Chocolate Milkshake, Lassi, Mango Lassi, Mishti Doi, Strawberry Shake
+
+### `lemon-soda.svg`
+Used by: Lemon Soda, Mint Lemonade, Sugarcane Juice
