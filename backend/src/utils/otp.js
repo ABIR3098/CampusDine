@@ -5,13 +5,14 @@
 //   and at most MAX_PER_HOUR codes per email+purpose per hour.
 // All time checks run inside MySQL (NOW()), so server/DB timezone differences can't break expiry.
 const crypto = require("crypto");
+const { getSigningSecret } = require("./secret");
 const { recordFraudEvent } = require("./fraud");
 
 const OTP_TTL_MIN = 10;
 const MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN_SEC = 60;
 const MAX_PER_HOUR = 5;
-const PURPOSES = ["signup", "reset", "login2fa"];
+const PURPOSES = ["signup", "reset", "login2fa", "change_email"];
 
 async function ensureOtpSchema(db) {
   try {
@@ -19,7 +20,7 @@ async function ensureOtpSchema(db) {
       CREATE TABLE IF NOT EXISTS email_otps (
         id INT AUTO_INCREMENT PRIMARY KEY,
         email VARCHAR(120) NOT NULL,
-        purpose ENUM('signup','reset','login2fa') NOT NULL,
+        purpose ENUM('signup','reset','login2fa','change_email') NOT NULL,
         code_hash CHAR(64) NOT NULL,
         attempts TINYINT NOT NULL DEFAULT 0,
         expires_at DATETIME NOT NULL,
@@ -28,13 +29,15 @@ async function ensureOtpSchema(db) {
         KEY idx_otp_lookup (email, purpose, id)
       )
     `);
+    // A table made before change_email existed still has the shorter list; this widens it (harmless to repeat).
+    await db.query("ALTER TABLE email_otps MODIFY purpose ENUM('signup','reset','login2fa','change_email') NOT NULL");
   } catch (e) {
     console.warn("⚠️ Could not verify email_otps table:", e.message);
   }
 }
 
 function secret() {
-  return process.env.JWT_SECRET || "campusdine-dev-secret";
+  return getSigningSecret();
 }
 
 function hashCode(email, purpose, code) {

@@ -11,6 +11,24 @@ const shape = (r, x = {}) => ({ id: r.id, date: r.d, slot: r.slot, title: r.titl
   capacity: r.capacity ?? null, goingCount: x.goingCount ?? 0, myRsvp: x.myRsvp ?? null, rsvpOpen: x.rsvpOpen ?? true });
 const SELECT = "SELECT id, DATE_FORMAT(the_date, '%Y-%m-%d') AS d, slot, title, items, extra_price, capacity FROM hall_feasts";
 
+let _hasUniCol = null;
+async function hasUniversityIdCol() {
+  if (_hasUniCol !== null) return _hasUniCol;
+  try {
+    const [cols] = await pool.query("SHOW COLUMNS FROM hall_feasts LIKE 'university_id'");
+    if (cols.length > 0) {
+      _hasUniCol = true;
+    } else {
+      // Auto-migrate on first query if missing
+      await pool.query("ALTER TABLE hall_feasts ADD COLUMN university_id BIGINT UNSIGNED NULL");
+      _hasUniCol = true;
+    }
+  } catch (e) {
+    _hasUniCol = false;
+  }
+  return _hasUniCol;
+}
+
 // going count + my own answer for a list of feast ids -> { [feastId]: { goingCount, myRsvp } }
 async function rsvpSummary(ids, userId) {
   const out = {};
@@ -24,12 +42,23 @@ async function rsvpSummary(ids, userId) {
 }
 
 // GET /api/hall/feasts?from=&to=   (default: today and the next 60 days)
+// GET /feasts
 router.get("/feasts", catchAsync(async (req, res) => {
   const now = nowParts();
   const from = req.query.from || now.dateKey;
   const to = req.query.to || addDays(from, 60);
   if (!isDateKey(from) || !isDateKey(to) || to < from) return res.status(400).json({ error: "from / to must be dates like 2026-10-22" });
-  const [rows] = await pool.query(`${SELECT} WHERE the_date >= ? AND the_date <= ? AND (? IS NULL OR university_id=?) ORDER BY the_date, FIELD(slot, 'breakfast', 'lunch', 'dinner')`, [from, to, req.user.universityId || null, req.user.universityId || null]);
+  
+  const hasCol = await hasUniversityIdCol();
+  let rows;
+  if (hasCol) {
+    const [r] = await pool.query(`${SELECT} WHERE the_date >= ? AND the_date <= ? AND (? IS NULL OR university_id=?) ORDER BY the_date, FIELD(slot, 'breakfast', 'lunch', 'dinner')`, [from, to, req.user.universityId || null, req.user.universityId || null]);
+    rows = r;
+  } else {
+    const [r] = await pool.query(`${SELECT} WHERE the_date >= ? AND the_date <= ? ORDER BY the_date, FIELD(slot, 'breakfast', 'lunch', 'dinner')`, [from, to]);
+    rows = r;
+  }
+
   const summary = await rsvpSummary(rows.map((r) => r.id), req.user.id);
   const [slotRows] = await pool.query("SELECT * FROM hall_slots");
   const slotOf = Object.fromEntries(slotRows.map((s) => [s.slot, s]));
@@ -43,6 +72,7 @@ async function assertOpen(date, slot, universityId = null) {
 }
 
 // POST /api/hall/feasts (admin) body: { date, slot, title, items, extraPrice } — adds, or replaces the feast of that date + meal
+// POST /feasts (admin)
 router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
   const { date, slot, title, items, extraPrice, capacity: rawCapacity } = req.body || {};
   if (!isDateKey(date)) return res.status(400).json({ error: "Date must look like 2026-10-24" });
@@ -59,25 +89,62 @@ router.post("/feasts", requireRole("admin"), catchAsync(async (req, res) => {
   }
   try { await assertOpen(date, slot, req.user.universityId); } catch (e) { return res.status(e.status).json({ error: e.message }); }
 
-  const [existing] = await pool.query('SELECT id FROM hall_feasts WHERE the_date=? AND slot=? AND university_id <=> ? LIMIT 1',[date,slot,req.user.universityId||null]);
+  const hasCol = await hasUniversityIdCol();
+  let existing;
+  if (hasCol) {
+    [existing] = await pool.query('SELECT id FROM hall_feasts WHERE the_date=? AND slot=? AND university_id <=> ? LIMIT 1',[date,slot,req.user.universityId||null]);
+  } else {
+    [existing] = await pool.query('SELECT id FROM hall_feasts WHERE the_date=? AND slot=? LIMIT 1',[date,slot]);
+  }
+
   if (existing.length) {
     if (capacity != null) {
       const [[{ n }]] = await pool.query("SELECT COUNT(*) AS n FROM hall_feast_rsvps WHERE feast_id = ? AND status = 'going'", [existing[0].id]);
       if (n > capacity) return res.status(409).json({ error: `${n} students are already going, so seats can't be fewer than that` });
     }
     await pool.query('UPDATE hall_feasts SET title=?,items=?,extra_price=?,capacity=? WHERE id=?',[t,it,extra,capacity,existing[0].id]);
-  } else await pool.query('INSERT INTO hall_feasts (the_date,slot,title,items,extra_price,capacity,university_id) VALUES (?,?,?,?,?,?,?)',[date,slot,t,it,extra,capacity,req.user.universityId||null]);
-  const [[row]] = await pool.query(`${SELECT} WHERE the_date = ? AND slot = ? AND (? IS NULL OR university_id=?)`, [date, slot, req.user.universityId || null, req.user.universityId || null]);
+  } else {
+    if (hasCol) {
+      await pool.query('INSERT INTO hall_feasts (the_date,slot,title,items,extra_price,capacity,university_id) VALUES (?,?,?,?,?,?,?)',[date,slot,t,it,extra,capacity,req.user.universityId||null]);
+    } else {
+      await pool.query('INSERT INTO hall_feasts (the_date,slot,title,items,extra_price,capacity) VALUES (?,?,?,?,?,?)',[date,slot,t,it,extra,capacity]);
+    }
+  }
+
+  let row;
+  if (hasCol) {
+    const [[r]] = await pool.query(`${SELECT} WHERE the_date = ? AND slot = ? AND (? IS NULL OR university_id=?)`, [date, slot, req.user.universityId || null, req.user.universityId || null]);
+    row = r;
+  } else {
+    const [[r]] = await pool.query(`${SELECT} WHERE the_date = ? AND slot = ?`, [date, slot]);
+    row = r;
+  }
+
   const summary = await rsvpSummary([row.id], req.user.id);
   res.status(201).json(shape(row, summary[row.id]));
 }));
 
 // DELETE /api/hall/feasts/:id (admin)
+// DELETE /feasts/:id (admin)
 router.delete("/feasts/:id", requireRole("admin"), catchAsync(async (req, res) => {
-  const [[row]] = await pool.query(`${SELECT} WHERE id = ? AND (? IS NULL OR university_id=?)`, [Number(req.params.id), req.user.universityId || null, req.user.universityId || null]);
+  const hasCol = await hasUniversityIdCol();
+  let row;
+  if (hasCol) {
+    const [[r]] = await pool.query(`${SELECT} WHERE id = ? AND (? IS NULL OR university_id=?)`, [Number(req.params.id), req.user.universityId || null, req.user.universityId || null]);
+    row = r;
+  } else {
+    const [[r]] = await pool.query(`${SELECT} WHERE id = ?`, [Number(req.params.id)]);
+    row = r;
+  }
+
   if (!row) return res.status(404).json({ error: "Feast not found" });
   try { await assertOpen(row.d, row.slot); } catch (e) { return res.status(e.status).json({ error: e.message }); }
-  await pool.query("DELETE FROM hall_feasts WHERE id = ? AND (? IS NULL OR university_id=?)", [row.id, req.user.universityId || null, req.user.universityId || null]);
+
+  if (hasCol) {
+    await pool.query("DELETE FROM hall_feasts WHERE id = ? AND (? IS NULL OR university_id=?)", [row.id, req.user.universityId || null, req.user.universityId || null]);
+  } else {
+    await pool.query("DELETE FROM hall_feasts WHERE id = ?", [row.id]);
+  }
   res.json({ ok: true });
 }));
 
@@ -89,11 +156,18 @@ async function assertRsvpOpen(feast) {
 
 // one feast of the member's own university (null when it does not exist)
 async function getFeast(id, universityId = null) {
-  const [[row]] = await pool.query(`${SELECT} WHERE id = ? AND (? IS NULL OR university_id=?)`, [Number(id), universityId, universityId]);
-  return row || null;
+  const hasCol = await hasUniversityIdCol();
+  if (hasCol) {
+    const [[row]] = await pool.query(`${SELECT} WHERE id = ? AND (? IS NULL OR university_id=?)`, [Number(id), universityId, universityId]);
+    return row || null;
+  } else {
+    const [[row]] = await pool.query(`${SELECT} WHERE id = ?`, [Number(id)]);
+    return row || null;
+  }
 }
 
 // POST /api/hall/feasts/:id/rsvp   body: { status: "going" | "not_going" }   (any Hall member)
+// POST /feasts/:id/rsvp
 router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   const status = parseRsvpStatus((req.body || {}).status);
   if (!status) return res.status(400).json({ error: "status must be going or not_going" });
@@ -112,6 +186,7 @@ router.post("/feasts/:id/rsvp", catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/hall/feasts/:id/rsvp   — take my answer back
+// DELETE /feasts/:id/rsvp
 router.delete("/feasts/:id/rsvp", catchAsync(async (req, res) => {
   const feast = await getFeast(req.params.id, req.user.universityId || null);
   if (!feast) return res.status(404).json({ error: "Feast not found" });
@@ -121,6 +196,7 @@ router.delete("/feasts/:id/rsvp", catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/feasts/:id/rsvps (admin) — who answered what
+// GET /feasts/:id/rsvps (admin)
 router.get("/feasts/:id/rsvps", requireRole("admin"), catchAsync(async (req, res) => {
   const feast = await getFeast(req.params.id, req.user.universityId || null);
   if (!feast) return res.status(404).json({ error: "Feast not found" });

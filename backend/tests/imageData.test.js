@@ -32,3 +32,12 @@ test("rejects non-strings and values that are too long", () => {
   const tooLong = "data:image/png;base64," + "A".repeat(MAX_IMAGE_DATA_LENGTH);
   assert.equal(isSafeImageDataUrl(tooLong), false);
 });
+
+test("base64 padding allows at most two equals signs, only at the end", () => {
+  const { isSafeImageDataUrl } = require("../src/utils/imageData");
+  const head = "data:image/png;base64,";
+  assert.strictEqual(isSafeImageDataUrl(head + "QUJD"), true);
+  assert.strictEqual(isSafeImageDataUrl(head + "QQ=="), true);
+  assert.strictEqual(isSafeImageDataUrl(head + "QQ==="), false);
+  assert.strictEqual(isSafeImageDataUrl(head + "==QQ"), false);
+});

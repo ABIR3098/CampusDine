@@ -1,6 +1,40 @@
 # Changelog
 
 ## Unreleased
+- Fix: the daily spin reward was chosen by the browser, so anyone could send any amount and get it added to the wallet. The server now picks the prize and allows one spin a day (stored as a `Daily spin reward` wallet entry).
+- Fix: `POST /api/hall/maintenance/requests` always failed because it wrote to tables that do not exist. It now saves into `hall_requests` (type `maintenance`).
+- Fix: the kitchen display (`/api/kds`) asked for columns that do not exist (`total_amount`, `item_name`, `quantity`, `updated_at`). Fixed, and "ready" now answers 404 for an unknown, ready or cancelled order.
+- Fix: `GET /api/gamification/leaderboard` returned made-up people. It now ranks real students and teachers by orders this month and adds your own row when you are outside the top 10.
+- Chore: removed the fake `/api/hall/guest-tokens` endpoint (it saved nothing). Hall guests are booked with `PUT /api/hall/guests/:date/:slot`. Also removed two unused controller methods.
+- Fix: the order validator let a text or `Infinity` price through, crashed on a `null` item, and had no quantity or cart-size limit; the register validator crashed on a non-text name or campus ID and skipped the length check for a numeric password. Both now answer 400. The `WalletController.transfer` helper accepted a text amount, left its transaction open on early returns, could pick the wrong user when a campus ID looked like a database id, and locked the two wallets in a deadlock-prone order. New edge-case tests for all three.
+- Fix: bKash and Nagad callbacks confirmed the order and wrote the wallet entry again every time the gateway repeated a callback, and an error in the middle left the database connection open. A payment is now settled once (`src/services/paymentSettlement.js`), a repeated callback answers "Payment already confirmed" and changes nothing, an unknown transaction gets a 404, and the connection is always released.
+- Security: the QR code and email OTP signing key and the (unused) auth controller no longer have a hardcoded secret; in production a missing `JWT_SECRET` is an error (`src/utils/secret.js`).
+- Front page: the "Today's Special Offer" popup now appears only once per browser session (when the site is first opened) and no longer comes back every time the person returns to the front page.
+- Riders: `GET /api/riders/orders/summary` returns `waiting_orders` (a count of teacher orders with no rider yet) and the rider app uses it, and explains in the empty list why no order comes when the GPS is off. Accepting a delivery is written to the audit log as `RIDER_ACCEPT`.
+- Docs: FAQ and the Bangla README explain the duty shift, Demo GPS and accepting a delivery.
+- Rider app: a **Demo GPS** button shares a fixed campus position (with a tiny drift) so a rider can be on duty and receive teacher orders without phone GPS or HTTPS.
+- Riders: accepting a delivery twice is safe, and the teacher gets the `order:rider-accepted` event and a notice; teacher Live Tracking shows "accepted" or "waiting to accept" and now also lists orders still waiting for a rider.
+- Fix: riders did not receive teacher orders. An order that found no rider when it was placed (nobody on duty, or nobody sharing a position yet) stayed `Unassigned` until an admin pressed a button. It is now tried again when a rider starts a shift, when a rider sends a position, and every 20 seconds by a timer on the server (`RIDER_DISPATCH_SECONDS`, `0` = off); the rider gets the `rider:order-assigned` event and the audit log shows `AUTO_RIDER_ASSIGN`.
+- Fix: after a new login the rider app kept an old GPS token in the browser, so the screen said "sharing" while no position reached the server. The saved token is now replaced at login, and dropped when it belongs to another rider.
+- Rider app: starting the duty shift also turns the GPS on and ending it turns it off; warnings when the rider is on duty with the GPS off, or when the server gets no recent position (`GET /api/operations/riders/shift/me` now returns `locationFresh`); a notice when a new order is given.
+- Chat: teachers and riders can now chat with each other directly (Teacher app → "Rider chat" tab, Rider hub → "Teacher chat" tab, both with an unread badge and live messages). A teacher can write to any rider; a rider can start a chat only with a teacher whose order they carry and can answer any teacher who wrote first. New `/api/teacher-rider-chat` routes (`threads`, `contacts`, `directory`, `unread`, `:peerId/messages`, delete), live events `teacher-rider-chat:message|read|deleted`, and the tables `teacher_rider_threads` and `teacher_rider_messages` (created on first use). See `docs/TEACHER_RIDER_CHAT_API.md`.
+- Chat: riders can now chat with the canteen admin (Rider hub → "Canteen admin chat" tab, with an unread badge). Riders are members of the canteen inbox; the canteen admin sees them under the new "Riders" filter and can start a chat with a rider by name or ID. New `GET /api/chat/unread`; riders never reach the hall inbox.
+- Chat: Hall students/teachers now have a separate **Hall Admin chat** (Hall → "Hall Admin chat"). It goes only to the Hall Admin, who reads and replies from the Hall Admin portal ("Student messages"). The canteen chat inside each restaurant still goes only to the canteen admin. New `scope` (`canteen` or `hall`) on the chat API, `GET /api/chat/directory`.
+- Chat: when the canteen admin opens the Hall, a "Hall Admin chat" tab lets them talk to the Hall Admin (who sees them in "Student messages" as Canteen Admin).
+- Chore: the helper and patch scripts moved from the project root into `tools/`.
+- Config: `TRUST_PROXY` makes the login lock-out count per visitor when the server is behind a reverse proxy.
+- Performance: the Lost & Found screen no longer downloads every photo on each 15-second refresh (`?images=0` plus `GET /api/campus/lost-found/:id/image`).
+- Privacy: `GET /api/riders/locations` shows a position only while the rider is sharing it.
+- Security: changing the email address now needs a code sent to the new address (`POST /api/auth/me/email-code`, then `emailCode` in `PUT /api/auth/me`).
+- Coupons: `migrations/20261101_prize_coupons.sql` creates TEHARI10, STUDY15, FREECHAI and CASH5, the codes the spin wheel and scratch card show.
+- Menu: 15 more items in `more_menu_items.sql` (Waffle, Hot Dog, Chilli Chicken and others) and calories for 3 of them.
+- Docs and tests: group orders, weekly orders, Hall meal states and fraud events.
+- Fix: Hall pickup-token routes use the canteen date between 00:00 and 06:00.
+- Fix: changing the account e-mail now requires the current password.
+- Fix: demo accounts (admin/admin123 and others) are no longer created when NODE_ENV=production.
+- Fix: wallet top-up is now limited to student and teacher accounts (riders and admins could call it before).
+- Menu: calories and allergens for 28 more items, with tests that check the data.
+- Menu: `more_menu_items.sql`: 60 more items (132 in total) with Bangla names, prices and restaurants.
 - Fix: Hall Admin login is locked for 10 minutes after 5 wrong passwords.
 - Fix: Hall Admin notices (no university) are now visible to students assigned to a university.
 - Fix: wallet top-ups are limited to a daily total per account (default ৳20,000).

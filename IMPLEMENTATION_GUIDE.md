@@ -1,5 +1,7 @@
 # CampusDine Backend - Implementation Guide
 
+> **Legacy document.** It describes the older `*-enhanced.js` branch. Several of those route files (`auth-enhanced`, `orders-enhanced`, `wallet-enhanced`, `menu-enhanced`, `profile`, `ratings`, `favorites`, `notifications`, `payment`) do not load today, and `npm start` runs `server.js`, which does not use them. Treat the "complete / tested" claims below as historical.
+
 **Version:** 2.0.0 Enhanced  
 **Last Updated:** September 3, 2026  
 **Status:** All features implemented ✓
@@ -303,13 +305,6 @@ MAX_WALLET_TOPUP=9999
 cd backend
 npm install --save-dev nodemon
 npm install express cors bcrypt jsonwebtoken mysql2 socket.io uuid express-rate-limit dotenv
-```
-
-### 3. **Or Use Enhanced Package**
-
-```bash
-cp package-enhanced.json package.json
-npm install
 ```
 
 ### 4. **Run Server**

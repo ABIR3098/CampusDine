@@ -2,6 +2,8 @@
 
 BUP · CSE 3208 Software Development Project I · CampusDine
 
+[বাংলায় পড়ুন (Bangla)](README.bn.md)
+
 ```
 campusdine-project/
 ├── frontend/
@@ -18,7 +20,7 @@ campusdine-project/
 **One server, one command, one URL.** The backend now serves the frontend
 file directly (like your CropTrack project did), so there's no separate
 frontend server, no CORS setup, and no `file://` browser restrictions to
-fight with. It also auto-creates three demo accounts the first time it
+fight with. It also auto-creates four demo accounts the first time it
 connects to the database, so you can log in immediately without
 registering anything by hand.
 
@@ -47,6 +49,7 @@ No database change is needed:
 - Items an admin adds later are remembered in the existing `app_meta` table (`item_restaurant_<id>`).
 - An order's restaurant is worked out from its items; a single order can only hold one restaurant's items.
 - Reports (revenue trend, summary, CSV) are still campus-wide.
+- `backend/more_menu_items.sql` adds 147 more items across the four restaurants (see [docs/MENU_ITEMS_SQL.md](docs/MENU_ITEMS_SQL.md)).
 
 ---
 
@@ -64,9 +67,9 @@ No database change is needed:
    collation `utf8mb4_general_ci` → **Create**.
 3. With `campusdine` selected, click the **Import** tab → **Choose File**
    → select `backend/schema.sql` → **Go**.
-4. You should see "Import has been successfully finished" and 7 tables
+4. You should see "Import has been successfully finished" and 21 tables
    listed on the left (users, menu_items, orders, order_items,
-   wallet_transactions, meal_calendar, meal_rates).
+   wallet_transactions, meal_calendar, meal_rates and more).
 
 (Prefer the command line instead? `mysql -u root -p campusdine < schema.sql` works the same way.)
 
@@ -99,11 +102,13 @@ running, database missing, wrong password, etc). On success you'll see:
 ✅ Demo account তৈরি হয়েছে: admin / admin123 (admin)
 ✅ Demo account তৈরি হয়েছে: student1 / student123 (student)
 ✅ Demo account তৈরি হয়েছে: teacher1 / teacher123 (teacher)
+✅ Demo account তৈরি হয়েছে: rider1 / rider123 (rider)
 
 🔑 LOGIN দিয়ে test করো:
    Admin   → ID: admin      Password: admin123
    Student → ID: student1   Password: student123
    Teacher → ID: teacher1   Password: teacher123
+   Rider   → ID: rider1     Password: rider123
 
 🚀 CampusDine চালু হয়েছে → http://localhost:5000
 ```
@@ -199,4 +204,14 @@ npm test
 
 ## Demo accounts
 
+Riders can message the canteen admin from the Rider hub (tab "Canteen admin chat"). The admin sees them in the same inbox under the "Riders" filter.
+
+Teachers and riders can also chat with each other: teachers use the "Rider chat" tab, riders the "Teacher chat" tab of the Rider hub. See [docs/TEACHER_RIDER_CHAT_API.md](docs/TEACHER_RIDER_CHAT_API.md).
+
+The daily spin and the monthly leaderboard are described in [docs/GAMIFICATION_API.md](docs/GAMIFICATION_API.md).
+
 On first start the server creates `admin`, `student1`, `teacher1` and `rider1` with simple passwords. Change or delete them before any real deployment.
+
+## Kitchen Staff login & inventory
+
+See [docs/STAFF_INVENTORY.md](docs/STAFF_INVENTORY.md) for the staff login, the inventory feature and how to run it in VS Code.

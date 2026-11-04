@@ -29,6 +29,7 @@ async function ratesFor(db, role) {
 }
 
 // GET /api/calendar?year=2026&month=8   (month is 1-12)  → [{ the_date, status, paid }]
+// GET / (any logged-in user)
 router.get("/", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.query);
   if (!ym) return res.status(400).json({ error: "Invalid month" });
@@ -40,6 +41,7 @@ router.get("/", catchAsync(async (req, res) => {
 }));
 
 // GET /api/calendar/bill?year=&month= — the month's plan: total, what is already paid, what is still due
+// GET /bill (any logged-in user)
 router.get("/bill", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.query);
   if (!ym) return res.status(400).json({ error: "Invalid month" });
@@ -67,6 +69,7 @@ router.get("/bill", catchAsync(async (req, res) => {
 }));
 
 // POST /api/calendar/pay  body: { year, month } — pay every unpaid Full/Half day of the month from the wallet
+// POST /pay (any logged-in user)
 router.post("/pay", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.body || {});
   if (!ym) return res.status(400).json({ error: "Invalid month" });
@@ -108,6 +111,7 @@ router.post("/pay", catchAsync(async (req, res) => {
 
 // POST /api/calendar/repeat  body: { year, month } — copy the usual weekly pattern of the previous month
 // onto this month's days that are still unmarked (today and later). Nothing is paid by this.
+// POST /repeat (any logged-in user)
 router.post("/repeat", catchAsync(async (req, res) => {
   const ym = parseYearMonth(req.body || {});
   if (!ym) return res.status(400).json({ error: "Invalid month" });
@@ -143,6 +147,7 @@ router.post("/repeat", catchAsync(async (req, res) => {
 }));
 
 // PUT /api/calendar/:day  body: { year, month, status: 'off'|'full'|'half' }
+// PUT /:day (any logged-in user)
 router.put("/:day", catchAsync(async (req, res) => {
   const { year, month, status } = req.body;
   const day = Number(req.params.day);

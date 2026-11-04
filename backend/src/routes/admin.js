@@ -37,6 +37,7 @@ async function restaurantOverview(restaurant) {
   return { pendingOrders, revenueToday, lowStock };
 }
 
+// GET /overview (any logged-in user)
 router.get("/overview", catchAsync(async (req, res) => {
   const restaurant = req.query.restaurant;
   if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
@@ -65,6 +66,7 @@ router.get("/overview", catchAsync(async (req, res) => {
 }));
 
 // GET /api/admin/reports/revenue-trend — last 6 completed months
+// GET /reports/revenue-trend (any logged-in user)
 router.get("/reports/revenue-trend", catchAsync(async (req, res) => {
   const [rows] = await pool.query(`
     SELECT DATE_FORMAT(created_at, '%Y-%m') AS ym, SUM(total) AS revenue
@@ -80,6 +82,7 @@ router.get("/reports/revenue-trend", catchAsync(async (req, res) => {
 // Heuristic: how many students/teachers marked Full or Half on this same
 // weekday over the last 4 occurrences, averaged. Simple and explainable —
 // swap in a real model later if the course wants something fancier.
+// GET /reports/forecast (any logged-in user)
 router.get("/reports/forecast", catchAsync(async (req, res) => {
   const [[{ cnt, weeks }]] = await pool.query(`
     SELECT COUNT(*) AS cnt, COUNT(DISTINCT YEARWEEK(the_date)) AS weeks
@@ -117,6 +120,7 @@ function readRange(req) {
 const IN_RANGE = "o.created_at >= ? AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)";
 
 // GET /api/admin/reports/summary?from=&to=
+// GET /reports/summary (any logged-in user)
 router.get("/reports/summary", catchAsync(async (req, res) => {
   const range = readRange(req);
   if (range.error) return res.status(400).json({ error: range.error });
@@ -216,6 +220,7 @@ const toCsv = (header, rows) =>
   "\ufeff" + [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 
 // GET /api/admin/reports/export?type=orders|hall&from=&to=   → CSV download
+// GET /reports/export (any logged-in user)
 router.get("/reports/export", catchAsync(async (req, res) => {
   const range = readRange(req);
   if (range.error) return res.status(400).json({ error: range.error });
@@ -257,6 +262,7 @@ router.get("/reports/export", catchAsync(async (req, res) => {
 
 // GET /api/admin/feedback — summary + rating breakdown + recent feedback
 // Combines per-order ratings with general (not order-linked) feedback.
+// GET /feedback (any logged-in user)
 router.get("/feedback", catchAsync(async (req, res) => {
   const [orderRows] = await pool.query(`
     SELECT f.id, f.rating, f.comment, f.created_at, o.token, u.name AS userName, u.role AS userRole,
@@ -311,6 +317,7 @@ router.get("/feedback", catchAsync(async (req, res) => {
 }));
 
 // POST /api/admin/announcement — broadcast a live announcement to all users
+// POST /announcement (any logged-in user)
 router.post("/announcement", catchAsync(async (req, res) => {
   const { message } = req.body || {};
   const text = String(message || "").trim();

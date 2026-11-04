@@ -8,7 +8,8 @@ Roles: **S** student, **T** teacher, **A** canteen admin, **H** hall admin.
 | GET | `/queue` | S, T, A | Active order counts and estimated wait. Admin must pass `?restaurant=<id>` |
 | GET | `/live-tracking` | T | My active delivery orders and the assigned rider's location |
 | GET | `/recommendations` | S, T | Up to 8 items ranked by my past orders, campus popularity and stock |
-| GET | `/lost-found` | S, T, H | Open and claimed posts. Only the hall admin sees the contact field |
+| GET | `/lost-found` | S, T, H | Open and claimed posts. Only the hall admin sees the contact field. Add `?images=0` to leave the photos out; every post then has `has_image` |
+| GET | `/lost-found/:id/image` | S, T, H | `{ image_data }` for one post that has a photo |
 | POST | `/lost-found` | S, T | New post. Optional PNG/JPG/WEBP image under 2 MB |
 | PATCH | `/lost-found/:id` | H | Set status: `open`, `claimed`, `returned`, `closed` |
 | POST | `/emergency` | S, T | Send an SOS. One active alert per 2 minutes |

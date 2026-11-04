@@ -8,6 +8,7 @@ const { dailyTopupLimit, checkDailyTopup } = require("../utils/money");
 const router = express.Router();
 
 // GET /api/wallet — balance + transaction history for the logged-in user
+// GET / (any logged-in user)
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const [[user]] = await pool.query("SELECT wallet_balance FROM users WHERE id = ?", [req.user.id]);
   const [transactions] = await pool.query(
@@ -31,7 +32,8 @@ const PAY_METHOD_LABELS = {
 // POST /api/wallet/topup  body: { amount, method } — method is one of the keys in PAY_METHOD_LABELS
 // NOTE: this is a simulated payment confirmation (no real bKash/Nagad/bank gateway call).
 // It just requires a valid method key so the wallet can't be credited without picking one.
-router.post("/topup", verifyToken, catchAsync(async (req, res) => {
+// POST /topup (student, teacher)
+router.post("/topup", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { method } = req.body;
   const amount = Number(req.body.amount);
   if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: "amount must be a positive number" });
@@ -83,6 +85,7 @@ const clean = (v) => (typeof v === "string" ? v.trim() : "");
 
 // GET /api/wallet/recipient?id=<external id> — lets the sender confirm WHO they are paying before sending.
 // Only the name is returned.
+// GET /recipient (student, teacher)
 router.get("/recipient", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = clean(req.query.id);
   if (!id) return res.status(400).json({ error: "Enter the ID number of the person you want to pay" });
@@ -98,6 +101,7 @@ router.get("/recipient", verifyToken, requireRole("student", "teacher"), catchAs
 // POST /api/wallet/transfer  body: { toId, amount, note? }
 // Moves money between two wallets in ONE database transaction (both balances and both history rows
 // change together or not at all). Limits: ৳2,000 per transfer, ৳5,000 sent per day.
+// POST /transfer (student, teacher)
 router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const toId = clean(req.body.toId);
   const amount = Number(req.body.amount);
@@ -171,6 +175,7 @@ router.post("/transfer", verifyToken, requireRole("student", "teacher"), catchAs
 }));
 
 // Feature: referral code — GET /api/wallet/referral: my code and how it is doing
+// GET /referral (student, teacher)
 router.get("/referral", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const code = await ensureCode(pool, req.user.id);
   const [[st]] = await pool.query(

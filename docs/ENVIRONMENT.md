@@ -13,6 +13,10 @@ Copy `backend/.env.example` to `backend/.env` and fill in your own values. Never
 | `EMAIL_OTP_REQUIRED` | Require an email code on sign-up and password reset | `true` |
 | `LOGIN_OTP` | Login 2FA: `all`, `admin` or `off` | `all` |
 | `CANTEEN_TZ` | Timezone for pickup times, the meal calendar and reports | `Asia/Dhaka` |
+| `RIDER_DISPATCH_SECONDS` | How often the server offers waiting teacher orders to free riders (`0` = off) | `20` |
 | `SMTP_SECURE` | Use TLS from the start of the SMTP connection (Hall emails) | `false` |
 | `SMTP_FROM` | Sender name and address for Hall emails | unset |
 | `WALLET_TOPUP_DAILY_LIMIT` | Most a single account can top up in one day, in taka | `20000` |
+| `NODE_ENV` | `production` skips the demo accounts (admin, student1, teacher1, rider1) | unset |
+| `SEED_DEMO_ACCOUNTS` | `true` always creates the demo logins, `false` never does; unset creates them unless `NODE_ENV=production` | unset |
+| `TRUST_PROXY` | Number of reverse proxies in front of the server (so the login lock-out sees the real visitor IP) | unset |

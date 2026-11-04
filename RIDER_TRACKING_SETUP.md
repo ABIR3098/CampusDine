@@ -23,6 +23,14 @@ The backend creates this demo account if that ID does not already exist. Change/
 The app automatically adds the `rider` enum value and creates the `rider_locations` table at backend startup. Location is sent to teachers via Socket.IO and also refreshed every 10 seconds.
 
 
+## Why a rider may not get a teacher order
+A teacher order goes to a rider who is **on duty** (Start Duty Shift), is **sharing a position** that is at most 90 seconds old, and has fewer active orders than the shift limit. Starting the duty shift now also turns the GPS on. If nobody qualifies when the order is placed, the order waits as `Unassigned` and is offered again when a rider starts a shift, when a rider sends a position, and every 20 seconds (`RIDER_DISPATCH_SECONDS` in `backend/.env`, `0` = off). The rider app shows a red warning when the rider is on duty but the GPS is off or the server gets no position. Browser geolocation needs HTTPS or localhost, and the rider page must stay open.
+
+## Demo GPS and accepting a delivery
+- Rider app: **Demo GPS** (next to Enable GPS) shares a fixed campus position, so no phone GPS or HTTPS is needed for a demo. Then press Start Duty Shift.
+- A teacher order shows in the rider's list as `Assigned`; **Accept Delivery** makes it `Accepted` (pressing it twice is harmless). The teacher sees "accepted your delivery" in Live Tracking and gets a notice.
+- Teacher Live Tracking also lists orders that still wait for a rider.
+
 ## Rider account, OTP and orders update
 - Rider can create an account from the Delivery Rider portal; signup email OTP is required when `EMAIL_OTP_REQUIRED=true`.
 - Rider login OTP uses `LOGIN_OTP=all` and an email address on the account.

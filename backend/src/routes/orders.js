@@ -73,6 +73,7 @@ async function attachFeedback(orders) {
 
 // POST /api/orders  (student/teacher) — place an order
 // body: { items: [{ id, qty }], paymentMethod: 'wallet' | 'cash' }
+// POST / (student, teacher)
 router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { items, paymentMethod, couponCode, couponId } = req.body;
   const rewardId = Number(req.body.rewardId) > 0 ? Number(req.body.rewardId) : null; // loyalty reward to spend points on
@@ -246,6 +247,7 @@ router.post("/", verifyToken, requireRole("student", "teacher"), catchAsync(asyn
 }));
 
 // GET /api/orders/mine  (student/teacher) — my order history
+// GET /mine (student, teacher)
 router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
   const mine = await attachQueue(await attachFeedback(await attachItems(orders)));
@@ -261,6 +263,7 @@ router.get("/mine", verifyToken, requireRole("student", "teacher"), catchAsync(a
 
 // GET /api/orders  (admin) — live queue
 // Optional ?restaurant=<id> keeps only that restaurant's orders.
+// GET / (admin)
 router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const restaurant = req.query.restaurant;
   if (restaurant && !isRestaurantId(restaurant)) return res.status(400).json({ error: "Unknown restaurant" });
@@ -273,6 +276,7 @@ router.get("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) =
 
 // PATCH /api/orders/:id/cancel  (student/teacher) — cancel while still "Received"
 // Restores stock and, for a wallet-paid order, refunds the wallet.
+// PATCH /:id/cancel (student, teacher)
 router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const conn = await pool.getConnection();
   try {
@@ -348,6 +352,7 @@ router.patch("/:id/cancel", verifyToken, requireRole("student", "teacher"), catc
 // body: { code, collect?: true }
 //   without collect: just look the order up and say whether it can be handed over
 //   with collect:    also mark it as collected, so the same QR can't be used twice
+// POST /verify (admin)
 router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { code, collect } = req.body || {};
   const parsed = parseCode(code);
@@ -422,6 +427,7 @@ router.post("/verify", verifyToken, requireRole("admin"), catchAsync(async (req,
 }));
 
 // PATCH /api/orders/:id/advance  (admin) — Received -> Cooking -> Ready
+// PATCH /:id/advance (admin)
 router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const connection = await pool.getConnection();
   let order;
@@ -474,6 +480,7 @@ router.patch("/:id/advance", verifyToken, requireRole("admin"), catchAsync(async
 // POST /api/orders/:id/feedback  (student/teacher) — rate a completed order
 // body: { rating: 1-5, comment? }
 // POST /api/orders/:id/rate-rider  (student/teacher) — one rating per delivered order
+// POST /:id/rate-rider (student, teacher)
 router.post("/:id/rate-rider", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   const rating = Number(req.body && req.body.rating);
@@ -494,6 +501,7 @@ router.post("/:id/rate-rider", verifyToken, requireRole("student", "teacher"), c
   res.json({ ok: true, rating, comment });
 }));
 
+// POST /:id/feedback (student, teacher)
 router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const { rating } = req.body;
   const comment = String(req.body.comment || "").trim();
@@ -546,6 +554,7 @@ router.post("/:id/feedback", verifyToken, requireRole("student", "teacher"), cat
 const ISSUE_REASONS = { cold: "Cold food", wrong: "Wrong item", missing: "Missing item", late: "Very late", quality: "Poor quality", other: "Other" };
 
 // POST /api/orders/:id/report  (student/teacher) — one report per order, once it is ready or handed over
+// POST /:id/report (student, teacher)
 router.post("/:id/report", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   const reason = req.body && req.body.reason;
@@ -572,6 +581,7 @@ router.post("/:id/report", verifyToken, requireRole("student", "teacher"), catch
 }));
 
 // GET /api/orders/issues/mine  (student/teacher) — my reports, with the admin's reply
+// GET /issues/mine (student, teacher)
 router.get("/issues/mine", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     "SELECT id, order_id, reason, details, status, admin_reply, created_at, resolved_at FROM order_issues WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
@@ -579,6 +589,7 @@ router.get("/issues/mine", verifyToken, requireRole("student", "teacher"), catch
 }));
 
 // GET /api/orders/issues  (admin) — all reports, open ones first
+// GET /issues (admin)
 router.get("/issues", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     `SELECT i.id, i.order_id, i.reason, i.details, i.status, i.admin_reply, i.created_at, i.resolved_at,
@@ -591,6 +602,7 @@ router.get("/issues", verifyToken, requireRole("admin"), catchAsync(async (req, 
 }));
 
 // PATCH /api/orders/issues/:id  (admin) — { reply?, resolve? }
+// PATCH /issues/:id (admin)
 router.patch("/issues/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid report" });

@@ -35,3 +35,20 @@ test("empty input is invalid", () => {
 test("a payload with the wrong number of parts is invalid", () => {
   assert.deepEqual(parseCode("CD1|C-105"), { token: null, signed: true, valid: false });
 });
+
+test("a scanned code is accepted in lower case", () => {
+  const { buildPayload, parseCode } = require("../src/utils/tokenQr");
+  const r = parseCode(buildPayload("C-105").toLowerCase());
+  assert.strictEqual(r.valid, true);
+  assert.strictEqual(r.token, "C-105");
+});
+
+test("spaces and a new line around a scanned code are ignored", () => {
+  const { buildPayload, parseCode } = require("../src/utils/tokenQr");
+  assert.strictEqual(parseCode("  " + buildPayload("C-7") + "\n").valid, true);
+});
+
+test("two different tokens get different signatures", () => {
+  const { sign } = require("../src/utils/tokenQr");
+  assert.notStrictEqual(sign("C-105"), sign("C-106"));
+});

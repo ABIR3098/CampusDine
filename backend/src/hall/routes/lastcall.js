@@ -38,6 +38,7 @@ async function broadcast(universityId, title, body, kind) {
 
 // GET /api/hall/lastcall → { today, maxPerPerson, items: [{ id, date, slot, label, plates, remaining, price, normalPrice, note, open, mine: [{ id, code, status, price, at }] }] }
 // Today's last calls, newest first. `open` is false once the admin closed it (your plates stay visible).
+// GET /lastcall
 router.get("/lastcall", memberOnly, catchAsync(async (req, res) => {
   const now = nowParts();
   const uni = req.user.universityId || null;
@@ -64,6 +65,7 @@ router.get("/lastcall", memberOnly, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall/:id/claim → { code, price, balance }   takes the price from the wallet, all or nothing
+// POST /lastcall/:id/claim
 router.post("/lastcall/:id/claim", memberOnly, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid last call" });
@@ -106,6 +108,7 @@ router.post("/lastcall/:id/claim", memberOnly, catchAsync(async (req, res) => {
 
 // GET /api/hall/lastcall/manage → { today, items: [{ id, date, slot, label, plates, price, note, status, taken, served, claims: [{ id, code, name, externalId, status, price, at }] }] }
 // today's and the last 7 days' last calls, newest first
+// GET /lastcall/manage
 router.get("/lastcall/manage", admin, catchAsync(async (req, res) => {
   const uni = req.user.universityId || null;
   const now = nowParts();
@@ -133,6 +136,7 @@ router.get("/lastcall/manage", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall   body: { slot, plates, price, note?, notify? (default true) }   → puts up today's leftover plates
+// POST /lastcall
 router.post("/lastcall", admin, catchAsync(async (req, res) => {
   const b = req.body || {};
   const plates = Number(b.plates), price = Number(b.price);
@@ -157,6 +161,7 @@ router.post("/lastcall", admin, catchAsync(async (req, res) => {
 }));
 
 // PATCH /api/hall/lastcall/:id/close   → no more claims (plates already claimed stay valid)
+// PATCH /lastcall/:id/close
 router.patch("/lastcall/:id/close", admin, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid last call" });
@@ -167,6 +172,7 @@ router.patch("/lastcall/:id/close", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall/serve   body: { code }   → the student shows the code at the counter
+// POST /lastcall/serve
 router.post("/lastcall/serve", admin, catchAsync(async (req, res) => {
   const code = String((req.body || {}).code || "").trim().toUpperCase();
   if (!code) return res.status(400).json({ error: "Enter the code" });
@@ -182,6 +188,7 @@ router.post("/lastcall/serve", admin, catchAsync(async (req, res) => {
 }));
 
 // POST /api/hall/lastcall/claims/:id/cancel   → cancels a plate that was not collected and gives the money back to the wallet
+// POST /lastcall/claims/:id/cancel
 router.post("/lastcall/claims/:id/cancel", admin, catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: "Invalid id" });

@@ -24,3 +24,19 @@ It refuses a coupon that is inactive, expired, used up, already used by this per
 `400` bad input or rule broken, `403` not an admin, `404` coupon or order not found, `409` code already exists.
 
 The shared rules are in `backend/src/utils/couponRules.js` with tests in `backend/tests/couponRules.test.js`.
+
+## Prize coupons
+`backend/migrations/20261101_prize_coupons.sql` creates the coupons that the Daily Spin and the Scratch Card show as prizes. Run it once after the database exists:
+
+```
+mysql -u root -p campusdine < backend/migrations/20261101_prize_coupons.sql
+```
+
+| Code | Discount | Applies to |
+|---|---|---|
+| `TEHARI10` | 10% off, at most 30 taka | Tehari |
+| `STUDY15` | 15% off, at most 40 taka | Singara, Fuchka, Chicken Roll |
+| `FREECHAI` | 10 taka off (a free tea) | Cha (Tea) |
+| `CASH5` | 5 taka off an order of 50 taka or more | everything |
+
+The spin and the card only show the prize; the person types the code at checkout. `COOKIE` is not created because there is no cookie on the menu, and prizes that say "wallet bonus" are still not paid out by the server.

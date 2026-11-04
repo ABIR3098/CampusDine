@@ -1,3 +1,4 @@
+// Load environment variables from backend/.env
 require("dotenv").config();
 
 // Fix 8: run the whole app on the canteen's clock, whatever timezone the host machine is in.
@@ -12,6 +13,7 @@ if (!process.env.JWT_SECRET) {
   console.warn("⚠️  JWT_SECRET is not set — using a temporary one for this run.");
   console.warn("    Copy backend/.env.example to backend/.env to keep users logged in across restarts.");
 }
+// Core modules and third-party packages
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -21,6 +23,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const mysql = require("mysql2/promise");
 
+// Route modules
 const authRoutes = require("./src/routes/auth");
 const menuRoutes = require("./src/routes/menu");
 const orderRoutes = require("./src/routes/orders");
@@ -33,21 +36,42 @@ const recurringRoutes = require("./src/routes/recurring");
 const adminRoutes = require("./src/routes/admin");
 const couponRoutes = require("./src/routes/coupon");
 const chatRoutes = require("./src/routes/chat");
+const teacherRiderChatRoutes = require("./src/routes/teacherRiderChat");
 const feedbackRoutes = require("./src/routes/feedback");
+const kdsRoutes = require("./src/routes/kds");
+const gamificationRoutes = require("./src/routes/gamification");
+const maintenanceRoutes = require("./src/routes/maintenance");
+const paymentSandboxRoutes = require("./src/routes/paymentSandbox");
+const notificationCenterRoutes = require("./src/routes/notificationCenter");
+const wasteChallengeRoutes = require("./src/routes/wasteChallenge");
+const analyticsRoutes = require("./src/routes/analytics");
+const settlementRoutes = require("./src/routes/settlements");
+const emergencyRoutes = require("./src/routes/emergencyMode");
 const summaryRoutes = require("./src/routes/summary");
 const { pricingRouter, loyaltyRouter, offersRouter } = require("./src/routes/offers");
 const { ensureOffersSchema } = require("./src/offersSchema");
 const { IMAGE_BY_NAME, NEW_ITEMS } = require("./src/catalog");
 const { ensureOtpSchema, purgeOldOtps } = require("./src/utils/otp");
+// Hall meal system module
 const hall = require("./src/hall"); // Hall (meal system)
 const hallAdminRoutes = require("./src/routes/hallAdmin");
+const riderDispatcher = require("./src/services/riderDispatcher");
+const { startRiderDispatchTimer, dispatchSeconds } = require("./src/services/riderDispatchTimer");
 const campusFeatureRoutes = require("./src/routes/campusFeatures");
 const { ensureHallExtraSchema } = require("./src/hall/extraSchema");
 const { ensureHallAdvancedSchema } = require("./src/hall/advancedSchema");
+const { shouldSeedDemoAccounts } = require("./src/utils/demoAccounts");
+const { ensureInventorySchema } = require("./src/inventory/schema");
+const { ensureDevStaffAccount, printStaffCredentials } = require("./src/inventory/staffSeed");
+const { createService: createInventoryService } = require("./src/inventory/service");
+const { createInventoryRouter } = require("./src/routes/inventory");
 
+// Folder that holds the frontend files
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
+// Wallet bonus (taka) given to new accounts
 const SIGNUP_BONUS = 250;
 
+// Seeds the default menu and meal rates when the menu table is empty
 async function seedDefaultMenuAndRates(db) {
   try {
     const [menuTable] = await db.query("SHOW TABLES LIKE 'menu_items'");
@@ -69,6 +93,7 @@ async function seedDefaultMenuAndRates(db) {
       return;
     }
 
+    // Columns: name, Bangla name, category, price, stock, tag, is_veg
     const defaultMenu = [
       ["Khichuri", "খিচুড়ি", "heavy", 60, 40, "Popular", 1],
       ["Tehari", "তেহারি", "heavy", 80, 25, "Popular", 0],
@@ -101,9 +126,10 @@ async function seedDefaultMenuAndRates(db) {
   }
 }
 
+// Adds the rider role, location table and order columns if missing
 async function ensureRiderSchema(db) {
   // Add the internal rider role without changing existing student/teacher/admin accounts.
-  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin') NOT NULL");
+  await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('student','teacher','admin','rider','hall_admin','staff') NOT NULL");
   await db.query(`CREATE TABLE IF NOT EXISTS rider_locations (
     rider_id INT PRIMARY KEY, latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL, accuracy_m DECIMAL(8,2) NULL,
     active TINYINT(1) NOT NULL DEFAULT 0, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -626,6 +652,7 @@ async function runStartupCheck() {
   await ensureGroupOrderSchema(db);
   await ensureOrderChatSchema(db);
 
+  const seedDemo = shouldSeedDemoAccounts();
   const demoAccounts = [
     { name: "Canteen Admin", externalId: "admin", role: "admin", password: "admin123", bonus: 0 },
     { name: "Demo Student", externalId: "student1", role: "student", password: "student123", bonus: SIGNUP_BONUS },
@@ -633,7 +660,7 @@ async function runStartupCheck() {
     { name: "Demo Rider", externalId: "rider1", role: "rider", password: "rider123", bonus: 0 },
   ];
 
-  for (const acc of demoAccounts) {
+  for (const acc of seedDemo ? demoAccounts : []) {
     const [existing] = await db.query("SELECT id FROM users WHERE external_id = ?", [acc.externalId]);
     if (existing.length > 0) continue;
 
@@ -649,6 +676,11 @@ async function runStartupCheck() {
       ]);
     }
     console.log(`✅ Demo account created: ${acc.externalId} / ${acc.password} (${acc.role})`);
+  }
+
+  if (seedDemo) {
+    const staffResult = await ensureDevStaffAccount(db);
+    if (staffResult.created) console.log("✅ Dev staff account created: staff01 (staff)");
   }
 
   await seedDefaultMenuAndRates(db);
@@ -667,14 +699,20 @@ async function runStartupCheck() {
   await hall.ensureHallSchema(db); // Hall (meal system) tables
     await ensureHallExtraSchema(db); // Hall notices, service requests, inventory and audit trail
     await ensureHallAdvancedSchema(db); // Hall room workflow, visitors, facilities, laundry, kitchen and notifications
+  await ensureInventorySchema(db); // Staff role + kitchen inventory (items, requests, purchases, stock history)
 
-  console.log("\n════════════════════════════════════════");
-  console.log("🔑 Test the app with these logins:");
-  console.log("   Admin   → ID: admin      Password: admin123");
-  console.log("   Student → ID: student1   Password: student123");
-  console.log("   Teacher → ID: teacher1   Password: teacher123");
-  console.log("   Rider   → ID: rider1     Password: rider123");
-  console.log("════════════════════════════════════════\n");
+  if (seedDemo) {
+    console.log("\n════════════════════════════════════════");
+    console.log("🔑 Test the app with these logins:");
+    console.log("   Admin   → ID: admin      Password: admin123");
+    console.log("   Student → ID: student1   Password: student123");
+    console.log("   Teacher → ID: teacher1   Password: teacher123");
+    console.log("   Rider   → ID: rider1     Password: rider123");
+    printStaffCredentials();
+    console.log("════════════════════════════════════════\n");
+  } else {
+    console.log("\nDemo accounts were not created (NODE_ENV=production). Set SEED_DEMO_ACCOUNTS=true to create them.\n");
+  }
 
   await db.end();
 }
@@ -683,6 +721,12 @@ async function runStartupCheck() {
 //  EXPRESS APP
 // ════════════════════════════════════════════════
 const app = express();
+// Behind a reverse proxy (nginx, Render, Railway...) set TRUST_PROXY=1 so req.ip is the visitor and not the proxy.
+// The login lock-out counts tries per IP, so without this every visitor would share one counter.
+if (process.env.TRUST_PROXY) {
+  const tp = process.env.TRUST_PROXY;
+  app.set("trust proxy", tp === "true" ? true : /^\d+$/.test(tp) ? Number(tp) : tp);
+}
 const server = http.createServer(app);
 
 // CORS_ORIGIN=* allows any origin — harmless now that the frontend is
@@ -720,11 +764,14 @@ io.on("connection", (socket) => {
       if (data && data.typing && now - (socket.lastTyping || 0) < 800) return;
       socket.lastTyping = now;
       const typing = !!(data && data.typing);
-      if (socket.user.role === "admin") {
+      const hallMember = !!(data && data.scope === "hall") && ["student", "teacher", "admin"].includes(socket.user.role);
+      if ((socket.user.role === "admin" && !hallMember) || socket.user.role === "hall_admin") {
         const to = Number(data && data.to);
-        if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing });
+        if (Number.isInteger(to) && to > 0) io.to(`user:${to}`).emit("chat:typing", { from: socket.user.id, typing, scope: socket.user.role === "hall_admin" ? "hall" : "canteen" });
       } else {
-        io.to("admins").emit("chat:typing", { from: socket.user.id, typing });
+        // Hall chat typing only reaches the hall admin, canteen chat typing only the canteen admin.
+        const hall = hallMember;
+        io.to(hall ? "hall_admins" : "admins").emit("chat:typing", { from: socket.user.id, typing, scope: hall ? "hall" : "canteen" });
       }
     } catch (e) { /* ignore malformed typing events */ }
   });
@@ -733,29 +780,73 @@ io.on("connection", (socket) => {
   if (socket.user.role === "hall_admin") socket.join("hall_admins");
   if (socket.user.role === "teacher") socket.join("teachers");
   if (socket.user.role === "rider") socket.join(`rider:${socket.user.id}`);
+  if (socket.user.role === "staff") socket.join("staff");
 });
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
+// Login, sign-up, OTP and profile
 app.use("/api/auth", authRoutes);
+// Menu items and stock
 app.use("/api/menu", menuRoutes);
+// Placing, tracking and cancelling orders
 app.use("/api/orders", orderRoutes);
+// Rider shifts, assignment and GPS sharing
 app.use("/api/riders", riderRoutes);
+// Canteen operations and daily controls
 app.use("/api/operations", operationsRoutes);
+// Shared group orders
 app.use("/api/group-orders", groupOrderRoutes);
+// Wallet balance, top-up and transfers
 app.use("/api/wallet", walletRoutes);
+// Meal calendar and monthly bill
 app.use("/api/calendar", calendarRoutes);
+// Recurring weekly orders
 app.use("/api/recurring", recurringRoutes);
+// Admin reports, announcements and audit
 app.use("/api/admin", adminRoutes);
+// Coupon validation and admin management
 app.use("/api/coupon", couponRoutes);
+// Support chat and order chat
 app.use("/api/chat", chatRoutes);
+// Direct chat between a teacher and a rider
+app.use("/api/teacher-rider-chat", teacherRiderChatRoutes);
+// General feedback from users
 app.use("/api/feedback", feedbackRoutes);
+// Spending and order summaries
 app.use("/api/summary", summaryRoutes);
+// Cart price quote with combos and happy hour
 app.use("/api/pricing", pricingRouter);
+// Loyalty points
 app.use("/api/loyalty", loyaltyRouter);
+// Offers and loyalty settings
 app.use("/api/offers", offersRouter);
+// Hall meals, tokens, bills and finance
 app.use("/api/hall", hall.router);
+// Hall admin sign-up, requests and notices
 app.use("/api/hall-admin", hallAdminRoutes);
+// Queue, Lost & Found, SOS and waste challenge
 app.use("/api/campus", campusFeatureRoutes);
+// Kitchen staff inventory and purchase requests
+app.use("/api/inventory", createInventoryRouter(createInventoryService(require("./src/db"))));
+// Kitchen display system
+app.use("/api/kds", kdsRoutes);
+// Guest meal tokens for the hall
+// Badges and leaderboard
+app.use("/api/gamification", gamificationRoutes);
+// Hall maintenance requests
+app.use("/api/hall/maintenance", maintenanceRoutes);
+// Sandbox payment gateway
+app.use("/api/payment", paymentSandboxRoutes);
+// Notification center
+app.use("/api/notifications", notificationCenterRoutes);
+// Food waste challenge
+app.use("/api/waste-challenge", wasteChallengeRoutes);
+// Revenue analytics
+app.use("/api/analytics", analyticsRoutes);
+// Vendor settlements and invoices
+app.use("/api/settlements", settlementRoutes);
+// Emergency mode broadcast
+app.use("/api/emergency", emergencyRoutes);
 
 // Serve the frontend from this same server — one process, one port,
 // no separate static server and no cross-origin requests to worry about.
@@ -783,6 +874,7 @@ runStartupCheck().then(() => {
       console.warn(`⚠️  CANTEEN_TZ "${process.env.TZ}" is not a valid timezone name (example: Asia/Dhaka).`);
     }
     hall.startJobs();
+    startRiderDispatchTimer({ dispatcher: riderDispatcher, io, seconds: dispatchSeconds(process.env.RIDER_DISPATCH_SECONDS) });
   });
 }).catch((err) => {
   console.error("❌ Startup failed:", err.message);

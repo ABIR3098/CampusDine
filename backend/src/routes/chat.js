@@ -13,12 +13,27 @@ function ensureChatColumns() {
         const [rows] = await pool.query("SHOW COLUMNS FROM chat_messages LIKE '" + col + "'");
         if (rows.length === 0) await pool.query("ALTER TABLE chat_messages ADD COLUMN " + ddl);
       };
+      const add2 = async (table, col, ddl) => {
+        const [rows] = await pool.query("SHOW COLUMNS FROM " + table + " LIKE '" + col + "'");
+        if (rows.length === 0) await pool.query("ALTER TABLE " + table + " ADD COLUMN " + ddl);
+      };
       await add("deleted_at", "deleted_at DATETIME NULL");
       await add("reply_to_id", "reply_to_id INT NULL");
       await add("image_id", "image_id INT NULL");
+      // Two separate inboxes: "canteen" (canteen admin) and "hall" (hall admin). One conversation per person per inbox.
+      const [convScope] = await pool.query("SHOW COLUMNS FROM chat_conversations LIKE 'scope'");
+      if (convScope.length === 0) await pool.query("ALTER TABLE chat_conversations ADD COLUMN scope VARCHAR(10) NOT NULL DEFAULT 'canteen'");
+      const [scopedIdx] = await pool.query("SHOW INDEX FROM chat_conversations WHERE Key_name = 'uq_chat_user_scope'");
+      if (scopedIdx.length === 0) await pool.query("ALTER TABLE chat_conversations ADD UNIQUE KEY uq_chat_user_scope (user_id, scope)");
+      const [oldIdx] = await pool.query("SHOW INDEX FROM chat_conversations WHERE Non_unique = 0 AND Column_name = 'user_id' AND Key_name <> 'PRIMARY' AND Key_name <> 'uq_chat_user_scope'");
+      for (const idx of oldIdx) {
+        const [cols] = await pool.query("SHOW INDEX FROM chat_conversations WHERE Key_name = ?", [idx.Key_name]);
+        if (cols.length === 1) await pool.query("ALTER TABLE chat_conversations DROP INDEX `" + idx.Key_name + "`");
+      }
       await pool.query("CREATE TABLE IF NOT EXISTS chat_reactions (message_id INT NOT NULL, user_id INT NOT NULL, emoji VARCHAR(16) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (message_id, user_id)) DEFAULT CHARSET=utf8mb4");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_images (id INT AUTO_INCREMENT PRIMARY KEY, owner_user_id INT NOT NULL, uploader_id INT NOT NULL, mime VARCHAR(30) NOT NULL, data MEDIUMBLOB NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_chat_images_owner (owner_user_id))");
       await pool.query("CREATE TABLE IF NOT EXISTS chat_presence (user_id INT NOT NULL PRIMARY KEY, last_seen DATETIME NOT NULL)");
+      await add2("chat_images", "scope", "scope VARCHAR(10) NOT NULL DEFAULT 'canteen'");
     })().catch((error) => { chatColumnsReady = null; throw error; });
   }
   return chatColumnsReady;
@@ -29,13 +44,40 @@ router.use(async (req, res, next) => {
 });
 const MAX_MESSAGE_LENGTH = 4000;
 
-async function getAdminId(connection) {
-  const [[admin]] = await connection.query("SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1");
+// "canteen" chats go to the canteen admin, "hall" chats go to the hall admin.
+const SCOPE_ROLE = { canteen: "admin", hall: "hall_admin" };
+// Admin and hall admin both answer messages; each one only ever sees their own inbox.
+const INBOX_ROLES = ["admin", "hall_admin"];
+const isInboxOwner = (user) => INBOX_ROLES.includes(user.role);
+const askedScope = (req) => String((req.query && req.query.scope) || (req.body && req.body.scope) || "").toLowerCase();
+// "Member mode" = writing TO an inbox's admin. Students/teachers/staff/riders always do. The canteen admin does it
+// only inside the Hall (scope=hall): there the canteen admin talks to the Hall Admin like any other member.
+function memberMode(req) {
+  if (["student", "teacher", "staff", "rider"].includes(req.user.role)) return true;
+  return req.user.role === "admin" && askedScope(req) === "hall";
+}
+// "Inbox mode" = answering the messages of an inbox (canteen admin: canteen inbox, hall admin: hall inbox).
+const inboxMode = (req) => isInboxOwner(req.user) && !memberMode(req);
+// The inbox an admin answers is decided by the role only, never by a request parameter.
+const inboxScope = (req) => (req.user.role === "hall_admin" ? "hall" : "canteen");
+function scopeOf(req) {
+  if (req.user.role === "hall_admin") return "hall";
+  if (req.user.role === "admin") return askedScope(req) === "hall" ? "hall" : "canteen";
+  // Riders only talk to the canteen admin, even if the request asks for scope=hall.
+  if (req.user.role === "rider") return "canteen";
+  // Hall chat is for hall residents (students and teachers); staff only have the canteen chat.
+  return askedScope(req) === "hall" && ["student", "teacher"].includes(req.user.role) ? "hall" : "canteen";
+}
+
+async function getAdminId(connection, scope = "canteen") {
+  const [[admin]] = await connection.query("SELECT id FROM users WHERE role = ? ORDER BY id LIMIT 1", [SCOPE_ROLE[scope] || "admin"]);
   return admin ? admin.id : null;
 }
 
-router.get("/conversations", verifyToken, requireRole("admin"), async (req, res) => {
+// GET /conversations (admin)
+router.get("/conversations", verifyToken, requireRole("admin", "hall_admin"), async (req, res) => {
   try {
+    const scope = inboxScope(req);
     const [conversations] = await pool.query(
       `SELECT c.id AS conversation_id, u.id AS user_id, u.name, u.role,
               c.updated_at,
@@ -44,9 +86,10 @@ router.get("/conversations", verifyToken, requireRole("admin"), async (req, res)
        FROM chat_conversations c
        JOIN users u ON u.id = c.user_id
        LEFT JOIN chat_messages m ON m.conversation_id = c.id
+       WHERE c.scope = ?
        GROUP BY c.id, u.id, u.name, u.role, c.updated_at
        ORDER BY c.updated_at DESC`,
-      [req.user.id]
+      [req.user.id, scope]
     );
     res.json({ conversations });
   } catch (error) {
@@ -55,13 +98,33 @@ router.get("/conversations", verifyToken, requireRole("admin"), async (req, res)
   }
 });
 
-router.get("/messages", verifyToken, requireRole("student", "teacher"), async (req, res) => {
+// GET /directory?q=  (admin, hall_admin) - find a student/teacher (or a rider, canteen inbox only) to start a new conversation with
+router.get("/directory", verifyToken, requireRole("admin", "hall_admin"), async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim().slice(0, 60);
+    if (q.length < 2) return res.json({ users: [] });
+    const like = "%" + q.replace(/[%_\\]/g, (c) => "\\" + c) + "%";
+    const [users] = await pool.query(
+      "SELECT id, name, role, external_id FROM users WHERE role IN ('student', 'teacher', 'staff', 'rider', 'admin') AND (? = 'canteen' OR role NOT IN ('staff', 'rider')) AND (? = 'hall' OR role <> 'admin') AND (name LIKE ? OR external_id LIKE ?) ORDER BY name LIMIT 10",
+      [inboxScope(req), inboxScope(req), like, like]
+    );
+    res.json({ users });
+  } catch (error) {
+    console.error("Failed to search chat users:", error);
+    res.status(500).json({ error: "Failed to search users" });
+  }
+});
+
+// GET /messages (student, teacher, staff, rider)
+router.get("/messages", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin"), async (req, res) => {
   let connection;
   try {
+    // The canteen admin may only open this "my conversation" view inside the Hall (scope=hall), where it talks to the Hall Admin.
+    if (!memberMode(req)) return res.status(403).json({ error: "Open the admin inbox to read these messages" });
     connection = await pool.getConnection();
     const [[conversation]] = await connection.query(
-      "SELECT id FROM chat_conversations WHERE user_id = ?",
-      [req.user.id]
+      "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ?",
+      [req.user.id, scopeOf(req)]
     );
     if (!conversation) return res.json({ conversationId: null, messages: [] });
 
@@ -76,10 +139,10 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
               CASE WHEN m.deleted_at IS NULL THEN m.image_id ELSE NULL END AS image_id,
-              m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
+              m.reply_to_id, r.sender_id AS reply_sender_id, CASE WHEN ru.role = 'hall_admin' THEN 'Hall Admin' ELSE ru.name END AS reply_sender_name,
               CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
               (r.id IS NOT NULL AND r.deleted_at IS NOT NULL) AS reply_deleted,
-              u.name AS sender_name, u.role AS sender_role
+              CASE WHEN u.role = 'hall_admin' THEN 'Hall Admin' ELSE u.name END AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
        LEFT JOIN chat_messages r ON r.id = m.reply_to_id AND r.conversation_id = m.conversation_id
        LEFT JOIN users ru ON ru.id = r.sender_id
@@ -96,21 +159,22 @@ router.get("/messages", verifyToken, requireRole("student", "teacher"), async (r
   }
 });
 
-router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, res) => {
+// GET /:userId/messages (admin)
+router.get("/:userId/messages", verifyToken, requireRole("admin", "hall_admin"), async (req, res) => {
   let connection;
   try {
     const userId = Number(req.params.userId);
     if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: "Invalid user ID" });
     connection = await pool.getConnection();
     const [[user]] = await connection.query(
-      "SELECT id, name, role FROM users WHERE id = ? AND role IN ('student', 'teacher')",
-      [userId]
+      "SELECT id, name, role FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff', 'rider', 'admin') AND (? = 'hall' OR role <> 'admin') AND (? = 'canteen' OR role <> 'rider')",
+      [userId, inboxScope(req), inboxScope(req)]
     );
     if (!user) return res.status(404).json({ error: "Chat user not found" });
 
     const [[conversation]] = await connection.query(
-      "SELECT id FROM chat_conversations WHERE user_id = ?",
-      [userId]
+      "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ?",
+      [userId, inboxScope(req)]
     );
     if (!conversation) return res.json({ conversationId: null, user, messages: [] });
 
@@ -125,10 +189,10 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
     const [messages] = await connection.query(
       `SELECT m.id, m.sender_id, m.recipient_id, CASE WHEN m.deleted_at IS NULL THEN m.message ELSE '' END AS message, m.deleted_at, m.created_at, m.read_at,
               CASE WHEN m.deleted_at IS NULL THEN m.image_id ELSE NULL END AS image_id,
-              m.reply_to_id, r.sender_id AS reply_sender_id, ru.name AS reply_sender_name,
+              m.reply_to_id, r.sender_id AS reply_sender_id, CASE WHEN ru.role = 'hall_admin' THEN 'Hall Admin' ELSE ru.name END AS reply_sender_name,
               CASE WHEN r.deleted_at IS NULL THEN LEFT(r.message, 120) ELSE NULL END AS reply_text,
               (r.id IS NOT NULL AND r.deleted_at IS NOT NULL) AS reply_deleted,
-              u.name AS sender_name, u.role AS sender_role
+              CASE WHEN u.role = 'hall_admin' THEN 'Hall Admin' ELSE u.name END AS sender_name, u.role AS sender_role
        FROM chat_messages m JOIN users u ON u.id = m.sender_id
        LEFT JOIN chat_messages r ON r.id = m.reply_to_id AND r.conversation_id = m.conversation_id
        LEFT JOIN users ru ON ru.id = r.sender_id
@@ -145,7 +209,8 @@ router.get("/:userId/messages", verifyToken, requireRole("admin"), async (req, r
   }
 });
 
-router.post("/messages", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+// POST /messages (student, teacher, staff, rider, admin)
+router.post("/messages", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   let connection;
   try {
     const message = String(req.body.message || "").trim();
@@ -155,7 +220,8 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "admin")
     }
 
     connection = await pool.getConnection();
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = inboxMode(req);
+    const scope = scopeOf(req);
     let userId;
     let recipientId;
 
@@ -163,25 +229,25 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "admin")
       userId = Number(req.body.userId);
       if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: "Select a chat recipient" });
       const [[recipient]] = await connection.query(
-        "SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher')",
-        [userId]
+        "SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff', 'rider', 'admin') AND (? = 'canteen' OR role NOT IN ('staff', 'rider')) AND (? = 'hall' OR role <> 'admin')",
+        [userId, scope, scope]
       );
       if (!recipient) return res.status(404).json({ error: "Chat user not found" });
       recipientId = userId;
     } else {
       userId = req.user.id;
-      recipientId = await getAdminId(connection);
-      if (!recipientId) return res.status(503).json({ error: "Admin chat is unavailable" });
+      recipientId = await getAdminId(connection, scope);
+      if (!recipientId) return res.status(503).json({ error: scope === "hall" ? "Hall admin chat is unavailable" : "Admin chat is unavailable" });
     }
 
     await connection.beginTransaction();
     await connection.query(
-      "INSERT INTO chat_conversations (user_id) VALUES (?) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP",
-      [userId]
+      "INSERT INTO chat_conversations (user_id, scope) VALUES (?, ?) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP",
+      [userId, scope]
     );
     const [[conversation]] = await connection.query(
-      "SELECT id FROM chat_conversations WHERE user_id = ? FOR UPDATE",
-      [userId]
+      "SELECT id FROM chat_conversations WHERE user_id = ? AND scope = ? FOR UPDATE",
+      [userId, scope]
     );
     let replyToId = Number(req.body.replyTo);
     if (Number.isInteger(replyToId) && replyToId > 0) {
@@ -205,8 +271,9 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "admin")
       conversationId: conversation.id,
       senderId: req.user.id,
       recipientId,
-      senderName: req.user.name,
+      senderName: req.user.role === "hall_admin" ? "Hall Admin" : req.user.name,
       senderRole: req.user.role,
+      scope,
       message,
       createdAt: new Date().toISOString(),
     };
@@ -223,6 +290,7 @@ router.post("/messages", verifyToken, requireRole("student", "teacher", "admin")
   }
 });
 
+// GET /order/:orderId/messages (student, teacher, rider)
 router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teacher", "rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
@@ -238,7 +306,7 @@ router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teac
   `, [orderId, req.user.id]);
   const [messages] = await pool.query(`
     SELECT m.id, m.sender_id, m.recipient_id, m.message, m.created_at,
-      u.name AS sender_name, u.role AS sender_role
+      CASE WHEN u.role = 'hall_admin' THEN 'Hall Admin' ELSE u.name END AS sender_name, u.role AS sender_role
     FROM (
       SELECT id, sender_id, recipient_id, message, created_at
       FROM direct_order_messages WHERE order_id = ? ORDER BY id DESC LIMIT 200
@@ -248,6 +316,7 @@ router.get("/order/:orderId/messages", verifyToken, requireRole("student", "teac
   res.json({ orderId, messages });
 }));
 
+// POST /order/:orderId/messages (student, teacher, rider)
 router.post("/order/:orderId/messages", verifyToken, requireRole("student", "teacher", "rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   const message = String((req.body && req.body.message) || "").trim();
@@ -289,7 +358,8 @@ router.post("/order/:orderId/messages", verifyToken, requireRole("student", "tea
 }));
 
 // Delete (hide) one of MY messages for everyone. The row stays, its text is blanked on read.
-router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+// DELETE /messages/:id (student, teacher, staff, rider, admin)
+router.delete("/messages/:id", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid message id" });
@@ -336,27 +406,50 @@ function hookPresence(io) {
 
 // Online status + "last seen". Admin: online students/teachers, and how long ago the offline ones were seen.
 // Everyone else: only whether an admin is online and when an admin was last seen.
-router.get("/presence", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+// GET /presence (student, teacher, staff, rider, admin)
+router.get("/presence", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   try {
+    const scope = scopeOf(req);
+    const inboxRole = SCOPE_ROLE[scope];
     const io = req.app.get("io");
     const live = io && io.sockets && io.sockets.sockets ? [...io.sockets.sockets.values()].filter((s) => s.user) : [];
-    if (req.user.role === "admin") {
-      const online = [...new Set(live.filter((s) => s.user.role !== "admin").map((s) => Number(s.user.id)))];
+    if (inboxMode(req)) {
+      // The Hall Admin also talks to the canteen admin, so the canteen admin counts as a chat partner in the hall inbox.
+      const skip = scope === "hall" ? ["hall_admin", "hall_admin"] : ["admin", "hall_admin"];
+      const online = [...new Set(live.filter((s) => !skip.includes(s.user.role)).map((s) => Number(s.user.id)))];
       const [rows] = await pool.query(
-        "SELECT p.user_id, TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role <> 'admin'"
+        "SELECT p.user_id, TIMESTAMPDIFF(SECOND, p.last_seen, NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role NOT IN (?, ?)",
+        skip
       );
       const lastSeen = {};
       for (const row of rows) if (!online.includes(Number(row.user_id))) lastSeen[row.user_id] = Math.max(0, Number(row.ago));
       return res.json({ online, lastSeen });
     }
-    const adminOnline = live.some((s) => s.user.role === "admin");
+    const adminOnline = live.some((s) => s.user.role === inboxRole);
     const [[row]] = await pool.query(
-      "SELECT TIMESTAMPDIFF(SECOND, MAX(p.last_seen), NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role = 'admin'"
+      "SELECT TIMESTAMPDIFF(SECOND, MAX(p.last_seen), NOW()) AS ago FROM chat_presence p JOIN users u ON u.id = p.user_id WHERE u.role = ?",
+      [inboxRole]
     );
     res.json({ adminOnline, adminAgoSeconds: row && row.ago !== null ? Math.max(0, Number(row.ago)) : null });
   } catch (error) {
     console.error("Failed to load presence:", error);
     res.status(500).json({ error: "Failed to load presence" });
+  }
+});
+
+// How many chat messages are waiting for me in my inbox. Used for the badge on the rider's chat button.
+// GET /unread (student, teacher, staff, rider, admin, hall_admin)
+router.get("/unread", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
+  try {
+    const scope = req.user.role === "hall_admin" ? "hall" : scopeOf(req);
+    const [[row]] = await pool.query(
+      "SELECT COUNT(*) AS unread FROM chat_messages m JOIN chat_conversations c ON c.id = m.conversation_id WHERE m.recipient_id = ? AND m.read_at IS NULL AND m.deleted_at IS NULL AND c.scope = ?",
+      [req.user.id, scope]
+    );
+    res.json({ unread: row ? Number(row.unread) || 0 : 0 });
+  } catch (error) {
+    console.error("Failed to count unread chat messages:", error);
+    res.status(500).json({ error: "Failed to load unread count" });
   }
 });
 
@@ -369,7 +462,8 @@ const photoType = (buf) => {
   return null;
 };
 const photoParser = express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" });
-router.post("/images", verifyToken, requireRole("student", "teacher", "admin"),
+// POST /images (student, teacher, staff, rider, admin)
+router.post("/images", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"),
   (req, res, next) => photoParser(req, res, (err) => (err ? res.status(413).json({ error: "Photo is too large. Please choose a smaller one." }) : next())),
   async (req, res) => {
     try {
@@ -379,13 +473,13 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "admin"),
       const mime = photoType(buf);
       if (!mime) return res.status(400).json({ error: "This file is not a supported photo" });
       let ownerId = req.user.id;
-      if (req.user.role === "admin") {
+      if (inboxMode(req)) {
         ownerId = Number(req.query.userId);
         if (!Number.isInteger(ownerId) || ownerId <= 0) return res.status(400).json({ error: "Select a chat recipient" });
-        const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher')", [ownerId]);
+        const [[target]] = await pool.query("SELECT id FROM users WHERE id = ? AND role IN ('student', 'teacher', 'staff', 'rider', 'admin') AND (? = 'hall' OR role <> 'admin') AND (? = 'canteen' OR role <> 'rider')", [ownerId, scopeOf(req), scopeOf(req)]);
         if (!target) return res.status(404).json({ error: "Chat user not found" });
       }
-      const [result] = await pool.execute("INSERT INTO chat_images (owner_user_id, uploader_id, mime, data) VALUES (?, ?, ?, ?)", [ownerId, req.user.id, mime, buf]);
+      const [result] = await pool.execute("INSERT INTO chat_images (owner_user_id, uploader_id, mime, data, scope) VALUES (?, ?, ?, ?, ?)", [ownerId, req.user.id, mime, buf, scopeOf(req)]);
       res.status(201).json({ id: result.insertId });
     } catch (error) {
       console.error("Failed to save chat photo:", error);
@@ -397,13 +491,16 @@ router.post("/images", verifyToken, requireRole("student", "teacher", "admin"),
     }
   });
 
-router.get("/images/:id", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+// GET /images/:id (student, teacher, staff, rider, admin)
+router.get("/images/:id", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid photo id" });
-    const [[row]] = await pool.query("SELECT owner_user_id, mime, data FROM chat_images WHERE id = ?", [id]);
+    const [[row]] = await pool.query("SELECT owner_user_id, mime, data, scope FROM chat_images WHERE id = ?", [id]);
     if (!row) return res.status(404).json({ error: "Photo not found" });
-    if (req.user.role !== "admin" && Number(row.owner_user_id) !== Number(req.user.id)) return res.status(403).json({ error: "Not allowed" });
+    // The canteen admin only sees canteen photos, the hall admin only hall photos, everyone else only their own.
+    const allowed = inboxMode(req) ? row.scope === scopeOf(req) : Number(row.owner_user_id) === Number(req.user.id);
+    if (!allowed) return res.status(403).json({ error: "Not allowed" });
     res.set({ "Content-Type": row.mime, "Cache-Control": "private, max-age=86400", "X-Content-Type-Options": "nosniff" });
     res.send(row.data);
   } catch (error) {
@@ -436,18 +533,20 @@ async function attachReactions(messages, myId) {
   for (const m of live) m.reactions = byMessage.has(m.id) ? [...byMessage.get(m.id).values()] : [];
 }
 
-router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teacher", "admin"), async (req, res) => {
+// POST /messages/:id/reaction (student, teacher, staff, rider, admin)
+router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teacher", "staff", "rider", "admin", "hall_admin"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "Invalid message id" });
     const emoji = req.body && req.body.emoji ? String(req.body.emoji) : null;
     if (emoji !== null && !REACTIONS.includes(emoji)) return res.status(400).json({ error: "Unsupported reaction" });
     const [[row]] = await pool.query(
-      "SELECT m.id, c.user_id AS owner_id FROM chat_messages m JOIN chat_conversations c ON c.id = m.conversation_id WHERE m.id = ? AND m.deleted_at IS NULL",
+      "SELECT m.id, c.user_id AS owner_id, c.scope FROM chat_messages m JOIN chat_conversations c ON c.id = m.conversation_id WHERE m.id = ? AND m.deleted_at IS NULL",
       [id]
     );
     if (!row) return res.status(404).json({ error: "Message not found" });
-    if (req.user.role !== "admin" && Number(row.owner_id) !== Number(req.user.id)) return res.status(403).json({ error: "Not allowed" });
+    const allowedReact = inboxMode(req) ? row.scope === scopeOf(req) : Number(row.owner_id) === Number(req.user.id);
+    if (!allowedReact) return res.status(403).json({ error: "Not allowed" });
     if (emoji === null) {
       await pool.query("DELETE FROM chat_reactions WHERE message_id = ? AND user_id = ?", [id, req.user.id]);
     } else {
@@ -459,7 +558,7 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
     const io = req.app.get("io");
     if (io) {
       io.to(`user:${row.owner_id}`).emit("chat:reaction", { id });
-      io.to("admins").emit("chat:reaction", { id });
+      io.to(row.scope === "hall" ? "hall_admins" : "admins").emit("chat:reaction", { id });
     }
     res.json({ ok: true });
   } catch (error) {
@@ -467,5 +566,8 @@ router.post("/messages/:id/reaction", verifyToken, requireRole("student", "teach
     res.status(500).json({ error: "Failed to save reaction" });
   }
 });
+
+// Exposed for unit tests only
+router._test = { scopeOf, inboxScope, memberMode, inboxMode, SCOPE_ROLE, isInboxOwner };
 
 module.exports = router;

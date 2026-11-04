@@ -43,6 +43,7 @@ const ioEmit=(req,room,event,payload)=>{const io=req.app.get('io');if(io)io.to(r
 router.use(verifyToken);
 
 // Existing order status + queue data powers the student's live tracking panel.
+// GET /queue (student, teacher, admin)
 router.get('/queue',requireRole('student','teacher','admin'),async(req,res,next)=>{try{
   const [joined]=await pool.query(`SELECT o.id,o.status,o.created_at,o.pickup_time,oi.menu_item_id,oi.name AS item_name
     FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id
@@ -60,17 +61,19 @@ router.get('/queue',requireRole('student','teacher','admin'),async(req,res,next)
   res.json({summary,orders:orders.map(({items,...o})=>o)});
 }catch(e){next(e)}});
 
+// GET /live-tracking (teacher)
 router.get('/live-tracking',requireRole('teacher'),async(req,res,next)=>{try{
   const [rows]=await pool.query(`SELECT o.id,o.token,o.status,o.created_at,o.rider_assignment_status,
     ru.name AS rider_name,l.latitude,l.longitude,l.updated_at AS location_updated_at,
     CASE WHEN l.updated_at>=NOW()-INTERVAL 30 SECOND AND l.active=1 THEN 1 ELSE 0 END AS rider_live
     FROM orders o LEFT JOIN users ru ON ru.id=o.rider_id LEFT JOIN rider_locations l ON l.rider_id=o.rider_id
-    WHERE o.user_id=? AND o.rider_id IS NOT NULL AND o.status IN ('Received','Cooking','Ready') AND o.picked_up_at IS NULL
+    WHERE o.user_id=? AND o.status IN ('Received','Cooking','Ready') AND o.picked_up_at IS NULL
     ORDER BY o.created_at DESC LIMIT 20`,[req.user.id]);
   res.json(rows.map(x=>({...x,latitude:x.latitude==null?null:Number(x.latitude),longitude:x.longitude==null?null:Number(x.longitude),rider_live:!!x.rider_live})));
 }catch(e){next(e)}});
 
 // Lightweight explainable recommendation: personal purchase frequency + popularity + current availability.
+// GET /recommendations (student, teacher)
 router.get('/recommendations',requireRole('student','teacher'),async(req,res,next)=>{try{
   const [rows]=await pool.query(`SELECT m.id,m.name,m.name_bn,m.category,m.price,m.stock,m.image,m.is_veg,
     COALESCE(mine.ordered,0) personal_orders, COALESCE(pop.popular,0) campus_orders
@@ -81,12 +84,20 @@ router.get('/recommendations',requireRole('student','teacher'),async(req,res,nex
   res.json(rows.map((x,i)=>({...x,reason:Number(x.personal_orders)>0?'Based on your previous orders':i<3?'Popular on campus':'Available now'})));
 }catch(e){next(e)}});
 
-router.get('/lost-found',requireRole('student','teacher','hall_admin'),async(req,res,next)=>{try{await ensureSchema();const [rows]=await pool.query(`SELECT l.id,l.item_type,l.title,l.description,l.location,CASE WHEN ?='hall_admin' THEN l.contact ELSE NULL END AS contact,l.image_data,l.status,l.created_at,u.name AS posted_by FROM campus_lost_found l JOIN users u ON u.id=l.user_id WHERE l.status IN ('open','claimed') ORDER BY l.created_at DESC LIMIT 100`,[req.user.role]);res.json(rows)}catch(e){next(e)}});
+// GET /lost-found (student, teacher, hall_admin)
+router.get('/lost-found',requireRole('student','teacher','hall_admin'),async(req,res,next)=>{try{await ensureSchema();const noImages=req.query.images==='0';const [rows]=await pool.query(`SELECT l.id,l.item_type,l.title,l.description,l.location,CASE WHEN ?='hall_admin' THEN l.contact ELSE NULL END AS contact,${noImages?'NULL':'l.image_data'} AS image_data,(l.image_data IS NOT NULL AND l.image_data<>'') AS has_image,l.status,l.created_at,u.name AS posted_by FROM campus_lost_found l JOIN users u ON u.id=l.user_id WHERE l.status IN ('open','claimed') ORDER BY l.created_at DESC LIMIT 100`,[req.user.role]);res.json(rows.map(r=>({...r,has_image:!!r.has_image})))}catch(e){next(e)}});
+// GET /lost-found/:id/image (student, teacher, hall_admin)
+router.get('/lost-found/:id/image',requireRole('student','teacher','hall_admin'),async(req,res,next)=>{try{await ensureSchema();const id=Number(req.params.id);if(!Number.isInteger(id)||id<1)return res.status(400).json({error:'Invalid post'});const [[row]]=await pool.query("SELECT image_data FROM campus_lost_found WHERE id=? AND status IN ('open','claimed')",[id]);if(!row||!row.image_data)return res.status(404).json({error:'This post has no photo'});res.json({image_data:row.image_data})}catch(e){next(e)}});
+// POST /lost-found (student, teacher)
 router.post('/lost-found',requireRole('student','teacher'),async(req,res,next)=>{try{await ensureSchema();const type=clean(req.body.item_type),title=clean(req.body.title),location=clean(req.body.location),description=clean(req.body.description),contact=clean(req.body.contact);const image=typeof req.body.image_data==='string'?req.body.image_data:'';if(!['lost','found'].includes(type)||title.length<3||!location)return res.status(400).json({error:'Choose lost/found and provide a title and location'});if(image.length>2800000)return res.status(413).json({error:'Image is too large. Please upload an image under 2 MB.'});if(image&&!isSafeImageDataUrl(image))return res.status(400).json({error:'Only PNG, JPG or WEBP images are supported'});const [r]=await pool.query('INSERT INTO campus_lost_found(user_id,item_type,title,description,location,contact,image_data) VALUES(?,?,?,?,?,?,?)',[req.user.id,type,title.slice(0,160),description.slice(0,2000),location.slice(0,180),contact.slice(0,100),image||null]);ioEmit(req,'hall_admins','campus:lost-found:new',{id:r.insertId,title,type,location});res.status(201).json({success:true,id:r.insertId})}catch(e){next(e)}});
+// PATCH /lost-found/:id (hall_admin)
 router.patch('/lost-found/:id',requireRole('hall_admin'),async(req,res,next)=>{try{await ensureSchema();const status=clean(req.body.status);if(!['open','claimed','returned','closed'].includes(status))return res.status(400).json({error:'Invalid status'});const [r]=await pool.query('UPDATE campus_lost_found SET status=? WHERE id=?',[status,Number(req.params.id)]);if(!r.affectedRows)return res.status(404).json({error:'Post not found'});res.json({success:true})}catch(e){next(e)}});
 
+// POST /emergency (student, teacher)
 router.post('/emergency',requireRole('student','teacher'),async(req,res,next)=>{try{await ensureSchema();const type=clean(req.body.emergency_type)||'General emergency',location=clean(req.body.location),details=clean(req.body.details),contact=clean(req.body.contact);if(!location)return res.status(400).json({error:'Please provide your current location or a clear landmark'});const [[recent]]=await pool.query("SELECT COUNT(*) AS total FROM campus_emergencies WHERE user_id=? AND status IN ('open','acknowledged','responding') AND created_at>=NOW()-INTERVAL 2 MINUTE",[req.user.id]);if(Number(recent.total)>0)return res.status(429).json({error:'You already have an active emergency alert. Please update or contact the Hall Admin instead of sending duplicates.'});const [r]=await pool.query('INSERT INTO campus_emergencies(user_id,emergency_type,details,location,contact) VALUES(?,?,?,?,?)',[req.user.id,type.slice(0,60),details.slice(0,1000),location.slice(0,180),contact.slice(0,100)]);const payload={id:r.insertId,student:req.user.name,type,location,details,created_at:new Date().toISOString(),status:'open'};ioEmit(req,'hall_admins','campus:emergency:new',payload);res.status(201).json({success:true,id:r.insertId,message:'Emergency alert sent to campus administrators. If there is immediate danger, contact local emergency services too.'})}catch(e){next(e)}});
+// GET /emergency (hall_admin)
 router.get('/emergency',requireRole('hall_admin'),async(req,res,next)=>{try{await ensureSchema();const [rows]=await pool.query(`SELECT e.*,u.name AS student_name,u.external_id FROM campus_emergencies e JOIN users u ON u.id=e.user_id ORDER BY FIELD(e.status,'open','acknowledged','responding','resolved','false_alarm'),e.created_at DESC LIMIT 100`);res.json(rows)}catch(e){next(e)}});
+// PATCH /emergency/:id (hall_admin)
 router.patch('/emergency/:id',requireRole('hall_admin'),async(req,res,next)=>{try{await ensureSchema();const status=clean(req.body.status);if(!['acknowledged','responding','resolved','false_alarm'].includes(status))return res.status(400).json({error:'Invalid emergency status'});const [r]=await pool.query('UPDATE campus_emergencies SET status=? WHERE id=?',[status,Number(req.params.id)]);if(!r.affectedRows)return res.status(404).json({error:'Emergency not found'});res.json({success:true})}catch(e){next(e)}});
 
 router.get('/waste-challenge',requireRole('admin','hall_admin','student','teacher'),async(req,res,next)=>{try{

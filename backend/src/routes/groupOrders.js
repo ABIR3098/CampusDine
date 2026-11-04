@@ -7,6 +7,7 @@ const catchAsync = require("../utils/catchAsync");
 const router = express.Router();
 router.use(verifyToken, requireRole("student", "teacher"));
 
+// POST / (any logged-in user)
 router.post("/", catchAsync(async (req, res) => {
   const title = String((req.body && req.body.title) || "Campus group order").trim().slice(0, 100);
   if (!title) return res.status(400).json({ error: "Group title is required" });
@@ -40,6 +41,7 @@ router.post("/", catchAsync(async (req, res) => {
   }
 }));
 
+// POST /join (any logged-in user)
 router.post("/join", catchAsync(async (req, res) => {
   const joinCode = String((req.body && req.body.joinCode) || "").trim().toUpperCase();
   if (!joinCode) return res.status(400).json({ error: "joinCode is required" });
@@ -72,6 +74,7 @@ router.post("/join", catchAsync(async (req, res) => {
   }
 }));
 
+// GET / (any logged-in user)
 router.get("/", catchAsync(async (req, res) => {
   const [groups] = await pool.query(`
     SELECT g.id, g.title, g.join_code AS joinCode, g.closes_at AS closesAt,
@@ -85,6 +88,7 @@ router.get("/", catchAsync(async (req, res) => {
   res.json(groups);
 }));
 
+// GET /:id (any logged-in user)
 router.get("/:id", catchAsync(async (req, res) => {
   const groupId = Number(req.params.id);
   if (!Number.isInteger(groupId) || groupId < 1) return res.status(400).json({ error: "Invalid group ID" });
@@ -120,6 +124,7 @@ router.get("/:id", catchAsync(async (req, res) => {
   });
 }));
 
+// POST /:id/items (any logged-in user)
 router.post("/:id/items", catchAsync(async (req, res) => {
   const groupId = Number(req.params.id);
   const menuItemId = Number(req.body && req.body.menuItemId);
@@ -183,6 +188,7 @@ router.post("/:id/items", catchAsync(async (req, res) => {
   }
 }));
 
+// POST /:id/close (any logged-in user)
 router.post("/:id/close", catchAsync(async (req, res) => {
   const groupId = Number(req.params.id);
   if (!Number.isInteger(groupId) || groupId < 1) return res.status(400).json({ error: "Invalid group ID" });

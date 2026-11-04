@@ -13,14 +13,17 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="/hall/files.js"></script>
 <script src="/hall/loader.js"></script>
+<script src="/components/files.js"></script>
+<script src="/components/loader.js"></script>
+<script type="text/babel" data-presets="react" src="/inventory/inventory.jsx"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   // Saved theme (light / dark / auto + accent colour) is applied before the page paints, so there is no flash.
@@ -1091,6 +1094,15 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 .chat-bc-note.err{color:var(--brick)}
 .chat-bc-send{padding:9px 18px;border-radius:999px;background:var(--gold);color:#fff;font-size:13px;font-weight:700;transition:opacity .15s}
 .chat-bc-send:disabled{background:var(--disabled-bg);color:var(--disabled-fg);cursor:not-allowed}
+
+/*chat-ui16*/
+.chat-filter{display:flex;gap:6px;margin-top:10px}
+.chat-filter button{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-size:12px;font-weight:600;transition:all .15s}
+.chat-filter button:hover{border-color:var(--gold);color:var(--gold)}
+.chat-filter button.on{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.chat-filter-count{margin-left:6px;min-width:18px;padding:0 5px;border-radius:999px;background:var(--gold);color:#fff;font-size:10px;line-height:18px;display:inline-block;text-align:center}
+.chat-find{border-top:1px solid var(--line);margin:0 6px;padding:6px 0}
+.chat-find-title{padding:6px 10px;font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
 .chat-bc-history{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
 .chat-bc-history h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin:0 0 6px}
 .chat-bc-history div{padding:6px 0;font-size:13px}
@@ -1100,6 +1112,7 @@ mark.chat-hit{background:#fde047;color:#111;border-radius:3px;padding:0 1px}
 </style>
 </head>
 <body>
+<noscript>CampusDine needs JavaScript. Please turn it on in your browser and reload this page.</noscript>
 <div id="root"></div>
 
 <!-- 3D Menu Book: opens from the Menu Book page (front page -> More on the full menu -> Menu Book) -->
@@ -1422,6 +1435,7 @@ const I18N = {
     "pic.bad": "Please choose an image file (PNG, JPG or WebP).",
     "pic.hint": "Click Save to keep your new photo.",
     "pe.cur": "Enter your current password to set a new one.",
+    "pe.emailcur": "Enter your current password to change your email.",
     "pe.ok": "Profile updated.",
     "msg.cancel.w": "Order {t} cancelled — {a} refunded to your wallet.",
     "msg.cancel": "Order {t} cancelled.",
@@ -1514,6 +1528,38 @@ const I18N = {
     "chat.private": "Private support conversation",
     "chat.support": "CampusDine support",
     "chat.empty": "No messages yet. Start the conversation with the admin.",
+    "chat.rider.admin": "Canteen Admin",
+    "chat.rider.private": "Private chat with the canteen admin",
+    "chat.rider.support": "Rider desk",
+    "chat.rider.empty": "No messages yet. Write to the canteen admin about your deliveries.",
+    "nav.riderChat": "Rider chat",
+    "n.trc.rider": "Message from your rider",
+    "n.trc.teacher": "Message from a teacher",
+    "trc.title.teacher": "Chat with riders",
+    "trc.title.rider": "Chat with teachers",
+    "trc.sub.teacher": "Message the rider who brings your order.",
+    "trc.sub.rider": "Message the teachers you deliver to.",
+    "trc.loading": "Loading…",
+    "trc.noThreads": "No chats yet.",
+    "trc.role.rider": "Rider",
+    "trc.role.teacher": "Teacher",
+    "trc.empty": "No messages yet. Say hello 👋",
+    "trc.newMessages": "New messages",
+    "trc.deleted": "This message was deleted",
+    "trc.pick": "Pick a chat on the left to read it.",
+    "trc.placeholder": "Write a message…",
+    "trc.send": "Send",
+    "trc.find.teacher": "Find a rider by name or ID",
+    "trc.find.rider": "Find a teacher you deliver to",
+    "trc.results": "Results",
+    "trc.contacts.teacher": "Your riders",
+    "trc.contacts.rider": "Your teachers",
+    "trc.noResults.teacher": "No rider found.",
+    "trc.noResults.rider": "No teacher found. You can write to teachers whose order you deliver.",
+    "trc.delete": "Delete",
+    "trc.seen": "Seen",
+    "trc.sent": "Sent",
+    "trc.confirmDelete": "Delete this message for both of you?",
     "chat.you": "You",
     "chat.ph": "Write a message…",
     "chat.sending": "Sending…",
@@ -1865,6 +1911,7 @@ const I18N = {
     "pic.bad": "অনুগ্রহ করে একটি ছবি (PNG, JPG বা WebP) বেছে নিন।",
     "pic.hint": "নতুন ছবি রাখতে সংরক্ষণ করুন চাপুন।",
     "pe.cur": "নতুন পাসওয়ার্ড দিতে বর্তমান পাসওয়ার্ড লিখুন।",
+    "pe.emailcur": "ইমেইল বদলাতে আপনার বর্তমান পাসওয়ার্ড দিন।",
     "pe.ok": "প্রোফাইল আপডেট হয়েছে।",
     "msg.cancel.w": "অর্ডার {t} বাতিল হয়েছে — {a} আপনার ওয়ালেটে ফেরত এসেছে।",
     "msg.cancel": "অর্ডার {t} বাতিল হয়েছে।",
@@ -1957,6 +2004,38 @@ const I18N = {
     "chat.private": "ব্যক্তিগত সহায়তা কথোপকথন",
     "chat.support": "CampusDine সহায়তা",
     "chat.empty": "এখনো কোনো বার্তা নেই। অ্যাডমিনের সাথে কথা শুরু করুন।",
+    "chat.rider.admin": "ক্যান্টিন অ্যাডমিন",
+    "chat.rider.private": "ক্যান্টিন অ্যাডমিনের সাথে ব্যক্তিগত চ্যাট",
+    "chat.rider.support": "রাইডার ডেস্ক",
+    "chat.rider.empty": "এখনো কোনো বার্তা নেই। ডেলিভারি নিয়ে ক্যান্টিন অ্যাডমিনকে লিখুন।",
+    "nav.riderChat": "রাইডার চ্যাট",
+    "n.trc.rider": "আপনার রাইডারের বার্তা",
+    "n.trc.teacher": "একজন শিক্ষকের বার্তা",
+    "trc.title.teacher": "রাইডারদের সাথে চ্যাট",
+    "trc.title.rider": "শিক্ষকদের সাথে চ্যাট",
+    "trc.sub.teacher": "যে রাইডার আপনার অর্ডার আনছেন তাকে বার্তা পাঠান।",
+    "trc.sub.rider": "যে শিক্ষকদের কাছে ডেলিভারি দেন তাদের বার্তা পাঠান।",
+    "trc.loading": "লোড হচ্ছে…",
+    "trc.noThreads": "এখনো কোনো চ্যাট নেই।",
+    "trc.role.rider": "রাইডার",
+    "trc.role.teacher": "শিক্ষক",
+    "trc.empty": "এখনো কোনো বার্তা নেই। একটি সালাম দিয়ে শুরু করুন 👋",
+    "trc.newMessages": "নতুন বার্তা",
+    "trc.deleted": "এই বার্তাটি মুছে ফেলা হয়েছে",
+    "trc.pick": "পড়তে বাঁদিক থেকে একটি চ্যাট বেছে নিন।",
+    "trc.placeholder": "বার্তা লিখুন…",
+    "trc.send": "পাঠান",
+    "trc.find.teacher": "নাম বা আইডি দিয়ে রাইডার খুঁজুন",
+    "trc.find.rider": "যে শিক্ষকের কাছে ডেলিভারি দেন তাকে খুঁজুন",
+    "trc.results": "ফলাফল",
+    "trc.contacts.teacher": "আপনার রাইডাররা",
+    "trc.contacts.rider": "আপনার শিক্ষকরা",
+    "trc.noResults.teacher": "কোনো রাইডার পাওয়া যায়নি।",
+    "trc.noResults.rider": "কোনো শিক্ষক পাওয়া যায়নি। যাদের অর্ডার আপনি ডেলিভারি দেন শুধু তাদেরই লিখতে পারবেন।",
+    "trc.delete": "মুছুন",
+    "trc.seen": "দেখা হয়েছে",
+    "trc.sent": "পাঠানো হয়েছে",
+    "trc.confirmDelete": "এই বার্তাটি দুজনের জন্যই মুছে ফেলবেন?",
     "chat.you": "আপনি",
     "chat.ph": "বার্তা লিখুন…",
     "chat.sending": "পাঠানো হচ্ছে…",
@@ -2655,10 +2734,20 @@ function FullMenuCard({ onLogin }) {
 }
 
 // Promotional popup: appears 1 second after the front page loads, dark backdrop, cross button to close
+// It is shown only once per browser session (the first time the site is opened), never again when the person returns to the front page.
+const PROMO_SEEN_KEY = "cd_promo_seen";
+let promoShownInMemory = false; // fallback for browsers that block sessionStorage, so going back to the front page still does not repeat it
 function PromoPopup() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setOpen(true), 1000);
+    let seen = false;
+    try { seen = sessionStorage.getItem(PROMO_SEEN_KEY) === "1"; } catch (e) {}
+    if (seen || promoShownInMemory) return;
+    const t = setTimeout(() => {
+      promoShownInMemory = true;
+      try { sessionStorage.setItem(PROMO_SEEN_KEY, "1"); } catch (e) {}
+      setOpen(true);
+    }, 1000);
     return () => clearTimeout(t);
   }, []);
   useEffect(() => {
@@ -2696,7 +2785,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     try {
       const p = new URLSearchParams(window.location.search);
       const r = p.get("role");
-      if (r && ["student", "teacher", "admin", "rider"].includes(r)) {
+      if (r && ["student", "teacher", "admin", "rider", "staff"].includes(r)) {
         setRole(r);
         if (r === "admin") setMode("login");
         setTimeout(() => {
@@ -2776,6 +2865,7 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
     { key: "admin", label: tx("role.admin.l"), desc: tx("role.admin.d"), icon: I.dashboard },
     { key: "rider", label: "Delivery Rider", desc: "Share your live location with teachers while on duty.", icon: I.ticket },
     { key: "hall_admin", label: "Hall Admin", desc: "Manage hall services, complaints, notices and operations.", icon: I.dashboard },
+    { key: "staff", label: "Kitchen Staff", desc: "Check raw-material stock and send stock reports or purchase requests.", icon: I.box },
   ];
 
   const sampleMenu = [
@@ -3472,6 +3562,7 @@ function TopBar({
 }
 
 function PortalTopHeader({
+  onOpenVoice,
   role, name, avatar, connected, onToggleLang, onLogout,
   notifications = [], notificationCount = 0, onToggleNotifications,
   notificationOpen = false, onMarkAllRead, onClearNotifications,
@@ -3571,7 +3662,6 @@ function PortalTopHeader({
             </div>
           </div>
         </div>
-
         <ThemeMenu />
         {role !== "admin" && <LangToggle onToggle={onToggleLang} />}
 
@@ -4039,10 +4129,10 @@ function DailyScratchModal({ onClose }) {
   const [reward, setReward] = useState(() => {
     if (savedData && savedData.reward) return savedData.reward;
     const prizes = [
-      { text: "🎉 ৳5 Wallet Cashback", code: "CASH5" },
+      { text: "🎉 ৳5 Off Your Order (min ৳50)", code: "CASH5" },
       { text: "☕ Free Student Chai", code: "FREECHAI" },
       { text: "🏷 10% Off Next Order", code: "CAMPUS10" },
-      { text: "🍪 Free Cookie Voucher", code: "COOKIE" }
+      { text: "🏷 15% Off Study Snacks", code: "STUDY15" }
     ];
     return prizes[Math.floor(Math.random() * prizes.length)];
   });
@@ -6848,7 +6938,7 @@ function DailySpinWheelModal({ user, onClose, onReward }) {
         setAlreadySpun(true);
       } catch (_) {}
       if (onReward && won.bonus > 0) {
-        onReward("🎉 You won " + won.label + " from Daily Spin!");
+        onReward("🎉 You won " + won.label + " from Daily Spin! (demo prize, not added to your wallet yet)");
       }
     }, 4000);
   };
@@ -6931,6 +7021,9 @@ function DailySpinWheelModal({ user, onClose, onReward }) {
               <div className="text-xs mt-1 text-slate-200">
                 Use Promo Code: <strong className="font-mono bg-black/40 px-2 py-0.5 rounded text-amber-400">{prize.coupon}</strong>
               </div>
+            )}
+            {(prize.bonus > 0 || prize.points > 0) && (
+              <div className="text-[11px] mt-1 text-indigo-200">Demo prize: this is not added to your wallet or points yet.</div>
             )}
           </div>
         )}
@@ -7220,19 +7313,76 @@ function AdminOrders({ orders, advance, call, onShowPosSlip, onOpenKds }) {
 }
 
 /* ---------------- Rider-only GPS sharing ---------------- */
-function RiderDashboard({ apiBase, token, user, onLogout }) {
+// Waits for /inventory/inventory.jsx (compiled by Babel) and then shows the staff or admin inventory screen.
+function InventoryHost({ kind, apiBase, token }) {
+  const [ready, setReady] = useState(!!window.CDInventory);
+  useEffect(() => {
+    if (ready) return undefined;
+    const t = setInterval(() => { if (window.CDInventory) { setReady(true); clearInterval(t); } }, 150);
+    return () => clearInterval(t);
+  }, [ready]);
+  if (!ready) return <div className="card p-6 text-sm" style={{ color: "var(--ink-soft)" }}>Loading inventory…</div>;
+  const Panel = kind === "admin" ? window.CDInventory.AdminInventoryPanel : window.CDInventory.StaffInventoryPanel;
+  return <Panel apiBase={apiBase} token={token} />;
+}
+
+function StaffShell({ apiBase, token, user, onLogout }) {
+  const [view, setView] = useState("inventory");
+  return (
+    <div className="max-w-5xl mx-auto p-4 sm:p-6">
+      <div className="card p-5 mb-4">
+        <div className="flex flex-wrap justify-between items-center gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl grid place-items-center text-2xl" style={{ background: "var(--gold-soft)", border: "1px solid var(--accent-border)" }}>🍚</div>
+            <div>
+              <h1 className="text-2xl font-display font-800 tracking-tight">Kitchen Staff Panel</h1>
+              <p className="text-xs sm:text-sm" style={{ color: "var(--ink-soft)" }}>Signed in as <strong>{user.name}</strong> · ID {user.externalId}</p>
+            </div>
+          </div>
+          <button onClick={onLogout} className="cd-logout"><Icon path={I.logout} className="w-4 h-4" /><span className="cd-logout-text">Log out</span></button>
+        </div>
+        <div className="flex gap-2 mt-4">
+          {[["inventory", "Inventory"], ["chat", "Message admin"]].map(([k, l]) => (
+            <button key={k} type="button" onClick={() => setView(k)} className="px-3 py-1.5 rounded-full text-sm font-700 border"
+              style={view === k ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>{l}</button>
+          ))}
+        </div>
+      </div>
+      {view === "inventory" && <InventoryHost kind="staff" apiBase={apiBase} token={token} />}
+      {view === "chat" && <ChatWorkspace role="staff" userId={user.id} apiBase={apiBase} sessionToken={token} refreshKey={0} />}
+    </div>
+  );
+}
+
+// The fixed position the Demo GPS button shares (a point on the campus).
+const RIDER_DEMO_POSITION = { latitude: 23.8103, longitude: 90.4125 };
+
+function RiderDashboard({ apiBase, token, user, onLogout, chatRefreshKey = 0 }) {
   const [sharing, setSharing] = useState(() => { try { return !!localStorage.getItem("cd_rider_gps"); } catch (_) { return false; } });
+  const [demoGps, setDemoGps] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); return !!(saved && saved.demo); } catch (_) { return false; } });
   const [message, setMessage] = useState(sharing ? "GPS sharing active. Streaming coordinates to campus." : "Location sharing is off.");
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [summary, setSummary] = useState({ total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
+  const [summary, setSummary] = useState({ waiting_orders: 0, total: 0, received: 0, cooking: 0, ready: 0, orders: [], tips_today: 0, tips_total: 0, rating_avg: 0, rating_count: 0, reviews: [] });
   const [routePlan, setRoutePlan] = useState(null);
   const [shift, setShift] = useState(false);
   const [shiftBusy, setShiftBusy] = useState(false);
+  const [positionFresh, setPositionFresh] = useState(null); // does the server have a recent position from me? (null = not known yet)
   const [maxOrders, setMaxOrders] = useState(3);
   const [orderError, setOrderError] = useState("");
   const [acceptingId, setAcceptingId] = useState(null);
   const [showSos, setShowSos] = useState(false);
   const [deliveryProof, setDeliveryProof] = useState({});
+  const [view, setView] = useState("deliveries"); // "deliveries", "chat" (canteen admin) or "teacherChat"
+  const [chatUnread, setChatUnread] = useState(0);
+  // Badge on the chat tab: messages from the canteen admin that the rider has not opened yet.
+  useEffect(() => {
+    if (view === "chat") { setChatUnread(0); return; }
+    let live = true;
+    const load = () => api(apiBase, "/api/chat/unread", { token }).then(d => { if (live) setChatUnread(Number(d.unread) || 0); }).catch(() => {});
+    load();
+    const timer = setInterval(load, 15000);
+    return () => { live = false; clearInterval(timer); };
+  }, [apiBase, token, view, chatRefreshKey]);
 
   const refreshOrders = async () => {
     try {
@@ -7249,6 +7399,8 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
     setAcceptingId(orderId);
     try {
       await api(apiBase, `/api/riders/orders/${orderId}/accept`, { method: "POST", token });
+      setOrderError("");
+      setMessage(`✓ Delivery of order #${orderId} accepted. The teacher can see that you are on the way.`);
       await refreshOrders();
     } catch (e) {
       setOrderError(e.message || "Could not accept this order.");
@@ -7276,17 +7428,51 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
       .catch(e => setOrderError(e.message || "Could not load shift status."));
   }, [apiBase, token]);
 
+  // Ask the server every 10 seconds whether it really receives this rider's position.
+  useEffect(() => {
+    let live = true;
+    const load = () => api(apiBase, "/api/operations/riders/shift/me", { token })
+      .then(current => { if (live) setPositionFresh(!!current.locationFresh); })
+      .catch(() => {});
+    load();
+    const timer = setInterval(load, 10000);
+    return () => { live = false; clearInterval(timer); };
+  }, [apiBase, token]);
+
+  // The background GPS sender uses the token saved in localStorage. After a new login that token is
+  // old (or belongs to another rider), the position never reaches the server and no order is assigned
+  // even though this screen says sharing is on. Keep the saved login in step with this session.
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null");
+      if (!saved) return;
+      if (user && user.id && saved.riderId && Number(saved.riderId) !== Number(user.id)) {
+        localStorage.removeItem("cd_rider_gps");
+        setDemoGps(false);
+        setSharing(false);
+        setMessage("Location sharing is off.");
+        return;
+      }
+      if (saved.token !== token || saved.apiBase !== apiBase) {
+        localStorage.setItem("cd_rider_gps", JSON.stringify({ ...saved, token, apiBase }));
+      }
+    } catch (_) {}
+  }, [apiBase, token, user]);
+
   const updateShift = async () => {
     setShiftBusy(true);
     try {
       if (shift) {
         await api(apiBase, "/api/operations/riders/shift/end", { method: "POST", token });
         setShift(false);
-        setMessage("Shift ended. New assignments paused.");
+        if (sharing) await stop();
+        setMessage("Shift ended. New assignments paused and location sharing stopped.");
       } else {
         await api(apiBase, "/api/operations/riders/shift/start", { method: "POST", token, body: { maxOrders } });
         setShift(true);
         setMessage("Shift started. Ready to receive assignments.");
+        // An order reaches a rider who is on duty AND sharing a position, so turn the GPS on too.
+        if (!sharing) start();
       }
     } catch (e) {
       setOrderError(e.message || "Could not update your shift.");
@@ -7302,6 +7488,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
     const socket = io(apiBase, { auth: { token } });
     if (user && user.id) socket.emit("join", `rider:${user.id}`);
     socket.on("rider:order-assigned", () => {
+      setMessage("🛵 A new teacher order was just given to you. Please accept it below.");
       refreshOrders();
     });
     return () => {
@@ -7312,7 +7499,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
 
   const start = () => {
     if (!navigator.geolocation) {
-      setMessage("This browser does not support GPS.");
+      setMessage("This browser does not support GPS. You can use Demo GPS instead.");
       return;
     }
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -7325,15 +7512,35 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
           body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, active: true }
         });
       } catch (_) {}
+      setDemoGps(false);
       setSharing(true);
       setLastUpdate(new Date());
       setMessage("GPS sharing is active. Streaming coordinates to campus teachers & dispatch.");
-    }, err => setMessage(err.message || "Location permission denied."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+    }, err => setMessage((err.message || "Location permission denied.") + " You can use Demo GPS instead."), { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+  };
+
+  // Demo GPS: share a fixed campus position instead of the phone's GPS (demos, desktop browsers, no HTTPS).
+  const startDemo = async () => {
+    const position = RIDER_DEMO_POSITION;
+    try {
+      await api(apiBase, "/api/riders/location", { method: "POST", token, body: { ...position, accuracy: 15, active: true } });
+    } catch (e) {
+      setMessage(e.message || "Could not send the demo position.");
+      return;
+    }
+    try {
+      localStorage.setItem("cd_rider_gps", JSON.stringify({ token, apiBase, riderId: (user && user.id) || Date.now(), demo: true, ...position }));
+    } catch (_) {}
+    setDemoGps(true);
+    setSharing(true);
+    setLastUpdate(new Date());
+    setMessage("Demo GPS is on: a fixed campus position is sent every few seconds, so teacher orders can be given to you.");
   };
 
   const stop = async () => {
     try { localStorage.removeItem("cd_rider_gps"); } catch (_) {}
     try { await api(apiBase, "/api/riders/location", { method: "POST", token, body: { active: false } }); } catch (_) {}
+    setDemoGps(false);
     setSharing(false);
     setMessage("Location sharing stopped.");
   };
@@ -7385,16 +7592,22 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
             <div className={sharing ? "rider-radar-dot" : "rider-radar-off"} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-700">{sharing ? "Live Location Streaming Active" : "Location Sharing Paused"}</span>
+                <span className="text-sm font-700">{sharing ? (demoGps ? "Demo GPS Active" : "Live Location Streaming Active") : "Location Sharing Paused"}</span>
                 {sharing && <span className="text-[10px] uppercase font-800 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Online</span>}
               </div>
               <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "var(--ink-soft)" }}>{message}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {!sharing ? (
-                <button onClick={start} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
-                  📡 Enable GPS
-                </button>
+                <>
+                  <button onClick={start} className="btn-primary text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+                    📡 Enable GPS
+                  </button>
+                  <button onClick={startDemo} className="px-4 py-2 rounded-xl text-xs font-700 border flex items-center gap-1.5"
+                    style={{ borderColor: "var(--line)", background: "var(--panel-soft)" }}>
+                    🧪 Demo GPS
+                  </button>
+                </>
               ) : (
                 <button onClick={stop} className="px-4 py-2 rounded-xl text-xs font-700 border flex items-center gap-1.5"
                   style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
@@ -7403,6 +7616,20 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
               )}
             </div>
           </div>
+
+          {shift && !sharing && (
+            <div className="mt-3 rounded-xl border px-4 py-3 text-sm font-600" role="alert"
+              style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
+              ⚠ You are on duty but your GPS is off, so no teacher order can be given to you. Press "Enable GPS", or "Demo GPS" if this device has no GPS.
+            </div>
+          )}
+
+          {shift && sharing && positionFresh === false && (
+            <div className="mt-3 rounded-xl border px-4 py-3 text-sm font-600" role="alert"
+              style={{ borderColor: "var(--brick)", color: "var(--brick)", background: "rgba(220,38,38,0.06)" }}>
+              ⚠ The server has no recent position from you, so teacher orders cannot be given to you yet. Wait a few seconds; if this stays, press Stop GPS, then Enable GPS, or log in again.
+            </div>
+          )}
 
           {/* Shift Controls */}
           <div className="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t" style={{ borderColor: "var(--line)" }}>
@@ -7428,8 +7655,26 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
               </button>
             </div>
           </div>
+
+          <div className="flex gap-2 mt-4">
+            {[["deliveries", "🛵 Deliveries"], ["chat", "💬 Canteen admin chat"], ["teacherChat", "💬 Teacher chat"]].map(([k, l]) => (
+              <button key={k} type="button" onClick={() => setView(k)} className="px-3 py-1.5 rounded-full text-sm font-700 border"
+                style={view === k ? { background: "var(--gold)", color: "#fff", borderColor: "var(--gold)" } : { borderColor: "var(--line)" }}>
+                {l}{k === "chat" && chatUnread > 0 && <span className="chat-badge" style={{ display: "inline-grid", marginLeft: 8 }}>{chatUnread}</span>}
+                {k === "teacherChat" && window.CDComponents && window.CDComponents.TeacherRiderChatBadge && (
+                  <window.CDComponents.TeacherRiderChatBadge apiBase={apiBase} token={token} hideWhen={view === "teacherChat"} />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {view === "chat" && <ChatWorkspace role="rider" userId={user.id} apiBase={apiBase} sessionToken={token} refreshKey={chatRefreshKey} />}
+        {view === "teacherChat" && window.CDComponents && window.CDComponents.TeacherRiderChat && (
+          <window.CDComponents.TeacherRiderChat role="rider" userId={user.id} apiBase={apiBase} token={token} tx={tx} />
+        )}
+
+        {view === "deliveries" && (<>
         {/* 5 Innovative Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {[
@@ -7507,7 +7752,8 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
               <div className="text-4xl mb-2">📬</div>
               <div className="text-base font-display font-700">No active delivery assignments</div>
               <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--ink-soft)" }}>
-                {shift ? "You are on duty! New orders will pop up here in real-time as kitchen dispatch assigns them." : "Turn on your duty shift above to start receiving food delivery orders."}
+                {shift ? (sharing ? "You are on duty! New orders will pop up here in real-time as kitchen dispatch assigns them." : "You are on duty, but orders are only given to a rider who shares a position. Turn on GPS or Demo GPS above.") : "Turn on your duty shift above to start receiving food delivery orders."}
+                {Number(summary.waiting_orders) > 0 ? ` ${summary.waiting_orders} teacher order(s) are waiting for a rider.` : ""}
               </p>
             </div>
           ) : (
@@ -7597,6 +7843,7 @@ function RiderDashboard({ apiBase, token, user, onLogout }) {
             </div>
           )}
         </div>
+        </>)}
 
       </div>
 
@@ -7609,10 +7856,20 @@ function RiderGpsBackground() {
   useEffect(() => {
     let busy = false;
     const tick = () => {
-      if (busy || !navigator.geolocation) return;
+      if (busy) return;
       let saved;
       try { saved = JSON.parse(localStorage.getItem("cd_rider_gps") || "null"); } catch (_) { saved = null; }
       if (!saved || !saved.token || !saved.apiBase) return;
+      if (saved.demo) {
+        // Demo GPS: a fixed campus position with a tiny drift, so no phone GPS (or HTTPS) is needed.
+        busy = true;
+        const drift = () => (Math.random() - 0.5) * 0.0004;
+        api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: Number(saved.latitude) + drift(), longitude: Number(saved.longitude) + drift(), accuracy: 15 } })
+          .catch(() => {})
+          .finally(() => { busy = false; });
+        return;
+      }
+      if (!navigator.geolocation) return;
       busy = true;
       navigator.geolocation.getCurrentPosition(async pos => {
         try { await api(saved.apiBase, "/api/riders/location", { method: "POST", token: saved.token, body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy } }); }
@@ -8672,7 +8929,7 @@ function fitChatInput(el) {
   el.style.overflowY = full > 120 ? "auto" : "hidden";
 }
 
-function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
+function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey, scope = "canteen" }) {
   const [conversations, setConversations] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -8680,6 +8937,9 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [inboxFilter, setInboxFilter] = useState("all"); // canteen admin inbox: "all", "rider" or "unread"
+  const [extraPeople, setExtraPeople] = useState([]); // riders the canteen admin started a chat with before any message exists
+  const [found, setFound] = useState([]); // directory results for the search box
   const [mobileChat, setMobileChat] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
@@ -8714,9 +8974,27 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const lastTypingSent = useRef(0);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  const isAdmin = role === "admin";
-  const selected = conversations.find(c => Number(c.user_id) === Number(selectedUserId));
-  const chatCall = (path, options = {}) => api(apiBase, path, { ...options, token: sessionToken });
+  const isAdmin = role === "admin" || role === "hall_admin";
+  // A rider talks to the canteen admin like a member (no hall chat, no order sharing).
+  const isRider = role === "rider";
+  // "hall" = the student talks to the Hall Admin only; "canteen" = the canteen admin only.
+  const isHallChat = scope === "hall" || role === "hall_admin";
+  const withScope = (path) => (isHallChat && !isAdmin ? path + (path.includes("?") ? "&" : "?") + "scope=hall" : path);
+  const people = [...conversations, ...extraPeople.filter(p => !conversations.some(c => Number(c.user_id) === Number(p.user_id)))];
+  const selected = people.find(c => Number(c.user_id) === Number(selectedUserId));
+  const chatCall = (path, options = {}) => api(apiBase, withScope(path), { ...options, token: sessionToken });
+  // The canteen admin can start a chat with a rider who has not written yet: type 2+ letters of the name or ID.
+  useEffect(() => {
+    const q = search.trim();
+    if (!isAdmin || isHallChat || q.length < 2) { setFound([]); return; }
+    let live = true;
+    const timer = setTimeout(() => {
+      chatCall("/api/chat/directory?q=" + encodeURIComponent(q))
+        .then(d => { if (live) setFound((d.users || []).filter(u => u.role === "rider")); })
+        .catch(() => { if (live) setFound([]); });
+    }, 300);
+    return () => { live = false; clearTimeout(timer); };
+  }, [search, isAdmin, isHallChat]);
 
   const refreshConversations = async () => {
     const data = await chatCall("/api/chat/conversations");
@@ -8820,7 +9098,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     if (inputRef.current) inputRef.current.style.height = "auto";
     try {
       const imageId = photo ? await uploadImage(photo.blob) : null;
-      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
+      await chatCall("/api/chat/messages", { method: "POST", body: { message: message || "📷 Photo", ...(isHallChat && !isAdmin ? { scope: "hall" } : {}), ...(isAdmin ? { userId: selectedUserId } : {}), ...(reply ? { replyTo: reply.id } : {}), ...(imageId ? { imageId } : {}) } });
       await Promise.all([refreshMessages(selectedUserId), isAdmin ? refreshConversations() : Promise.resolve()]);
     } catch (e) {
       setMessages(m => m.filter(x => x.id !== temp.id));
@@ -8853,8 +9131,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
     return x.toDateString() === new Date().toDateString() ? fmtTime(d) : x.toLocaleDateString([], { day: "numeric", month: "short" });
   };
 
-  const filtered = conversations.filter(c => { const t = search.trim().toLowerCase(); return !t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t); });
-  const heading = isAdmin ? selected?.name || "Choose a conversation" : tx("chat.admin");
+  const newRiders = found.filter(u => !people.some(c => Number(c.user_id) === Number(u.id)));
+  const startWith = (u) => {
+    setExtraPeople(list => [...list, { conversation_id: null, user_id: u.id, name: u.name, role: u.role, updated_at: null, last_message: "", unread_count: 0 }]);
+    setSelectedUserId(u.id); setMobileChat(true); setSearch("");
+  };
+  const filtered = people.filter(c => { const t = search.trim().toLowerCase(); return (inboxFilter === "all" || (inboxFilter === "rider" ? c.role === "rider" : Number(c.unread_count) > 0)) && (!t || (c.name || "").toLowerCase().includes(t) || (c.last_message || "").toLowerCase().includes(t)); });
+  const heading = isAdmin ? selected?.name || "Choose a conversation" : (isHallChat ? "Hall Admin" : isRider ? tx("chat.rider.admin") : tx("chat.admin"));
   const isOnline = (id) => onlineIds.includes(Number(id));
   const headOnline = isAdmin ? (selectedUserId ? isOnline(selectedUserId) : undefined) : (adminOnline === null ? undefined : adminOnline);
   const agoText = (sec) => {
@@ -8871,12 +9154,20 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const withDot = (name, size, online) => (
     <span className="chat-avatar"><Avatar name={name} size={size} />{online !== undefined && <i className={`chat-dot ${online ? "on" : ""}`} />}</span>
   );
-  const quick = ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
+  const quick = isHallChat
+    ? ["Meal token problem", "Hall service request", "Room / maintenance issue", "Thank you!"]
+    : isRider
+      ? ["I am at the canteen", "The order is not ready yet", "The customer is not answering", "Thank you!"]
+      : ["Where is my order?", "Wallet / payment issue", "Menu question", "Thank you!"];
   const emojis = ["😊", "😂", "👍", "🙏", "❤️", "🎉", "✅", "😋", "🍛", "☕", "😢", "🔥"];
-  const templates = ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
+  const templates = isHallChat
+    ? ["Thanks for reaching out, we are looking into it.", "Your hall service request has been received.", "Please visit the hall office with your ID card.", "The issue has been resolved. Please tell us if it comes back."]
+    : selected && selected.role === "rider"
+      ? ["Please pick up the order now.", "The order is almost ready, please wait at the counter.", "Please deliver it to the main gate.", "Thank you, drive safe!"]
+      : ["Your order is ready for pickup.", "Please check your wallet balance and try again.", "Thanks for reaching out, we are looking into it.", "This item is currently unavailable."];
   const addEmoji = (em) => { setDraft(d => d + em); inputRef.current?.focus(); };
   const uploadImage = async (blob) => {
-    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : ""}`, {
+    const res = await fetch(`${apiBase}/api/chat/images${isAdmin ? `?userId=${selectedUserId}` : (isHallChat ? "?scope=hall" : "")}`, {
       method: "POST", headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": blob.type || "image/jpeg" }, body: blob,
     });
     let data = {};
@@ -9012,12 +9303,13 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
   const emitTyping = (on) => {
     const sock = window.__campusSocket;
     if (!sock || (isAdmin && !selectedUserId)) return;
-    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on });
+    sock.emit("chat:typing", { to: isAdmin ? selectedUserId : 0, typing: on, ...(isHallChat && !isAdmin ? { scope: "hall" } : {}) });
   };
   useEffect(() => {
     const onTyping = (e) => {
       const d = e.detail || {};
       if (isAdmin && Number(d.from) !== Number(selectedUserId)) return;
+      if (d.scope && (d.scope === "hall") !== isHallChat) return;
       clearTimeout(typingTimer.current);
       setTyping(!!d.typing);
       if (d.typing) typingTimer.current = setTimeout(() => setTyping(false), 4000);
@@ -9134,6 +9426,16 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               <span className="chat-online-count"><i className="chat-dot on" />{onlineIds.length} online</span>
             </div>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or message…" className="chat-search" />
+            {!isHallChat && (
+              <div className="chat-filter" role="tablist" aria-label="Filter conversations">
+                {[["all", "All"], ["unread", "Unread"], ["rider", "Riders"]].map(([k, l]) => {
+                  const waiting = k === "rider" ? people.filter(c => c.role === "rider").reduce((n, c) => n + (Number(c.unread_count) || 0), 0) : 0;
+                  return (
+                    <button key={k} type="button" role="tab" aria-selected={inboxFilter === k} className={inboxFilter === k ? "on" : ""} onClick={() => setInboxFilter(k)}>{l}{waiting > 0 && <b className="chat-filter-count">{waiting}</b>}</button>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <div className="chat-inbox-list">
             {filtered.length === 0 ? (
@@ -9153,12 +9455,26 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
                       <span className="chat-item-last" style={{ fontWeight: unread ? 600 : 400 }}>{c.last_message || "No messages"}</span>
                       {unread && <span className="chat-badge">{c.unread_count}</span>}
                     </span>
-                    <span className="chat-item-role">{c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
+                    <span className="chat-item-role">{c.role === "rider" ? "🛵 Rider" : c.role}{" · "}{isOnline(c.user_id) ? <b className="chat-online-text">Online</b> : (lastSeen[String(c.user_id)] != null ? `Offline · ${agoText(lastSeen[String(c.user_id)])}` : "Offline")}</span>
                   </span>
                 </button>
               );
             })}
           </div>
+          {newRiders.length > 0 && (
+            <div className="chat-find">
+              <p className="chat-find-title">Start a chat with a rider</p>
+              {newRiders.map(u => (
+                <button key={u.id} type="button" className="chat-item" onClick={() => startWith(u)}>
+                  {withDot(u.name, 42, isOnline(u.id))}
+                  <span className="chat-item-body">
+                    <span className="chat-item-name" style={{ fontWeight: 600 }}>{u.name}</span>
+                    <span className="chat-item-role">🛵 Rider{u.external_id ? " · " + u.external_id : ""}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </aside>
       )}
       <div className="card chat-panel">
@@ -9172,7 +9488,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
               <>
                 {headOnline !== undefined && <span className={headOnline ? "chat-online-text" : ""}>{headOnline ? "Online" : "Offline"}{!headOnline && headAgo != null ? ` · last seen ${agoText(headAgo)}` : ""}</span>}
                 {headOnline !== undefined && " · "}
-                {isAdmin ? selected?.role || "Admin inbox" : tx("chat.private")}
+                {isAdmin ? selected?.role || (isHallChat ? "Hall admin inbox" : "Admin inbox") : (isHallChat ? "Private hall support conversation" : isRider ? tx("chat.rider.private") : tx("chat.private"))}
               </>
             )}
             </p>
@@ -9180,7 +9496,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           <button type="button" className={`chat-search-btn ${searchOpen ? "on" : ""}`} aria-label="Search in chat" title="Search in chat" onClick={toggleSearch}>
             <Icon path="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" className="w-5 h-5" />
           </button>
-          <span className="chat-pill">{tx("chat.support")}</span>
+          <span className="chat-pill">{isHallChat ? "Hall support" : isRider ? tx("chat.rider.support") : tx("chat.support")}</span>
         </header>
         {searchOpen && (
           <div className="chat-searchbar">
@@ -9198,7 +9514,7 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           {messages.length === 0 ? (
             <div className="chat-empty">
               <div className="chat-empty-icon"><Icon path={I.chat} className="w-8 h-8" /></div>
-              <p>{isAdmin && !selectedUserId ? "Select a student or teacher to open their conversation." : tx("chat.empty")}</p>
+              <p>{isAdmin && !selectedUserId ? "Select a student, teacher or rider to open their conversation." : (isHallChat ? "No messages yet. Start the conversation with the Hall Admin." : isRider ? tx("chat.rider.empty") : tx("chat.empty"))}</p>
               {!isAdmin && (
                 <div className="chat-quick">
                   {quick.map(q => <button key={q} type="button" onClick={() => send(q)}>{q}</button>)}
@@ -9246,10 +9562,10 @@ function ChatWorkspace({ role, userId, apiBase, sessionToken, refreshKey }) {
           <button type="button" className="chat-emoji-btn" aria-label="Send a photo" title="Send a photo"
             onClick={() => fileRef.current?.click()} disabled={isAdmin && !selectedUserId}>📷</button>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
-          {!isAdmin && (
+          {!isAdmin && !isRider && (
             <button type="button" className="chat-emoji-btn" aria-label="Share an order" title="Share an order" onClick={openOrders}>🧾</button>
           )}
-          {orderOpen && !isAdmin && (
+          {orderOpen && !isAdmin && !isRider && (
             <div className="chat-order-panel">
               {myOrders === null ? <p className="chat-order-note">Loading…</p>
                 : myOrders.length === 0 ? <p className="chat-order-note">You have no orders yet.</p>
@@ -9392,6 +9708,7 @@ function ProfileInput({ label, value, onChange, placeholder }) {
 }
 function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [editing, setEditing] = useState(false);
+  const [savedEmail, setSavedEmail] = useState("");
   const [profile, setProfile] = useState({
     name: user.name, email: "", accountType: "regular", phone: "", address: "", department: "", fatherPhone: "", hallName: "", roomNumber: "", hallId: null,
   });
@@ -9411,12 +9728,14 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
   const [success, setSuccess] = useState(null);
 
   const loadProfile = () => call("/api/auth/me").then(data => {
+    setSavedEmail(String(data.email || "").toLowerCase());
     setProfile({
       name: data.name, email: data.email || "", accountType: data.accountType || "regular",
       phone: data.phone || "", address: data.address || "",
       department: data.department || "", fatherPhone: data.fatherPhone || "",
       hallName: data.hallName || "", roomNumber: data.roomNumber || "", hallId: data.hallId || null,
     });
+    setSavedEmail(data.email || "");
     setWalletBalance(data.walletBalance);
     setAvatar(data.avatar || null); setAvatarChanged(false);
   }).catch(() => {});
@@ -9439,6 +9758,8 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
     if (newPassword && newPassword.length < 6) { setError(tx("pe.pw6")); return; }
     if (newPassword && !currentPassword) { setError(tx("pe.cur")); return; }
     if (newPassword && newPassword !== confirmPassword) { setError(tx("pe.match")); return; }
+    const nextEmail = profile.email.trim().toLowerCase();
+    if (nextEmail && nextEmail !== savedEmail.trim().toLowerCase() && !currentPassword) { setError(tx("pe.emailcur")); return; }
     setBusy(true);
     try {
       const body = {
@@ -9446,12 +9767,22 @@ function ProfileTab({ user, call, onUpdated, liveBalance }) {
         department: profile.department, fatherPhone: profile.fatherPhone,
       };
       if (profile.email.trim()) body.email = profile.email.trim();
+      if (body.email && body.email.toLowerCase() !== savedEmail.trim().toLowerCase()) {
+        // a new email address: the server checks the password and mails a code to the new address; the code is checked on save
+        await call("/api/auth/me/email-code", { method: "POST", body: { email: body.email, currentPassword } });
+        const code = window.prompt("We sent a 6-digit code to " + body.email + ". Type it here to confirm your new email:");
+        if (!code || !code.trim()) { setError("Your email was not changed because no code was entered."); return; }
+        body.emailCode = code.trim();
+        body.currentPassword = currentPassword;
+      }
       if (user.role !== "admin") { body.roomNumber = profile.roomNumber; body.hallName = profile.hallName; }
       if (newPassword) { body.currentPassword = currentPassword; body.newPassword = newPassword; }
       if (avatarChanged) body.avatar = avatar;
       const data = await call("/api/auth/me", { method: "PUT", body });
       onUpdated(data);
+      setSavedEmail(data.email || "");
       setProfile(p => ({ ...p, hallId: data.hallId || p.hallId }));
+      if (body.email) setSavedEmail(body.email.toLowerCase());
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setAvatarChanged(false);
       setSuccess(tx("pe.ok"));
@@ -9701,7 +10032,7 @@ function HallGate(props) {
   if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
   if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
   const Hall = window.HallApp;
-  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab, NavTabStrip, NavLayoutToggle, useNavLayout }} />;
+  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab, ChatWorkspace }} />;
 }
 
 /* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
@@ -10102,21 +10433,37 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// One Lost & Found photo. The list leaves photos out; each one is fetched once and remembered.
+const lostFoundPhotoCache = {};
+function LostFoundPhoto({ apiBase, token, id }) {
+  const [src, setSrc] = useState(lostFoundPhotoCache[id] || null);
+  useEffect(() => {
+    if (src) return undefined;
+    let alive = true;
+    api(apiBase, '/api/campus/lost-found/' + id + '/image', { token })
+      .then(d => { lostFoundPhotoCache[id] = d.image_data; if (alive) setSrc(d.image_data); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [id]);
+  if (!src) return <div className="w-full h-36 rounded-lg mb-2 grid place-items-center text-xs" style={{ background: 'var(--line)' }}>Loading photo…</div>;
+  return <img src={src} alt="Lost or found item" className="w-full h-36 object-cover rounded-lg mb-2" />;
+}
+
 function CampusHub({apiBase,token,orders,role}) {
   const [recs,setRecs]=useState([]),[queue,setQueue]=useState(null),[liveOrders,setLiveOrders]=useState([]),[posts,setPosts]=useState([]),[challenge,setChallenge]=useState(null),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
   const [form,setForm]=useState({item_type:'lost',title:'',description:'',location:'',contact:'',image_data:''});
   const [sos,setSos]=useState({emergency_type:'Medical emergency',location:'',details:'',contact:''});
-  const load=async()=>{try{const [r,q,p,c]=await Promise.all([api(apiBase,'/api/campus/recommendations',{token}),api(apiBase,'/api/campus/queue',{token}),api(apiBase,'/api/campus/lost-found',{token}),api(apiBase,'/api/campus/waste-challenge',{token})]);setRecs(r);setQueue(q);setPosts(p);setChallenge(c);if(role==='teacher'){setLiveOrders(await api(apiBase,'/api/campus/live-tracking',{token}))}else{setLiveOrders([])}}catch(e){setMsg(e.message)}};
+  const load=async()=>{try{const [r,q,p,c]=await Promise.all([api(apiBase,'/api/campus/recommendations',{token}),api(apiBase,'/api/campus/queue',{token}),api(apiBase,'/api/campus/lost-found?images=0',{token}),api(apiBase,'/api/campus/waste-challenge',{token})]);setRecs(r);setQueue(q);setPosts(p);setChallenge(c);if(role==='teacher'){setLiveOrders(await api(apiBase,'/api/campus/live-tracking',{token}))}else{setLiveOrders([])}}catch(e){setMsg(e.message)}};
   useEffect(()=>{load();const t=setInterval(load,15000);return()=>clearInterval(t)},[]);
   const submitPost=async()=>{setBusy(true);setMsg('');try{await api(apiBase,'/api/campus/lost-found',{method:'POST',token,body:form});setForm({item_type:'lost',title:'',description:'',location:'',contact:'',image_data:''});setMsg('Your Lost & Found post has been published.');await load()}catch(e){setMsg(e.message)}finally{setBusy(false)}};
   const submitSOS=async()=>{setBusy(true);setMsg('');try{const r=await api(apiBase,'/api/campus/emergency',{method:'POST',token,body:sos});setMsg(r.message);setSos({...sos,details:''})}catch(e){setMsg(e.message)}finally{setBusy(false)}};
   const imagePick=async e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>2*1024*1024){setMsg('Choose PNG/JPG/WEBP image under 2 MB.');return}const reader=new FileReader();reader.onload=()=>setForm(x=>({...x,image_data:String(reader.result)}));reader.readAsDataURL(f)};
   return <div className="space-y-5">
     <section className="card p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold">Campus Live Queue</h2><p className="text-sm" style={{color:'var(--ink-soft)'}}>Refreshes automatically every 15 seconds</p></div><button className="btn-primary rounded-lg px-3 py-2" onClick={load}>Refresh</button></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">{[['Active',queue?.summary?.active_orders||0],['Received',queue?.summary?.received||0],['Cooking',queue?.summary?.cooking||0],['Ready',queue?.summary?.ready||0]].map(([k,v])=><div className="rounded-xl p-4" style={{background:'var(--panel-soft)'}}><div className="text-sm">{k}</div><div className="text-2xl font-bold">{v}</div></div>)}</div><p className="text-sm mt-3">Estimated wait for a new order: {queue?.summary?.est_wait_for_new_order||0} minutes</p></section>
-    {role==='teacher'&&<section className="card p-5"><h2 className="text-xl font-bold">Smart Live Order Tracking</h2><p className="text-sm mb-3">Teacher delivery orders only. Rider GPS status refreshes every 15 seconds.</p>{liveOrders.length?liveOrders.map(o=><div className="border rounded-xl p-3 mb-3" style={{borderColor:'var(--line)'}}><div className="flex justify-between gap-2"><b>Order #{o.id} · {o.token}</b><span>{o.status}</span></div><p className="text-sm mt-1">{o.rider_name?`Rider: ${o.rider_name}`:'Waiting for rider assignment'} · {o.rider_live?'GPS live':'GPS not currently updating'}</p>{o.latitude!=null&&o.longitude!=null?<><p className="text-xs mt-1">Location: {o.latitude.toFixed(5)}, {o.longitude.toFixed(5)}</p><a className="text-sm underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${o.latitude}&mlon=${o.longitude}#map=17/${o.latitude}/${o.longitude}`}>Open rider location map</a></>:null}</div>):<p className="text-sm">No active teacher delivery orders to track.</p>}</section>}
+    {role==='teacher'&&<section className="card p-5"><h2 className="text-xl font-bold">Smart Live Order Tracking</h2><p className="text-sm mb-3">Teacher delivery orders only. Rider GPS status refreshes every 15 seconds.</p>{liveOrders.length?liveOrders.map(o=><div className="border rounded-xl p-3 mb-3" style={{borderColor:'var(--line)'}}><div className="flex justify-between gap-2"><b>Order #{o.id} · {o.token}</b><span>{o.status}</span></div><p className="text-sm mt-1">{o.rider_name?(o.rider_assignment_status==='Accepted'?`Rider: ${o.rider_name} · accepted your delivery`:`Rider: ${o.rider_name} · assigned, waiting to accept`):'Waiting for a rider'} · {o.rider_live?'GPS live':'GPS not currently updating'}</p>{o.latitude!=null&&o.longitude!=null?<><p className="text-xs mt-1">Location: {o.latitude.toFixed(5)}, {o.longitude.toFixed(5)}</p><a className="text-sm underline" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${o.latitude}&mlon=${o.longitude}#map=17/${o.latitude}/${o.longitude}`}>Open rider location map</a></>:null}</div>):<p className="text-sm">No active teacher delivery orders to track.</p>}</section>}
     <section className="card p-5"><h2 className="text-xl font-bold">Campus Food Waste Challenge</h2><p className="text-sm mt-1">Help your campus reduce leftovers and build a more sustainable canteen.</p><div className="flex flex-wrap items-center gap-4 mt-3"><div><b className="text-2xl">{challenge?.participants||0}</b><div className="text-xs">Students joined</div></div><div><b className="text-2xl">{challenge?.totals?.leftover||0}</b><div className="text-xs">Leftover portions logged (30 days)</div></div><button disabled={challenge?.joined} className="btn-primary rounded-lg px-3 py-2" onClick={async()=>{try{await api(apiBase,'/api/campus/waste-challenge/join',{method:'POST',token,body:{}});await load();setMsg('You joined the Campus Food Waste Challenge!')}catch(e){setMsg(e.message)}}}>{challenge?.joined?'Joined ✓':'Join the challenge'}</button></div><div className="text-xs mt-2">{challenge?.joined?`Your no-waste pledges: ${challenge.my_saved_meals||0}`:'Make mindful meal choices and avoid unnecessary food waste.'} {challenge?.joined&&!challenge?.pledged_today&&<button className="underline ml-2" onClick={async()=>{try{await api(apiBase,'/api/campus/waste-challenge/pledge',{method:'POST',token,body:{}});await load();setMsg('Your no-waste pledge was recorded!')}catch(e){setMsg(e.message)}}}>I finished my meal without waste today</button>}{challenge?.pledged_today?' · Today’s pledge recorded':''}</div></section>
     <section className="card p-5"><h2 className="text-xl font-bold mb-3">AI-style Food Recommendations</h2><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{recs.map(x=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}><div className="font-semibold">{x.name}</div><div className="text-sm">৳{x.price} · {x.stock} left</div><div className="text-xs mt-2" style={{color:'var(--ink-soft)'}}>{x.reason}</div></div>)}</div>{!recs.length&&<p className="text-sm">No recommendations available right now.</p>}</section>
-    <section className="card p-5"><h2 className="text-xl font-bold">Lost & Found</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Post a lost item or something you found on campus.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={form.item_type} onChange={e=>setForm({...form,item_type:e.target.value})}><option value="lost">I lost something</option><option value="found">I found something</option></select><input className="input" placeholder="Item title" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/><input className="input" placeholder="Where was it lost/found?" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input className="input" placeholder="Contact information (optional)" value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><div className="flex flex-wrap items-center gap-3 mt-3"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={imagePick}/>{form.image_data&&<span className="text-xs">Image attached</span>}<button disabled={busy} className="btn-primary rounded-lg px-3 py-2" onClick={submitPost}>Publish post</button></div><div className="grid md:grid-cols-2 gap-3 mt-4">{posts.map(p=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}>{p.image_data&&<img src={p.image_data} alt="Lost or found item" className="w-full h-36 object-cover rounded-lg mb-2"/>}<div className="flex justify-between gap-2"><b>{p.title}</b><span className="text-xs">{p.item_type} · {p.status}</span></div><p className="text-sm">{p.description}</p><p className="text-xs mt-2">{p.location} · Posted by {p.posted_by}</p></div>)}</div></section>
+    <section className="card p-5"><h2 className="text-xl font-bold">Lost & Found</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Post a lost item or something you found on campus.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={form.item_type} onChange={e=>setForm({...form,item_type:e.target.value})}><option value="lost">I lost something</option><option value="found">I found something</option></select><input className="input" placeholder="Item title" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/><input className="input" placeholder="Where was it lost/found?" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input className="input" placeholder="Contact information (optional)" value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><div className="flex flex-wrap items-center gap-3 mt-3"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={imagePick}/>{form.image_data&&<span className="text-xs">Image attached</span>}<button disabled={busy} className="btn-primary rounded-lg px-3 py-2" onClick={submitPost}>Publish post</button></div><div className="grid md:grid-cols-2 gap-3 mt-4">{posts.map(p=><div className="rounded-xl border p-3" style={{borderColor:'var(--line)'}}>{p.has_image&&<LostFoundPhoto apiBase={apiBase} token={token} id={p.id}/>}<div className="flex justify-between gap-2"><b>{p.title}</b><span className="text-xs">{p.item_type} · {p.status}</span></div><p className="text-sm">{p.description}</p><p className="text-xs mt-2">{p.location} · Posted by {p.posted_by}</p></div>)}</div></section>
     <section className="card p-5"><h2 className="text-xl font-bold">Emergency SOS & Campus Help</h2><p className="text-sm mb-3" style={{color:'var(--ink-soft)'}}>Use for urgent campus assistance. For immediate danger, contact local emergency services as well.</p><div className="grid md:grid-cols-2 gap-3"><select className="input" value={sos.emergency_type} onChange={e=>setSos({...sos,emergency_type:e.target.value})}><option>Medical emergency</option><option>Safety / security</option><option>Fire / accident</option><option>Other urgent help</option></select><input className="input" placeholder="Your current location / landmark" value={sos.location} onChange={e=>setSos({...sos,location:e.target.value})}/><input className="input" placeholder="Contact number" value={sos.contact} onChange={e=>setSos({...sos,contact:e.target.value})}/></div><textarea className="input w-full mt-3" placeholder="What happened?" value={sos.details} onChange={e=>setSos({...sos,details:e.target.value})}/><button disabled={busy} className="btn-primary rounded-lg px-3 py-2 mt-3" style={{background:'#b91c1c',color:'white'}} onClick={submitSOS}>Send Emergency SOS</button></section>
     {msg&&<div className="card p-3 text-sm">{msg}</div>}
   </div>
@@ -10173,6 +10520,8 @@ function App() {
   const [toastNotifications, setToastNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [chatRefreshKey, setChatRefreshKey] = useState(0);
+  const [riderChatKey, setRiderChatKey] = useState(0); // bumped when a teacher-rider chat message arrives
+  const [riderChatUnread, setRiderChatUnread] = useState(0);
   const [loyaltyKey, setLoyaltyKey] = useState(0); // bumped whenever points / offers may have changed
 
   const now = new Date();
@@ -10204,6 +10553,15 @@ function App() {
   };
 
   const call = (path, opts) => api(apiBase, path, { ...opts, token: session && session.token });
+
+  // Teachers: how many rider messages are waiting (badge on the "Rider chat" tab). It refreshes whenever a new one arrives.
+  useEffect(() => {
+    if (!session || session.user.role !== "teacher" || tab === "riderChat") { setRiderChatUnread(0); return; }
+    let live = true;
+    api(apiBase, "/api/teacher-rider-chat/unread", { token: session.token })
+      .then(d => { if (live) setRiderChatUnread(Number(d.unread) || 0); }).catch(() => {});
+    return () => { live = false; };
+  }, [session, tab, apiBase, riderChatKey]);
 
   const mapMenu = (rows) => rows.map(m => ({ ...m, bn: m.name_bn }));
   const mapWallet = (data) => ({
@@ -10285,7 +10643,7 @@ function App() {
 
   // Initial data load after login
   useEffect(() => {
-    if (!session || session.user.role === "rider") return;
+    if (!session || session.user.role === "rider" || session.user.role === "staff") return;
     (async () => {
       try {
         if (session.user.role === "admin") {
@@ -10306,7 +10664,7 @@ function App() {
 
   // Refetch the meal calendar & bill whenever the visible month changes
   useEffect(() => {
-    if (!session || session.user.role === "admin" || session.user.role === "rider") return;
+    if (!session || session.user.role === "admin" || session.user.role === "rider" || session.user.role === "staff") return;
     refreshCalendar().catch(showError);
   }, [session, year, month]);
 
@@ -10315,9 +10673,11 @@ function App() {
     if (!session) return;
     const socket = io(apiBase, { auth: { token: session.token } });
     socketRef.current = socket;
+    window.__campusSocket = socket;
+    socket.on("chat:typing", (p) => window.dispatchEvent(new CustomEvent("chat-typing", { detail: p })));
     socket.on("connect", () => {
       setConnected(true);
-      if (session.user.role !== "admin" && session.user.role !== "rider") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
+      if (session.user.role !== "admin" && session.user.role !== "rider" && session.user.role !== "staff") { refreshMyOrders().catch(() => {}); refreshAlerts().catch(() => {}); }
     });
     socket.on("disconnect", () => setConnected(false));
     socket.on("referral:bonus", (p) => {
@@ -10333,6 +10693,9 @@ function App() {
       pushNotification("order", tx("iss.upd.t"), tx("iss.upd", { o: p.token || "#" + p.order_id }));
       refreshMyOrders().catch(() => {});
     });
+    socket.on("order:rider-accepted", (p) => {
+      pushNotification("order", "Rider accepted", `${p.riderName || "A rider"} accepted delivery of order #${p.orderId}.`);
+    });
     socket.on("order:new", (order) => {
       if (session.user.role === "admin") {
         setOrders(prev => [order, ...prev]);
@@ -10342,7 +10705,7 @@ function App() {
     socket.on("order:update", (order) => {
       setOrders(prev => prev.map(o => o.id === order.id
         ? { ...o, status: order.status, ...(order.picked_up_at !== undefined ? { picked_up_at: order.picked_up_at } : {}) } : o));
-      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider" && session.user.role !== "staff") refreshMyOrders().catch(() => {});
       if (order.picked_up_at && session.user.role !== "admin") {
         pushNotification("order", tx("n.collected.t"), tx("n.collected", { o: order.token || "#" + order.id }));
         return;
@@ -10379,7 +10742,14 @@ function App() {
     socket.on("chat:message", (payload) => {
       setChatRefreshKey(value => value + 1);
       if (Number(payload.senderId) !== Number(session.user.id)) {
-        pushNotification("chat", tx("n.chat"), `${payload.senderName}: ${payload.message}`);
+        pushNotification("chat", payload.scope === "hall" ? "New message from Hall Admin" : tx("n.chat"), `${payload.senderName}: ${payload.message}`);
+      }
+    });
+    // A teacher and a rider wrote to each other: refresh the Rider chat tab and show a notice for the one who received it
+    socket.on("teacher-rider-chat:message", (payload) => {
+      setRiderChatKey(value => value + 1);
+      if (Number(payload.senderId) !== Number(session.user.id)) {
+        pushNotification("chat", payload.senderRole === "rider" ? tx("n.trc.rider") : tx("n.trc.teacher"), `${payload.senderName}: ${payload.message}`);
       }
     });
     // Queue positions of everyone's orders shift whenever any order is placed, cancelled or advanced
@@ -10387,7 +10757,7 @@ function App() {
     socket.on("menu:changed", () => { refreshMenu().catch(() => {}); });
     socket.on("menu:restocked", () => { refreshAlerts().catch(() => {}); });
     socket.on("queue:changed", () => {
-      if (session.user.role !== "admin" && session.user.role !== "rider") refreshMyOrders().catch(() => {});
+      if (session.user.role !== "admin" && session.user.role !== "rider" && session.user.role !== "staff") refreshMyOrders().catch(() => {});
     });
 
     return () => socket.disconnect();
@@ -10651,7 +11021,9 @@ function App() {
 
   if (!session) return <><RiderGpsBackground /><Login apiBase={apiBase} setApiBase={setApiBase} onAuth={onAuth} onToggleLang={toggleLang} /></>;
 
-  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} /></>;
+  if (session.user.role === "staff") return <StaffShell apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} />;
+
+  if (session.user.role === "rider") return <><RiderGpsBackground /><RiderDashboard apiBase={apiBase} token={session.token} user={session.user} onLogout={logout} chatRefreshKey={chatRefreshKey} /></>;
 
   if (!restaurant) {
     return <><RiderGpsBackground /><RestaurantPicker role={session.user.role} userName={session.user.name} lang={lang}
@@ -10661,7 +11033,7 @@ function App() {
   // The Hall is its own section (no cart / riders / offers) — it replaces the whole restaurant screen
   if (restaurant.isHall) {
     return <HallGate call={call} user={session.user} token={session.token} lang={lang} onBack={() => setRestaurant(null)} onLogout={logout} refreshWallet={refreshWallet}
-      ext={{ apiBase, wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
+      ext={{ apiBase, chatRefreshKey, wallet, busy, topUp, onLookup: lookupRecipient, onSend: sendMoney,
         onProfileUpdated: (u) => setSession(s => ({ ...s, user: { ...s.user, name: u.name, walletBalance: u.walletBalance, avatar: u.avatar || null, email: u.email || null, accountType: u.accountType, hallName: u.hallName || null, roomNumber: u.roomNumber || null, hallId: u.hallId || null } })) }} />;
   }
 
@@ -10691,7 +11063,11 @@ function App() {
     { key: "feedback", label: tx("nav.feedback"), icon: I.star, badge: toRate },
     { key: "profile", label: tx("nav.profile"), icon: I.user },
   ];
-  const teacherTabs = [...userTabs, { key: "riderTracking", label: "Rider Tracking", icon: I.ticket }];
+  const teacherTabs = [
+    ...userTabs,
+    { key: "riderTracking", label: "Rider Tracking", icon: I.ticket },
+    { key: "riderChat", label: tx("nav.riderChat"), icon: I.chat, badge: riderChatUnread },
+  ];
   const adminTabs = [
     { key: "overview", label: "Overview", icon: I.dashboard },
     { key: "commandCenter", label: "Command Center", icon: I.chart },
@@ -10699,6 +11075,10 @@ function App() {
     { key: "hallFood", label: "Hall Food", icon: I.calendar },
     { key: "adminOrders", label: "Orders", icon: I.ticket },
     { key: "kds", label: "Kitchen Display (KDS)", icon: I.dashboard },
+    { key: "inventory", label: "Inventory", icon: I.box },
+    { key: "ingredientStock", label: "Ingredient Stock", icon: I.box },
+    { key: "settlements", label: "Vendor Payouts", icon: I.wallet },
+    { key: "emergencyControls", label: "Emergency Control", icon: I.dashboard },
     { key: "verify", label: "Scan token", icon: I.ticket },
     { key: "coupons", label: "Coupons", icon: I.ticket },
     { key: "offers", label: "Offers", icon: I.gift },
@@ -10742,6 +11122,7 @@ function App() {
 
       {/* ─── Main Content Viewport ─── */}
       <div className="portal-main">
+        {window.CDComponents && window.CDComponents.EmergencyBannerAlert && <window.CDComponents.EmergencyBannerAlert />}
         {/* Top Header Bar */}
         <PortalTopHeader
           role={session.user.role}
@@ -10934,11 +11315,27 @@ function App() {
           <WalletTab apiBase={apiBase} token={session.token} balance={wallet.balance} topUp={topUp} transactions={wallet.transactions} busy={busy} suggestedAmount={topupSuggest}
             onLookup={lookupRecipient} onSend={sendMoney} />
         )}
+        
+        
+        {session.user.role === "admin" && tab === "settlements" && window.CDComponents && window.CDComponents.VendorPayoutDashboard && (
+          <window.CDComponents.VendorPayoutDashboard />
+        )}
+        {session.user.role === "admin" && tab === "emergencyControls" && window.CDComponents && window.CDComponents.AdminEmergencyControls && (
+          <window.CDComponents.AdminEmergencyControls />
+        )}
+        {session.user.role === "admin" && tab === "ingredientStock" && window.CDComponents && window.CDComponents.IngredientStockDashboard && (
+          <window.CDComponents.IngredientStockDashboard />
+        )}
         {tab === "chat" && (
           <ChatWorkspace role={session.user.role} userId={session.user.id} apiBase={apiBase}
             sessionToken={session.token} refreshKey={chatRefreshKey} />
         )}
+        {session.user.role === "teacher" && tab === "riderChat" && window.CDComponents && window.CDComponents.TeacherRiderChat && (
+          <window.CDComponents.TeacherRiderChat role="teacher" userId={session.user.id} apiBase={apiBase}
+            token={session.token} tx={tx} refreshKey={riderChatKey} />
+        )}
 
+        {session.user.role === "admin" && tab === "inventory" && <InventoryHost kind="admin" apiBase={apiBase} token={session.token} />}
         {session.user.role === "admin" && tab === "commandCenter" && <CanteenCommandCenter apiBase={apiBase} token={session.token} orders={restaurantOrders} restaurantId={restaurant?.id} />}
         {session.user.role === "admin" && tab === "overview" && <AdminOverview overview={overview} orders={restaurantOrders} />}
         {session.user.role === "admin" && tab === "adminMenu" && (
@@ -10975,6 +11372,7 @@ function App() {
         {posReceiptOrder && (
           <ThermalReceiptModal order={posReceiptOrder} onClose={() => setPosReceiptOrder(null)} />
         )}
+
         {showDailySpin && (
           <DailySpinWheelModal user={session.user} onClose={() => setShowDailySpin(false)} onReward={(msg) => { showSuccess(msg); refreshWallet(); }} />
         )}

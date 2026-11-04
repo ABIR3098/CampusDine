@@ -5,11 +5,12 @@
 // HMAC of the token made with the server's secret, so the counter can tell a
 // genuine CampusDine QR from a made-up one.
 const crypto = require("crypto");
+const { getSigningSecret } = require("./secret");
 
 const PREFIX = "CD1";
 
 function secret() {
-  return process.env.JWT_SECRET || "campusdine-dev-secret";
+  return getSigningSecret();
 }
 
 function sign(token) {

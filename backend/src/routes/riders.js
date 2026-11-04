@@ -3,43 +3,26 @@ const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { recordAuditEvent } = require("../utils/audit");
+const { publicRiderLocation } = require("../utils/riderLocation");
+const { assignPendingTeacherOrders } = require("../utils/riderAssignment");
+const riderDispatcher = require("../services/riderDispatcher");
+const { acceptAssignedOrder } = require("../utils/riderAccept");
+
+// A rider sends a position about every 8 seconds; looking for waiting orders that often is enough.
+const DISPATCH_GAP_MS = 5000;
 const router = express.Router();
 
+// POST /orders/assign-pending (admin)
 router.post("/orders/assign-pending", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
-  const { assignOrderToBestRider } = require("../utils/riderAssignment");
-  const connection = await pool.getConnection();
-  const assigned = [];
-  try {
-    const [pending] = await connection.query(`
-      SELECT o.id
-      FROM orders o JOIN users u ON u.id = o.user_id
-      WHERE o.rider_id IS NULL AND o.rider_assignment_status = 'Unassigned'
-        AND u.role = 'teacher' AND o.status IN ('Received', 'Cooking', 'Ready')
-      ORDER BY o.created_at ASC LIMIT 100
-    `);
-    for (const order of pending) {
-      await connection.beginTransaction();
-      try {
-        const riderId = await assignOrderToBestRider(connection, Number(order.id));
-        if (riderId) {
-          await recordAuditEvent(connection, req, "AUTO_RIDER_ASSIGN", "order", order.id, { riderId });
-        }
-        await connection.commit();
-        if (riderId) {
-          assigned.push({ orderId: Number(order.id), riderId });
-          req.app.get("io").to(`rider:${riderId}`).emit("rider:order-assigned", { orderId: Number(order.id) });
-        }
-      } catch (error) {
-        await connection.rollback();
-        throw error;
-      }
-    }
-  } finally {
-    connection.release();
-  }
+  const io = req.app.get("io");
+  const assigned = await assignPendingTeacherOrders(pool, {
+    onAssigned: ({ orderId, riderId }, connection) => recordAuditEvent(connection, req, "AUTO_RIDER_ASSIGN", "order", orderId, { riderId }),
+  });
+  for (const { orderId, riderId } of assigned) io.to(`rider:${riderId}`).emit("rider:order-assigned", { orderId });
   res.json({ ok: true, assigned, count: assigned.length });
 }));
 
+// GET /orders (rider)
 router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const [orders] = await pool.query(`
     SELECT o.id, o.token, o.total, o.status, o.pickup_time, o.note, o.tip_amount, o.delivery_note,
@@ -53,19 +36,25 @@ router.get("/orders", verifyToken, requireRole("rider"), catchAsync(async (req, 
   res.json(orders);
 }));
 
+// POST /orders/:orderId/accept (rider)
 router.post("/orders/:orderId/accept", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const orderId = Number(req.params.orderId);
   if (!Number.isInteger(orderId) || orderId < 1) return res.status(400).json({ error: "Invalid order ID" });
-  const [result] = await pool.query(`
-    UPDATE orders SET rider_assignment_status = 'Accepted'
-    WHERE id = ? AND rider_id = ? AND rider_assignment_status = 'Assigned' AND status <> 'Cancelled'
-  `, [orderId, Number(req.user.id)]);
-  if (!result.affectedRows) return res.status(409).json({ error: "Order is not assigned to you or is no longer available" });
-  req.app.get("io").to("admins").emit("rider:order-accepted", { orderId, riderId: Number(req.user.id) });
+  const riderId = Number(req.user.id);
+  const accepted = await acceptAssignedOrder(pool, { orderId, riderId });
+  if (!accepted.ok) return res.status(409).json({ error: "Order is not assigned to you or is no longer available" });
+  if (accepted.changed) {
+    await recordAuditEvent(pool, req, "RIDER_ACCEPT", "order", orderId, { riderId });
+    const io = req.app.get("io");
+    io.to("admins").emit("rider:order-accepted", { orderId, riderId });
+    // The teacher who ordered sees at once that a rider took the delivery.
+    io.to(`user:${accepted.order.user_id}`).emit("order:rider-accepted", { orderId, riderId, riderName: req.user.name });
+  }
   res.json({ ok: true, orderId, rider_assignment_status: "Accepted" });
 }));
 
 // Rider shares only their own device location. Location is visible to authenticated teachers.
+// POST /location (rider)
 router.post("/location", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
   const riderId = Number(req.user.id);
   if (req.body && req.body.active === false) {
@@ -85,8 +74,11 @@ router.post("/location", verifyToken, requireRole("rider"), catchAsync(async (re
   const location = { riderId, name: req.user.name, latitude, longitude, accuracy_m: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : null, active: true, updated_at: new Date().toISOString() };
   req.app.get("io").to("teachers").emit("rider:location", location);
   res.json({ ok: true, location });
+  // This rider may be the first one in range for an order that has been waiting.
+  riderDispatcher.dispatchQuietly({ io: req.app.get("io"), req, minGapMs: DISPATCH_GAP_MS });
 }));
 
+// GET /orders/summary (rider)
 router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(async (_req, res) => {
   const riderId = Number(_req.user.id);
   const [counts] = await pool.query(`SELECT status, COUNT(*) AS total FROM orders
@@ -110,12 +102,17 @@ router.get("/orders/summary", verifyToken, requireRole("rider"), catchAsync(asyn
   const [[rt]] = await pool.query("SELECT COALESCE(AVG(rider_rating), 0) AS avg, COUNT(rider_rating) AS cnt FROM orders WHERE rider_id = ? AND rider_rating IS NOT NULL", [riderId]);
   const [reviews] = await pool.query(
     "SELECT rider_rating AS rating, rider_comment AS comment, rider_rated_at AS at FROM orders WHERE rider_id = ? AND rider_rating IS NOT NULL ORDER BY rider_rated_at DESC LIMIT 5", [riderId]);
-  res.json({ ...summary, tips_total: Number(tips.total), tips_today: Number(tips.today), rating_avg: Number(rt.avg), rating_count: Number(rt.cnt), reviews, orders: recent });
+  // Only a number: how many teacher orders still wait for a rider (no customer details).
+  const [[waiting]] = await pool.query(`SELECT COUNT(*) AS total FROM orders o JOIN users u ON u.id = o.user_id
+    WHERE o.rider_id IS NULL AND o.rider_assignment_status = 'Unassigned' AND u.role = 'teacher'
+      AND o.status IN ('Received','Cooking','Ready') AND o.picked_up_at IS NULL`);
+  res.json({ ...summary, waiting_orders: Number(waiting.total), tips_total: Number(tips.total), tips_today: Number(tips.today), rating_avg: Number(rt.avg), rating_count: Number(rt.cnt), reviews, orders: recent });
 }));
 
+// GET /locations (teacher)
 router.get("/locations", verifyToken, requireRole("teacher"), catchAsync(async (_req, res) => {
   const [rows] = await pool.query(`SELECT u.id AS riderId, u.name, u.external_id, l.latitude, l.longitude, l.accuracy_m, CASE WHEN l.updated_at >= NOW() - INTERVAL 30 SECOND THEN l.active ELSE 0 END AS active, l.updated_at
     FROM users u LEFT JOIN rider_locations l ON l.rider_id = u.id WHERE u.role = 'rider' ORDER BY u.name`);
-  res.json(rows.map(r => ({ ...r, latitude: r.latitude == null ? null : Number(r.latitude), longitude: r.longitude == null ? null : Number(r.longitude), accuracy_m: r.accuracy_m == null ? null : Number(r.accuracy_m), active: Boolean(r.active) })));
+  res.json(rows.map(publicRiderLocation));
 }));
 module.exports = router;

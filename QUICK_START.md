@@ -1,5 +1,7 @@
 # CampusDine Quick Start Guide
 
+> **Legacy document.** It describes the older `*-enhanced.js` branch. Several of those route files (`auth-enhanced`, `orders-enhanced`, `wallet-enhanced`, `menu-enhanced`, `profile`, `ratings`, `favorites`, `notifications`, `payment`) do not load today, and `npm start` runs `server.js`, which does not use them. Treat the "complete / tested" claims below as historical.
+
 Get your enhanced CampusDine server running in 5 minutes!
 
 ## ⚡ Quick Setup (5 minutes)
@@ -42,9 +44,6 @@ JWT_SECRET=your-super-secret-key-change-this
 # Install dependencies
 npm install
 
-# Or use enhanced package
-cp package-enhanced.json package.json
-npm install
 
 # Start server
 npm run dev

@@ -24,3 +24,8 @@ npm-debug.log*
 
 # Test output
 coverage/
+
+# One-off local helper scripts
+/fix[0-9]*-*.js
+/small-commits*.js
+/commits*.js

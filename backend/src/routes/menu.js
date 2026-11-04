@@ -39,6 +39,7 @@ async function resolveFavoriteTable() {
 }
 
 // GET /api/menu  (any logged-in user) — includes is_favorite, calories and allergens
+// GET / (any logged-in user)
 router.get("/", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
   // Feature: hidden items are only visible to the admin (who needs them to un-hide them)
@@ -64,6 +65,7 @@ router.get("/", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // POST /api/menu/:id/favorite  (any logged-in user) — star an item (idempotent)
+// POST /:id/favorite (any logged-in user)
 router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
   const [[item]] = await pool.query("SELECT id FROM menu_items WHERE id = ?", [req.params.id]);
   if (!item) return res.status(404).json({ error: "Item not found" });
@@ -81,6 +83,7 @@ router.post("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/menu/:id/favorite  (any logged-in user) — unstar an item
+// DELETE /:id/favorite (any logged-in user)
 router.delete("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
   const { table, itemColumn } = await resolveFavoriteTable();
   await pool.query(`DELETE FROM ${table} WHERE user_id = ? AND ${itemColumn} = ?`, [req.user.id, req.params.id]);
@@ -88,6 +91,7 @@ router.delete("/:id/favorite", verifyToken, catchAsync(async (req, res) => {
 }));
 
 // POST /api/menu  (admin only) — add a new item
+// POST / (admin)
 router.post("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { name, nameBn, category, price, stock, tag, isVeg } = req.body;
   if (!name || !category || price == null) {
@@ -106,6 +110,7 @@ router.post("/", verifyToken, requireRole("admin"), catchAsync(async (req, res) 
 }));
 
 // PUT /api/menu/:id  (admin only) — update price / stock / tag / veg flag
+// PUT /:id (admin)
 router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res) => {
   const { price, stock, tag, isVeg, availability } = req.body;
   const fields = [];
@@ -133,6 +138,7 @@ router.put("/:id", verifyToken, requireRole("admin"), catchAsync(async (req, res
 }));
 
 // Feature: notify me — students/teachers ask to be told when a sold-out item is available again
+// GET /alerts (student, teacher)
 router.get("/alerts", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const [rows] = await pool.query(
     `SELECT a.id, m.id AS item_id, m.name, m.stock, m.availability
@@ -150,6 +156,7 @@ router.get("/alerts", verifyToken, requireRole("student", "teacher"), catchAsync
   });
 }));
 
+// POST /:id/notify (student, teacher)
 router.post("/:id/notify", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid item" });
@@ -162,6 +169,7 @@ router.post("/:id/notify", verifyToken, requireRole("student", "teacher"), catch
   res.json({ ok: true });
 }));
 
+// DELETE /:id/notify (student, teacher)
 router.delete("/:id/notify", verifyToken, requireRole("student", "teacher"), catchAsync(async (req, res) => {
   await pool.query("DELETE FROM stock_alerts WHERE user_id = ? AND menu_item_id = ?", [req.user.id, Number(req.params.id)]);
   res.json({ ok: true });

@@ -6,6 +6,7 @@ const { verifyToken } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { createOtp, verifyOtp } = require("../utils/otp");
 const { sendOtpEmail } = require("../utils/mailer");
+const { emailChangeNeedsPassword } = require("../utils/profileRules");
 
 const router = express.Router();
 const SIGNUP_BONUS = 250;
@@ -295,7 +296,7 @@ router.post("/login", catchAsync(async (req, res) => {
   }
   fails.delete(key);
 
-  if (["student", "teacher", "admin", "rider", "hall_admin"].includes(portal) && portal !== user.role) {
+  if (["student", "teacher", "admin", "rider", "hall_admin", "staff"].includes(portal) && portal !== user.role) {
     return res.status(403).json({ error: `This account is a ${user.role} account — go back and choose the ${user.role} portal.` });
   }
 
@@ -373,6 +374,29 @@ router.get("/me", verifyToken, catchAsync(async (req, res) => {
   res.json(publicUser(rows[0]));
 }));
 
+// ───────────── POST /api/auth/me/email-code ─────────────
+// body: { email } → emails a 6-digit code to the NEW address. PUT /api/auth/me needs it as emailCode.
+router.post("/me/email-code", verifyToken, catchAsync(async (req, res) => {
+  const e = clean(req.body.email).toLowerCase();
+  if (!EMAIL_RE.test(e) || e.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
+  // Only the account owner may start an email change, so the password is checked before any code is mailed.
+  const [[me]] = await pool.query("SELECT password_hash FROM users WHERE id = ?", [req.user.id]);
+  if (!me) return res.status(404).json({ error: "Account not found" });
+  if (!req.body.currentPassword) return res.status(400).json({ error: "Enter your current password to change your email" });
+  if (!(await bcrypt.compare(String(req.body.currentPassword), me.password_hash))) return res.status(401).json({ error: "Current password is incorrect" });
+  const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
+  if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
+  const otp = await createOtp(pool, e, "change_email");
+  if (!otp.ok) return res.status(otp.status).json({ error: otp.error, retryAfter: otp.retryAfter });
+  try {
+    const mail = await sendOtpEmail(e, otp.code, "change_email", otp.expiresInMin);
+    res.json({ ok: true, expiresInMin: otp.expiresInMin, emailed: mail.sent });
+  } catch (err) {
+    console.error("OTP email failed:", err.message);
+    res.status(502).json({ error: "Could not send the email. Check the address and try again." });
+  }
+}));
+
 // ───────────── PUT /api/auth/me ─────────────
 // body (all optional): { name, email, phone, address, department, fatherPhone,
 //                        hallName, roomNumber, currentPassword, newPassword, avatar }
@@ -390,9 +414,21 @@ router.put("/me", verifyToken, catchAsync(async (req, res) => {
   if (email !== undefined) {
     const e = clean(email).toLowerCase();
     if (!EMAIL_RE.test(e) || e.length > 120) return res.status(400).json({ error: "Enter a valid email address" });
-    const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
-    if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
-    fields.push("email = ?"); values.push(e);
+    // The e-mail receives login and password-reset codes, so changing it needs BOTH the current password
+    // and the code we send to the new address.
+    const [[me]] = await pool.query("SELECT email,password_hash FROM users WHERE id = ?", [req.user.id]);
+    if (!me) return res.status(404).json({ error: "Account not found" });
+    if (String(me.email || "").trim().toLowerCase() !== e) {
+      const givenPassword = req.body.currentPassword;
+      if (!givenPassword) return res.status(400).json({ error: "Enter your current password to change your email" });
+      if (!(await bcrypt.compare(String(givenPassword), me.password_hash))) return res.status(401).json({ error: "Current password is incorrect" });
+      const [taken] = await pool.query("SELECT id FROM users WHERE email = ? AND id != ?", [e, req.user.id]);
+      if (taken.length > 0) return res.status(409).json({ error: "This email is already used by another account" });
+      if (!req.body.emailCode) return res.status(400).json({ error: "Changing your email needs the code we send to the new address.", needsEmailCode: true });
+      const check = await verifyOtp(pool, e, "change_email", req.body.emailCode);
+      if (!check.ok) return res.status(check.status).json({ error: check.error });
+      fields.push("email = ?"); values.push(e);
+    }
   }
   if (phone !== undefined) { fields.push("phone = ?"); values.push(clean(phone) || null); }
   if (address !== undefined) { fields.push("address = ?"); values.push(clean(address) || null); }

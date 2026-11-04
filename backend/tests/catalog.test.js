@@ -40,3 +40,30 @@ test("every item image file exists in frontend/images/food", () => {
     assert.ok(fs.existsSync(file), `${name}: missing ${img}`);
   }
 });
+
+test("nutrition entries have non-negative calories and known allergens", () => {
+  const { NUTRITION_BY_NAME } = require("../src/catalog");
+  const known = ["egg", "milk", "gluten", "fish", "nuts", "soy"];
+  for (const [name, info] of Object.entries(NUTRITION_BY_NAME)) {
+    assert.ok(Number.isFinite(info.calories) && info.calories >= 0, name + ": bad calories");
+    for (const a of info.allergens) assert.ok(known.includes(a), name + ": unknown allergen " + a);
+  }
+});
+
+test("every nutrition entry matches a built-in item or one in more_menu_items.sql", () => {
+  const { NUTRITION_BY_NAME } = require("../src/catalog");
+  const sql = fs.readFileSync(path.join(__dirname, "..", "more_menu_items.sql"), "utf8");
+  for (const name of Object.keys(NUTRITION_BY_NAME)) {
+    assert.ok(name in IMAGE_BY_NAME || sql.includes("SELECT '" + name + "'"), name + " is not a known item");
+  }
+});
+
+test("no built-in item is listed under two restaurants", () => {
+  const seen = new Map();
+  for (const [restaurant, names] of Object.entries(ITEMS_BY_RESTAURANT)) {
+    for (const name of names) {
+      assert.ok(!seen.has(name), name + " is in " + seen.get(name) + " and " + restaurant);
+      seen.set(name, restaurant);
+    }
+  }
+});

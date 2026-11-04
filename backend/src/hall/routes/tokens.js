@@ -18,6 +18,7 @@ async function queueInfo(db, date, slot, serial) {
 }
 
 // GET /api/hall/token → today's tokens of the person: [{ slot, serial, plates, status, nowServing, ahead }]
+// GET /token
 router.get("/token", people, catchAsync(async (req, res) => {
   const date = nowParts().dateKey;
   const [rows] = await pool.query(
@@ -43,6 +44,7 @@ router.get("/token", people, catchAsync(async (req, res) => {
 // POST /api/hall/token  body: { slot, payMethod } — take a token for today's meal (needs the meal ON, or guest plates)
 // payMethod "wallet" pays this meal from the wallet now (it is counted in the month's bill as paid);
 // "later" (default) only takes the token and the meal stays in the monthly bill.
+// POST /token
 router.post("/token", people, catchAsync(async (req, res) => {
   const slot = (req.body || {}).slot;
   const payMethod = (req.body || {}).payMethod === "wallet" ? "wallet" : "later";
@@ -97,6 +99,7 @@ router.post("/token", people, catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/queue?slot=lunch (admin) → today's queue for that meal
+// GET /queue (admin)
 router.get("/queue", requireRole("admin"), catchAsync(async (req, res) => {
   const slot = req.query.slot;
   if (!SLOTS.includes(slot)) return res.status(400).json({ error: "Choose breakfast, lunch or dinner" });
@@ -115,6 +118,7 @@ router.get("/queue", requireRole("admin"), catchAsync(async (req, res) => {
 
 // POST /api/hall/queue/scan (admin) body: { code: "HALL|YYYY-MM-DD|slot|serial" }
 // Scanning a Hall QR verifies today's token and atomically marks it served.
+// POST /queue/scan (admin)
 router.post("/queue/scan", requireRole("admin"), catchAsync(async (req, res) => {
   const code = String((req.body || {}).code || "").trim();
   const match = /^HALL\|(\d{4}-\d{2}-\d{2})\|(breakfast|lunch|dinner)\|(\d+)$/.exec(code);
@@ -144,6 +148,7 @@ router.post("/queue/scan", requireRole("admin"), catchAsync(async (req, res) => 
 }));
 
 // POST /api/hall/queue/serve (admin) body: { slot, serial } — mark a token as served
+// POST /queue/serve (admin)
 router.post("/queue/serve", requireRole("admin"), catchAsync(async (req, res) => {
   const { slot, serial } = req.body || {};
   if (!SLOTS.includes(slot) || !Number.isInteger(Number(serial))) return res.status(400).json({ error: "slot and serial are required" });

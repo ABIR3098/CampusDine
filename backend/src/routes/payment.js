@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const { getConnection } = require("../db");
+const { settleGatewayPayment } = require("../services/paymentSettlement");
 const { authenticateToken } = require("../middleware/auth");
 
 const router = express.Router();
@@ -136,45 +137,24 @@ router.post("/bkash/callback", async (req, res) => {
 
     if (executeResponse.data.statusCode === "0000") {
       const db = await getConnection();
-
-      // Update payment transaction
-      await db.query(
-        `UPDATE payment_transactions 
-         SET status = ?, bkash_trx_id = ?
-         WHERE transaction_ref = ?`,
-        [
-          "SUCCESS",
-          executeResponse.data.trxID,
-          paymentID,
-        ]
-      );
-
-      // Get order details
-      const [transaction] = await db.query(
-        "SELECT order_id, user_id, amount FROM payment_transactions WHERE transaction_ref = ?",
-        [paymentID]
-      );
-
-      if (transaction.length > 0) {
-        // Update order status
-        await db.query(
-          "UPDATE orders SET status = 'Confirmed' WHERE id = ?",
-          [transaction[0].order_id]
-        );
-
-        // Log wallet transaction
-        await db.query(
-          "INSERT INTO wallet_transactions (user_id, amount, label) VALUES (?, ?, ?)",
-          [
-            transaction[0].user_id,
-            -transaction[0].amount,
-            `Order Payment via bKash - TRX: ${executeResponse.data.trxID}`,
-          ]
-        );
+      let result;
+      try {
+        result = await settleGatewayPayment(db, {
+          transactionRef: paymentID,
+          gateway: "bkash",
+          gatewayTrxId: executeResponse.data.trxID,
+        });
+      } finally {
+        db.release();
       }
 
-      db.release();
-      res.json({ success: true, message: "Payment successful" });
+      if (result.reason === "not_found") {
+        return res.status(404).json({ error: "Unknown transaction" });
+      }
+      return res.json({
+        success: true,
+        message: result.settled ? "Payment successful" : "Payment already confirmed",
+      });
     } else {
       res.status(400).json({ error: "Payment execution failed" });
     }
@@ -257,45 +237,24 @@ router.post("/nagad/callback", async (req, res) => {
     }
 
     const db = await getConnection();
-
-    // Update payment transaction
-    await db.query(
-      `UPDATE payment_transactions 
-      SET status = ?, nagad_trx_id = ?
-       WHERE transaction_ref = ?`,
-      [
-        "SUCCESS",
-        transactionId,
-        transactionId,
-      ]
-    );
-
-    // Get order details
-    const [transaction] = await db.query(
-      "SELECT order_id, user_id, amount FROM payment_transactions WHERE transaction_ref = ?",
-      [transactionId]
-    );
-
-    if (transaction.length > 0) {
-      // Update order status
-      await db.query(
-        "UPDATE orders SET status = 'Confirmed' WHERE id = ?",
-        [transaction[0].order_id]
-      );
-
-      // Log wallet transaction
-      await db.query(
-        "INSERT INTO wallet_transactions (user_id, amount, label) VALUES (?, ?, ?)",
-        [
-          transaction[0].user_id,
-          -transaction[0].amount,
-          `Order Payment via Nagad - TRX: ${transactionId}`,
-        ]
-      );
+    let result;
+    try {
+      result = await settleGatewayPayment(db, {
+        transactionRef: transactionId,
+        gateway: "nagad",
+        gatewayTrxId: transactionId,
+      });
+    } finally {
+      db.release();
     }
 
-    db.release();
-    res.json({ success: true, message: "Payment successful" });
+    if (result.reason === "not_found") {
+      return res.status(404).json({ error: "Unknown transaction" });
+    }
+    res.json({
+      success: true,
+      message: result.settled ? "Payment successful" : "Payment already confirmed",
+    });
   } catch (error) {
     console.error("Error processing Nagad callback:", error);
     res.status(500).json({ error: "Failed to process payment" });

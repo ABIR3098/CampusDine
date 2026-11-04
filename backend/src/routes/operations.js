@@ -3,6 +3,8 @@ const pool = require("../db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const catchAsync = require("../utils/catchAsync");
 const { recordAuditEvent } = require("../utils/audit");
+const riderDispatcher = require("../services/riderDispatcher");
+const { LOCATION_FRESH_SECONDS } = require("../utils/riderAssignment");
 
 const router = express.Router();
 
@@ -11,7 +13,14 @@ router.get("/riders/shift/me", verifyToken, requireRole("rider"), catchAsync(asy
     SELECT id, status, max_orders AS maxOrders FROM rider_shifts
     WHERE rider_id = ? AND status = 'ON_DUTY' ORDER BY id DESC LIMIT 1
   `, [Number(req.user.id)]);
-  res.json(shift || { status: "OFF_DUTY" });
+  // A rider gets orders only while on duty AND sharing a recent position; the app uses this to warn.
+  const [[location]] = await pool.query(`
+    SELECT (active = 1 AND latitude IS NOT NULL AND longitude IS NOT NULL
+            AND updated_at >= NOW() - INTERVAL ${LOCATION_FRESH_SECONDS} SECOND) AS fresh
+    FROM rider_locations WHERE rider_id = ?
+  `, [Number(req.user.id)]);
+  const locationFresh = !!(location && Number(location.fresh));
+  res.json({ ...(shift || { status: "OFF_DUTY" }), locationFresh });
 }));
 
 router.post("/riders/shift/start", verifyToken, requireRole("rider"), catchAsync(async (req, res) => {
@@ -40,6 +49,8 @@ router.post("/riders/shift/start", verifyToken, requireRole("rider"), catchAsync
     await recordAuditEvent(connection, req, "RIDER_SHIFT_START", "rider", req.user.id, { maxOrders });
     await connection.commit();
     res.status(201).json({ ok: true, shiftId: result.insertId, status: "ON_DUTY", maxOrders });
+    // Teacher orders that found no rider while nobody was on duty are handed over now.
+    riderDispatcher.dispatchQuietly({ io: req.app.get("io"), req });
   } catch (error) {
     await connection.rollback();
     throw error;

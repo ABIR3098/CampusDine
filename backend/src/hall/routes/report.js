@@ -32,6 +32,7 @@ async function guestPlates(date, slot) {
 
 // GET /api/hall/report/day?date=YYYY-MM-DD (default today)
 // → { date, slots: [{ slot, label, locked, members, on, off, guests, plates, feast, offList: [{ name, externalId, role }] }] }
+// GET /report/day
 router.get("/report/day", catchAsync(async (req, res) => {
   const now = nowParts();
   const date = req.query.date || now.dateKey;
@@ -58,6 +59,7 @@ router.get("/report/day", catchAsync(async (req, res) => {
 
 // GET /api/hall/report/guests?date=YYYY-MM-DD (default today)
 // → [{ slot, label, plates, people: [{ name, externalId, count, guests: [{ name, phone }] }] }]  — who brought which guest
+// GET /report/guests
 router.get("/report/guests", catchAsync(async (req, res) => {
   const date = req.query.date || nowParts().dateKey;
   if (!isDateKey(date)) return res.status(400).json({ error: "date must look like 2026-10-22" });
@@ -72,6 +74,7 @@ router.get("/report/guests", catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/report/range?from=&to=  (at most 31 days) → [{ date, breakfast: plates, lunch: plates, dinner: plates, total }]
+// GET /report/range
 router.get("/report/range", catchAsync(async (req, res) => {
   const now = nowParts();
   const from = req.query.from || now.dateKey;
@@ -92,6 +95,7 @@ router.get("/report/range", catchAsync(async (req, res) => {
 }));
 
 // GET /api/hall/report/changes?date=&slot=&only=off  — who changed a meal for that date, and when (canteen time)
+// GET /report/changes
 router.get("/report/changes", catchAsync(async (req, res) => {
   const date = req.query.date || nowParts().dateKey;
   if (!isDateKey(date)) return res.status(400).json({ error: "date must look like 2026-10-22" });

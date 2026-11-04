@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../../db");
 const catchAsync = require("../../utils/catchAsync");
 const { requireRole } = require("../../middleware/auth");
+const { todayKey } = require("../../utils/clock");
 const { noticeScope } = require("../noticeScope");
 const router = express.Router();
 const TYPES = new Set(["maintenance","cleaning","laundry","guest","lost_found","facility_booking","feedback","emergency","event","leave","complaint","incident"]);
@@ -19,6 +20,7 @@ const audit = async (userId, action, type, id, details={}) => {
 };
 
 // Hall service requests: students can create and see their own; admins can manage all.
+// GET /services
 router.get("/services", catchAsync(async (req,res) => {
   const type = String(req.query.type || "");
   if (type && !TYPES.has(type)) return res.status(400).json({error:"Invalid service type"});
@@ -32,6 +34,7 @@ router.get("/services", catchAsync(async (req,res) => {
     ORDER BY FIELD(r.status,'submitted','approved','in_progress','resolved','rejected','cancelled'),r.created_at DESC LIMIT 300`;
   const [rows] = await pool.query(sql,args); res.json(rows);
 }));
+// POST /services
 router.post("/services", catchAsync(async (req,res) => {
   const b=req.body||{}, type=String(b.type||"");
   const title=String(b.title||"").trim(), description=String(b.description||"").trim(), location=String(b.location||"").trim();
@@ -48,6 +51,7 @@ router.post("/services", catchAsync(async (req,res) => {
   for (const a of admins) await sendNotice(a.id,'New Hall service request',`A student submitted ${type.replaceAll("_"," ")} request #${r.insertId}.`,'admin_action');
   res.status(201).json({id:r.insertId,type,title,status:"submitted",message:"Request submitted"});
 }));
+// PATCH /services/:id (admin)
 router.patch("/services/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   const id=Number(req.params.id), b=req.body||{}, status=String(b.status||"");
   if(!Number.isSafeInteger(id)||id<1) return res.status(400).json({error:"Invalid request ID"});
@@ -59,6 +63,7 @@ router.patch("/services/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   const [owner]=await pool.query("SELECT user_id FROM hall_requests WHERE id=?",[id]); if(owner.length) await sendNotice(owner[0].user_id,"Hall request updated",`Your request #${id} status is now ${status}.`);
   res.json({id,status,adminNote:note});
 }));
+// DELETE /services/:id
 router.delete("/services/:id", catchAsync(async(req,res)=>{
   const id=Number(req.params.id);
   const [rows]=await pool.query("SELECT id,user_id,status,type,university_id FROM hall_requests WHERE id=? AND (? IS NULL OR university_id=?)",[id,req.user.universityId||null,req.user.universityId||null]);
@@ -71,11 +76,13 @@ router.delete("/services/:id", catchAsync(async(req,res)=>{
   res.json({id,status:"cancelled"});
 }));
 
+// GET /notices
 router.get("/notices", catchAsync(async(req,res)=>{
   const scope=noticeScope(req.user.universityId);
   const [rows]=await pool.query(`SELECT id,title,body,category,pinned,expires_at,created_at FROM hall_notices WHERE (expires_at IS NULL OR expires_at > NOW()) AND ${scope.sql} ORDER BY pinned DESC,created_at DESC LIMIT 100`,scope.params);
   res.json(rows);
 }));
+// POST /notices (admin)
 router.post("/notices", requireRole("admin"), catchAsync(async(req,res)=>{
   const b=req.body||{}, title=String(b.title||"").trim(), body=String(b.body||"").trim(), category=String(b.category||"General").trim().slice(0,50);
   if(title.length<3||title.length>180||!body||body.length>10000) return res.status(400).json({error:"Enter a title and notice body"});
@@ -86,15 +93,18 @@ router.post("/notices", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"created","notice",r.insertId,{title});
   res.status(201).json({id:r.insertId,title,body,category,pinned:!!b.pinned});
 }));
+// DELETE /notices/:id (admin)
 router.delete("/notices/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   await pool.query("DELETE FROM hall_notices WHERE id=? AND (? IS NULL OR university_id=?)",[Number(req.params.id),req.user.universityId||null,req.user.universityId||null]);
   await audit(req.user.id,"deleted","notice",Number(req.params.id));
   res.json({ok:true});
 }));
 
+// GET /inventory (admin)
 router.get("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT * FROM hall_inventory WHERE (? IS NULL OR university_id=?) ORDER BY category,item_name",[req.user.universityId||null,req.user.universityId||null]); res.json(rows);
 }));
+// POST /inventory (admin)
 router.post("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
   const b=req.body||{}, name=String(b.itemName||"").trim(), category=String(b.category||"General").trim().slice(0,80), unit=String(b.unit||"pcs").trim().slice(0,30);
   const quantity=Number(b.quantity), min=Number(b.minQuantity||0);
@@ -105,14 +115,17 @@ router.post("/inventory", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"upserted","inventory",null,{name,quantity,unit});
   res.json({ok:true});
 }));
+// DELETE /inventory/:id (admin)
 router.delete("/inventory/:id", requireRole("admin"), catchAsync(async(req,res)=>{
   await pool.query("DELETE FROM hall_inventory WHERE id=? AND (? IS NULL OR university_id=?)",[Number(req.params.id),req.user.universityId||null,req.user.universityId||null]); res.json({ok:true});
 }));
 
+// GET /students (admin)
 router.get("/students", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT id,name,external_id,email,department,hall_name,room_number,hall_id,phone,account_type FROM users WHERE role='student' AND account_type='hall' AND (? IS NULL OR university_id=?) ORDER BY hall_name,room_number,name LIMIT 1000",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
 }));
+// PATCH /students/:id/room (admin)
 router.patch("/students/:id/room", requireRole("admin"), catchAsync(async(req,res)=>{
   const id=Number(req.params.id), b=req.body||{};
   const hallName=String(b.hallName||"").trim().slice(0,60), roomNumber=String(b.roomNumber||"").trim().slice(0,20), hallId=String(b.hallId||"").trim().slice(0,20);
@@ -128,6 +141,7 @@ router.patch("/students/:id/room", requireRole("admin"), catchAsync(async(req,re
   }
 }));
 
+// GET /overview (admin)
 router.get("/overview", requireRole("admin"), catchAsync(async(req,res)=>{
   const [[counts]] = await pool.query(`SELECT
     (SELECT COUNT(*) FROM hall_requests WHERE status IN ('submitted','approved','in_progress') AND (? IS NULL OR university_id=?)) open_requests,
@@ -138,6 +152,7 @@ router.get("/overview", requireRole("admin"), catchAsync(async(req,res)=>{
     (SELECT COUNT(*) FROM hall_inventory WHERE quantity<=min_quantity AND (? IS NULL OR university_id=?)) low_stock`,Array(6).fill(req.user.universityId||null).flatMap(x=>[x,x]));
   res.json(counts);
 }));
+// GET /audit (admin)
 router.get("/audit", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT a.id,a.user_id,u.name AS actor,a.action,a.entity_type,a.entity_id,a.details,a.created_at FROM hall_audit_log a LEFT JOIN users u ON u.id=a.user_id WHERE (? IS NULL OR a.university_id=?) ORDER BY a.created_at DESC LIMIT 200",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
@@ -146,8 +161,9 @@ router.get("/audit", requireRole("admin"), catchAsync(async(req,res)=>{
 // Food-waste recording and a simple historical demand estimate (no AI service/API required).
 
 // Meal pickup QR/token. The token only verifies collection; it never charges a wallet.
+// GET /pickup-tokens
 router.get("/pickup-tokens", catchAsync(async(req,res)=>{
-  const date=String(req.query.date||new Date().toISOString().slice(0,10));
+  const date=String(req.query.date||todayKey());
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Date must be YYYY-MM-DD"});
   const admin=req.user.role==="admin";
   const [rows]=await pool.query(`SELECT t.id,t.user_id,t.the_date,t.slot,t.token_code,t.status,t.created_at,t.served_at,u.name AS student_name,u.external_id
@@ -156,8 +172,9 @@ router.get("/pickup-tokens", catchAsync(async(req,res)=>{
     admin?[date,req.user.universityId||null,req.user.universityId||null]:[date,req.user.universityId||null,req.user.universityId||null,req.user.id]);
   res.json(rows);
 }));
+// POST /pickup-tokens (student, teacher)
 router.post("/pickup-tokens", requireRole("student","teacher"), catchAsync(async(req,res)=>{
-  const b=req.body||{}, slot=String(b.slot||""), date=String(b.date||new Date().toISOString().slice(0,10));
+  const b=req.body||{}, slot=String(b.slot||""), date=String(b.date||todayKey());
   if(!["breakfast","lunch","dinner"].includes(slot)||!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({error:"Choose a valid date and meal"});
   const [meal]=await pool.query("SELECT status FROM hall_meal_state WHERE user_id=? AND the_date=? AND slot=?",[req.user.id,date,slot]);
   if(!meal.length||meal[0].status!=="on") return res.status(400).json({error:"Turn this meal ON before creating a pickup token"});
@@ -168,6 +185,7 @@ router.post("/pickup-tokens", requireRole("student","teacher"), catchAsync(async
   const [rows]=await pool.query("SELECT id,user_id,the_date,slot,token_code,status,created_at,served_at FROM hall_pickup_tokens WHERE user_id=? AND the_date=? AND slot=?",[req.user.id,date,slot]);
   res.status(201).json(rows[0]);
 }));
+// PATCH /pickup-tokens/:code/serve (admin)
 router.patch("/pickup-tokens/:code/serve", requireRole("admin"), catchAsync(async(req,res)=>{
   const code=String(req.params.code||"").toUpperCase().slice(0,24);
   const [r]=await pool.query("UPDATE hall_pickup_tokens SET status='served',served_by=?,served_at=NOW() WHERE token_code=? AND status='issued' AND (? IS NULL OR university_id=?)",[req.user.id,code,req.user.universityId||null,req.user.universityId||null]);
@@ -176,10 +194,12 @@ router.patch("/pickup-tokens/:code/serve", requireRole("admin"), catchAsync(asyn
   res.json({ok:true,status:"served"});
 }));
 
+// GET /waste (admin)
 router.get("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query("SELECT id,DATE_FORMAT(waste_date,'%Y-%m-%d') waste_date,slot,prepared_plates,served_plates,wasted_plates,notes,created_at FROM hall_food_waste WHERE (? IS NULL OR university_id=?) ORDER BY waste_date DESC,FIELD(slot,'breakfast','lunch','dinner') LIMIT 120",[req.user.universityId||null,req.user.universityId||null]);
   res.json(rows);
 }));
+// POST /waste (admin)
 router.post("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
   const b=req.body||{}, date=String(b.date||""), slot=String(b.slot||"");
   const prepared=Number(b.preparedPlates), served=Number(b.servedPlates), wasted=Number(b.wastedPlates);
@@ -192,6 +212,7 @@ router.post("/waste", requireRole("admin"), catchAsync(async(req,res)=>{
   await audit(req.user.id,"recorded","food_waste",r.insertId,{date,slot,prepared,served,wasted});
   res.status(201).json({id:r.insertId,date,slot,preparedPlates:prepared,servedPlates:served,wastedPlates:wasted});
 }));
+// GET /forecast (admin)
 router.get("/forecast", requireRole("admin"), catchAsync(async(req,res)=>{
   const [rows]=await pool.query(`SELECT DAYOFWEEK(the_date) dow,slot,AVG(daily_count) avg_plates,COUNT(*) sample_days FROM
     (SELECT the_date,slot,SUM(CASE WHEN status='on' THEN 1 ELSE 0 END)+SUM(guest_count) daily_count

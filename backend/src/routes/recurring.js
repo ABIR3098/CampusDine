@@ -28,6 +28,7 @@ router.get("/", catchAsync(async (req, res) => {
 }));
 
 // GET /api/recurring/due — plans whose reminder time has come today (and that weren't added/skipped yet)
+// GET /due (any logged-in user)
 router.get("/due", catchAsync(async (req, res) => {
   const now = new Date();
   const today = todayStr(now);
@@ -75,6 +76,7 @@ router.post("/", catchAsync(async (req, res) => {
 }));
 
 // PATCH /api/recurring/:id — { active: true|false } pause / resume
+// PATCH /:id (any logged-in user)
 router.patch("/:id", catchAsync(async (req, res) => {
   const [result] = await pool.query("UPDATE recurring_orders SET active = ? WHERE id = ? AND user_id = ?",
     [req.body.active === false ? 0 : 1, Number(req.params.id), req.user.id]);
@@ -86,6 +88,7 @@ router.patch("/:id", catchAsync(async (req, res) => {
 }));
 
 // DELETE /api/recurring/:id
+// DELETE /:id (any logged-in user)
 router.delete("/:id", catchAsync(async (req, res) => {
   const [result] = await pool.query("DELETE FROM recurring_orders WHERE id = ? AND user_id = ?", [Number(req.params.id), req.user.id]);
   if (!result.affectedRows) return res.status(404).json({ error: "Weekly order not found" });
@@ -93,6 +96,7 @@ router.delete("/:id", catchAsync(async (req, res) => {
 }));
 
 // POST /api/recurring/:id/done — added to the cart or skipped: hide today's reminder
+// POST /:id/done (any logged-in user)
 router.post("/:id/done", catchAsync(async (req, res) => {
   const [result] = await pool.query("UPDATE recurring_orders SET last_done = ? WHERE id = ? AND user_id = ?",
     [todayStr(), Number(req.params.id), req.user.id]);

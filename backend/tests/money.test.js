@@ -35,3 +35,16 @@ test("paisa are counted exactly", () => {
   assert.equal(checkDailyTopup({ toppedUpToday: 19999.99, amount: 0.01, limit: 20000 }).ok, true);
   assert.equal(checkDailyTopup({ toppedUpToday: 19999.99, amount: 0.02, limit: 20000 }).ok, false);
 });
+
+test("checkDailyTopup accepts numbers written as text", () => {
+  const { checkDailyTopup } = require("../src/utils/money");
+  const r = checkDailyTopup({ toppedUpToday: "100.50", amount: "50", limit: "20000" });
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.remaining, 19899.5);
+});
+
+test("dailyTopupLimit ignores Infinity and reads exponent notation", () => {
+  const { dailyTopupLimit, DEFAULT_DAILY_TOPUP_LIMIT } = require("../src/utils/money");
+  assert.strictEqual(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "Infinity" }), DEFAULT_DAILY_TOPUP_LIMIT);
+  assert.strictEqual(dailyTopupLimit({ WALLET_TOPUP_DAILY_LIMIT: "1e3" }), 1000);
+});

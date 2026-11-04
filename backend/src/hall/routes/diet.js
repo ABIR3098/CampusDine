@@ -19,11 +19,13 @@ async function myDiet(userId) {
 }
 
 // GET /api/hall/diet/mine → { avoid: [key], allergies: [key], note, tags: [{ key, label }], vegetarian: [key] }
+// GET /diet/mine
 router.get("/diet/mine", memberOnly, catchAsync(async (req, res) => {
   res.json({ ...(await myDiet(req.user.id)), tags: catalog, vegetarian: VEGETARIAN_AVOID });
 }));
 
 // PUT /api/hall/diet/mine   body: { avoid: [key], allergies: [key], note? }   (a tag in both lists counts as an allergy)
+// PUT /diet/mine
 router.put("/diet/mine", memberOnly, catchAsync(async (req, res) => {
   const b = req.body || {};
   for (const field of ["avoid", "allergies"]) {

@@ -7,6 +7,7 @@ const { couponUnusable, validateNewCoupon } = require("../utils/couponRules");
 const router = express.Router();
 
 // Validate and apply coupon code
+// POST /validate (any logged-in user)
 router.post("/validate", verifyToken, async (req, res) => {
   let db;
   try {
@@ -144,6 +145,7 @@ router.post("/validate", verifyToken, async (req, res) => {
 });
 
 // Apply coupon to order
+// POST /apply (any logged-in user)
 router.post("/apply", verifyToken, async (req, res) => {
   let db;
   try {
@@ -238,6 +240,7 @@ router.post("/apply", verifyToken, async (req, res) => {
 });
 
 // Get available coupons
+// GET /available (any logged-in user)
 router.get("/available", verifyToken, async (req, res) => {
   let db;
   try {
@@ -266,6 +269,7 @@ router.get("/available", verifyToken, async (req, res) => {
 });
 
 // Admin: Create new coupon
+// POST / (any logged-in user)
 router.post("/", verifyToken, async (req, res) => {
   let db;
   try {
@@ -301,6 +305,7 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 // Admin: List all coupons
+// GET / (any logged-in user)
 router.get("/", verifyToken, async (req, res) => {
   let db;
   try {
@@ -328,6 +333,7 @@ router.get("/", verifyToken, async (req, res) => {
 });
 
 // Admin: Update coupon
+// PUT /:couponId (any logged-in user)
 router.put("/:couponId", verifyToken, async (req, res) => {
   let db;
   try {

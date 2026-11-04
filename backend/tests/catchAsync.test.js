@@ -21,3 +21,10 @@ test("catchAsync also catches errors thrown by a non-async handler", async () =>
   await new Promise((r) => setImmediate(r));
   assert.equal(received.message, "late");
 });
+
+test("catchAsync hands req, res and next to the handler unchanged", async () => {
+  const catchAsync = require("../src/utils/catchAsync");
+  let got;
+  await catchAsync(async (a, b, c) => { got = [a, b, c]; })(1, 2, 3);
+  assert.deepStrictEqual(got, [1, 2, 3]);
+});
