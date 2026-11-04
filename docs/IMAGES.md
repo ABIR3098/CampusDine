@@ -29,3 +29,6 @@ Used by: Chotpoti, Doi Chotpoti
 
 ### `chowmein.svg`
 Used by: Chicken Pasta, Chowmein, Veg Noodles
+
+### `coconut-water.svg`
+Used by: Coconut Water
