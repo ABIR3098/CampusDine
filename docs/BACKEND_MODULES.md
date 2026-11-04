@@ -121,3 +121,8 @@ Exports: `pingWatchers`
 
 ## `src/utils/audit.js`
 Exports: `recordAuditEvent`
+
+## `src/utils/catchAsync.js`
+Express 4 does NOT automatically catch a rejected promise thrown inside an async route handler — it turns into an unhandled rejection and takes down the *entire* Node process (every logged-in user, every request).
+
+Exports: `catchAsync`
