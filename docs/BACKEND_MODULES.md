@@ -131,3 +131,6 @@ Exports: `catchAsync`
 Canteen-local clock helpers. Happy hours and the daily streak must follow the canteen's wall clock, not whatever timezone the server happens to run in. Set CANTEEN_TZ in .env (default Asia/Dhaka).
 
 Exports: `TZ`, `localParts`, `toMinutes`, `dayDiff`, `addDays`
+
+## `src/utils/fraud.js`
+Exports: `recordFraudEvent`
