@@ -34,6 +34,7 @@ More documentation lives in [`docs/`](docs/):
 - [Hall frontend modules](docs/HALL_FRONTEND_MODULES.md)
 - [Backend modules](docs/BACKEND_MODULES.md)
 - [Images](docs/IMAGES.md)
+- [Migrations](docs/MIGRATIONS.md)
 - [API routes](docs/API_ROUTES.md)
 
 ---
