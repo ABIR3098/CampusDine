@@ -157,3 +157,8 @@ Exports: `resolvePickupTime`, `PICKUP_MIN_LEAD_MINUTES`, `PICKUP_MAX_LEAD_HOURS`
 
 ## `src/utils/riderAssignment.js`
 Exports: `assignOrderToBestRider`
+
+## `src/utils/tokenQr.js`
+Signed pickup-token QR payloads.
+
+Exports: `buildPayload`, `parseCode`, `sign`
