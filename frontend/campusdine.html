@@ -790,6 +790,23 @@
     z-index: 20;
   }
 
+  /* Menu position: side (sidebar) or top (tab strip under the header) */
+  .portal-shell.nav-top .portal-sidebar { display: none; }
+  .portal-shell.nav-top .nav-burger { display: none !important; }
+  .nav-strip { display: flex; gap: 6px; overflow-x: auto; padding: 8px 24px; background: var(--panel); border-bottom: 1.5px solid var(--line);
+    position: sticky; top: 70px; z-index: 19; scrollbar-width: thin; }
+  .nav-strip-item { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; flex-shrink: 0; padding: 8px 14px; border-radius: 12px;
+    border: 1px solid transparent; font-size: 13px; font-weight: 700; color: var(--ink-soft); background: transparent; cursor: pointer; transition: background .15s, color .15s; }
+  .nav-strip-item:hover { background: rgba(0,0,0,0.05); color: var(--ink); }
+  .nav-strip-item.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%); color: #FFFFFF; border-color: var(--gold); box-shadow: 0 4px 12px -2px var(--accent-shadow); }
+  .nav-strip-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--brick); color: #fff; font-size: 10px; font-weight: 800; display: grid; place-items: center; }
+  .nav-strip-item.active .nav-strip-badge { background: #fff; color: var(--brick); }
+  .layout-switch { display: inline-flex; gap: 3px; padding: 3px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--panel); }
+  .layout-switch-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 9px; border: 0; cursor: pointer; font-size: 12px; font-weight: 800; color: var(--ink-soft); background: transparent; }
+  .layout-switch-btn:hover { background: rgba(0,0,0,0.06); }
+  .layout-switch-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%); color: #FFFFFF; cursor: default; }
+  @media (max-width: 900px) { .nav-strip { padding: 8px 12px; } }
+
   /* User Profile Header Card (like BUP Portal Header in screenshot) */
   .portal-user-banner {
     background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #2563eb 100%);
@@ -3296,6 +3313,53 @@ function Login({ apiBase, setApiBase, onAuth, onToggleLang }) {
   );
 }
 
+/* ---------------- Menu position (side / top) ---------------- */
+// The person chooses where the menu tabs live: a sidebar on the left or a tab strip on top.
+// The choice is remembered, and it is shared by the canteen screens and the Hall screens.
+function useNavLayout() {
+  const [layout, setLayoutState] = useState(() => {
+    try { return localStorage.getItem("cd_nav_layout") === "top" ? "top" : "side"; } catch (e) { return "side"; }
+  });
+  const setLayout = (v) => {
+    setLayoutState(v);
+    try { localStorage.setItem("cd_nav_layout", v); } catch (e) {}
+  };
+  return [layout, setLayout];
+}
+
+function NavLayoutToggle({ layout, setLayout }) {
+  const opts = [
+    { key: "side", icon: "◧", label: "Side" },
+    { key: "top", icon: "⬒", label: "Top" },
+  ];
+  return (
+    <div className="layout-switch" role="group" aria-label="Menu position" title="Show the menu on the side or on top">
+      {opts.map(o => (
+        <button key={o.key} type="button" aria-pressed={layout === o.key} title={o.label + " menu"}
+          className={"layout-switch-btn" + (layout === o.key ? " active" : "")}
+          onClick={() => setLayout(o.key)}>
+          <span>{o.icon}</span><span className="hidden lg:inline">{o.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function NavTabStrip({ tabs, active, setActive, renderIcon }) {
+  return (
+    <nav className="nav-strip" aria-label="Main menu">
+      {tabs.map(t => (
+        <button key={t.key} type="button" title={t.label} onClick={() => setActive(t.key)}
+          className={"nav-strip-item" + (active === t.key ? " active" : "")}>
+          {renderIcon ? renderIcon(t) : null}
+          <span>{t.label}</span>
+          {t.badge > 0 && <span className="nav-strip-badge">{t.badge > 9 ? "9+" : t.badge}</span>}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 /* ---------------- Top bar ---------------- */
 function TopBar({
   role, name, avatar, tabs, active, setActive, onLogout, connected, onToggleLang,
@@ -3411,7 +3475,7 @@ function PortalTopHeader({
   role, name, avatar, connected, onToggleLang, onLogout,
   notifications = [], notificationCount = 0, onToggleNotifications,
   notificationOpen = false, onMarkAllRead, onClearNotifications,
-  onOpenMobileMenu, restaurant, onSwitchRestaurant, currentTabLabel
+  onOpenMobileMenu, restaurant, onSwitchRestaurant, currentTabLabel, navLayout, setNavLayout
 }) {
   return (
     <header className="portal-header">
@@ -3420,10 +3484,12 @@ function PortalTopHeader({
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="md:hidden w-10 h-10 rounded-xl border grid place-items-center"
+          className="nav-burger md:hidden w-10 h-10 rounded-xl border grid place-items-center"
           style={{ borderColor: "var(--line)" }}>
           <Icon path={I.menu} className="w-5 h-5" />
         </button>
+
+        {navLayout === "top" && <span role="img" aria-label="CampusDine logo" className="cd-logo shrink-0"></span>}
 
         {restaurant && (
           <div className="flex items-center gap-2.5">
@@ -3443,6 +3509,8 @@ function PortalTopHeader({
 
       {/* Right: Actions, Notification, User Pill (like in BUP screenshot) */}
       <div className="flex items-center gap-2.5">
+        <NavLayoutToggle layout={navLayout} setLayout={setNavLayout} />
+
         {/* Notification Bell */}
         <div className="relative">
           <button
@@ -9633,7 +9701,7 @@ function HallGate(props) {
   if (window.HallLoadError) return <div className="p-6 text-sm">Could not load the Hall: {window.HallLoadError} <button className="btn-gold px-3 py-1.5 rounded-lg text-xs ml-2" onClick={props.onBack}>← Back</button></div>;
   if (!ready || !window.HallApp) return <div className="p-6 text-sm opacity-70">Loading Hall…</div>;
   const Hall = window.HallApp;
-  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab }} />;
+  return <Hall {...props} ui={{ ThemeMenu, Avatar, WalletTab, ProfileTab, NavTabStrip, NavLayoutToggle, useNavLayout }} />;
 }
 
 /* ---------------- Loyalty rewards + streak (student / teacher) ---------------- */
@@ -10075,6 +10143,7 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [lowBalanceDismissed, setLowBalanceDismissed] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [navLayout, setNavLayout] = useNavLayout(); // "side" or "top"
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState("");
   const [restaurant, setRestaurant] = useState(null); // the restaurant chosen after login (everyone)
@@ -10203,13 +10272,9 @@ function App() {
 
   const onAuth = (token, user) => {
     setSession({ token, user });
-    // If the student has a Hall Resident account, automatically route them into Hall Portal!
-    if (user.role === "student" && user.accountType === "hall") {
-      setRestaurant(HALL_ENTRY);
-    } else {
-      setRestaurant(null);
-      setTab(user.role === "admin" ? "overview" : "menu");
-    }
+    // After login everyone (hall residents included) lands on the choose page: a restaurant or the Hall.
+    setRestaurant(null);
+    setTab(user.role === "admin" ? "overview" : "menu");
   };
   const logout = () => {
     if (socketRef.current) socketRef.current.disconnect();
@@ -10649,7 +10714,7 @@ function App() {
   const currentTabObj = currentTabs.find(t => t.key === tab);
 
   return (
-    <div className="portal-shell">
+    <div className={"portal-shell" + (navLayout === "top" ? " nav-top" : "")}>
       {/* ─── Vertical Left Sidebar (BUP Portal Style) ─── */}
       <TopBar
         role={session.user.role}
@@ -10695,7 +10760,14 @@ function App() {
           restaurant={restaurant}
           onSwitchRestaurant={switchRestaurant}
           currentTabLabel={currentTabObj ? currentTabObj.label : ""}
+          navLayout={navLayout}
+          setNavLayout={setNavLayout}
         />
+
+        {navLayout === "top" && (
+          <NavTabStrip tabs={currentTabs} active={tab} setActive={setTab}
+            renderIcon={t => <Icon path={t.icon} className="w-4 h-4" />} />
+        )}
 
         {/* Toast notifications */}
         <div className="fixed top-[85px] right-6 z-50 flex flex-col gap-2 w-[min(90vw,340px)] pointer-events-none">
