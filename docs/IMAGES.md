@@ -32,3 +32,6 @@ Used by: Chicken Pasta, Chowmein, Veg Noodles
 
 ### `coconut-water.svg`
 Used by: Coconut Water
+
+### `cold-coffee.svg`
+Used by: Cappuccino, Cold Coffee
