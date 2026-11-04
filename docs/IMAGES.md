@@ -47,3 +47,6 @@ Used by: Cheese Omelette, Club Sandwich, Egg Sandwich, Egg Toast, Grilled Chicke
 
 ### `falooda.svg`
 Used by: Falooda, Special Falooda
+
+### `fish-curry.svg`
+Used by: Fish Curry & Rice, Fish Fry, Ilish Bhat, Prawn Malai Curry & Rice, Rui Fish Curry & Rice, Shutki Bhuna & Rice
