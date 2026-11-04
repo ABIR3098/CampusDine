@@ -38,3 +38,6 @@ Used by: Cappuccino, Cold Coffee
 
 ### `default.svg`
 Used by: Chicken Soup, Corn Soup, Doi Chira, Firni, Fruit Salad, Gulab Jamun, Haleem, Hot Chocolate, Payesh, Rasgulla, Sandesh, Thai Soup
+
+### `egg-curry.svg`
+Used by: Chicken Curry & Rice, Egg Chop, Egg Curry & Rice
