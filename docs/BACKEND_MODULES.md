@@ -37,3 +37,6 @@ Exports: `ensureHallDietSchema`
 What is in a meal? The menu is plain text ("Rice, Dal, Beef curry"), so the tags are found by looking for well-known words (English and Bangla/Banglish). It is a helper, not a guarantee: the screens say so.
 
 Exports: `TAGS`, `KEYS`, `LABEL`, `VEGETARIAN_AVOID`, `tagsOf`, `parseList`, `matchesFor`
+
+## `src/hall/extraSchema.js`
+Exports: `ensureHallExtraSchema`
