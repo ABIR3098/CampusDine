@@ -80,3 +80,6 @@ Used by: Drinking Water 500ml, Mineral Water
 
 ### `mixed-veg-rice.svg`
 Used by: Mixed Veg & Rice
+
+### `porota-vaji.svg`
+Used by: Alu Porota, Dim Bhuna & Porota, Luchi & Alur Dom, Porota-Vaji
