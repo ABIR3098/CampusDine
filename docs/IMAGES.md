@@ -95,3 +95,7 @@ Used by: Beef Tehari, Tehari
 
 ### `veg-pakora.svg`
 Used by: Alur Chop, Beguni, Piyaju, Veg Pakora
+
+## Restaurant logos (`frontend/images/restaurants/`)
+
+One logo per restaurant, plus one for the Hall.
