@@ -26,3 +26,6 @@ Used by: Beef Kabab Roll, Chicken Roll, Vegetable Roll
 
 ### `chotpoti.svg`
 Used by: Chotpoti, Doi Chotpoti
+
+### `chowmein.svg`
+Used by: Chicken Pasta, Chowmein, Veg Noodles
