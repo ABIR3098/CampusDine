@@ -108,3 +108,6 @@ Logo for Hall.
 
 ### `staff.svg`
 Logo for Staff Canteen.
+
+### `thirdplace.svg`
+Logo for Third Place.
