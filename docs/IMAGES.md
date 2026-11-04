@@ -92,3 +92,6 @@ Used by: Chicken Samosa, Singara
 
 ### `tehari.svg`
 Used by: Beef Tehari, Tehari
+
+### `veg-pakora.svg`
+Used by: Alur Chop, Beguni, Piyaju, Veg Pakora
