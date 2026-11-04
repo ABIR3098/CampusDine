@@ -118,3 +118,6 @@ Exports: `loadItemRestaurants`, `saveItemRestaurant`
 "Notify me" — tells students who asked about an item that it is available again.
 
 Exports: `pingWatchers`
+
+## `src/utils/audit.js`
+Exports: `recordAuditEvent`
