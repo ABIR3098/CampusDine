@@ -12,3 +12,8 @@ Exports: `pool`
 
 ## `src/hall/advanced.js`
 Exports: `router`, `notify`
+
+## `src/hall/advancedSchema.js`
+Extended Hall module schema. Idempotent: safe to run at each server start.
+
+Exports: `ensureHallAdvancedSchema`
