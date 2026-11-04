@@ -29,5 +29,11 @@ window.CD_COMPONENT_FILES = [
   "admin/SettlementInvoiceModal.jsx",
   "ui/EmergencyBannerAlert.jsx",
   "admin/AdminEmergencyControls.jsx",
-  "chat/TeacherRiderChat.jsx"
+  "chat/TeacherRiderChat.jsx",
+  "ui/FoodBadge.jsx",
+  "ui/EmptyState.jsx",
+  "ui/FloatingCartBar.jsx",
+  "ui/MobileBottomNav.jsx",
+  "ui/CategoryPillsBar.jsx",
+  "ui/QuickReorderCard.jsx"
 ];
