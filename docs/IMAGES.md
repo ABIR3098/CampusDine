@@ -71,3 +71,6 @@ Used by: Banana Shake, Chocolate Milkshake, Lassi, Mango Lassi, Mishti Doi, Stra
 
 ### `lemon-soda.svg`
 Used by: Lemon Soda, Mint Lemonade, Sugarcane Juice
+
+### `mango-juice.svg`
+Used by: Mango Juice, Orange Juice, Watermelon Juice
