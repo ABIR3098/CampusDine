@@ -113,3 +113,8 @@ Exports: `ensureCode`, `rewardReferral`, `REFERRAL_BONUS`, `MAX_REWARDS_PER_REFE
 Which restaurant a menu item belongs to — without touching the database schema.
 
 Exports: `loadItemRestaurants`, `saveItemRestaurant`
+
+## `src/stockAlerts.js`
+"Notify me" — tells students who asked about an item that it is available again.
+
+Exports: `pingWatchers`
