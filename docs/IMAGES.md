@@ -65,3 +65,6 @@ Used by: Jhalmuri, Jhalmuri Special
 
 ### `khichuri.svg`
 Used by: Beef Khichuri, Chicken Khichuri, Egg Khichuri, Khichuri
+
+### `lassi.svg`
+Used by: Banana Shake, Chocolate Milkshake, Lassi, Mango Lassi, Mishti Doi, Strawberry Shake
