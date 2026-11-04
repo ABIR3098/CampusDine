@@ -41,3 +41,6 @@ Used by: Chicken Soup, Corn Soup, Doi Chira, Firni, Fruit Salad, Gulab Jamun, Ha
 
 ### `egg-curry.svg`
 Used by: Chicken Curry & Rice, Egg Chop, Egg Curry & Rice
+
+### `egg-sandwich.svg`
+Used by: Cheese Omelette, Club Sandwich, Egg Sandwich, Egg Toast, Grilled Chicken Sandwich
