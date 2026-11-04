@@ -44,3 +44,6 @@ Used by: Chicken Curry & Rice, Egg Chop, Egg Curry & Rice
 
 ### `egg-sandwich.svg`
 Used by: Cheese Omelette, Club Sandwich, Egg Sandwich, Egg Toast, Grilled Chicken Sandwich
+
+### `falooda.svg`
+Used by: Falooda, Special Falooda
