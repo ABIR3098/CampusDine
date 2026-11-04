@@ -35,3 +35,6 @@ Used by: Coconut Water
 
 ### `cold-coffee.svg`
 Used by: Cappuccino, Cold Coffee
+
+### `default.svg`
+Used by: Chicken Soup, Corn Soup, Doi Chira, Firni, Fruit Salad, Gulab Jamun, Haleem, Hot Chocolate, Payesh, Rasgulla, Sandesh, Thai Soup
