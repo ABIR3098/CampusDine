@@ -98,3 +98,8 @@ Exports: `verifyToken`, `requireRole`
 Schema + first-run seed for: loyalty points / streak, combo deals and happy hours.
 
 Exports: `ensureOffersSchema`
+
+## `src/pricing.js`
+One place that decides what an order costs — used by placing an order (orders.js), the cart preview (/api/pricing/quote) and /api/coupon/validate, so the cart can never show a different price than the server charges.
+
+Exports: `r2`, `loadHappyHours`, `loadCombos`, `isHappyHourActive`, `happyHourCovers`, `priceCart`, `priceOrder`, `quoteResponse`
