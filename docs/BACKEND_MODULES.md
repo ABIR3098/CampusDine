@@ -22,3 +22,8 @@ Exports: `ensureHallAdvancedSchema`
 Auto-pay: for people who turned it on, the previous month's Hall bill is taken from their wallet between the 1st and the GRACE_DAYS-th of every month (all meals of that month have closed by then).
 
 Exports: `GRACE_DAYS`, `previousMonth`, `autoPayOne`, `runAutoPay`, `startAutoPay`
+
+## `src/hall/autopaySchema.js`
+Auto-pay: who turned it on, and what happened each time it ran.
+
+Exports: `ensureHallAutoPaySchema`
