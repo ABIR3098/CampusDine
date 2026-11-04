@@ -99,3 +99,6 @@ Used by: Alur Chop, Beguni, Piyaju, Veg Pakora
 ## Restaurant logos (`frontend/images/restaurants/`)
 
 One logo per restaurant, plus one for the Hall.
+
+### `amitie.svg`
+Logo for Amitié (Friendship).
