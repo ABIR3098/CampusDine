@@ -55,3 +55,8 @@ Exports: `ensureHallFinanceSchema`
 Hall = the meal system (students & teachers switch each meal on/off, weekly menu, feasts, monthly bill).
 
 Exports: `router`, `ensureHallSchema`, `startJobs`
+
+## `src/hall/jobs.js`
+Cut-off job: once a meal is locked, write down every person's state for it (source = 'auto' where they never chose, copied from their previous choice). After this the day's numbers are fixed.
+
+Exports: `runAutoFill`, `startAutoFill`
