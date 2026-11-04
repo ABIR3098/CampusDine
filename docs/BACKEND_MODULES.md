@@ -85,3 +85,8 @@ Exports: `loadStates`, `DEFAULT_STATE`, `MAX_DAYS`
 Small helpers shared by every Hall route.
 
 Exports: `SLOTS`, `nowParts`, `isDateKey`, `addDays`, `cutoffOf`, `isLocked`, `localStamp`
+
+## `src/loyalty.js`
+Loyalty points + daily-order streak.
+
+Exports: `DEFAULT_SETTINGS`, `getSettings`, `saveSettings`, `getAccount`, `awardForOrder`, `redeemForOrder`, `refundForOrder`, `summaryFor`
