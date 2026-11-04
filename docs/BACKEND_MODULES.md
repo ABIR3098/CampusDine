@@ -50,3 +50,8 @@ Exports: `RSVP_STATUSES`, `parseRsvpStatus`, `hasSeat`
 Mess finance: what the hall spends (food, gas, wages ...). Income comes from the bills that already exist.
 
 Exports: `ensureHallFinanceSchema`
+
+## `src/hall/index.js`
+Hall = the meal system (students & teachers switch each meal on/off, weekly menu, feasts, monthly bill).
+
+Exports: `router`, `ensureHallSchema`, `startJobs`
