@@ -111,3 +111,6 @@ Logo for Staff Canteen.
 
 ### `thirdplace.svg`
 Logo for Third Place.
+
+### `vista.svg`
+Logo for Vista Cafeteria.
