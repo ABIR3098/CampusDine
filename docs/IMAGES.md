@@ -59,3 +59,6 @@ Used by: Chicken Fried Rice, Egg Fried Rice, Fried Rice, Veg Fried Rice
 
 ### `fuchka.svg`
 Used by: Fuchka
+
+### `jhalmuri.svg`
+Used by: Jhalmuri, Jhalmuri Special
