@@ -17,3 +17,8 @@ Exports: `router`, `notify`
 Extended Hall module schema. Idempotent: safe to run at each server start.
 
 Exports: `ensureHallAdvancedSchema`
+
+## `src/hall/autopay.js`
+Auto-pay: for people who turned it on, the previous month's Hall bill is taken from their wallet between the 1st and the GRACE_DAYS-th of every month (all meals of that month have closed by then).
+
+Exports: `GRACE_DAYS`, `previousMonth`, `autoPayOne`, `runAutoPay`, `startAutoPay`
