@@ -89,3 +89,6 @@ Used by: Dal Sobji & Rice, Plain Rice & Dal
 
 ### `singara.svg`
 Used by: Chicken Samosa, Singara
+
+### `tehari.svg`
+Used by: Beef Tehari, Tehari
