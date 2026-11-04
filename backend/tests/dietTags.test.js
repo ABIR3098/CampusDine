@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const { tagsOf, parseList, matchesFor } = require("../src/hall/dietTags");
+const { TAGS, KEYS, LABEL, VEGETARIAN_AVOID, tagsOf, parseList, matchesFor } = require("../src/hall/dietTags");
 
 test("tagsOf finds English and Bangla words", () => {
   assert.deepStrictEqual(tagsOf("Rice, Dal, Beef curry"), ["beef"]);
