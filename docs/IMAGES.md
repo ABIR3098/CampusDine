@@ -56,3 +56,6 @@ Used by: Cheese Fries, Chicken Nuggets, French Fries, Onion Rings
 
 ### `fried-rice.svg`
 Used by: Chicken Fried Rice, Egg Fried Rice, Fried Rice, Veg Fried Rice
+
+### `fuchka.svg`
+Used by: Fuchka
