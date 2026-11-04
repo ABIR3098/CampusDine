@@ -134,3 +134,8 @@ Exports: `TZ`, `localParts`, `toMinutes`, `dayDiff`, `addDays`
 
 ## `src/utils/fraud.js`
 Exports: `recordFraudEvent`
+
+## `src/utils/mailer.js`
+Email sender (commit 2), built on nodemailer.
+
+Exports: `sendOtpEmail`, `smtpConfigured`
