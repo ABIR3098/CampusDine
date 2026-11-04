@@ -75,3 +75,8 @@ Exports: `ensureHallRatingsSchema`
 Hall tables. The server runs this on every start (safe to repeat: CREATE TABLE IF NOT EXISTS).
 
 Exports: `ensureHallSchema`
+
+## `src/hall/states.js`
+"Effective" on/off state of a person's meals.
+
+Exports: `loadStates`, `DEFAULT_STATE`, `MAX_DAYS`
