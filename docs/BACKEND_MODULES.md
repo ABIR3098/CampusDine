@@ -70,3 +70,8 @@ Exports: `ensureHallLastCallSchema`
 Meal ratings: one row per person, date and meal (rating again just updates the row).
 
 Exports: `ensureHallRatingsSchema`
+
+## `src/hall/schema.js`
+Hall tables. The server runs this on every start (safe to repeat: CREATE TABLE IF NOT EXISTS).
+
+Exports: `ensureHallSchema`
