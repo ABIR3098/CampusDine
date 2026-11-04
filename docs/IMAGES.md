@@ -102,3 +102,6 @@ One logo per restaurant, plus one for the Hall.
 
 ### `amitie.svg`
 Logo for Amitié (Friendship).
+
+### `hall.svg`
+Logo for Hall.
