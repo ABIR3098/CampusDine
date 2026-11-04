@@ -1,5 +1,5 @@
 // CampusDine UI: FloatingCartBar
-// Sticky bottom checkout preview bar appearing on small/mobile screens when items are in cart
+// Sticky bottom checkout preview bar appearing strictly on small/mobile screens (< 768px) when items are in cart
 (function() {
   const { React } = window;
   if (!React) return;
@@ -7,20 +7,45 @@
   function FloatingCartBar({ cart = [], onOpenCart }) {
     if (!Array.isArray(cart) || cart.length === 0) return null;
 
-    const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
-    const totalPrice = cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+    const [isMobile, setIsMobile] = React.useState(function() {
+      return typeof window !== "undefined" && window.innerWidth < 768;
+    });
+
+    React.useEffect(function() {
+      function checkWidth() {
+        setIsMobile(window.innerWidth < 768);
+      }
+      checkWidth();
+      window.addEventListener("resize", checkWidth);
+      return function() {
+        window.removeEventListener("resize", checkWidth);
+      };
+    }, []);
+
+    // Strictly hidden on laptop and desktop screens
+    if (!isMobile) return null;
+
+    const totalItems = cart.reduce(function(sum, item) {
+      return sum + (Number(item.qty) || 1);
+    }, 0);
+    const totalPrice = cart.reduce(function(sum, item) {
+      return sum + ((Number(item.price) || 0) * (Number(item.qty) || 1));
+    }, 0);
 
     return (
-      <div style={{
-        position: "fixed",
-        bottom: "64px", // Positioned nicely above bottom navigation bar on mobile
-        left: "16px",
-        right: "16px",
-        maxWidth: "460px",
-        margin: "0 auto",
-        zIndex: 45,
-        animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
-      }}>
+      <div
+        className="cd-floating-cart-bar"
+        style={{
+          position: "fixed",
+          bottom: "68px", // Positioned nicely above bottom navigation bar on mobile
+          left: "16px",
+          right: "16px",
+          maxWidth: "460px",
+          margin: "0 auto",
+          zIndex: 45,
+          animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
+        }}
+      >
         <div
           onClick={onOpenCart}
           style={{
@@ -48,16 +73,7 @@
           </div>
 
           {/* Right action */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            padding: "6px 14px",
-            borderRadius: "10px",
-            fontSize: "13px",
-            fontWeight: "700"
-          }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: "700", fontSize: "14px" }}>
             <span>View Cart</span>
             <span>➔</span>
           </div>
