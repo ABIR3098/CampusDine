@@ -60,3 +60,8 @@ Exports: `router`, `ensureHallSchema`, `startJobs`
 Cut-off job: once a meal is locked, write down every person's state for it (source = 'auto' where they never chose, copied from their previous choice). After this the day's numbers are fixed.
 
 Exports: `runAutoFill`, `startAutoFill`
+
+## `src/hall/lastcallSchema.js`
+Last-call plates: leftover plates sold cheaply at the end of a meal (less food waste), claimed with the wallet.
+
+Exports: `ensureHallLastCallSchema`
