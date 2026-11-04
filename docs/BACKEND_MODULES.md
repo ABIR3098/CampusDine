@@ -93,3 +93,8 @@ Exports: `DEFAULT_SETTINGS`, `getSettings`, `saveSettings`, `getAccount`, `award
 
 ## `src/middleware/auth.js`
 Exports: `verifyToken`, `requireRole`
+
+## `src/offersSchema.js`
+Schema + first-run seed for: loyalty points / streak, combo deals and happy hours.
+
+Exports: `ensureOffersSchema`
