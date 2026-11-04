@@ -9,3 +9,6 @@ Exports: `IMAGE_BY_NAME`, `NEW_ITEMS`, `NUTRITION_BY_NAME`, `nutritionFor`, `RES
 
 ## `src/db.js`
 Exports: `pool`
+
+## `src/hall/advanced.js`
+Exports: `router`, `notify`
