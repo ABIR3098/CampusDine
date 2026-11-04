@@ -139,3 +139,8 @@ Exports: `recordFraudEvent`
 Email sender (commit 2), built on nodemailer.
 
 Exports: `sendOtpEmail`, `smtpConfigured`
+
+## `src/utils/orderRules.js`
+Order rules in one place, so the route, the price preview and the tests all read the same numbers.
+
+Exports: `STATUSES`, `TIP_OPTIONS`, `AVG_MINUTES_PER_ORDER`, `MAX_QTY_PER_ITEM`, `MAX_CART_LINES`, `validateCartLimits`, `estimateReadyAt`, `buildOrderStats`, `parseListParams`, `parseAdminFilters`, `cleanCancelReason`, `ALL_STATUSES`, `MAX_PAGE_SIZE`
