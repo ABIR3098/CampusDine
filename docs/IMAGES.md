@@ -62,3 +62,6 @@ Used by: Fuchka
 
 ### `jhalmuri.svg`
 Used by: Jhalmuri, Jhalmuri Special
+
+### `khichuri.svg`
+Used by: Beef Khichuri, Chicken Khichuri, Egg Khichuri, Khichuri
