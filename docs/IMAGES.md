@@ -83,3 +83,6 @@ Used by: Mixed Veg & Rice
 
 ### `porota-vaji.svg`
 Used by: Alu Porota, Dim Bhuna & Porota, Luchi & Alur Dom, Porota-Vaji
+
+### `rice-dal.svg`
+Used by: Dal Sobji & Rice, Plain Rice & Dal
