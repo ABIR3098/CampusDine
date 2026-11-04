@@ -45,3 +45,8 @@ Exports: `ensureHallExtraSchema`
 Helpers for feast RSVPs. No database code in here, so they are easy to test.
 
 Exports: `RSVP_STATUSES`, `parseRsvpStatus`, `hasSeat`
+
+## `src/hall/financeSchema.js`
+Mess finance: what the hall spends (food, gas, wages ...). Income comes from the bills that already exist.
+
+Exports: `ensureHallFinanceSchema`
