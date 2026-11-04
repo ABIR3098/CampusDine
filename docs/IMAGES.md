@@ -20,3 +20,6 @@ Used by: Chicken Biryani, Chicken Biryani Half, Chicken Roast, Polao & Roast
 
 ### `chicken-burger.svg`
 Used by: Beef Burger, Chicken Burger, Chicken Cutlet, Veg Burger
+
+### `chicken-roll.svg`
+Used by: Beef Kabab Roll, Chicken Roll, Vegetable Roll
