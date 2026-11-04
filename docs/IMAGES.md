@@ -11,3 +11,6 @@ Used by: Beef Bhuna & Rice, Beef Curry & Rice, Beef Rezala
 
 ### `borhani.svg`
 Used by: Borhani
+
+### `cha.svg`
+Used by: Cha (Tea), Ginger Tea, Green Tea, Iced Lemon Tea, Lemon Tea, Masala Tea
