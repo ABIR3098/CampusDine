@@ -126,3 +126,8 @@ Exports: `recordAuditEvent`
 Express 4 does NOT automatically catch a rejected promise thrown inside an async route handler — it turns into an unhandled rejection and takes down the *entire* Node process (every logged-in user, every request).
 
 Exports: `catchAsync`
+
+## `src/utils/clock.js`
+Canteen-local clock helpers. Happy hours and the daily streak must follow the canteen's wall clock, not whatever timezone the server happens to run in. Set CANTEEN_TZ in .env (default Asia/Dhaka).
+
+Exports: `TZ`, `localParts`, `toMinutes`, `dayDiff`, `addDays`
